@@ -7,10 +7,13 @@
       <form 
         class="mr-4" 
         style="width: 570px"
-        @submit.prevent="updateUser">
+        @submit.prevent="handleUpdateUser">
 
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Algemeen</h2>
+          
+          <Feedback :feedback="feedback" />
+
           <ProfileSetting 
             label="Voornaam" 
             v-model="user.given_name" />
@@ -51,6 +54,7 @@
 <script>
 import ProfileSetting from 'molecule/ProfileSetting'
 import TeamMembersPanel from 'organism/TeamMembersPanel'
+import Feedback from 'atom/Feedback'
 
 import { image } from 'helper/assets';
 import { getUserEmail } from 'service/auth';
@@ -63,7 +67,13 @@ export default {
   
   components: {
     ProfileSetting,
-    TeamMembersPanel
+    TeamMembersPanel,
+    Feedback
+  },
+  data() {
+    return {
+      feedback: {}
+    }
   },
   computed: {
     ...mapGetters('user', [
@@ -77,7 +87,25 @@ export default {
     image,
     ...mapActions('user', [
       'updateUser'
-    ])
+    ]),
+    async handleUpdateUser() {
+      try {
+        this.feedback = {
+          variant: 'info', 
+          message: 'Bezig met opslaan...'
+        }
+        await this.updateUser();
+        this.feedback = {
+          variant: 'success', 
+          message: 'Wijzigingen zijn opgeslagen'
+        }
+      } catch(err) {
+        this.feedback = {
+          variant: 'danger', 
+          message: 'Wijzigingen zijn niet opgeslagen'
+        }
+      }
+    }
   }
 }
 </script>

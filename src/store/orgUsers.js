@@ -67,6 +67,12 @@ const mutations = {
     })
   },
   update_user(state, { userData }) {
+
+    let index = state.users.findIndex(user => {
+      return user.user.id === userData.id
+    })
+    state.users[index].user = userData;
+
     // TODO: update user locally
     console.log(userData)
   }

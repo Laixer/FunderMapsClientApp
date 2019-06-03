@@ -1,9 +1,9 @@
 <template>
-  <div v-if="isSuperUser && orgUsers">
+  <div v-if="isSuperUser && orgUsersExcludingSelf">
     <div class="panel px-4 py-3" style="width: 300px">
       <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
       <TeamMember 
-        v-for="(member, index) in orgUsers" 
+        v-for="(member, index) in orgUsersExcludingSelf" 
         :member="member"
         :key="index"
         @edit="handleEdit" />
@@ -21,6 +21,8 @@ import { mapGetters } from 'vuex'
 import TeamMember from 'molecule/TeamMember'
 import TeamMemberModal from 'organism/TeamMemberModal'
 
+import { getUserId } from 'service/auth'
+
 export default {
   components: {
     TeamMember, TeamMemberModal
@@ -34,11 +36,16 @@ export default {
     ...mapGetters('orgUsers', [
       'orgUsers'
     ]),
+    orgUsersExcludingSelf() {
+      let id = getUserId()
+      return this.orgUsers.filter(
+        user => user.user.id !== id
+      )
+    }
   },
   methods: {
     isSuperUser,
     handleEdit({ id }) {
-      console.log(id)
       this.editUserId = id;
       this.$bvModal.show('modal-teammember')
     }

@@ -34,6 +34,12 @@ export default {
     },
     enableAllFields() {
       this.enableFields(Object.keys(this.fields))
+    },
+    setFieldValues(fieldValues) {
+      fieldValues.forEach(this.setFieldValue);
+    },
+    setFieldValue({name, value}) {
+      this.fields[name].value = value;
     }
   }
 }

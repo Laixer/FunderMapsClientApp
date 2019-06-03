@@ -4,6 +4,7 @@
     ref="modal" 
     centered 
     @ok="onOk"
+    @show="onShow"
     :title="'Teamlid: ' + name">
     <template slot="default">
       <Feedback :feedback="feedback" />
@@ -14,10 +15,34 @@
         @submit="handleSubmit">
 
         <FormField 
+          label="Voornaam"
+          type="text"
+          v-model="fields.given_name.value"
+          v-bind="fields.given_name" />
+
+        <FormField 
+          label="Achternaam"
+          type="text"
+          v-model="fields.last_name.value"
+          v-bind="fields.last_name" />
+
+        <FormField 
           label="Email"
           type="text"
           v-model="fields.email.value"
           v-bind="fields.email" />
+
+        <FormField 
+          label="Functie"
+          type="text"
+          v-model="fields.job_title.value"
+          v-bind="fields.job_title" />
+
+        <FormField 
+          label="Telefoon"
+          type="text"
+          v-model="fields.phone_number.value"
+          v-bind="fields.phone_number" />
         <Divider />
 
         <FormField 
@@ -41,8 +66,7 @@
 
 <script>
 
-import { required,  email } from 'vuelidate/lib/validators';
-// minLength,
+import { required, minLength, email } from 'vuelidate/lib/validators';
 
 import { image } from 'helper/assets'
 import Divider from 'atom/Divider'
@@ -71,20 +95,28 @@ export default {
       isDisabled: false,
       feedback: {},
       fields: {
+        given_name: {
+          value: "",
+          validationRules: {
+            minLength: minLength(2)
+          },
+          disabled: false
+        },
+        last_name: {
+          value: "",
+          validationRules: {
+            minLength: minLength(2)
+          },
+          disabled: false
+        },
         email: {
-          value: "naam@bedrijf.nl",
+          value: "",
+          placeholder: 'naam@bedrijf.nl',
           validationRules: {
             required, email
           },
           disabled: false
         },
-        // password: {
-        //   value: '',
-        //   validationRules: {
-        //     minLength: minLength(6)
-        //   },
-        //   disabled: false
-        // },
         role: {
           value: null,
           validationRules: {
@@ -96,6 +128,18 @@ export default {
             { value: 'Superuser', text: 'Superuser' },
             { value: 'Reader', text: 'Reader' },
           ],
+        },
+        job_title: {
+          value: "",
+          validationRules: {
+          },
+          disabled: false
+        },
+        phone_number: {
+          value: "",
+          validationRules: {
+          },
+          disabled: false
         }
       }
     }
@@ -113,8 +157,16 @@ export default {
   },
   watch: {
     orgUser(orgUser) {
-      this.fields.email.value = orgUser.user.email
-      this.fields.role.value = orgUser.role.name
+
+      this.setFieldValues([
+        { name: 'email', value: orgUser.user.email },
+        { name: 'role', value: orgUser.role.name },
+        { name: 'given_name', value: orgUser.user.given_name },
+        { name: 'last_name', value: orgUser.user.last_name },
+        { name: 'job_title', value: orgUser.user.job_title },
+        { name: 'phone_number', value: orgUser.user.phone_number }
+      ])
+      
       this.name = orgUser.getUserName()
     }
   },
@@ -123,16 +175,16 @@ export default {
       'updateUser'
     ]),
     image,
+    onShow() {
+      this.feedback = { show: false }
+    },
     onOk(e) {
       e.preventDefault()
       if ( ! this.isDisabled) {
         this.$refs.form.submit()
       }
     },
-    async handleSubmit(e) {
-      console.log("submit", e)
-      
-
+    async handleSubmit() {
       this.disableAllFields()
       this.feedback = {
         variant: 'info', 
@@ -141,8 +193,12 @@ export default {
 
       // Make a copy
       let userData = Object.assign({}, this.orgUser.user);
-      userData.email = this.fieldValue('email');
-      
+      userData.email = this.fieldValue('email')
+      userData.job_title = this.fieldValue('job_title')
+      userData.last_name = this.fieldValue('last_name')
+      userData.given_name = this.fieldValue('given_name')
+      userData.phone_number = this.fieldValue('phone_number')
+
       // TODO: how to set a role?
       
       try {
@@ -156,38 +212,13 @@ export default {
         }
         this.$refs.modal.hide()
       } catch (err) {
-        console.log(err)
+        console.log(err);
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'
         }
       }
-
-
-// TODO: 
-//  - disabled fields
-//  - make call
-//  - on success: update local user object in store
-//  - on success: hide modal: this.$refs.modal.hide()
-//  - on error: feedback
-// 
-// {
-//   "given_name": "string",
-//   "last_name": "string",
-//   "avatar": "string",
-//   "job_title": "string",
-//   "two_factor_enabled": true,
-//   "phone_number_confirmed": true,
-//   "email_confirmed": true,
-//   "lockout_enabled": true,
-//   "id": "string",
-//   "user_name": "string",
-//   "email": "string",
-//   "phone_number": "string",
-//   "lockout_end": "2019-06-01T22:44:15.228Z"
-// }
-      
-
+      this.enableAllFields()
     },
     handleError(e) {
       console.log("error", e)
