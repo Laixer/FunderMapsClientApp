@@ -23,6 +23,11 @@ Vue.use(BootstrapVue)
 import VCalender from 'v-calendar'
 Vue.use(VCalender)
 
+// Named Avatar Generator
+import { config as configNamedAvatars } from 'utils/namedavatar'
+configNamedAvatars()
+
+
 new Vue({
   router,
   store,

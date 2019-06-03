@@ -15,8 +15,7 @@
 //   "lockout_end": "2019-05-27T21:09:25.212Z"
 // }
 
-// import { image } from 'helper/assets'
-import namedavatar from 'namedavatar'
+import { generateAvatar } from 'utils/namedavatar'
 
 /**
  * Just a pretty wrapper for now
@@ -95,16 +94,9 @@ OrgUserModel.prototype.hasAvatar = function() {
 
 /**
  * Generate a default avatar
- * TODO: Configure generator properly
  */
 OrgUserModel.prototype.generateAvatar = function() {
-  namedavatar.config({ 
-    nameType: 'initials'
-  })
-  return namedavatar.getDataURI(
-    namedavatar.getSVGString(this.getUserName())
-  )
-  // return image({ name: 'profile-placeholder.svg' });
+  return generateAvatar({ name: this.getUserName() })
 }
 
 export default OrgUserModel;

@@ -7,7 +7,7 @@
  */
 
 // import { image } from 'helper/assets'
-import namedavatar from 'namedavatar'
+import { generateAvatar } from 'utils/namedavatar'
 
 let UserModel = function ({
   given_name, last_name, avatar, job_title, phone_number
@@ -69,19 +69,9 @@ UserModel.prototype.hasAvatar = function() {
 
 /**
  * Generate a default avatar
- * TODO: Configure generator properly
  */
 UserModel.prototype.generateAvatar = function() {
-  namedavatar.config({ 
-    nameType: 'initials',
-    backgroundColors: [
-      'rgb(61, 83, 114)'
-    ]
-  })
-  return namedavatar.getDataURI(
-    namedavatar.getSVGString(this.getUserName())
-  )
-  // return image({ name: 'profile-placeholder.svg' });
+  return generateAvatar({ name: this.getUserName() })
 }
 
 

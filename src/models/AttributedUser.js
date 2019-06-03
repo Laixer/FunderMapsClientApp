@@ -8,8 +8,7 @@
 // organization: {id: 85615, name: "Gotham City"}
 // phone: "+19001117774"
 
-// import { image } from 'helper/assets'
-import namedavatar from 'namedavatar'
+import { generateAvatar } from 'utils/namedavatar';
 
 /**
  * Just a pretty wrapper for now
@@ -61,17 +60,11 @@ AttributedUser.prototype.getRole = function() {
 //  Avatar
 // ****************************************************************************
 
-// https://github.com/joaner/namedavatar
+/**
+ * Attributed users don't have an avatar prop, so straight to generated avatar
+ */
 AttributedUser.prototype.getAvatar = function() {
-  namedavatar.config({ 
-    nameType: 'initials'
-  })
-  return namedavatar.getDataURI(
-    namedavatar.getSVGString(
-      this.getUserName()
-    )
-  )
-  // return image({ name: 'profile-placeholder.svg' });
+  return generateAvatar({ name: this.getUserName() })
 }
 
 
