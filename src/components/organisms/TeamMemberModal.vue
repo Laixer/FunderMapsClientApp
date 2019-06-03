@@ -212,7 +212,6 @@ export default {
         }
         this.$refs.modal.hide()
       } catch (err) {
-        console.log(err);
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'
@@ -220,8 +219,11 @@ export default {
       }
       this.enableAllFields()
     },
-    handleError(e) {
-      console.log("error", e)
+    handleError() {
+      this.feedback = {
+        variant: 'danger', 
+        message: 'Controleer de validatie berichten a.u.b.'
+      }
     }
   }
 }
