@@ -33,9 +33,9 @@ export const refreshLogin = () => {
     authAPI
       .refresh()
       .then(handleAuthResponse)
-      .catch(error => {
+      .catch(() => {
         // Redirect to Login?
-        console.error(error)
+        // console.error(error)
       })
   }
 }
@@ -72,7 +72,7 @@ export const isSuperUser = () => {
     })
     return role.value.toLowerCase() === 'superuser'; 
   } catch(err) {
-    console.log(err)
+    //console.log(err)
     return false;
   }
 }
