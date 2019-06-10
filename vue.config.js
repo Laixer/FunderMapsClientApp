@@ -1,6 +1,6 @@
 const path = require('path');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
-    .BundleAnalyzerPlugin;
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
+//     .BundleAnalyzerPlugin;
 
 module.exports = {
   configureWebpack: {
@@ -26,6 +26,6 @@ module.exports = {
         "mixin" : path.resolve(__dirname, 'src/mixins')
       }
     },
-    plugins: [ new BundleAnalyzerPlugin() ]
+    // plugins: [ new BundleAnalyzerPlugin() ]
   }
 }

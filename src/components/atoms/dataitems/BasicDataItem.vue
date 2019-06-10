@@ -1,21 +1,43 @@
 <template>
   <div class="BasicDataItem d-flex flex-column">
     <strong>{{ label }}</strong>
-    <span class="mt-2">{{ value }}</span>
+    <span 
+      :class="valueClass"
+      class="mt-2">
+      {{ boundValue }}
+    </span>
   </div>
 </template>
 
 <script>
+
+import { isObject } from 'helper/is.js'
+
 export default {
   name: 'BasicDataItem',
   props: {
     label: {
       type: String,
-      required
+      required: true
     },
     value: {
-      type: String,
+      type: [String, Number, Object],
       default: ''
+    }
+  },
+  computed: {
+    valueClass() {
+      return {
+        'text-muted': this.boundValue === 'Geen data'
+      }
+    },
+    boundValue() {
+      let value = (isObject(this.value) && this.value.hasOwnProperty['label']) 
+        ? this.value.label
+        : this.value;
+      return value 
+        ? value
+        : 'Geen data';
     }
   }
 }

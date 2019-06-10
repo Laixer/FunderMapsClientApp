@@ -1,6 +1,8 @@
 <template>
   <div class="ProgressSteps d-flex justify-content-between">
-    <ProgressLine />
+    <ProgressLine 
+      :steps="steps.length - 1" 
+      :step="step" />
     <ProgressIndicator 
       v-for="(step, index) in steps"
       :key="index"
@@ -26,6 +28,13 @@ export default {
       default: function() {
         return []
       }
+    }
+  },
+  computed: {
+    step() {
+      return this.steps.findIndex((step) => {
+        return step.status === 'active';
+      })
     }
   }
 }

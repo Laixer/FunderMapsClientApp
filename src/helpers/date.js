@@ -1,7 +1,7 @@
 
 
 /**
- * Convert a date string to a date object
+ * Convert a date string (yyyy-mm-dd) to a date object
  * Note: assumes a valid date is provided
  */
 export const convertDateStringToDate = (date) => {
@@ -25,8 +25,14 @@ export const verifyDateInput = (input) => {
 };
 
 
-export const convertDateObjectToDutchMonthYearString = (date) => {
-  date = date.toLocaleDateString('nl-NL', {day: 'numeric', year: 'numeric', month: 'long'});
+export const monthYearStringFromDate = ({date, locale}) => {
+  date = date.toLocaleDateString(locale || 'nl-NL', {day: 'numeric', year: 'numeric', month: 'long'});
   date = date.split(' ');
   return date[1] + ' ' + date[2];
+}
+
+export const weekDayFromDate = ({ date, locale }) => {
+  return date.toLocaleDateString(locale || 'nl-NL', {
+    weekday: 'long'
+  })
 }

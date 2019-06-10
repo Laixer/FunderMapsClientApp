@@ -76,13 +76,14 @@ import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
 
 import { mapGetters, mapActions } from 'vuex'
-import fields from 'mixin/fields';
+import fields from 'mixin/fields'
+import timeout from 'mixin/timeout'
 
 export default {
   components: {
     Divider, FormField, Form, Feedback
   },
-  mixins: [ fields ],
+  mixins: [ fields, timeout ],
   props: {
     id: {
       type: String,
@@ -125,8 +126,10 @@ export default {
           disabled: false,
           options: [
             { value: null, text: 'Selecteer een optie' },
-            { value: 'Superuser', text: 'Superuser' },
-            { value: 'Reader', text: 'Reader' },
+            { value: 'Superuser', text: 'Beheerder' },
+            { value: 'Verifier', text: 'Reviewer' },
+            { value: 'Writer', text: 'Uitvoerder' },
+            { value: 'Reader', text: 'Alleen lezen' },
           ],
         },
         job_title: {
@@ -186,38 +189,43 @@ export default {
     },
     async handleSubmit() {
       this.disableAllFields()
+      this.isDisabled = true;
       this.feedback = {
         variant: 'info', 
         message: 'Bezig met opslaan...'
       }
 
-      // Make a copy
-      let userData = Object.assign({}, this.orgUser.user);
-      userData.email = this.fieldValue('email')
-      userData.job_title = this.fieldValue('job_title')
-      userData.last_name = this.fieldValue('last_name')
-      userData.given_name = this.fieldValue('given_name')
-      userData.phone_number = this.fieldValue('phone_number')
-
-      // TODO: how to set a role?
+      // Make a copy, and add form field data
+      let userData = Object.assign({}, this.orgUser.user, this.fieldValues([
+        'email', 'job_title', 'last_name', 'given_name', 'phone_number'
+      ]));
       
       try {
         await this.updateUser({
           orgId: this.getOrgId,
-          userData
+          userData,
+          role: this.fieldValue('role')
         })
         this.feedback = {
           variant: 'success',
           message: 'De wijzigingen zijn opgeslagen'
         }
-        this.$refs.modal.hide()
+
+        this.setTimeout(() => {
+          this.$refs.modal.hide()
+          this.isDisabled = false
+          this.enableAllFields()
+        }, 500)
+        
       } catch (err) {
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'
         }
+        this.isDisabled = false;
+        this.enableAllFields()
       }
-      this.enableAllFields()
+      
     },
     handleError() {
       this.feedback = {

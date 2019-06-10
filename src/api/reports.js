@@ -22,6 +22,15 @@ const getReport = ({ id, document }) => {
 const createReport = (data) => {
   return axios.post(`/api/report/`, data)
 }
+const updateReport = (data) => {
+  return axios.put(`/api/report/`, data)
+}
+const validateReport = ({ id, document, verify, message }) => {
+  return axios.put(`/api/report/${id}/${document}/validate`, {
+    result: verify,
+    message
+  })
+}
 
 export default { 
   getReports, 
@@ -29,5 +38,7 @@ export default {
   getReportCount,
 
   getReport,
-  createReport
+  createReport,
+  updateReport,
+  validateReport
 }

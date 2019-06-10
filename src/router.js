@@ -10,8 +10,11 @@ import Logout from '@/views/Logout.vue'
 import User from '@/views/User.vue'
 
 // Single Report
-import ReportCreate from '@/views/report/Create'
-import ReportEdit from '@/views/report/Edit'
+import ReportCreate from '@/views/report/Step1-Create'
+// import ReportEdit from '@/views/report/Edit'
+import Step1 from '@/views/report/Step1-Edit'
+import Step2 from '@/views/report/Step2'
+import Step3 from '@/views/report/Step3'
 import ReportView from '@/views/report/View'
 
 // Reports 
@@ -62,9 +65,19 @@ let router = new Router({
       component: ReportCreate
     },
     {
-      path: '/report/:id/:document/edit/',
-      name: 'edit-report',
-      component: ReportEdit
+      path: '/report/:id/:document/edit/1',
+      name: 'edit-report-1',
+      component: Step1
+    },
+    {
+      path: '/report/:id/:document/edit/2',
+      name: 'edit-report-2',
+      component: Step2
+    },
+    {
+      path: '/report/:id/:document/edit/3',
+      name: 'edit-report-3',
+      component: Step3
     },
     {
       path: '/report/:id/:document',

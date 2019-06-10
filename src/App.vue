@@ -22,6 +22,9 @@ html, body {
   font-family: 'Gibson' !important;
   font-size: 14px;
 }
+html {
+  overflow-y: scroll;
+}
 
 #app {
   -webkit-font-smoothing: antialiased;

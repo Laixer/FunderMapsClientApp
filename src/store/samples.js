@@ -38,9 +38,8 @@ const actions = {
 }
 const mutations = {
   set_samples(state, { samples }) {
-    console.log(samples)
     state.samples = samples.map( sample => {
-      return new SampleModel(sample)
+      return new SampleModel({ sample, stored: true })
     })
   },
   clear_samples(state) {

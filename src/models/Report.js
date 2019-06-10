@@ -9,8 +9,8 @@ import { typeOptions, statusOptions, accessOptions } from 'config/enums'
 let reportModel = function ({
   id, document_id, document_date, status, type,
   attribution, document_name, floor_measurement, 
-  inspection, joint_measurement, norm, note, access_policy
-  // update_date, create_date, delete_date
+  inspection, joint_measurement, norm, note, access_policy,
+  update_date, create_date, delete_date
 }) {
   if ( ! id ) {
     throw "Missing identifier";
@@ -32,17 +32,16 @@ let reportModel = function ({
   this.document_date = new Date(document_date);
 
   // Status of process
-  this.status = status && statusOptions[status] 
-    ? statusOptions[status]
-    : 'Invalid';
+  this.setStatus({ status })
 
   // Type of report 
-  this.type = type && typeOptions[type]
+  this.type = typeOptions[type]
     ? typeOptions[type]
     : null
+  this.typeNumber = type;
 
   // Is the report public or private?
-  this.access_policy = access_policy && accessOptions[access_policy]
+  this.access_policy = accessOptions[access_policy]
     ? accessOptions[accessOptions]
     : 'Invalid'
 
@@ -62,7 +61,8 @@ let reportModel = function ({
   // Direct input
   Object.assign(this, {
     document_name, floor_measurement, 
-    inspection, joint_measurement, norm, note
+    inspection, joint_measurement, norm, note,
+    update_date, create_date, delete_date
   })
 }
 
@@ -89,6 +89,34 @@ reportModel.prototype.statusColor = function() {
   return (this.status && this.status.bgColor)
     ? this.status.bgColor
     : '';
+}
+
+/**
+ * Set or change status
+ */
+reportModel.prototype.setStatus = function({ status }) {
+  this.status = statusOptions[status] 
+    ? statusOptions[status]
+    : 'Invalid';
+  this.statusNumber = status;
+}
+
+reportModel.prototype.getApprovalState = function() {
+  if ('Done' === this.status.label) {
+    return true;
+  }
+  if ('Rejected' === this.status.label) {
+    return false;
+  }
+  return null;
+}
+
+reportModel.prototype.isPendingReview = function() {
+  return 'PendingReview' === this.status.label
+}
+
+reportModel.prototype.isAvailableForReview = function() {
+  return ['PendingReview', 'Done', 'Rejected'].includes(this.status.label);
 }
 
 /**

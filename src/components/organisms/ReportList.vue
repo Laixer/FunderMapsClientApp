@@ -5,8 +5,8 @@
         {{ title }}
       </h2>
       <div v-if="synchronizing" class="flex-grow-1 d-flex justify-content-end">
-        <span class="badge badge-danger badge-pill text-uppercase font-weight-bold px-2 py-1">
-          synchronizing reports...
+        <span class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1">
+          Verversen van informatie ...
         </span>
       </div>
     </div>

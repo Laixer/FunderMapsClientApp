@@ -41,6 +41,11 @@ const getters = {
     return state.users.find(user => {
       return user.user.id === id
     })
+  },
+  getUserByEmail: (state) => ({email}) => {
+    return state.users.find(user => {
+      return user.user.email === email
+    })
   }
 }
 const actions = {
@@ -52,8 +57,8 @@ const actions = {
       })
     } 
   },
-  async updateUser({ commit }, { orgId, userData }) {
-    let response = await orgUserAPI.updateOrganizationUser({ orgId, user: userData })
+  async updateUser({ commit }, { orgId, userData, role }) {
+    let response = await orgUserAPI.updateOrganizationUser({ orgId, user: userData, role })
     commit('update_user', {
       userData
     })
@@ -74,7 +79,7 @@ const mutations = {
     state.users[index].user = userData;
 
     // TODO: update user locally
-    console.log(userData)
+    // console.log(userData)
   }
 }
 

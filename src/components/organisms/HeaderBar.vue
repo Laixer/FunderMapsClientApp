@@ -7,21 +7,30 @@
 <script>
 
 import ViewHeader from 'molecule/headerbars/View'
+import EditHeader from 'molecule/headerbars/Edit'
 
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'HeaderBar',
   components: {
-    ViewHeader
+    ViewHeader, EditHeader
   },
   computed: {
     ...mapGetters('report', [
       'activeReport'
     ]),
     component() {
-      if (this.activeReport) {
+      if (this.$route.name === 'view-report') {
         return 'ViewHeader'
+      }
+      if (
+        [
+          'new-report',
+          'edit-report-1', 'edit-report-2', 'edit-report-3'
+        ].includes(this.$route.name)
+      ) {
+        return 'EditHeader'
       }
       return false;
     }
@@ -31,8 +40,6 @@ export default {
 
 <style>
 .HeaderBar {
-  background: white;
-  box-shadow: 0 1px 0 0 #CED0DA;
-  height: 60px;
+  width: 100%;
 }
 </style>

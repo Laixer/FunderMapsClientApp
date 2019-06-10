@@ -5,8 +5,10 @@
       ref="form"
       @submit="handleSubmit"
       class="ReportForm__form mt-5">
+
+      <ReportStepHeader :step="1" />
+
       <div class="ReportForm__pane p-5">
-        <h2 class="font-weight-bold">Stap 1</h2>
         
         <Feedback :feedback="feedback" />
 
@@ -17,8 +19,7 @@
           <FormField 
             v-model="fields.type.value"
             v-bind="fields.type"
-            class="col-md-6"
-            label="Type" />
+            class="col-md-6" />
           <FormField 
             v-model="fields.date.value"
             v-bind="fields.date"
@@ -58,10 +59,11 @@
             v-bind="fields.note" />
       </div>
     </Form>
+
     <div class="d-flex justify-content-center mt-4">
       <PrimaryArrowButton 
         :disabled="isDisabled"
-        :to="{ name: 'edit-report', params: { id: '0', document: 'document' } }"
+        :to="nextStep"
         label="Volgende" />
     </div>
 
@@ -75,17 +77,18 @@ import ProgressSteps from 'molecule/ProgressSteps'
 import ProgressStep from 'model/ProgressStep'
 import Divider from 'atom/Divider'
 import Feedback from 'atom/Feedback'
+import ReportStepHeader from 'atom/ReportStepHeader'
 import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 
 import { required } from 'vuelidate/lib/validators';
 import { typeOptions } from 'config/enums'
-import { getUserId } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
 import fields from 'mixin/fields'
 
 export default {
   components: {
-    Form, FormField, Feedback, ProgressSteps, Divider, PrimaryArrowButton
+    Form, FormField, Feedback, ProgressSteps, 
+    Divider, PrimaryArrowButton, ReportStepHeader
   },
   mixins: [ fields ],
   data() {
@@ -103,6 +106,7 @@ export default {
           disabled: false
         },
         type: {
+          label: 'Type',
           value: '4',
           type: 'select',
           options: [{
@@ -150,7 +154,7 @@ export default {
           disabled: false
         },
         conform_f3o: {
-          label: 'Conform F30',
+          label: 'Conform F3O',
           value: true,
           type: 'radio',
           options: [{
@@ -214,7 +218,7 @@ export default {
           disabled: false
         },
         note: {
-          laebl: 'Opmerking',
+          label: 'Opmerking',
           value: '',
           type: 'textarea',
           validationRules: {},
@@ -247,6 +251,13 @@ export default {
     ...mapGetters('report', [
       'activeReport'
     ]),
+    nextStep() {
+      let report = this.activeReport || { id: 'id', document_id: 'document_id' };
+      return { 
+        name: 'edit-report-2', 
+        params: { id: report.id, document: report.document_id } 
+      }
+    },
     getReviewerOptions() {
       if (this.getReviewers) {
         return [{
@@ -278,7 +289,7 @@ export default {
       }];
     }
   },
-  created() {
+  async created() {
     // Make the document_name accessible as data
     this.document_name = this.$route.params.document_name
 
@@ -286,24 +297,63 @@ export default {
     this.fields.reviewer.options = this.getReviewerOptions
     this.fields.creator.options = this.getCreatorOptions
 
-    // Pre-select the current user as Creator
-    let id = getUserId()
-    if (id && this.getCreatorOptions.some(user => {
-      return user.value === id
-    })) {
-      this.fields.creator.value = id
-    }
+    await this.getReportByIds({
+      id: this.$route.params.id,
+      document: this.$route.params.document
+    })
 
-    // If there is only one actual option, select it
-    if (this.fields.reviewer.options.length === 2) {
-      this.fields.reviewer.value = this.fields.reviewer.options[1].value;
-    }
+    // console.log(this.fields.creator.options, this.activeReport.creator)
+    let report = this.activeReport
+    this.setFieldValues([
+      {
+        name: 'document_id',
+        value: report.document_id
+      },
+      {
+        name: 'type',
+        value: report.typeNumber ? ''+report.typeNumber : null
+      },
+      {
+        name: 'date',
+        value: '' // TODO: guess what...
+      },
+      {
+        name: 'creator',
+        value: this.activeReport.creator ? this.activeReport.creator.email : null // TODO: how to match?
+      },
+      {
+        name: 'reviewer',
+        value: this.activeReport.reviewer ? this.activeReport.reviewer.email : null // TODO: How to match?
+      },
+      {
+        name: 'conform_f3o', 
+        value: report.norm 
+          ? report.norm.conform_f3o
+          : null
+      },
+      {
+        name: 'inspection',
+        value: report.inspection
+      },
+      {
+        name: 'joint_measurement',
+        value: report.joint_measurement
+      },
+      {
+        name: 'floor_measurement',
+        value: report.floor_measurement
+      },
+      {
+        name: 'note',
+        value: report.note
+      }
+    ]);
   },
   /**
    * If we're leaving and heading towards step 2, save the document!
    */
   async beforeRouteLeave(to, from, next) {
-    if (to.name !== 'edit-report') {
+    if (to.name !== 'edit-report-2') {
       next()
     }
     
@@ -312,7 +362,7 @@ export default {
 
     next(false);
     // next({
-    //   name: 'edit-report',
+    //   name: 'edit-report-2',
     //   params: {
     //     id: this.activeReport.id,
     //     document: this.document_name
@@ -321,11 +371,12 @@ export default {
   },
   methods: {
     ...mapActions('report', [
-      'createReport'
+      'getReportByIds',
+      'updateReport'
     ]),
     mapToUserOption(user) {
       return {
-        value: user.user.id,
+        value: user.user.email,
         text: user.getUserName()
       }
     },
@@ -346,7 +397,7 @@ export default {
       }
 
       let values = this.allFieldValues();
-      console.log(values)
+      // console.log(values)
 
       let creator = this.getUserById({ id: values.creator });
       let data = {
@@ -367,8 +418,8 @@ export default {
           conform_f3o: values.conform_f3o
         },
       }
-      console.log(data);
-      await this.createReport(data)
+      // console.log(data);
+      await this.updateReport(data)
         .catch((err) => {
           this.enableAllFields()
           this.isDisabled = false
@@ -398,141 +449,6 @@ export default {
       // note: ""
       // reviewer: "1dd6e503-eeac-4c1f-9620-0808969092a6"
       // type: "4"
-
-
-// {
-//   "id": 0,
-//   "document_id": "string",
-//   "inspection": true,
-//   "joint_measurement": true,
-//   "floor_measurement": true,
-//   "note": "string",
-//   "status": "Todo",
-//   "type": "AdditionalResearch",
-//   "document_date": "2019-06-01T20:59:25.988Z",
-//   "document_name": "string",
-//   "attribution": {
-//     "id": 0,
-//     "project": 0,
-//     "reviewer": {
-//       "id": 0,
-//       "nick_name": "string",
-//       "first_name": "string",
-//       "middle_name": "string",
-//       "last_name": "string",
-//       "email": "string",
-//       "phone": "string",
-//       "organization": {
-//         "id": 0,
-//         "name": "string"
-//       }
-//     },
-//     "contractor": {
-//       "id": 0,
-//       "name": "string"
-//     },
-//     "creator": {
-//       "id": 0,
-//       "nick_name": "string",
-//       "first_name": "string",
-//       "middle_name": "string",
-//       "last_name": "string",
-//       "email": "string",
-//       "phone": "string",
-//       "organization": {
-//         "id": 0,
-//         "name": "string"
-//       }
-//     },
-//     "owner": {
-//       "id": 0,
-//       "name": "string"
-//     },
-//     "project_navigation": {
-//       "id": 0,
-//       "dossier": "string",
-//       "note": "string",
-//       "start_date": "2019-06-01T20:59:25.988Z",
-//       "end_date": "2019-06-01T20:59:25.988Z",
-//       "adviser": 0,
-//       "lead": 0,
-//       "creator": 0,
-//       "adviser_navigation": {
-//         "id": 0,
-//         "nick_name": "string",
-//         "first_name": "string",
-//         "middle_name": "string",
-//         "last_name": "string",
-//         "email": "string",
-//         "phone": "string",
-//         "organization": {
-//           "id": 0,
-//           "name": "string"
-//         }
-//       },
-//       "creator_navigation": {
-//         "id": 0,
-//         "nick_name": "string",
-//         "first_name": "string",
-//         "middle_name": "string",
-//         "last_name": "string",
-//         "email": "string",
-//         "phone": "string",
-//         "organization": {
-//           "id": 0,
-//           "name": "string"
-//         }
-//       },
-//       "lead_navigation": {
-//         "id": 0,
-//         "nick_name": "string",
-//         "first_name": "string",
-//         "middle_name": "string",
-//         "last_name": "string",
-//         "email": "string",
-//         "phone": "string",
-//         "organization": {
-//           "id": 0,
-//           "name": "string"
-//         }
-//       },
-//       "attribution": [
-//         null
-//       ],
-//       "create_date": "2019-06-01T20:59:25.988Z",
-//       "update_date": "2019-06-01T20:59:25.988Z",
-//       "delete_date": "2019-06-01T20:59:25.988Z"
-//     }
-//   },
-//   "norm": {
-//     "conform_f3o": true
-//   },
-//   "access_policy": "Public",
-//   "create_date": "2019-06-01T20:59:25.988Z",
-//   "update_date": "2019-06-01T20:59:25.988Z",
-//   "delete_date": "2019-06-01T20:59:25.988Z"
-// }
-
-      // login(values)
-      //   .then(() => {
-      //     this.$router.push({ name: 'dashboard' })
-      //   })
-      //   .catch((err) => {
-      //     this.enableFields(['email', 'password'])
-      //     this.isDisabled = false
-
-      //     if (err.response && err.response.status === 401) {
-      //       this.feedback = {
-      //         variant: 'danger', 
-      //         message: 'Uw inlog gegevens zijn ongeldig'
-      //       }
-      //     } else {
-      //       this.feedback = {
-      //         variant: 'danger', 
-      //         message: 'Onbekende fout. Probeer het later nog eens.'
-      //       }
-      //     }
-      //   });
   }
 }
 </script>

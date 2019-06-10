@@ -8,20 +8,11 @@
 
       <FormField 
         v-model="fields.email.value"
-        :validationRules="fields.email.validation"
-        :disabled="fields.email.disabled"
-        label="E-mail"
-        autocomplete="username"
-        type="email"
-        placeholder="naam@bedrijf.nl" />
+        v-bind="fields.email" />
       <FormField 
         v-model="fields.password.value"
-        :validationRules="fields.password.validation"
-        :disabled="fields.password.disabled"
-        class="mt-2"
-        label="Wachtwoord"
-        autocomplete="current-password"
-        type="password" />
+        v-bind="fields.password"
+        class="mt-2" />
       
       <button 
         type="submit"
@@ -66,15 +57,22 @@ export default {
       isDisabled: false,
       fields: {
         email: {
+          label: "E-mail",
+          autocomplete: "username",
+          type: "email",
+          placeholder: "naam@bedrijf.nl",
           value: '',
-          validation: {
+          validationRules: {
             required, email
           },
           disabled: false
         },
         password: {
+          label: "Wachtwoord",
+          autocomplete: "current-password",
+          type: "password",
           value: '',
-          validation: {
+          validationRules: {
             required
           },
           disabled: false
@@ -92,7 +90,7 @@ export default {
     handleSubmit(e) {
       e.preventDefault();
       
-      this.disableFields(['email', 'password'])
+      this.disableAllFields()
       this.isDisabled = true
       this.feedback = {
         variant: 'info', 
@@ -107,7 +105,7 @@ export default {
           this.$router.push({ name: 'dashboard' })
         })
         .catch((err) => {
-          this.enableFields(['email', 'password'])
+          this.enableAllFields()
           this.isDisabled = false
 
           if (err.response && err.response.status === 401) {

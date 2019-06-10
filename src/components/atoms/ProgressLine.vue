@@ -40,7 +40,7 @@ export default {
 
   &__progress {
     position: absolute;
-    background: red;
+    background: #17A4EA;
     height: 100%;
     top: 0;
     left: 0;

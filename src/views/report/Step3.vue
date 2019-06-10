@@ -1,15 +1,19 @@
 <template>
-  <div 
-    class="d-flex align-items-start">
+  <div class="ReportForm">
+    <ProgressSteps :steps="steps" />
     <div 
       v-if="activeReport" 
-      class="Report flex-grow-1">
+      class="Report mt-5 mr-0">
+
+      <ReportStepHeader 
+        :step="3"
+        label="Controle overzicht" />
       
       <ReportDetails 
         :activeReport="activeReport"
-        :showLastEdited="true"
-        :showUsers="false" />
-
+        :showLastEdited="false"
+        :showUsers="true" />
+        
       <div 
         v-if="samples.length !== 0" 
         class="Report__samples">
@@ -29,19 +33,13 @@
         De addres gegevens worden geladen...
       </div>
     </div>
-    <div 
-      v-if="activeReport" 
-      class="side p-3">
-      <h3>Gebruikers</h3>
-      <ReportUserRole :user="activeReport.creator" />
-      <ReportUserRole :user="activeReport.reviewer" />
-    </div>
 
     <div 
       v-if="!activeReport" 
-      class="d-flex w-100 h-100 align-items-center justify-content-center">
+      class="d-flex w-100 h-100 align-items-center justify-content-center mt-5">
       <span v-if="!feedback.message">
-        Het rapport wordt geladen...
+        Het rapport wordt geladen. We halen het rapport hier opnieuw op 
+        om te voorkomen dat de controle uitgevoerd wordt op data die niet opgeslagen is.
       </span>
       <Feedback :feedback="feedback" />
     </div>
@@ -52,20 +50,39 @@
 
 import { mapGetters, mapActions } from 'vuex'
 
+import ProgressStep from 'model/ProgressStep'
+import ProgressSteps from 'molecule/ProgressSteps'
+import ReportStepHeader from 'atom/ReportStepHeader'
 import ReportDetails from 'organism/ReportDetails'
-import ReportUserRole from 'atom/review/ReportUserRole'
 import Feedback from 'atom/Feedback'
 import Sample from 'organism/Sample'
 
 export default {
   components: {
-    ReportUserRole, ReportDetails,
-    Sample, Feedback
+    ReportDetails, Sample, Feedback, 
+    ProgressSteps, ReportStepHeader
   },
   data() {
     return {
       feedback: {},
-      nosamples: false
+      nosamples: false,
+      steps: [
+        new ProgressStep({
+          status: 'passed',  
+          step: 1,
+          icon: 'Step-create-icon.svg'
+        }),
+        new ProgressStep({
+          status: 'passed',
+          step: 2,
+          icon: 'Step-samples-icon.svg'
+        }),
+        new ProgressStep({
+          status: 'active',
+          step: 3,
+          icon: 'Step-verify-icon.svg'
+        })
+      ]
     }
   },
   computed: {
@@ -82,7 +99,6 @@ export default {
         id: this.$route.params.id,
         document: this.$route.params.document
       })
-      // console.log(this.activeReport)
       
       await this.getSamples({ reportId: this.activeReport.id })
       if (this.samples.length === 0) {
@@ -117,12 +133,6 @@ export default {
   min-width: 600px;
   max-width: 870px;
   margin-right: 30px;
-}
-.side {
-  width: 360px;
-  background: white;
-  border: 1px solid #CED0DA;
-  border-radius: 5px;
 }
 h3 {
   font-size: 16px;

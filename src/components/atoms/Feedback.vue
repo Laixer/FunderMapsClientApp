@@ -1,6 +1,7 @@
 <template>
   <b-alert 
     v-model="show" 
+    class="Feedback"
     :variant="variant" 
     dismissible 
     fade>

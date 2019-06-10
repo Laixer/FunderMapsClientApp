@@ -89,7 +89,7 @@ export const statusOptions = [
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Verified',
+    label: 'PendingReview',
     bgColor: '#3D5372'
   }, 
   {
@@ -107,3 +107,110 @@ export const accessOptions = [
   } 
 ]
 
+export const foundationTypeOptions = [
+  'Wood', 'WoodAmsterdam', 'WoodRotterdam', 'Concrete', 'NoPile', 'NoPileMasonry', 'NoPileStrips', 'NoPileBearingFloor', 'NoPileConcreteFloor', 'NoPileSlit', 'WoodCharger', 'WeightedPile', 'Combined', 'SteelPile', 'Other', 'Unknown'
+]
+
+export const foundationQualityOptions = [
+  {
+    value: 'Bad',
+    label: 'Slect'
+  }, 
+  {
+    value: 'Mediocre',
+    label: 'Matig'
+  }, 
+  {
+    value: 'Tolerable',
+    label: 'Acceptabel'
+  },
+  {
+    value: 'Good',
+    label: 'Goed'
+  },
+  {
+    value: 'MediocreGood',
+    label: 'Matig tot goed'
+  },
+  {
+    value: 'MediocreBad',
+    label: 'Matig tot slecht'
+  }
+]
+
+export const substructureOptions = [
+  {
+    value: 'Cellar',
+    label: 'Kelder'
+  }, 
+  { 
+    value: 'Basement',
+    label: 'Souterrain'
+  }, 
+  {
+    value: 'Crawlspace',
+    label: 'Kruipruimte'
+  }, 
+  { 
+    value: 'None',
+    label: 'Geen'
+  }
+]
+
+export const foundationDamageCauseOptions = [
+  'Drainage', 'ConstructionFlaw', 'Crystand', 'Overcharge', 'OverchargeNegativeCling', 'NegativeCling', 'BioInfection', 'Unknown', 'FungusInfection'
+]
+
+export const enforcementTermOptions = [
+  {
+    label: '0 tot 5 jaar',
+    value: 'Term0_5'
+  }, 
+  {
+    label: '5 tot 10 jaar',
+    value: 'Term5_10'
+  }, 
+  {
+    label: '10 tot 20 jaar',
+    value: 'Term10_20'
+  }, 
+  {
+    label: '5 jaar',
+    value: 'Term5'
+  }, 
+  {
+    label: '10 jaar',
+    value: 'Term10'
+  }, 
+  {
+    label: '15 jaar',
+    value: 'Term15'
+  }, 
+  {
+    label: '20 jaar',
+    value: 'Term20'
+  }, 
+  {
+    label: '25 jaar',
+    value: 'Term25'
+  }, 
+  {
+    label: '30 jaar',
+    value: 'Term30'
+  }
+]
+
+export const BaseMeasurementLevelOptions = [
+  {
+    value: 'NAP',
+    label: 'NAP'
+  }, 
+  {
+    value: 'TAW',
+    label: 'TAW'
+  },
+  {
+    value: 'NN',
+    label: 'NN'
+  }
+]

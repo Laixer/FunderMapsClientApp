@@ -6,7 +6,7 @@
     <div class="d-flex align-items-stretch flex-grow-1">
       <SideBar />
       <div class="flex-grow-1 d-flex flex-column">
-        <HeaderBar class="px-3" />
+        <HeaderBar />
         <div class="p-3 m-3 flex-grow">
           <slot />
         </div>

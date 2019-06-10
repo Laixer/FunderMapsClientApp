@@ -6,7 +6,6 @@
  *       and admins can access regarding other users.
  */
 
-// import { image } from 'helper/assets'
 import { generateAvatar } from 'utils/namedavatar'
 
 let UserModel = function ({
@@ -20,16 +19,31 @@ let UserModel = function ({
 }
 
 // ****************************************************************************
-//  Username
+//  Rights
 // ****************************************************************************
 
+// TODO: implement
+UserModel.prototype.canReview = function() {
+  return false
+}
+
+UserModel.prototype.canCreate = function() {
+  return false
+}
+
+UserModel.prototype.canReview = function() {
+  return false
+}
+
+// ****************************************************************************
+//  Username
+// ****************************************************************************
 
 /**
  * Aim to get the most natural name by which to identify the user
  */
 UserModel.prototype.getUserName = function() {
   
-
   // First try given and/or last name
   let name = '';
   if (this.given_name) {

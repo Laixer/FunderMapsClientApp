@@ -1,13 +1,167 @@
 <template>
-  <div>HeaderBar voor View</div>
+  <div class="ViewHeader d-flex align-items-center pr-3">
+    <div 
+      v-if="isAvailableForReview"
+      class="d-flex align-items-center">
+      Status: 
+      <div 
+        :class="{ 'ViewHeader__choice--active': approved === true }"
+        class="ViewHeader__choice ml-4 d-flex align-items-center"
+        @click="handleApprove">
+        <img :src='approveIcon' width="30" height="30" />
+        <div class="ml-3">{{ approveLabel }}</div>
+      </div>
+      <span 
+        :class="{ 'ViewHeader__choice--active': approved === false }"
+        class="ViewHeader__choice ml-4 d-flex align-items-center"
+        @click="handleDisapproveModal">
+        <img :src='disapproveIcon' width="30" height="30" />
+        <span class="ml-3">{{ disapproveLabel }}</span>
+      </span>
+    </div>
+    <div class="flex-grow-1">
+      <Feedback class="mb-0 mr-3" :feedback="feedback" />
+    </div>
+
+    <b-button 
+      :to="{ name: 'edit-report-2', params: { id: activeReport.id, document: activeReport.document_id }}"
+      variant="light"
+      class="font-weight-bold">
+      Bewerk
+    </b-button>
+    <b-button 
+      :to="{ name: 'dashboard' }"
+      variant="primary" 
+      class="ml-2 mr-3 font-weight-bold d-flex align-items-center">
+      <img :src='icon({ name: "Close-icon.svg" })' width="11" height="11" /> 
+      <span class="ml-1">Sluiten</span>
+    </b-button>
+
+    <DisapproveModal 
+      @disapprove="handleDisapprove"     
+      @hidden="onHidden" />
+  </div>
 </template>
 
 <script>
-export default {
 
+import { icon } from 'helper/assets'
+import { mapGetters, mapActions } from 'vuex'
+import DisapproveModal from 'organism/DisapproveModal'
+import Feedback from 'atom/Feedback'
+
+export default {
+  name: 'ViewHeader',
+  components: {
+    DisapproveModal, Feedback
+  },
+  data() {
+    return {
+      processing: false,
+      // approved: null,
+      feedback: {}
+    }
+  },
+  computed: {
+    ...mapGetters('report', [
+      'activeReport'
+    ]),
+    isAvailableForReview() {
+      if (this.activeReport) {
+        this.activeReport.isAvailableForReview()
+      }
+      return false;
+    },
+    isPendingReview() {
+      if (this.activeReport) {
+        this.activeReport.isPendingReview()
+      }
+      return true
+    },
+    approved() {
+      if (this.activeReport) {
+        return this.activeReport.getApprovalState()
+      }
+      return null
+    },
+    approveIcon() {
+      let name = this.approved === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg';
+      return icon({ name })
+    },
+    disapproveIcon() {
+      let name = this.approved === false ? 'ActiveDisapprove-icon.svg' : 'NeutralDisapprove-icon.svg';
+      return icon({ name })
+    },
+    approveLabel() {
+      return this.approved === true ? 'Goedgekeurd' : 'Goedkeuren'
+    },
+    disapproveLabel() {
+      return this.approved === false ? 'Afgekeurd' : 'Afkeuren'
+    }
+  },
+  methods: {
+    icon,
+    ...mapActions('report', [
+      'approveReport'
+    ]),
+    // TODO: Update with call
+    async handleApprove() {
+      if ( ! this.isPendingReview() || this.processing) {
+        return;
+      }
+      this.processing = true;
+      this.feedback = {
+        variant: 'info',
+        message: 'Bezig met verwerken...'
+      }
+      await this.approveReport()
+      // this.approved = true
+      this.processing = false
+    },
+    handleDisapproveModal() {
+      if ( ! this.isPendingReview() || this.processing) {
+        return;
+      }
+      this.processing = true;
+      this.$bvModal.show('report-disapprove')
+    },
+    handleDisapprove() {
+      // this.approved = false
+      this.processing = false;
+    },
+    onHidden() {
+      this.processing = false;
+    }
+  }
 }
 </script>
 
-<style>
+<style lang="scss">
+.ViewHeader {
+  background: white;
+  box-shadow: 0 1px 0 0 #CED0DA;
+  height: 60px;
+  width: 100%;
+  padding-left: 39px;
+  color: #7F8FA4;
 
+  .btn {
+    line-height: 19px;
+
+    img {
+      position: relative;
+      top: -1px
+    }
+  }
+
+  &__choice {
+    width: 125px;
+    cursor: pointer;
+
+    &:hover, &--active {
+      color: #354052;
+      font-weight: 600;
+    }
+  }
+}
 </style>

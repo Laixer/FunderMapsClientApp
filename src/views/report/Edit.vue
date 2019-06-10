@@ -1,5 +1,7 @@
 <template>
-  <div>Edit</div>
+  <div>
+    Edit - first page when the report already exists
+  </div>
 </template>
 
 <script>
