@@ -14,7 +14,7 @@
       @blur="handleBlur" />
     
     <div 
-      class="FormField--choice d-flex w-100"
+      class="FormField--choice d-flex align-items-center w-100"
       v-else-if="type === 'radio' && options.length === 2">
       <b-form-radio 
         class="check"
@@ -310,6 +310,8 @@ export default {
   }
 
   &--choice {
+    height: 33px;
+
     .custom-control-input:checked ~ .custom-control-label::before {
       border-color: transparent;
       background-color: transparent;

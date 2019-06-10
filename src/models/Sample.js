@@ -60,7 +60,7 @@ SampleModel.prototype.getSubstructure = function() {
 SampleModel.prototype.getFoundationDamageCause = function() {
   return foundationDamageCauseOptions[this.foundation_damage_cause] || null
 }
-// Note: returns an object {label, value}
+// Note: returns an object {text, value}
 SampleModel.prototype.getEnforcementTerm = function() {
   return enforcementTermOptions[this.enforcement_term] || null; 
 }

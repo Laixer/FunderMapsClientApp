@@ -112,7 +112,7 @@ export default {
             typeOptions.map((option, index) => {
               return {
                 value: ''+index,
-                text: option.label
+                text: option.text
               }
             })
           ),

@@ -5,67 +5,67 @@
 
 export const typeOptions = [ 
   {
-    label: 'AdditionalResearch',
+    text: 'AdditionalResearch',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Monitoring',
+    text: 'Monitoring',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Note',
+    text: 'Note',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Quickscan',
+    text: 'Quickscan',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Unknown',
+    text: 'Unknown',
     color: 'white',
     bgColor: '#3D5372'
   },
   {
-    label: 'DemolitionResearch',
+    text: 'DemolitionResearch',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'SecondOpinion',
+    text: 'SecondOpinion',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'ArchieveResearch',
+    text: 'ArchieveResearch',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'ArchitecturalResearch',
+    text: 'ArchitecturalResearch',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'FoundationAdvice',
+    text: 'FoundationAdvice',
     color: 'white',
     bgColor: '#3D5372'
   },
   {
-    label: 'Inspectionpit',
+    text: 'Inspectionpit',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'FoundationResearch',
+    text: 'FoundationResearch',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'GroundWaterLevelResearch',
+    text: 'GroundWaterLevelResearch',
     color: 'white',
     bgColor: '#3D5372'
   }
@@ -73,27 +73,27 @@ export const typeOptions = [
 
 export const statusOptions = [ 
   {
-    label: 'Todo',
+    text: 'Todo',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Pending',
+    text: 'Pending',
     bgColor: '#F5A623'
   }, 
   {
-    label: 'Done',
+    text: 'Done',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Discarded',
+    text: 'Discarded',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'PendingReview',
+    text: 'PendingReview',
     bgColor: '#3D5372'
   }, 
   {
-    label: 'Rejected',
+    text: 'Rejected',
     bgColor: '#3D5372'
   } 
 ]
@@ -108,94 +108,192 @@ export const accessOptions = [
 ]
 
 export const foundationTypeOptions = [
-  'Wood', 'WoodAmsterdam', 'WoodRotterdam', 'Concrete', 'NoPile', 'NoPileMasonry', 'NoPileStrips', 'NoPileBearingFloor', 'NoPileConcreteFloor', 'NoPileSlit', 'WoodCharger', 'WeightedPile', 'Combined', 'SteelPile', 'Other', 'Unknown'
+  {
+    value: 'Wood',
+    text: 'Hout'
+  }, 
+  {
+    value: 'Concrete',
+    text: 'Beton'
+  },
+  {
+    value: 'NoPile',
+    text: 'Niet onderheid'
+  },
+  {
+    value: 'WoodCharger',
+    text: 'Hout met oplanger'
+  },
+  {
+    value: 'WeightedPile',
+    text: 'Verzwaardepuntpaal'
+  },
+  {
+    value: 'Combined',
+    text: 'Gecombineerd'
+  },
+  {
+    value: 'SteelPile',
+    text: 'Stalen buispalen'
+  },
+  {
+    value: 'Other',
+    text: 'Overig'
+  },
+  {
+    value: 'Unknown',
+    text: 'Onbekend'
+  },
+  {
+    value: 'NoPileMasonry',
+    text: 'Niet onderheid: gemetseld'
+  },
+  {
+    value: 'NoPileStrips',
+    text: 'Niet onderheid: stroken fundering'
+  },
+  {
+    value: 'NoPileBearingFloor',
+    text: 'Niet onderheid: fundering met dragen vloer'
+  },
+  {
+    value: 'NoPileConcreteFloor',
+    text: 'Niet onderheid: dragende betonvloer'
+  },
+  {
+    value: 'NoPileSlit',
+    text: 'Niet onderheid: slieten'
+  },
+  {
+    value: 'WoodAmsterdam',
+    text: 'Hout: Amsterdam fundering'
+  },
+  {
+    value: 'WoodRotterdam',
+    text: 'Hout: Rotterdam fundering'
+  }
 ]
 
 export const foundationQualityOptions = [
   {
     value: 'Bad',
-    label: 'Slect'
+    text: 'Slecht'
   }, 
   {
     value: 'Mediocre',
-    label: 'Matig'
+    text: 'Matig'
   }, 
   {
     value: 'Tolerable',
-    label: 'Acceptabel'
+    text: 'Redelijk'
   },
   {
     value: 'Good',
-    label: 'Goed'
+    text: 'Goed'
   },
   {
     value: 'MediocreGood',
-    label: 'Matig tot goed'
+    text: 'Matig tot goed'
   },
   {
     value: 'MediocreBad',
-    label: 'Matig tot slecht'
+    text: 'Matig tot slecht'
   }
 ]
 
 export const substructureOptions = [
   {
     value: 'Cellar',
-    label: 'Kelder'
+    text: 'Kelder'
   }, 
   { 
     value: 'Basement',
-    label: 'Souterrain'
+    text: 'Souterrain'
   }, 
   {
     value: 'Crawlspace',
-    label: 'Kruipruimte'
+    text: 'Kruipruimte'
   }, 
   { 
     value: 'None',
-    label: 'Geen'
+    text: 'Geen'
   }
 ]
 
 export const foundationDamageCauseOptions = [
-  'Drainage', 'ConstructionFlaw', 'Crystand', 'Overcharge', 'OverchargeNegativeCling', 'NegativeCling', 'BioInfection', 'Unknown', 'FungusInfection'
+  {
+    value: 'Drainage', 
+    text: 'Bemaling'
+  },
+  {
+    value: 'ConstructionFlaw',
+    text: 'Constructieve fouten'
+  },
+  {
+    value: 'Drystand',
+    text: 'Droogstand (schimmels)'
+  },
+  {
+    value: 'Overcharge',
+    text: 'Overbelasting'
+  },
+  {
+    value: 'OverchargeNegativeCling',
+    text: 'Overbelasting (negatieve kleef)'
+  },
+  {
+    value: 'NegativeCling',
+    text: 'Negatieve kleef'
+  },
+  {
+    value: 'BioInfection',
+    text: 'Bacteriele aantasting'
+  },
+  {
+    value: 'Unknown',
+    text: 'Niet vermeld'
+  },
+  {
+    value: 'FungusInfection',
+    text: 'Bacterien en schimmels aantasting'
+  }
 ]
 
 export const enforcementTermOptions = [
   {
-    label: '0 tot 5 jaar',
+    text: '0-5 jaar',
     value: 'Term0_5'
   }, 
   {
-    label: '5 tot 10 jaar',
+    text: '5-10 jaar',
     value: 'Term5_10'
   }, 
   {
-    label: '10 tot 20 jaar',
+    text: '10-20 jaar',
     value: 'Term10_20'
   }, 
   {
-    label: '5 jaar',
+    text: '5 jaar',
     value: 'Term5'
   }, 
   {
-    label: '10 jaar',
+    text: '10 jaar',
     value: 'Term10'
   }, 
   {
-    label: '15 jaar',
+    text: '15 jaar',
     value: 'Term15'
   }, 
   {
-    label: '20 jaar',
+    text: '20 jaar',
     value: 'Term20'
   }, 
   {
-    label: '25 jaar',
+    text: '25 jaar',
     value: 'Term25'
   }, 
   {
-    label: '30 jaar',
+    text: '30 jaar',
     value: 'Term30'
   }
 ]
@@ -203,14 +301,60 @@ export const enforcementTermOptions = [
 export const BaseMeasurementLevelOptions = [
   {
     value: 'NAP',
-    label: 'NAP'
+    text: 'NAP'
   }, 
   {
     value: 'TAW',
-    label: 'TAW'
+    text: 'TAW'
   },
   {
     value: 'NN',
-    label: 'NN'
+    text: 'NN'
+  }
+]
+
+export const FoundationRecoveryEvidenceTypeOptions = [
+  {
+    value: 'Permit',
+    text: 'Vergunning'
+  },
+  {
+    value: 'FoundationReport',
+    text: 'Funderingsonderzoek'
+  },
+  {
+    value: 'ArchiveReport',
+    text: 'Archiefonderzoek'
+  },
+  {
+    value: 'OwnerEvidence',
+    text: 'Bewijs Eigenaar'
+  }
+]
+
+export const FoundationRecoveryType = [
+  {
+    value: 'Table',
+    text: 'Hersteld met tafelconstructie'
+  },
+  {
+    value: 'BeamOnPile',
+    text: 'Hersteld met randbalken op nieuwe palen'
+  },
+  {
+    value: 'PileLowering',
+    text: 'Paalkopverlaging'
+  },
+  {
+    value: 'PileInWall',
+    text: 'Hersteld met uit muren gedrukte palen'
+  },
+  {
+    value: 'Injection',
+    text: 'Verstevigen van de ondergrond door een injectie met kunsthars'
+  },
+  {
+    value: 'Unknown',
+    text: 'Onbekend'
   }
 ]

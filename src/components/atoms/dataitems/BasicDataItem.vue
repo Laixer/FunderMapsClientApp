@@ -32,8 +32,8 @@ export default {
       }
     },
     boundValue() {
-      let value = (isObject(this.value) && this.value.hasOwnProperty['label']) 
-        ? this.value.label
+      let value = (isObject(this.value) && this.value.hasOwnProperty('text')) 
+        ? this.value.text
         : this.value;
       return value 
         ? value

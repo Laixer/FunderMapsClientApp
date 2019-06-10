@@ -17,7 +17,7 @@
         </b-button>
       </ReportStepHeader>
 
-      <div class="p-5">  
+      <div>  
         <Feedback :feedback="feedback" />
 
         <div 

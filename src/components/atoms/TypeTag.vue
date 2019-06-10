@@ -2,7 +2,7 @@
   <div 
     :style="typeStyles"
     class="TypeTag">
-    {{ type.label }}
+    {{ type.text }}
   </div>
 </template>
 

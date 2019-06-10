@@ -1,7 +1,7 @@
 <template>
-  <Form>
+  <Form class="py-4 px-5">
     
-    <div class="form-row">
+    <div class="form-row mb-3">
       <FormField 
         v-model="fields.street_name.value"
         v-bind="fields.street_name"
@@ -16,7 +16,7 @@
         class="col-md-2" />
     </div>
 
-    <div class="form-row">
+    <div class="form-row mb-3">
       <FormField 
         v-model="fields.foundation_type.value"
         v-bind="fields.foundation_type"
@@ -44,7 +44,7 @@
 
     <Divider />
 
-    <div class="form-row">
+    <div class="form-row mb-3">
       <FormField 
         v-model="fields.foundation_quality.value"
         v-bind="fields.foundation_quality"
@@ -55,7 +55,7 @@
         class="col-md-6" />
     </div>
 
-    <div class="form-row">
+    <div class="form-row mb-3">
       <FormField 
         v-model="fields.foundation_damage_cause.value"
         v-bind="fields.foundation_damage_cause"
@@ -92,11 +92,11 @@
 
 import { required, numeric, decimal } from 'vuelidate/lib/validators';
 import { 
-  // foundationTypeOptions,
+  foundationTypeOptions,
   foundationQualityOptions, 
   enforcementTermOptions,
   substructureOptions,
-  // foundationDamageCauseOptions,
+  foundationDamageCauseOptions,
   BaseMeasurementLevelOptions
 } from 'config/enums'
 
@@ -149,7 +149,7 @@ export default {
           options: [{
             value: null,
             text: 'Selecteer een optie'
-          }].concat([]), // foundationTypeOptions
+          }].concat(foundationTypeOptions),
           validationRules: {}
         },
         substructure: {
@@ -201,10 +201,10 @@ export default {
           value: null,
           options: [{
             value: true,
-            label: 'Ja'
+            text: 'Ja'
           }, {
             value: false,
-            label: 'Nee'
+            text: 'Nee'
           }],
           validationRules: {}
         },
@@ -216,7 +216,7 @@ export default {
           options: [{
             value: null,
             text: 'Selecteer een optie'
-          }].concat([]), // foundationDamageCauseOptions
+          }].concat(foundationDamageCauseOptions),
           validationRules: {}
         },
         enforcement_term: {
@@ -233,7 +233,7 @@ export default {
         base_measurement_level: {
           label: 'Referentiestelsel',
           type: 'select',
-          value: null,
+          value: 'NAP',
           options: [{
             value: null,
             text: 'Selecteer een optie'
