@@ -418,7 +418,6 @@ export default {
 
         type: parseInt(values.type),
         document_date: '2019-06-01T20:59:25.988Z', // TODO: formatting
-        document_name: this.document_name,
         attribution: {
           reviewer: {
             nick_name: reviewer.getUserName(),
@@ -436,8 +435,9 @@ export default {
           conform_f3o: values.conform_f3o
         },
       }
-    
+
       if (this.activeReport) {
+        data['id'] = this.$route.params.id;
         await this.updateReport({ 
           id: this.$route.params.id, 
           document: this.$route.params.document, 
@@ -446,6 +446,7 @@ export default {
           .then(this.handleSuccess)
           .catch(this.errorHandler)
       } else {
+        data['document_name'] = this.document_name
         await this.createReport(data)
           .then(this.handleSuccess)
           .catch(this.errorHandler)
