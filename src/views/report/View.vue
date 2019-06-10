@@ -95,6 +95,25 @@ export default {
       }
     }
   },
+  async beforeRouteLeave(to, from, next) {
+
+    if (
+      this.activeReport &&
+      this.activeReport.isRejected() && 
+      [
+        'edit-report-1',
+        'edit-report-2',
+        'edit-report-3'
+      ].includes(to.name + 'test')
+    ) {
+      // TODO: Handle errors...
+      await this.changeReportStatusToTodo()
+      next()
+
+    } else {
+      next()
+    }
+  },
   beforeDestroy() {
     this.clearActiveReport()
     this.clearSamples()
@@ -102,7 +121,8 @@ export default {
   methods: {
     ...mapActions('report', [
       'getReportByIds',
-      'clearActiveReport'
+      'clearActiveReport',
+      'changeReportStatusToTodo'
     ]),
     ...mapActions('samples', [
       'getSamples',

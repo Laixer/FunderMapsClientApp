@@ -1,6 +1,12 @@
 <template>
-  <Form class="py-4 px-5">
+  <Form 
+    ref="form"
+    class="py-4 px-5"
+    @submit="handleSubmit"
+    @error="handleFormError">
     
+    <Feedback :feedback="feedback" />
+
     <div class="form-row mb-3">
       <FormField 
         v-model="fields.street_name.value"
@@ -90,7 +96,7 @@
 
 <script>
 
-import { required, numeric, decimal } from 'vuelidate/lib/validators';
+import { required, numeric, decimal, maxLength } from 'vuelidate/lib/validators';
 import { 
   foundationTypeOptions,
   foundationQualityOptions, 
@@ -103,12 +109,15 @@ import {
 import Divider from 'atom/Divider'
 import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
+import Feedback from 'atom/Feedback'
 
 import fields from 'mixin/fields'
 
+import { mapGetters, mapActions } from 'vuex'
+
 export default {
   components: {
-    Form, FormField, Divider
+    Form, FormField, Divider, Feedback
   },
   mixins: [fields],
   props: {
@@ -119,6 +128,8 @@ export default {
   },
   data() {
     return {
+      isDisabled: false,
+      feedback: {},
       fields: {
         // LINE 1
         street_name: {
@@ -178,7 +189,9 @@ export default {
           label: 'Monitoringsput',
           type: 'text',
           value: '',
-          validationRules: {}
+          validationRules: {
+            maxLength: maxLength(32)
+          }
         },
         cpt: {
           label: 'Sondering',
@@ -270,9 +283,21 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters('report', [
+      'activeReport'
+    ])
+  },
   created() {
     let sample = this.sample;
-    
+    // console.log(sample)
+    if (sample.stored === false) {
+      this.feedback = {
+        variant: 'danger',
+        message: 'Dit adres is nog niet opgeslagen in de database'
+      }
+    }
+
     this.setFieldValues({
       street_name: sample.address.street_name,
       building_number: sample.address.building_number,
@@ -313,6 +338,10 @@ export default {
     })
   },
   methods: {
+    ...mapActions('samples', [
+      'updateSample',
+      'createSample'
+    ]),
     optionValue({ options, name }) {
       let key = this.sample[name]
       return options[key] ? options[key].value : null
@@ -321,6 +350,68 @@ export default {
       return this.sample[name] === true || this.sample[name] === false 
         ? this.sample[name]
         : null;
+    },
+    // Called by parent
+    save() {
+      this.$refs.form.submit()
+    },
+    async handleSubmit() {
+      this.isDisabled = true;
+      this.disableAllFields()
+      this.feedback = {
+        variant: 'info',
+        message: 'Het adres wordt opgeslagen...'
+      }
+
+      let data = this.allFieldValues()
+      if (this.sample.id) {
+        data.id = this.sample.id
+      }
+      data.address = {
+        street_name: data.street_name,
+        building_number: data.building_number,
+        building_number_suffix: data.building_number_suffix
+      }
+      data.report = this.activeReport.id
+      
+      // console.log("save in editor 2", data)
+      if (data.id) {
+        await this.updateSample({
+          id: data.id,
+          data
+        })
+        .then(this.handleSuccess)
+        .catch(this.handleError)
+      } else {
+        await this.createSample({
+          data
+        })
+        .then(this.handleSuccess)
+        .catch(this.handleError)
+      }
+    },
+    handleSuccess() {
+      this.feedback = {
+        variant: 'success',
+        message: 'De wijzigingen zijn opgeslagen'
+      }
+      this.enableAllFields()
+      this.isDisabled = false
+      this.$refs.form.resetValidation()
+    },
+    handleError() {
+      this.feedback = {
+        variant: 'danger',
+        message: 'De wijzigingen zijn niet opgeslagen'
+      }
+      this.enableAllFields()
+      this.isDisabled = false
+    },
+    handleFormError() {
+      this.feedback = {
+        variant: 'danger',
+        message: 'Controleer a.u.b. de invoer'
+      }
     }
   }
 }

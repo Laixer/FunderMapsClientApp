@@ -165,10 +165,11 @@ export default {
     ]),
     ...mapActions('samples', [
       'getSamples',
-      'clearSamples'
+      'clearSamples',
+      'addUnsavedSample'
     ]),
     handleAddSample() {
-      // console.log("add sample")
+      this.addUnsavedSample()
     }
   }
 }

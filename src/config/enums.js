@@ -82,7 +82,7 @@ export const statusOptions = [
   }, 
   {
     text: 'Done',
-    bgColor: '#3D5372'
+    bgColor: '#28CC8B'
   }, 
   {
     text: 'Discarded',
@@ -94,7 +94,7 @@ export const statusOptions = [
   }, 
   {
     text: 'Rejected',
-    bgColor: '#3D5372'
+    bgColor: '#FF4E4E'
   } 
 ]
 

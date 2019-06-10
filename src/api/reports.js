@@ -31,6 +31,16 @@ const validateReport = ({ id, document, verify, message }) => {
     message
   })
 }
+const submitForReview = ({id, document }) => {
+  return axios.put(`/api/report/${id}/${document}/review`)
+}
+const setStatusToTodo = ({ id, document }) => {
+  return axios.put(`/api/report/${id}/${document}`, {
+    id,
+    document_id: document,
+    status: 0
+  })
+}
 
 export default { 
   getReports, 
@@ -40,5 +50,7 @@ export default {
   getReport,
   createReport,
   updateReport,
-  validateReport
+  validateReport,
+  submitForReview,
+  setStatusToTodo
 }

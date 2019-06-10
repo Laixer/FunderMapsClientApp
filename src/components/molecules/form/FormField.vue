@@ -181,6 +181,8 @@ export default {
           return 'Dit is een vereist veld'
         case 'minLength':
           return 'Uw invoer moet minimaal ' + params.minLength.min +' karakters zijn.'
+        case 'maxLength': 
+          return 'Uw invoer mag maximaal ' + params.maxLength.max + ' karakters zijn.'
         
       }
 
@@ -277,6 +279,9 @@ export default {
     },
     isValid() {
       return !! this.state;
+    },
+    resetValidation() {
+      this.$v.$reset()
     },
     /*****
      * DATE PICKER

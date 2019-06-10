@@ -102,21 +102,25 @@ reportModel.prototype.setStatus = function({ status }) {
 }
 
 reportModel.prototype.getApprovalState = function() {
-  if ('Done' === this.status.label) {
+  if ('Done' === this.status.text) {
     return true;
   }
-  if ('Rejected' === this.status.label) {
+  if ('Rejected' === this.status.text) {
     return false;
   }
   return null;
 }
 
+reportModel.prototype.isRejected = function() {
+  return 'Rejected' === this.status.text
+}
+
 reportModel.prototype.isPendingReview = function() {
-  return 'PendingReview' === this.status.label
+  return 'PendingReview' === this.status.text
 }
 
 reportModel.prototype.isAvailableForReview = function() {
-  return ['PendingReview', 'Done', 'Rejected'].includes(this.status.label);
+  return ['PendingReview', 'Done', 'Rejected'].includes(this.status.text);
 }
 
 /**

@@ -31,10 +31,10 @@ export default {
      * All fields contained in this form should register themselves in order 
      * to be processed by the mechanism provided by this component.
      * 
-     * Note: every field should have a `validate` & `isValid` method.
+     * Note: every field should have a `validate`, `isValid` & `resetValidation` method.
      */
-    registerFormField({ validate, isValid }) {
-      this.fields.push({ validate, isValid })
+    registerFormField({ validate, isValid, resetValidation }) {
+      this.fields.push({ validate, isValid, resetValidation })
     },
     /**
      * Run the validation on every registered field
@@ -50,6 +50,14 @@ export default {
     isValid() {
       return this.fields.every(field => {
         return field.isValid()
+      })
+    },
+    /**
+     * Reset the validation mechanism
+     */
+    resetValidation() {
+      this.fields.forEach(field => {
+        field.resetValidation()
       })
     },
     /**

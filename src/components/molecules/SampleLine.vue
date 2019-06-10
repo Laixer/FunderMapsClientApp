@@ -3,11 +3,30 @@
     :class="classList"
     class="SampleLine d-flex align-items-center"
     @click="togglePanel">
+
     <span class="SampleLine__address flex-grow-1">
       {{ address }}
     </span>
-    
-    <img :src="path" width="10" height="10" />
+
+    <div 
+      v-if="editMode"
+      class="SampleLine__edit d-flex align-items-center mr-3 pr-3">
+      <b-button 
+        v-if="open"
+        size="sm"
+        variant="outline-light"
+        class="mr-3"
+        @click.stop="$emit('save')">
+        opslaan
+      </b-button>
+      <img 
+        :src="delIcon" 
+        width="16" 
+        height="16"
+        @click.prevent.stop="$emit('delete')" />
+    </div>
+
+    <img :src="arrow" width="10" height="10" />
     
   </div>
 </template>
@@ -38,11 +57,14 @@ export default {
         'SampleLine--edit': !! this.editMode
       }
     },
-    path() {
+    arrow() {
       let name = this.open 
         ? 'ArrowUp-icon.svg' 
         : 'ArrowDown-icon.svg'
       return icon({name});
+    },
+    delIcon() {
+      return icon({ name: 'Delete-icon.svg' });
     }
   },
   methods: {
@@ -62,6 +84,10 @@ export default {
 
   &--open &__address {
     font-weight: 600;
+  }
+  &__edit {
+    border-right: 1px solid #E8EAF1;
+    height: 30px;
   }
 }
 </style>

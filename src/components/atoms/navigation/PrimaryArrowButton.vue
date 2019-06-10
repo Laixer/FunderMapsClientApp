@@ -4,7 +4,8 @@
     :to="to"
     :disabled="disabled" 
     class="PrimaryArrowButton font-weight-bold d-inline-flex align-items-center" 
-    size="lg" 
+    size="lg"
+    @click="$emit('click')" 
     pill>
     <span class="mx-4 my-2">
       {{ label }}
@@ -26,9 +27,9 @@ export default {
       default: 'Alle rapporten'
     },
     to: {
-      type: Object,
+      type: [Object, String],
       default: function() {
-        return {name: 'reports'}
+        return ''
       }
     },
     disabled: {

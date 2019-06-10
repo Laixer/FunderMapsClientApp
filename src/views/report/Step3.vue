@@ -8,7 +8,9 @@
       <ReportStepHeader 
         :step="3"
         label="Controle overzicht" />
-      
+
+      <Feedback :feedback="feedback" />
+
       <ReportDetails 
         :activeReport="activeReport"
         :showLastEdited="false"
@@ -43,6 +45,18 @@
       </span>
       <Feedback :feedback="feedback" />
     </div>
+
+    <div class="d-flex align-items-center justify-content-center mt-4">
+      <BackButton 
+        :disabled="isDisabled"
+        :to="previousStep"
+        class="mr-3"
+        label="Vorige" />
+      <PrimaryArrowButton 
+        :disabled="isDisabled"
+        label="Aanbieden ter review"
+        @click="handleToPendingReview" />
+    </div>
   </div>
 </template>
 
@@ -57,15 +71,20 @@ import ReportDetails from 'organism/ReportDetails'
 import Feedback from 'atom/Feedback'
 import Sample from 'organism/Sample'
 
+import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
+import BackButton from 'atom/navigation/BackButton'
+
 export default {
   components: {
     ReportDetails, Sample, Feedback, 
-    ProgressSteps, ReportStepHeader
+    ProgressSteps, ReportStepHeader,
+    PrimaryArrowButton, BackButton
   },
   data() {
     return {
       feedback: {},
       nosamples: false,
+      isDisabled: false,
       steps: [
         new ProgressStep({
           status: 'passed',  
@@ -91,7 +110,16 @@ export default {
     ]),
     ...mapGetters('samples', [
       'samples'
-    ])
+    ]),
+    previousStep() {
+      let report = this.activeReport 
+        ? this.activeReport 
+        : { id: 'id', document_id: 'document' }
+      return { name: 'edit-report-2', params: { 
+        id: report.id, 
+        document: report.document_id 
+      } }
+    },
   },
   async created() {
     try {
@@ -118,12 +146,27 @@ export default {
   methods: {
     ...mapActions('report', [
       'getReportByIds',
-      'clearActiveReport'
+      'clearActiveReport',
+      'submitForReview'
     ]),
     ...mapActions('samples', [
       'getSamples',
       'clearSamples'
-    ])
+    ]),
+    async handleToPendingReview() {
+      this.isDisabled = true
+      await this.submitForReview()
+        .catch(() => {
+          this.feedback = {
+            variant: 'danger',
+            message: 'De actie kon niet uitgevoerd worden. Probeer het later nog eens.'
+          }
+        })
+
+      this.$router.push({
+        name: 'dashboard'
+      })
+    }
   }
 }
 </script>

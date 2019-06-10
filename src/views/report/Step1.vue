@@ -367,7 +367,6 @@ export default {
       })
 
       let report = this.activeReport
-      console.log(report)
       this.setFieldValues({
         document_id: report.document_id,
         type: report.typeNumber ? ''+report.typeNumber : null,

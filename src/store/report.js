@@ -69,6 +69,24 @@ const actions = {
       commit('set_report_rejected')
     }
   },
+  async submitForReview({ commit, state }) {
+    let response = await reportAPI.submitForReview({
+      id: state.report.id, 
+      document: state.report.document_id,
+    })
+    if (response.status === 204) {
+      commit('set_report_pending_review')
+    }
+  },
+  async changeReportStatusToTodo({ commit, state }) {
+    let response = await reportAPI.setStatusToTodo({
+      id: state.report.id, 
+      document: state.report.document_id
+    })
+    if (response.status === 204) {
+      commit('set_report_status_todo')
+    }
+  }
 }
 const mutations = {
   set_report(state, { report }) {
@@ -78,11 +96,17 @@ const mutations = {
     state.report = false;
   },
   set_report_approved(state) {
-    state.report.setStatus({ status: 4})
+    state.report.setStatus({ status: 2 })
   },
   set_report_rejected(state) {
-    state.report.setStatus({ status: 5})
+    state.report.setStatus({ status: 5 })
   },
+  set_report_pending_review(state) {
+    state.report.setStatus({ status: 4 })
+  },
+  set_report_status_todo(state) {
+    state.report.setStatus({ status: 0 })
+  }
 }
 
 /**

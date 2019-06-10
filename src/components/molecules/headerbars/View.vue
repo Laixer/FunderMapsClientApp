@@ -24,7 +24,7 @@
     </div>
 
     <b-button 
-      :to="{ name: 'edit-report-2', params: { id: activeReport.id, document: activeReport.document_id }}"
+      :to="editRoute"
       variant="light"
       class="font-weight-bold">
       Bewerk
@@ -66,15 +66,25 @@ export default {
     ...mapGetters('report', [
       'activeReport'
     ]),
+    editRoute() {
+      let report = this.activeReport 
+        ? this.activeReport 
+        : { id: 'id', document_id: 'document' }
+      return { 
+        name: 'edit-report-2', 
+        params: { id: report.id, document: report.document_id }
+      }
+    },
     isAvailableForReview() {
+      // TODO: Can user review...? 
       if (this.activeReport) {
-        this.activeReport.isAvailableForReview()
+        return this.activeReport.isAvailableForReview()
       }
       return false;
     },
     isPendingReview() {
       if (this.activeReport) {
-        this.activeReport.isPendingReview()
+        return this.activeReport.isPendingReview()
       }
       return true
     },
@@ -106,7 +116,7 @@ export default {
     ]),
     // TODO: Update with call
     async handleApprove() {
-      if ( ! this.isPendingReview() || this.processing) {
+      if ( ! this.isPendingReview || this.processing) {
         return;
       }
       this.processing = true;
@@ -119,7 +129,7 @@ export default {
       this.processing = false
     },
     handleDisapproveModal() {
-      if ( ! this.isPendingReview() || this.processing) {
+      if ( ! this.isPendingReview || this.processing) {
         return;
       }
       this.processing = true;

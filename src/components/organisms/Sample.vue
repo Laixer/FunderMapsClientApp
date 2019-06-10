@@ -8,10 +8,11 @@
       @delete="handleDelete"
       @toggle="handleToggle" />
     <div 
-      v-if="open"
+      v-show="open"
       class="Sample__details">
       <SampleDataEditor 
         v-if="editMode"
+        ref="editor"
         :sample="sample" />
       <SampleDataPresentation 
         v-if="!editMode"
@@ -64,10 +65,13 @@ export default {
       this.open = ! this.open;
     },
     handleSave() {
-      // console.log("save")
+      if (this.$refs.editor) {
+        this.$refs.editor.save()
+      }
     },
     handleDelete() {
-      // console.log("delete")
+      // TODO: implement create before delete
+      // console.log('delete')
     }
   }
 }
