@@ -407,7 +407,7 @@ export default {
       let values = this.allFieldValues();
       let creator = this.getUserByEmail({ email: values.creator });
       let reviewer = this.getUserByEmail({ email: values.reviewer });
-      console.log(creator, reviewer);
+      
       let data = {
         document_id: values.document_id,
         inspection: values.inspection,
