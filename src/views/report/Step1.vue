@@ -317,16 +317,7 @@ export default {
     } else {
       // trigger submit
       await this.$refs.form.submit();
-      this.stored = true;
-
-      // next();
-      next({
-        name: 'edit-report-2',
-        params: {
-          id: this.activeReport.id,
-          document: this.document_name
-        }
-      })
+      next(false)
     }
   },
   methods: {
@@ -364,7 +355,7 @@ export default {
      */
     async prepareExistingReport() {
       // Make the document_name accessible as data
-      this.document_name = this.$route.params.document_name
+      this.document_name = this.$route.params.document
 
       // Set the creator & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
@@ -414,9 +405,9 @@ export default {
       }
 
       let values = this.allFieldValues();
-      let creator = this.getUserByEmail({ id: values.creator });
-      let reviewer = this.getUserByEmail({ id: values.reviewer });
-
+      let creator = this.getUserByEmail({ email: values.creator });
+      let reviewer = this.getUserByEmail({ email: values.reviewer });
+      console.log(creator, reviewer);
       let data = {
         document_id: values.document_id,
         inspection: values.inspection,
@@ -445,29 +436,47 @@ export default {
           conform_f3o: values.conform_f3o
         },
       }
-
+    
       if (this.activeReport) {
-        await this.updateReport(data)
-          .catch(this.errorHandler);
+        await this.updateReport({ 
+          id: this.$route.params.id, 
+          document: this.$route.params.document, 
+          data 
+        })
+          .then(this.handleSuccess)
+          .catch(this.errorHandler)
       } else {
         await this.createReport(data)
+          .then(this.handleSuccess)
           .catch(this.errorHandler)
       }
-    }
-  },
-  errorHandler(err) {
-    this.enableAllFields()
-    this.isDisabled = false
+    },
+    handleSuccess() {
+      this.stored = true;
 
-    if (err.response && err.response.status === 401) {
-      this.feedback = {
-        variant: 'danger', 
-        message: 'Uw sessie is verlopen'
-      }
-    } else {
-      this.feedback = {
-        variant: 'danger', 
-        message: 'Onbekende fout. Probeer het later nog eens.'
+      // next();
+      this.$router.push({
+        name: 'edit-report-2',
+        params: {
+          id: this.activeReport.id,
+          document: this.document_name
+        }
+      })
+    },
+    errorHandler(err) {
+      this.enableAllFields()
+      this.isDisabled = false
+
+      if (err.response && err.response.status === 401) {
+        this.feedback = {
+          variant: 'danger', 
+          message: 'Uw sessie is verlopen'
+        }
+      } else {
+        this.feedback = {
+          variant: 'danger', 
+          message: 'Onbekende fout. Probeer het later nog eens.'
+        }
       }
     }
   }

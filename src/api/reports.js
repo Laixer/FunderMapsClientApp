@@ -22,8 +22,8 @@ const getReport = ({ id, document }) => {
 const createReport = (data) => {
   return axios.post(`/api/report/`, data)
 }
-const updateReport = (data) => {
-  return axios.put(`/api/report/`, data)
+const updateReport = ({ id, document, data }) => {
+  return axios.put(`/api/report/${id}/${document}`, data)
 }
 const validateReport = ({ id, document, verify, message }) => {
   return axios.put(`/api/report/${id}/${document}/validate`, {
