@@ -11,7 +11,7 @@
       <b-button 
         v-if="activeReport"
         variant="outline-secondary"
-        class="mt-2 font-weight-bold d-flex align-items-center"
+        class="SaveBtn mt-2 font-weight-bold d-flex align-items-center"
         @click="handleStore">
         <img :src='icon({ name: "Edit-icon.svg" })' width="11" height="11" /> 
         <span class="ml-1">Opslaan</span>
@@ -49,6 +49,14 @@ export default {
     position: absolute;
     top: 12px;
     right: 0;
+  }
+
+  .SaveBtn.btn {
+    &:hover {
+      background: transparent;
+      color: darken(#6c757d, 20%);
+      border-color: darken(#6c757d, 20%);
+    }
   }
 }
 </style>

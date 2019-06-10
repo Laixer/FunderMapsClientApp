@@ -36,7 +36,13 @@ export default {
       this.enableFields(Object.keys(this.fields))
     },
     setFieldValues(fieldValues) {
-      fieldValues.forEach(this.setFieldValue);
+      if (Array.isArray(fieldValues)) {
+        fieldValues.forEach(this.setFieldValue);
+      } else {
+        Object.keys(fieldValues).forEach(key => {
+          this.setFieldValue({ name: key, value: fieldValues[key] })
+        })
+      }
     },
     setFieldValue({name, value}) {
       this.fields[name].value = value;

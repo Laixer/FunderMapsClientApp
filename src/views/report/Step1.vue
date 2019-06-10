@@ -6,7 +6,9 @@
       @submit="handleSubmit"
       class="ReportForm__form mt-5">
 
-      <ReportStepHeader :step="1" />
+      <ReportStepHeader 
+        :step="1" 
+        :label="headerLabel" />
 
       <div class="ReportForm__pane p-5">
         
@@ -76,8 +78,8 @@ import ProgressSteps from 'molecule/ProgressSteps'
 import ProgressStep from 'model/ProgressStep'
 import Divider from 'atom/Divider'
 import Feedback from 'atom/Feedback'
-import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 import ReportStepHeader from 'atom/ReportStepHeader'
+import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 
 import { required } from 'vuelidate/lib/validators';
 import { typeOptions } from 'config/enums'
@@ -96,6 +98,7 @@ export default {
       isDisabled: false,
       feedback: {},
       document_name: null,
+      stored: false, // navigation blocker
       fields: {
         document_id: {
           label: 'Document naam',
@@ -261,6 +264,9 @@ export default {
         params: { id: report.id, document: report.document_id } 
       }
     },
+    headerLabel() {
+      return this.activeReport ? this.activeReport.document_id : null
+    },
     getReviewerOptions() {
       if (this.getReviewers) {
         return [{
@@ -292,57 +298,110 @@ export default {
       }];
     }
   },
-  created() {
-    // Make the document_name accessible as data
-    this.document_name = this.$route.params.document_name
-
-    // Set the creator & reviewer user options (from Vuex)
-    this.fields.reviewer.options = this.getReviewerOptions
-    this.fields.creator.options = this.getCreatorOptions
-
-    // Pre-select the current user as Creator
-    let id = getUserId()
-    if (id && this.getCreatorOptions.some(user => {
-      return user.value === id
-    })) {
-      this.fields.creator.value = id
-    }
-
-    // If there is only one actual option, select it
-    if (this.fields.reviewer.options.length === 2) {
-      this.fields.reviewer.value = this.fields.reviewer.options[1].value;
+  async created() {
+    if (this.$route.name === 'new-report') {
+      this.prepareEmptyForm()
+    } else {
+      this.prepareExistingReport()
     }
   },
   /**
    * If we're leaving and heading towards step 2, save the document!
    */
   async beforeRouteLeave(to, from, next) {
-    if (to.name !== 'edit-report-2') {
+    if (
+      to.name !== 'edit-report-2' ||
+      this.stored === true
+    ) {
       next()
-    }
-    
-    // trigger submit
-    await this.$refs.form.submit();
+    } else {
+      // trigger submit
+      await this.$refs.form.submit();
+      this.stored = true;
 
-        // next(false);
-    // next({
-    //   name: 'edit-report-2',
-    //   params: {
-    //     id: this.activeReport.id,
-    //     document: this.document_name
-    //   }
-    // })
+      // next();
+      next({
+        name: 'edit-report-2',
+        params: {
+          id: this.activeReport.id,
+          document: this.document_name
+        }
+      })
+    }
   },
   methods: {
     ...mapActions('report', [
+      'getReportByIds',
+      'updateReport',
       'createReport'
     ]),
+    /**
+     * Prepare an empty form, for creating a new document
+     */
+    prepareEmptyForm() {
+      // Make the document_name accessible as data
+      this.document_name = this.$route.params.document_name
+
+      // Set the creator & reviewer user options (from Vuex)
+      this.fields.reviewer.options = this.getReviewerOptions
+      this.fields.creator.options = this.getCreatorOptions
+
+      // Pre-select the current user as Creator
+      let id = getUserId()
+      if (id && this.getCreatorOptions.some(user => {
+        return user.value === id
+      })) {
+        this.fields.creator.value = id
+      }
+
+      // If there is only one actual option, select it
+      if (this.fields.reviewer.options.length === 2) {
+        this.fields.reviewer.value = this.fields.reviewer.options[1].value;
+      }
+    },
+    /**
+     * Prepare the fields with data from the active report
+     */
+    async prepareExistingReport() {
+      // Make the document_name accessible as data
+      this.document_name = this.$route.params.document_name
+
+      // Set the creator & reviewer user options (from Vuex)
+      this.fields.reviewer.options = this.getReviewerOptions
+      this.fields.creator.options = this.getCreatorOptions
+
+      await this.getReportByIds({
+        id: this.$route.params.id,
+        document: this.$route.params.document
+      })
+
+      let report = this.activeReport
+      this.setFieldValues({
+        document_id: report.document_id,
+        type: report.typeNumber ? ''+report.typeNumber : null,
+        date: '',
+        creator: this.activeReport.creator 
+          ? this.activeReport.creator.email 
+          : null,
+        reviewer: this.activeReport.reviewer 
+          ? this.activeReport.reviewer.email 
+          : null,
+        conform_f3o: report.norm 
+          ? report.norm.conform_f3o
+          : null,
+        inspection: report.inspection,
+        joint_measurement: report.joint_measurement,
+        floor_measurement: report.floor_measurement,
+        note: report.note
+      })
+    },
     mapToUserOption(user) {
       return {
         value: user.user.email,
         text: user.getUserName()
       }
     },
+
     /**
      * Handle the creation of the report
      */
@@ -351,7 +410,7 @@ export default {
       this.isDisabled = true
       this.feedback = {
         variant: 'info', 
-        message: 'Bezig met aanmaken van rapport...'
+        message: 'Bezig met opslaan van rapport...'
       }
 
       let values = this.allFieldValues();
@@ -386,27 +445,31 @@ export default {
           conform_f3o: values.conform_f3o
         },
       }
-      
-      await this.createReport(data)
-        .catch((err) => {
-          this.enableAllFields()
-          this.isDisabled = false
 
-          if (err.response && err.response.status === 401) {
-            this.feedback = {
-              variant: 'danger', 
-              message: 'Uw sessie is verlopen'
-            }
-          } else {
-            this.feedback = {
-              variant: 'danger', 
-              message: 'Onbekende fout. Probeer het later nog eens.'
-            }
-          }
-        });
+      if (this.activeReport) {
+        await this.updateReport(data)
+          .catch(this.errorHandler);
+      } else {
+        await this.createReport(data)
+          .catch(this.errorHandler)
       }
-      // response
-      // {"id":91063,"document_id":"test-name","inspection":false,"joint_measurement":false,"floor_measurement":false,"note":"","status":0,"type":4,"document_date":"2019-06-01T20:59:25.988Z","document_name":null,"attribution":{"id":18687,"project":null,"reviewer":{"id":30141,"nick_name":"bruce","first_name":"Bruce","middle_name":null,"last_name":"Wayne","email":"batman@gotham.gov","phone":"+19001117774","organization":{"id":85615,"name":"Gotham City"}},"contractor":{"id":85615,"name":"Gotham City"},"creator":{"id":30141,"nick_name":"bruce","first_name":"Bruce","middle_name":null,"last_name":"Wayne","email":"batman@gotham.gov","phone":"+19001117774","organization":{"id":85615,"name":"Gotham City"}},"owner":{"id":85615,"name":"Gotham City"},"project_navigation":null},"norm":{"conform_f3o":true},"access_policy":1,"create_date":"2019-06-09T17:06:59.321842+00:00","update_date":null,"delete_date":null}
+    }
+  },
+  errorHandler(err) {
+    this.enableAllFields()
+    this.isDisabled = false
+
+    if (err.response && err.response.status === 401) {
+      this.feedback = {
+        variant: 'danger', 
+        message: 'Uw sessie is verlopen'
+      }
+    } else {
+      this.feedback = {
+        variant: 'danger', 
+        message: 'Onbekende fout. Probeer het later nog eens.'
+      }
+    }
   }
 }
 </script>

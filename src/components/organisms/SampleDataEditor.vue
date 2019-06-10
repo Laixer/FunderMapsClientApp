@@ -104,10 +104,13 @@ import Divider from 'atom/Divider'
 import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
 
+import fields from 'mixin/fields'
+
 export default {
   components: {
     Form, FormField, Divider
   },
+  mixins: [fields],
   props: {
     sample: {
       type: Object,
@@ -265,6 +268,59 @@ export default {
           }
         }
       }
+    }
+  },
+  created() {
+    let sample = this.sample;
+    
+    this.setFieldValues({
+      street_name: sample.address.street_name,
+      building_number: sample.address.building_number,
+      building_number_suffix: sample.address.building_number_suffix,
+      foundation_type: this.optionValue({
+        options: foundationTypeOptions,
+        name: 'foundation_type' 
+      }),
+      substructure: this.optionValue({
+        options: substructureOptions,
+        name: 'substructure' 
+      }),
+      built_year: sample.built_year,
+      monitoring_well: sample.monitoring_well,
+      cpt: sample.cpt,
+      foundation_quality: this.optionValue({
+        options: foundationQualityOptions,
+        name: 'foundation_quality' 
+      }),
+      foundation_recovery_adviced: this.booleanValue({ 
+        name: 'foundation_recovery_adviced'
+      }),
+      foundation_damage_cause: this.optionValue({
+        options: foundationDamageCauseOptions,
+        name: 'foundation_damage_cause' 
+      }),
+      enforcement_term: this.optionValue({
+        options: enforcementTermOptions,
+        name: 'enforcement_term' 
+      }),
+      base_measurement_level: this.optionValue({
+        options: BaseMeasurementLevelOptions,
+        name: 'base_measurement_level' 
+      }),
+      wood_level: sample.wood_level,
+      groundwater_level: sample.groundwater_level,
+      ground_level: sample.ground_level
+    })
+  },
+  methods: {
+    optionValue({ options, name }) {
+      let key = this.sample[name]
+      return options[key] ? options[key].value : null
+    },
+    booleanValue({ name }) {
+      return this.sample[name] === true || this.sample[name] === false 
+        ? this.sample[name]
+        : null;
     }
   }
 }

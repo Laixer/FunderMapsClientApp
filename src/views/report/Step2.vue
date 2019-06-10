@@ -54,7 +54,12 @@
       <Feedback :feedback="feedback" />
     </div>
 
-    <div class="d-flex justify-content-center mt-4">
+    <div class="d-flex align-items-center justify-content-center mt-4">
+      <BackButton 
+        :disabled="isDisabled"
+        :to="previousStep"
+        class="mr-3"
+        label="Vorige" />
       <PrimaryArrowButton 
         :disabled="isDisabled"
         :to="nextStep"
@@ -71,6 +76,7 @@ import ProgressStep from 'model/ProgressStep'
 import Feedback from 'atom/Feedback'
 import ReportStepHeader from 'atom/ReportStepHeader'
 import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
+import BackButton from 'atom/navigation/BackButton'
 import Sample from 'organism/Sample'
 
 import { mapActions, mapGetters } from 'vuex'
@@ -81,7 +87,7 @@ export default {
   components: {
     Feedback, ProgressSteps, 
     ReportStepHeader, PrimaryArrowButton,
-    Sample
+    Sample, BackButton
   },
   data() {
     return {
@@ -114,6 +120,13 @@ export default {
     ...mapGetters('samples', [
       'samples'
     ]),
+    previousStep() {
+      let report = this.activeReport ? this.activeReport : { id: 'id', document_id: 'document' }
+      return { name: 'edit-report-1', params: { 
+        id: report.id, 
+        document: report.document_id 
+      } }
+    },
     nextStep() {
       let report = this.activeReport ? this.activeReport : { id: 'id', document_id: 'document' }
       return { name: 'edit-report-3', params: { 

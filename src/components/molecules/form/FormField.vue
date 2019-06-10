@@ -104,7 +104,7 @@ export default {
   inject: ['registerFormField'],
   props: {
     value: {
-      type: [String, Boolean],
+      type: [String, Boolean, Number],
       default: ''
     },
     label: {

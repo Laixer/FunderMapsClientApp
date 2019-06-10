@@ -10,9 +10,7 @@ import Logout from '@/views/Logout.vue'
 import User from '@/views/User.vue'
 
 // Single Report
-import ReportCreate from '@/views/report/Step1-Create'
-// import ReportEdit from '@/views/report/Edit'
-import Step1 from '@/views/report/Step1-Edit'
+import Step1 from '@/views/report/Step1'
 import Step2 from '@/views/report/Step2'
 import Step3 from '@/views/report/Step3'
 import ReportView from '@/views/report/View'
@@ -62,7 +60,7 @@ let router = new Router({
     {
       path: '/report/create/:document_name',
       name: 'new-report',
-      component: ReportCreate
+      component: Step1
     },
     {
       path: '/report/:id/:document/edit/1',

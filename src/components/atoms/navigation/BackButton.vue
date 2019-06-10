@@ -1,22 +1,23 @@
 <template>
   <b-button 
-    variant="primary" 
+    variant="outline-primary" 
     :to="to"
     :disabled="disabled" 
-    class="PrimaryArrowButton font-weight-bold d-inline-flex align-items-center" 
+    class="BackButton font-weight-bold d-inline-flex align-items-center" 
     size="lg" 
     pill>
+    <img 
+      alt="arrow" 
+      :src="icon({ name: 'ArrowLeft-icon.svg' })" />
+      
     <span class="mx-4 my-2">
       {{ label }}
     </span>
-    <img 
-      alt="arrow" 
-      :src="icon({ name: 'ArrowRight-icon.svg' })" />
+    
   </b-button>
 </template>
 
 <script>
-// TODO: May later be used as more generic button with arrow image
 
 import { icon } from "helper/assets";
 export default {
@@ -28,7 +29,7 @@ export default {
     to: {
       type: Object,
       default: function() {
-        return {name: 'reports'}
+        return { name: 'reports' }
       }
     },
     disabled: {
@@ -42,9 +43,16 @@ export default {
 }
 </script>
 
-<style>
-.PrimaryArrowButton {
+<style lang="scss">
+.BackButton.btn {
   font-size: 18px;
   line-height: 1;
+  
+
+  &:hover {
+    background: transparent !important;  
+    color: darken(#17A4EA, 20%);
+    border-color: darken(#17A4EA, 20%);
+  }
 }
 </style>
