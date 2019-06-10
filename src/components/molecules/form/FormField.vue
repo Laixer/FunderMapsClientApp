@@ -104,7 +104,7 @@ export default {
   inject: ['registerFormField'],
   props: {
     value: {
-      type: [String, Boolean, Number],
+      type: [String, Boolean, Number, Date],
       default: ''
     },
     label: {
@@ -224,8 +224,14 @@ export default {
         if (! isNaN(date.getTime())) {
           this.datepickerValue = date
         } else {
-          // Handle an invalid formatted date
-          this.$emit('input', '')
+          // NL formatting
+          date = new Date(this.formatDate(newValue));
+          if (! isNaN(date.getTime())) {
+            this.datepickerValue = date
+          } else {
+            // Handle an invalid formatted date
+            this.$emit('input', '')
+          }
         }
       }
     }
@@ -286,10 +292,19 @@ export default {
       let months = [
         "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
         "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" ]
-
       return date.getDate() 
         + ' ' + months[date.getMonth()] 
         + ' ' + date.getFullYear();
+    },
+    // TODO: Not ideal, but works for now
+    formatDate(date) { // e.g. 4 Jun 2019
+      let months = [
+        "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
+        "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" ]
+      date = date.split(' ');
+      return date[2] + '-' 
+        + ('0'+ (months.indexOf(date[1]) + 1)).slice(-2) 
+        + '-' + ('0' + date[0]).slice(-2)
     }
   }
 }

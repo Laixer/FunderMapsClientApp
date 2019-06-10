@@ -367,10 +367,11 @@ export default {
       })
 
       let report = this.activeReport
+      console.log(report)
       this.setFieldValues({
         document_id: report.document_id,
         type: report.typeNumber ? ''+report.typeNumber : null,
-        date: '',
+        date: report.document_date,
         creator: this.activeReport.creator 
           ? this.activeReport.creator.email 
           : null,
@@ -417,7 +418,7 @@ export default {
         status: values.status,
 
         type: parseInt(values.type),
-        document_date: '2019-06-01T20:59:25.988Z', // TODO: formatting
+        document_date: this.formatDate(values.date) + 'T12:00:00.000Z', 
         attribution: {
           reviewer: {
             nick_name: reviewer.getUserName(),
@@ -479,6 +480,16 @@ export default {
           message: 'Onbekende fout. Probeer het later nog eens.'
         }
       }
+    },
+    // TODO: Not ideal, but works for now
+    formatDate(date) { // e.g. 4 Jun 2019
+      let months = [
+        "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
+        "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" ]
+      date = date.split(' ');
+      return date[2] + '-' 
+        + ('0'+ (months.indexOf(date[1]) + 1)).slice(-2) 
+        + '-' + ('0' + date[0]).slice(-2)
     }
   }
 }
