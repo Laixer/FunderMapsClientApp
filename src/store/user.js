@@ -34,6 +34,9 @@ const actions = {
   },
   async updateUser({ state }) {
     return await userAPI.updateUser(state.user)
+  },
+  clearUser({ commit }) {
+    commit.clear_user()
   }
 }
 const mutations = {
@@ -45,6 +48,9 @@ const mutations = {
       job_title: user.job_title, 
       phone_number: user.phone_number
     });
+  },
+  clear_user(state) {
+    state.user = null
   }
 }
 

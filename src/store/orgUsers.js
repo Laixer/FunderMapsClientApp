@@ -63,6 +63,9 @@ const actions = {
       userData
     })
     return response;
+  },
+  clearUsers({ commit }) {
+    commit('clear_users')
   }
 }
 const mutations = {
@@ -80,6 +83,9 @@ const mutations = {
 
     // TODO: update user locally
     // console.log(userData)
+  },
+  clear_users(state) {
+    state.users = null
   }
 }
 

@@ -36,11 +36,17 @@ const actions = {
         organization: response.data[0]
       })
     } 
+  },
+  clearOrg({ commit }) {
+    commit('clear_org')
   }
 }
 const mutations = {
   set_organization(state, { organization }) {
     state.organization = new OrganizationModel(organization);
+  },
+  clear_org(state) {
+    state.organization = null
   }
 }
 
