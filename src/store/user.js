@@ -36,7 +36,7 @@ const actions = {
     return await userAPI.updateUser(state.user)
   },
   clearUser({ commit }) {
-    commit.clear_user()
+    commit('clear_user')
   }
 }
 const mutations = {

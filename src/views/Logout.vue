@@ -13,7 +13,8 @@ export default {
     this.clearUser()
     this.clearOrg()
     this.clearSamples()
-    this.createReport()
+    this.clearActiveReport()
+    this.clearReports()
     this.clearUsers()
 
     logout()
@@ -33,7 +34,10 @@ export default {
       'clearSamples'
     ]),
     ...mapActions('report', [
-      'clearReport'
+      'clearActiveReport'
+    ]),
+    ...mapActions('reports', [
+      'clearReports'
     ])
   },
   render() {

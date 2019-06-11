@@ -53,6 +53,9 @@ const actions = {
         reports: response.data
       })
     }
+  },
+  clearReports({ commit }) {
+    commit('clear_reports')
   }
 }
 const mutations = {
@@ -63,6 +66,10 @@ const mutations = {
   },
   set_report_count(state, { count }) {
     state.reportCount = count;
+  },
+  clear_reports(state) {
+    state.reports = []
+    state.reportCount = false
   }
 }
 
