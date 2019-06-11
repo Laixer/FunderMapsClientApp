@@ -65,7 +65,7 @@ export const getUserId = () => {
 }
 
 export const getLastUserEmail = () => {
-  let user = getLastUser()
+  let user = getLastUserEmailFromStorage()
   return user 
     ? user
     : ''
@@ -117,7 +117,7 @@ function getUser() {
 /**
  * Get the last login user from session storage
  */
-function getLastUser() {
+function getLastUserEmailFromStorage() {
   return sessionStorage.getItem(last_user) || false
 }
 
