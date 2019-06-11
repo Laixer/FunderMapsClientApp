@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { login } from 'service/auth'
+import { login, getLastUserEmail } from 'service/auth'
 import PasswordResetLink from 'atom/branding/PasswordResetLink';
 
 import { required, email } from 'vuelidate/lib/validators';
@@ -61,7 +61,7 @@ export default {
           autocomplete: "username",
           type: "email",
           placeholder: "naam@bedrijf.nl",
-          value: '',
+          value: getLastUserEmail(),
           validationRules: {
             required, email
           },
