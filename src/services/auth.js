@@ -65,9 +65,9 @@ export const getUserId = () => {
 }
 
 export const getLastUserEmail = () => {
-  let user = getLastUserEmailFromStorage()
-  return user 
-    ? user
+  let email = getLastUserEmailFromStorage()
+  return email 
+    ? email
     : ''
 }
 
