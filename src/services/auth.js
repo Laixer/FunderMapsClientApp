@@ -64,6 +64,13 @@ export const getUserId = () => {
     : ''
 }
 
+export const getLastUserEmail = () => {
+  let email = getLastUserEmailFromStorage()
+  return email 
+    ? email
+    : ''
+}
+
 export const isSuperUser = () => {
   try {
     let user = getUser()
@@ -83,6 +90,7 @@ export const isSuperUser = () => {
 
 // localStorage keys
 const user_key = 'user';
+const last_user = 'last_user';
 const access_token_key = 'access_token';
 
 /**
@@ -91,6 +99,7 @@ const access_token_key = 'access_token';
 function handleAuthResponse(response) {
   localStorage.setItem(access_token_key, response.data.token)
   localStorage.setItem(user_key, JSON.stringify(response.data.principal))
+  sessionStorage.setItem(last_user, response.data.principal.email)
 }
 
 function removeUserInformation() {
@@ -103,6 +112,13 @@ function removeUserInformation() {
  */
 function getUser() {
   return JSON.parse(localStorage.getItem(user_key)) || false
+}
+
+/**
+ * Get the last login user from session storage
+ */
+function getLastUserEmailFromStorage() {
+  return sessionStorage.getItem(last_user) || false
 }
 
 /**
