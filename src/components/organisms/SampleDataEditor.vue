@@ -96,7 +96,7 @@
 
 <script>
 
-import { required, numeric, decimal, maxLength } from 'vuelidate/lib/validators';
+import { required, numeric, decimal, maxLength, minValue, maxValue } from 'vuelidate/lib/validators';
 import { 
   foundationTypeOptions,
   foundationQualityOptions, 
@@ -181,7 +181,9 @@ export default {
           type: 'text', 
           value: '',
           validationRules: {
-            numeric
+            numeric,
+            minValue: minValue(1000),
+            maxValue: maxValue(2100)
           }
         },
         // LINE 3
@@ -233,7 +235,9 @@ export default {
             value: null,
             text: 'Selecteer een optie'
           }].concat(foundationDamageCauseOptions),
-          validationRules: {}
+          validationRules: {
+            required
+          }
         },
         enforcement_term: {
           label: 'Handhavingstermijn',
@@ -254,7 +258,9 @@ export default {
             value: null,
             text: 'Selecteer een optie'
           }].concat(BaseMeasurementLevelOptions),
-          validationRules: {}
+          validationRules: {
+            required
+          }
         },
         wood_level: {
           label: 'Hoogte langshout',
@@ -289,19 +295,26 @@ export default {
     ])
   },
   created() {
-    let sample = this.sample;
-    // console.log(sample)
-    if (sample.stored === false) {
+    
+    console.log(this.sample)
+    if (this.sample.stored === false) {
       this.feedback = {
-        variant: 'danger',
-        message: 'Dit adres is nog niet opgeslagen in de database'
+        variant: 'info',
+        message: 'Let op: Dit adres is nog niet opgeslagen in de database'
       }
+    }
+    // Required fields by API
+    if ( ! this.sample.base_measurement_level) {
+      this.sample.base_measurement_level = 0; // NAP
+    }
+    if (this.sample.foundation_damage_cause === null) {
+      this.sample.foundation_damage_cause = 7 // Unknown
     }
 
     this.setFieldValues({
-      street_name: sample.address.street_name,
-      building_number: sample.address.building_number,
-      building_number_suffix: sample.address.building_number_suffix,
+      street_name: this.sample.address.street_name,
+      building_number: this.sample.address.building_number,
+      building_number_suffix: this.sample.address.building_number_suffix,
       foundation_type: this.optionValue({
         options: foundationTypeOptions,
         name: 'foundation_type' 
@@ -310,9 +323,9 @@ export default {
         options: substructureOptions,
         name: 'substructure' 
       }),
-      built_year: sample.built_year,
-      monitoring_well: sample.monitoring_well,
-      cpt: sample.cpt,
+      built_year: this.sample.built_year,
+      monitoring_well: this.sample.monitoring_well,
+      cpt: this.sample.cpt,
       foundation_quality: this.optionValue({
         options: foundationQualityOptions,
         name: 'foundation_quality' 
@@ -332,15 +345,16 @@ export default {
         options: BaseMeasurementLevelOptions,
         name: 'base_measurement_level' 
       }),
-      wood_level: sample.wood_level,
-      groundwater_level: sample.groundwater_level,
-      ground_level: sample.ground_level
+      wood_level: this.sample.wood_level,
+      groundwater_level: this.sample.groundwater_level,
+      ground_level: this.sample.ground_level
     })
   },
   methods: {
     ...mapActions('samples', [
       'updateSample',
-      'createSample'
+      'createSample',
+      'deleteSample'
     ]),
     optionValue({ options, name }) {
       let key = this.sample[name]
@@ -355,7 +369,26 @@ export default {
     save() {
       this.$refs.form.submit()
     },
+    // Called by parent
+    delete() {
+      if (this.isDisabled) {
+        return
+      }
+      this.isDisabled = true;
+      this.disableAllFields()
+      this.feedback = {
+        variant: 'info',
+        message: 'Het adres wordt verwijderd...'
+      }
+      this.deleteSample({
+        id: this.sample.id,
+        creationstamp: this.sample.creationstamp
+      })
+    },
     async handleSubmit() {
+      if (this.isDisabled) {
+        return
+      }
       this.isDisabled = true;
       this.disableAllFields()
       this.feedback = {
@@ -366,7 +399,19 @@ export default {
       let data = this.allFieldValues()
       if (this.sample.id) {
         data.id = this.sample.id
+      } else {
+        // Used internally, not by the API
+        data.creationstamp = this.sample.creationstamp
       }
+
+      // required by API
+      if (data.base_measurement_level === null) {
+        data.base_measurement_level = 0 // NAP
+      }
+      if (data.foundation_damage_cause === null) {
+        data.foundation_damage_cause = 7 // Unknown
+      }
+
       data.address = {
         street_name: data.street_name,
         building_number: data.building_number,
@@ -391,15 +436,20 @@ export default {
       }
     },
     handleSuccess() {
-      this.feedback = {
-        variant: 'success',
-        message: 'De wijzigingen zijn opgeslagen'
+      try {
+        this.feedback = {
+          variant: 'success',
+          message: 'De wijzigingen zijn opgeslagen'
+        }
+        this.enableAllFields()
+        this.isDisabled = false
+        this.$refs.form.resetValidation()
+      } catch(err) {
+        console.log(err)
       }
-      this.enableAllFields()
-      this.isDisabled = false
-      this.$refs.form.resetValidation()
     },
-    handleError() {
+    handleError(err) {
+      console.log(err)
       this.feedback = {
         variant: 'danger',
         message: 'De wijzigingen zijn niet opgeslagen'

@@ -40,18 +40,19 @@ export default {
       default: false
     }
   },
-  data() {
-    return {
-      open: false
-    }
-  },
   computed: {
+    open() {
+      return this.sample.editorState === 'open'
+    },
     classList() {
       return {
         'SampleLine--open': true
       }
     },
     address() { 
+      if (this.sample.stored === false) {
+        return 'Nieuw adres...'
+      }
       let address = this.sample.address;
       return ['street_name', 'building_number', 'building_number_suffix']
         .reduce((addr, key) => {
@@ -62,7 +63,11 @@ export default {
   },
   methods: {
     handleToggle() {
-      this.open = ! this.open;
+      if (this.open) {
+        this.sample.closeEditor()
+      } else {
+        this.sample.openEditor()
+      }
     },
     handleSave() {
       if (this.$refs.editor) {
@@ -70,8 +75,9 @@ export default {
       }
     },
     handleDelete() {
-      // TODO: implement create before delete
-      // console.log('delete')
+      if (this.$refs.editor) {
+        this.$refs.editor.delete()
+      }
     }
   }
 }

@@ -5,7 +5,7 @@
     @click="togglePanel">
 
     <span class="SampleLine__address flex-grow-1">
-      {{ address }}
+      {{ address || 'Nieuw adres' }}
     </span>
 
     <div 
@@ -14,7 +14,7 @@
       <b-button 
         v-if="open"
         size="sm"
-        variant="outline-light"
+        variant="outline-primary"
         class="mr-3"
         @click.stop="$emit('save')">
         opslaan

@@ -40,7 +40,7 @@ export const typeOptions = [
     bgColor: '#3D5372'
   }, 
   {
-    text: 'ArchieveResearch',
+    text: 'ArchiveResearch',
     color: 'white',
     bgColor: '#3D5372'
   }, 

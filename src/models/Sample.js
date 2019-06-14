@@ -27,7 +27,7 @@ let structure = {
   ground_level: null,
   foundation_recovery_adviced: false,
   foundation_damage_cause: null,
-  built_year: 0,
+  built_year: '',
   enforcement_term: null,
   base_measurement_level: null,
   address: {
@@ -43,10 +43,30 @@ let structure = {
 }
 
 
-let SampleModel = function ({ sample, stored }) {
+let SampleModel = function ({ sample, stored, editorState }) {
   Object.assign(this, structure, sample)
   this.stored = stored;
+  this.editorState = editorState || 'close'
 }
+
+SampleModel.prototype.updateValues = function({ data }) {
+  Object.assign(this, structure, data)
+}
+
+// ****************************************************************************
+//  Editor states
+// ****************************************************************************
+
+SampleModel.prototype.openEditor = function() {
+  this.editorState = 'open'
+}
+SampleModel.prototype.closeEditor = function() {
+  this.editorState = 'close'
+}
+
+// ****************************************************************************
+//  Dropdown values
+// ****************************************************************************
 
 SampleModel.prototype.getFoundationType = function() {
   return foundationTypeOptions[this.foundation_type] || null; 

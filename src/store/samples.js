@@ -2,6 +2,7 @@
  * Import Dependency
  */
 import SampleModel from 'model/Sample'
+import Vue from 'vue'
 
 /**
  * Import API
@@ -52,8 +53,21 @@ const actions = {
     if (response.status === 200 && response.data) {
       commit('update_sample', {
         id: response.data.id,
-        sample: response.data
+        data: Object.assign(response.data, {
+          creationstamp: data.creationstamp
+        })
       })
+    }
+  },
+  async deleteSample({ commit }, { id, creationstamp }) {
+    if (id === '') {
+      // not stored in API yet
+      commit('delete_sample', { id, creationstamp })
+    } else {
+      let response = await samplesAPI.deleteSample({ id });
+      if (response.status === 204) {
+        commit('delete_sample', { id, creationstamp })
+      }
     }
   }
 }
@@ -66,29 +80,66 @@ const mutations = {
   clear_samples(state) {
     state.samples = [];
   },
+  /**
+   * Copy new sample from top most sample
+   */
   add_unsaved_sample(state) {
     if (state.samples.length === 0) {
       state.samples = [
-        new SampleModel({ sample: {}, stored: false })
+        new SampleModel({ sample: {}, stored: false, editorState: 'open' })
       ]
     } else {
       let address = Object.assign({}, state.samples[0].address);
       let sample = Object.assign({}, state.samples[0]);
       sample.id = ''
       sample.address = address;
+      sample.address.building_number = ''
+      sample.address.building_number_suffix = ''
+
+      // used as alternative to 'id' reference for newly created items
+      sample.creationstamp = Date.now() 
+      
       state.samples.unshift(
         new SampleModel({
           sample,
-          stored: false
+          stored: false,
+          editorState: 'open'
         })
       )
     }
   },
+  /**
+   * Update sample data in store (after positive API response)
+   */
   update_sample(state, { id, data }) {
-    let index = state.samples.findIndex((sample) => sample.id === id)
-    state.samples[index] = Object.assign(
-      state.samples[index], data
+    let index = state.samples.findIndex(
+      (sample) => sample.id === id
     )
+    // For new samples we depend on an internal timestamp
+    if (index === -1) {
+      index = state.samples.findIndex(
+        (sample) => sample.creationstamp === data.creationstamp
+      )
+    }
+    if (index !== -1) {
+      state.samples[index].updateValues({ data })
+      state.samples[index].stored = true
+    }
+  },
+  // Delete sample.
+  delete_sample(state, { id, creationstamp }) {
+    let index = state.samples.findIndex(
+      (sample) => sample.id === id
+    )
+    // For new samples we depend on an internal timestamp
+    if (index === -1) {
+      index = state.samples.findIndex(
+        (sample) => sample.creationstamp === creationstamp
+      )
+    }
+    if (index !== -1) {
+      Vue.delete(state.samples, index)
+    }
   }
 }
 

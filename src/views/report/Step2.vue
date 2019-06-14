@@ -26,7 +26,7 @@
 
           <Sample  
             v-for="(sample, index) in samples" 
-            :key="index" 
+            :key="index + '-' + Date.now()" 
             :sample="sample"
             :editMode="true" />
 
