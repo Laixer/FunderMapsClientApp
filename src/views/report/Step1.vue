@@ -460,7 +460,7 @@ export default {
         name: 'edit-report-2',
         params: {
           id: this.activeReport.id,
-          document: this.document_name
+          document: this.activeReport.document_id
         }
       })
     },
