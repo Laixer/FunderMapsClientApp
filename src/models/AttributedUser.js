@@ -13,7 +13,7 @@ import { generateAvatar } from 'utils/namedavatar';
 /**
  * Just a pretty wrapper for now
  */
-let AttributedUser = function (user, role) {
+let AttributedUser = function ({user, role}) {
   Object.assign(this, user);
   this.role = role;
 }

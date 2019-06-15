@@ -29,8 +29,8 @@
         </div>
         <div class="form-row">
           <FormField 
-            v-model="fields.creator.value"
-            v-bind="fields.creator"
+            v-model="fields.contractor.value"
+            v-bind="fields.contractor"
             class="col-md-6" />
           <FormField 
             v-model="fields.reviewer.value"
@@ -83,9 +83,10 @@ import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 
 import { required } from 'vuelidate/lib/validators';
 import { typeOptions } from 'config/enums'
-import { getUserId } from 'service/auth'
+import { canWrite, isSuperUser } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
 import fields from 'mixin/fields'
+
 
 export default {
   components: {
@@ -102,7 +103,7 @@ export default {
       fields: {
         document_id: {
           label: 'Document naam',
-          value: 'test-name',
+          value: 'REPORT-' + (new Date()).getFullYear(),
           validationRules: {
             required
           },
@@ -137,7 +138,7 @@ export default {
           },
           disabled: false
         },
-        creator: {
+        contractor: {
           label: 'Uitvoerder',
           value: null,
           type: 'select',
@@ -158,7 +159,7 @@ export default {
         },
         conform_f3o: {
           label: 'Conform F3O',
-          value: true,
+          value: false,
           type: 'radio',
           options: [{
             value: true,
@@ -246,10 +247,10 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('orgUsers', [
-      'getReviewers',
-      'getCreators',
-      'getUserByEmail'
+    ...mapGetters('attestation', [
+      'principalUsers',
+      'contractors',
+      'getUserById'
     ]),
     ...mapGetters('report', [
       'activeReport'
@@ -268,11 +269,11 @@ export default {
       return this.activeReport ? this.activeReport.document_id : null
     },
     getReviewerOptions() {
-      if (this.getReviewers) {
+      if (this.principalUsers) {
         return [{
             value: null,
             text: 'Selecteer een reviewer'
-          }].concat(this.getReviewers.map(
+          }].concat(this.principalUsers.map(
             this.mapToUserOption
           )
         )
@@ -282,13 +283,13 @@ export default {
         text: 'Er zijn geen reviewers beschikbaar'
       }];
     },
-    getCreatorOptions() {
-      if (this.getCreators) {
+    getContractorOptions() {
+      if (this.contractors) {
         return [{
             value: null,
             text: 'Selecteer een uitvoerder'
-          }].concat(this.getCreators.map(
-            this.mapToUserOption
+          }].concat(this.contractors.map(
+            this.mapToOrgOption
           )
         )
       }
@@ -324,26 +325,29 @@ export default {
     ...mapActions('report', [
       'getReportByIds',
       'updateReport',
-      'createReport'
+      'createReport',
+      'clearActiveReport'
     ]),
     /**
      * Prepare an empty form, for creating a new document
      */
     prepareEmptyForm() {
+      if ( ! canWrite()) {
+        this.$router.push({
+          name: 'dashboard'
+        })
+        return;
+      }
+
+      this.clearActiveReport()
+
       // Make the document_name accessible as data
       this.document_name = this.$route.params.document_name
+      this.fields.document_id.value = this.document_name + '';
 
-      // Set the creator & reviewer user options (from Vuex)
+      // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
-      this.fields.creator.options = this.getCreatorOptions
-
-      // Pre-select the current user as Creator
-      let id = getUserId()
-      if (id && this.getCreatorOptions.some(user => {
-        return user.value === id
-      })) {
-        this.fields.creator.value = id
-      }
+      this.fields.contractor.options = this.getContractorOptions
 
       // If there is only one actual option, select it
       if (this.fields.reviewer.options.length === 2) {
@@ -354,28 +358,47 @@ export default {
      * Prepare the fields with data from the active report
      */
     async prepareExistingReport() {
-      // Make the document_name accessible as data
-      this.document_name = this.$route.params.document
+      if ( ! canWrite()) {
+        this.$router.push({
+          name: 'view-report',
+          params: this.$route.params
+        })
+        return;
+      }
 
-      // Set the creator & reviewer user options (from Vuex)
+      // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
-      this.fields.creator.options = this.getCreatorOptions
+      this.fields.contractor.options = this.getContractorOptions
 
       await this.getReportByIds({
         id: this.$route.params.id,
         document: this.$route.params.document
       })
-
+      
       let report = this.activeReport
+
+      if (
+        (report.isPendingReview() ||
+        report.isApproved()) && 
+        ! isSuperUser()
+      ) {
+        this.$router.push({
+          name: 'view-report',
+          params: this.$route.params
+        })
+        return;
+      }
+      console.log(this.activeReport)
+      
       this.setFieldValues({
         document_id: report.document_id,
         type: report.typeNumber ? ''+report.typeNumber : null,
         date: report.document_date,
-        creator: this.activeReport.creator 
-          ? this.activeReport.creator.email 
+        contractor: this.activeReport.contractor 
+          ? this.activeReport.contractor.name 
           : null,
         reviewer: this.activeReport.reviewer 
-          ? this.activeReport.reviewer.email 
+          ? this.activeReport.reviewer.id 
           : null,
         conform_f3o: report.norm 
           ? report.norm.conform_f3o
@@ -386,10 +409,20 @@ export default {
         note: report.note
       })
     },
+
+    /**
+     * User / Org mapping
+     */
     mapToUserOption(user) {
       return {
-        value: user.user.email,
+        value: user.id,
         text: user.getUserName()
+      }
+    },
+    mapToOrgOption(org) {
+      return {
+        value: org.name,
+        text: org.name
       }
     },
 
@@ -405,8 +438,7 @@ export default {
       }
 
       let values = this.allFieldValues();
-      let creator = this.getUserByEmail({ email: values.creator });
-      let reviewer = this.getUserByEmail({ email: values.reviewer });
+      let reviewer = this.getUserById({ id: values.reviewer })
       
       let data = {
         document_id: values.document_id,
@@ -420,16 +452,17 @@ export default {
         document_date: this.formatDate(values.date) + 'T12:00:00.000Z', 
         attribution: {
           reviewer: {
-            nick_name: reviewer.getUserName(),
-            email: reviewer.user.email
+            id: reviewer.id,
+            email: reviewer.email,
+            nick_name: reviewer.nick_name
           },
-          creator: {
-            nick_name: creator.getUserName(),
-            email: creator.user.email
-          },
+          // {
+          //   nick_name: reviewer.getUserName(),
+          //   email: reviewer.user.email
+          // },
           contractor: {
-            name: this.organization.name
-          }
+            name: values.contractor
+          },
         },
         norm: {
           conform_f3o: values.conform_f3o

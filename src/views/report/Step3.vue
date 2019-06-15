@@ -74,6 +74,8 @@ import Sample from 'organism/Sample'
 import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 import BackButton from 'atom/navigation/BackButton'
 
+import { canWrite, isSuperUser } from 'service/auth'
+
 export default {
   components: {
     ReportDetails, Sample, Feedback, 
@@ -122,11 +124,31 @@ export default {
     },
   },
   async created() {
+    if ( ! canWrite()) {
+      this.$router.push({
+        name: 'view-report',
+        params: this.$route.params
+      })
+      return;
+    }
+
     try {
       await this.getReportByIds({
         id: this.$route.params.id,
         document: this.$route.params.document
       })
+
+      if (
+        (this.activeReport.isPendingReview() ||
+        this.activeReport.isApproved()) && 
+        ! isSuperUser()
+      ) {
+        this.$router.push({
+          name: 'view-report',
+          params: this.$route.params
+        })
+        return;
+      }
       
       await this.getSamples({ reportId: this.activeReport.id })
       if (this.samples.length === 0) {

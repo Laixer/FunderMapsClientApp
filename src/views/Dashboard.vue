@@ -4,7 +4,7 @@
 
     <ReportList 
       title="Recente rapporten"
-      :reports="latestReports({count: 5})"
+      :reports="latestReports({ count: 5 })"
       :synchronizing="loading"
       class="mt-4 pt-2 mb-5" />
     <PrimaryArrowButton

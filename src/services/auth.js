@@ -71,17 +71,34 @@ export const getLastUserEmail = () => {
     : ''
 }
 
+
+// ****************************************************************************
+//  User Roles & Capabilities 
+// ****************************************************************************
+
 export const isSuperUser = () => {
-  try {
-    let user = getUser()
-    let role = user.claims.find((claim) => {
-      return claim.type === "fis_org_role"
-    })
-    return role.value.toLowerCase() === 'superuser'; 
-  } catch(err) {
-    //console.log(err)
-    return false;
-  }
+  return getRole() === 'superuser';
+}
+export const isVerifier = () => {
+  return getRole() === 'verifier'
+}
+export const isWriter = () => {
+  return getRole() === 'writer'
+}
+export const isReader = () => {
+  return getRole() === 'reader'
+}
+export const canManageUsers = () => {
+  return isSuperUser()
+}
+export const canApprove = () => {
+  return isVerifier() || isSuperUser()
+}
+export const canWrite = () => {
+  return canApprove() || isWriter()
+}
+export const canRead = () => {
+  return true; // everyone can read
 }
 
 // ****************************************************************************
@@ -128,3 +145,17 @@ function getAccessToken() {
   return localStorage.getItem(access_token_key) || false
 }
 
+/**
+ * 
+ */
+function getRole() {
+  try {
+    let user = getUser()
+    let role = user.claims.find((claim) => {
+      return claim.type === "fis_org_role"
+    })
+    return role.value.toLowerCase(); 
+  } catch(err) {
+    return ''
+  }
+}

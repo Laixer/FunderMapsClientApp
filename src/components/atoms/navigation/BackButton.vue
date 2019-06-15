@@ -49,7 +49,7 @@ export default {
   line-height: 1;
   
 
-  &:hover {
+  &:hover, &:active {
     background: transparent !important;  
     color: darken(#17A4EA, 20%);
     border-color: darken(#17A4EA, 20%);

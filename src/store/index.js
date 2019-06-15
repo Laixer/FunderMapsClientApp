@@ -7,6 +7,7 @@ import report from './report'
 import user from './user'
 import orgUsers from './orgUsers'
 import samples from './samples'
+import attestation from './attestation'
 
 Vue.use(Vuex)
 
@@ -17,7 +18,8 @@ export default new Vuex.Store({
     user,
     orgUsers,
     report,
-    samples
+    samples,
+    attestation
   },
   state: {
 

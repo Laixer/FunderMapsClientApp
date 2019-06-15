@@ -2,6 +2,7 @@
 import AttributedUser from 'model/AttributedUser'
 
 import { typeOptions, statusOptions, accessOptions } from 'config/enums'
+import AttributedOrganisation from './AttributedOrganisation';
 
 /**
  * The Report model
@@ -50,11 +51,15 @@ let reportModel = function ({
 
   // attribution, 
   this.creator = attribution && attribution.creator 
-    ? new AttributedUser(attribution.creator, 'Uitvoerder')
+    ? new AttributedUser({ user: attribution.creator, role: 'Uitvoerder' })
     : null;
   this.reviewer = attribution && attribution.reviewer
-    ? new AttributedUser(attribution.reviewer, 'Reviewer')
+    ? new AttributedUser({ user: attribution.reviewer, role: 'Reviewer' })
     : null;
+
+  this.contractor = attribution && attribution.contractor
+    ? new AttributedOrganisation(attribution.contractor)
+    : null
   //  contractor, owner: orgs
   //  project & project_navigation: ?
 
@@ -114,7 +119,9 @@ reportModel.prototype.getApprovalState = function() {
 reportModel.prototype.isRejected = function() {
   return 'Rejected' === this.status.text
 }
-
+reportModel.prototype.isApproved = function() {
+  return 'Done' === this.status.text
+}
 reportModel.prototype.isPendingReview = function() {
   return 'PendingReview' === this.status.text
 }

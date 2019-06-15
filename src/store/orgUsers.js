@@ -60,7 +60,7 @@ const actions = {
   async updateUser({ commit }, { orgId, userData, role }) {
     let response = await orgUserAPI.updateOrganizationUser({ orgId, user: userData, role })
     commit('update_user', {
-      userData
+      userData, role
     })
     return response;
   },
@@ -74,15 +74,13 @@ const mutations = {
       return new OrgUserModel(user)
     })
   },
-  update_user(state, { userData }) {
+  update_user(state, { userData, role }) {
 
     let index = state.users.findIndex(user => {
       return user.user.id === userData.id
     })
     state.users[index].user = userData;
-
-    // TODO: update user locally
-    // console.log(userData)
+    state.users[index].role.name = role
   },
   clear_users(state) {
     state.users = null

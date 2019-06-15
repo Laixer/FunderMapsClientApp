@@ -52,8 +52,8 @@ export default {
   }
 
   .SaveBtn.btn {
-    &:hover {
-      background: transparent;
+    &:hover, &:active {
+      background: transparent !important; 
       color: darken(#6c757d, 20%);
       border-color: darken(#6c757d, 20%);
     }

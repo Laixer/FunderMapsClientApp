@@ -81,6 +81,7 @@ import Sample from 'organism/Sample'
 
 import { mapActions, mapGetters } from 'vuex'
 import { icon } from 'helper/assets'
+import { isSuperUser, canWrite } from 'service/auth'
 
 export default {
   name: 'Step2',
@@ -137,10 +138,30 @@ export default {
   },
   async created() {
     try {
+      if ( ! canWrite()) {
+        this.$router.push({
+          name: 'view-report',
+          params: this.$route.params
+        })
+        return;
+      }
+
       await this.getReportByIds({
         id: this.$route.params.id,
         document: this.$route.params.document
       })
+
+      if (
+        (this.activeReport.isPendingReview() ||
+        this.activeReport.isApproved()) && 
+        ! isSuperUser()
+      ) {
+        this.$router.push({
+          name: 'view-report',
+          params: this.$route.params
+        })
+        return;
+      }
       
       await this.getSamples({ reportId: this.activeReport.id })
       if (this.samples.length === 0) {
@@ -174,7 +195,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-</style>

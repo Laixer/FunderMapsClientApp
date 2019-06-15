@@ -19,8 +19,15 @@
     </td>
     <td class="d-flex justify-content-end">
       <b-button
-        variant="light">
+        v-if="editable"
+        variant="light"
+        @click.stop="handleEdit">
         Bewerk
+      </b-button>
+      <b-button
+        v-else
+        variant="light">
+        Bekijk
       </b-button>
     </td>
   </tr>
@@ -28,6 +35,8 @@
 
 <script>
 import TypeTag from 'atom/TypeTag';
+
+import { isSuperUser, canWrite } from 'service/auth'
 
 export default {
   name: 'ReportTableLine',
@@ -42,11 +51,34 @@ export default {
       }
     }
   },
+  computed: {
+    editable() {
+      if ( ! canWrite()) {
+        return false
+      }
+      return (
+        ! this.report.isPendingReview() && 
+        ! this.report.isApproved()
+      ) || isSuperUser()
+    }
+  },
   methods: {
     openReport() {
       this.$router.push({ 
         name: 'view-report', 
-        params: { id: this.report.id, document: this.report.document_id } 
+        params: { 
+          id: this.report.id, 
+          document: this.report.document_id 
+        } 
+      })
+    },
+    handleEdit() {
+      this.$router.push({ 
+        name: 'edit-report-2', 
+        params: { 
+          id: this.report.id, 
+          document: this.report.document_id 
+        } 
       })
     }
   }

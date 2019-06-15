@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isSuperUser && orgUsersExcludingSelf">
+  <div v-if="isSuperUser() && orgUsersExcludingSelf">
     <div class="panel px-4 py-3" style="width: 300px">
       <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
       <TeamMember 
@@ -16,7 +16,7 @@
 
 <script>
 import { isSuperUser } from 'service/auth'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 import TeamMember from 'molecule/TeamMember'
 import TeamMemberModal from 'organism/TeamMemberModal'
@@ -33,18 +33,29 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('org', [
+      'getOrgId'
+    ]),
     ...mapGetters('orgUsers', [
       'orgUsers'
     ]),
     orgUsersExcludingSelf() {
       let id = getUserId()
-      return this.orgUsers.filter(
+      return this.orgUsers ? this.orgUsers.filter(
         user => user.user.id !== id
-      )
+      ) : false
+    }
+  },
+  async created() {
+    if (this.isSuperUser()) {
+      await this.getUsers({ orgId: this.getOrgId })
     }
   },
   methods: {
     isSuperUser,
+    ...mapActions('orgUsers', [
+      'getUsers'
+    ]),
     handleEdit({ id }) {
       this.editUserId = id;
       this.$bvModal.show('modal-teammember')

@@ -5,15 +5,15 @@
       class="d-flex align-items-center">
       Status: 
       <div 
-        :class="{ 'ViewHeader__choice--active': approved === true }"
-        class="ViewHeader__choice ml-4 d-flex align-items-center"
+        :class="approvedClasslist"
+        class="ViewHeader__choice ml-4 align-items-center"
         @click="handleApprove">
         <img :src='approveIcon' width="30" height="30" />
         <div class="ml-3">{{ approveLabel }}</div>
       </div>
       <span 
-        :class="{ 'ViewHeader__choice--active': approved === false }"
-        class="ViewHeader__choice ml-4 d-flex align-items-center"
+        :class="disapprovedClasslist"
+        class="ViewHeader__choice ml-4 align-items-center"
         @click="handleDisapproveModal">
         <img :src='disapproveIcon' width="30" height="30" />
         <span class="ml-3">{{ disapproveLabel }}</span>
@@ -24,6 +24,7 @@
     </div>
 
     <b-button 
+      v-if="editable"
       :to="editRoute"
       variant="light"
       class="font-weight-bold">
@@ -50,6 +51,8 @@ import { mapGetters, mapActions } from 'vuex'
 import DisapproveModal from 'organism/DisapproveModal'
 import Feedback from 'atom/Feedback'
 
+import { isSuperUser, canWrite } from 'service/auth'
+
 export default {
   name: 'ViewHeader',
   components: {
@@ -75,6 +78,18 @@ export default {
         params: { id: report.id, document: report.document_id }
       }
     },
+    editable() {
+      if ( ! canWrite()) {
+        return false
+      }
+      if (this.activeReport) {
+        return (
+          ! this.activeReport.isPendingReview() && 
+          ! this.activeReport.isApproved()
+        ) || isSuperUser()
+      } 
+      return false
+    },
     isAvailableForReview() {
       // TODO: Can user review...? 
       if (this.activeReport) {
@@ -87,6 +102,20 @@ export default {
         return this.activeReport.isPendingReview()
       }
       return true
+    },
+    disapprovedClasslist() {
+      return { 
+        'ViewHeader__choice--active' : this.approved === false, 
+        'd-none': this.approved === true, 
+        'd-flex': this.approved !== true 
+      }
+    },
+    approvedClasslist() {
+      return { 
+        'ViewHeader__choice--active' : this.approved === true, 
+        'd-none': this.approved === false, 
+        'd-flex': this.approved !== false 
+      }
     },
     approved() {
       if (this.activeReport) {
@@ -114,7 +143,7 @@ export default {
     ...mapActions('report', [
       'approveReport'
     ]),
-    // TODO: Update with call
+    // TODO: Update with call - Done ?
     async handleApprove() {
       if ( ! this.isPendingReview || this.processing) {
         return;

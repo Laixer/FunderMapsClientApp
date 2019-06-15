@@ -64,45 +64,30 @@ export default {
       'isOrganizationAvailable',
       'getOrgId'
     ]),
-    ...mapGetters('orgUsers', [
-      'areOrganisationUsersAvailable'
+    ...mapGetters('attestation', [
+      'arePrincipalUsersAvailable',
+      'areContractorsAvailable'
     ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.areOrganisationUsersAvailable
+        && this.arePrincipalUsersAvailable
+        && this.areContractorsAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
     }
   },
   async created() {
-    if ( ! this.isUserAvailable) {
-      try {
-        await this.getUser()
-      } catch(err) {
-        this.loadingDataFailed = true;
-      }
-    }
-    if (
-      ! this.loadingDataFailed &&
-      ! this.isOrganizationAvailable
-    ) {
-      try {
-        await this.getOrganization()
-      } catch(err) {  
-        this.loadingDataFailed = true;
-      }
-    }
-    if ( 
-      ! this.loadingDataFailed &&
-      ! this.areOrganisationUsersAvailable
-    ) {
-      try {
-        await this.getUsers({ orgId: this.getOrgId })
-      } catch(err) {  
-        this.loadingDataFailed = true;
-      }
+    try {
+      await Promise.all([
+        this.getUser(),
+        this.getOrganization(),
+        this.getPrincipalUsers(),
+        this.getContractors()
+      ])
+    } catch(err) {
+      this.loadingDataFailed = true;
     }
   },
   methods: {
@@ -112,8 +97,9 @@ export default {
     ...mapActions('org', [
       'getOrganization'
     ]),
-    ...mapActions('orgUsers', [
-      'getUsers'
+    ...mapActions('attestation', [
+      'getPrincipalUsers',
+      'getContractors'
     ])
   }
 }

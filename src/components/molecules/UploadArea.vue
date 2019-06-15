@@ -2,6 +2,7 @@
 
   <vue2Dropzone 
     id="dropzone"
+    v-if="canWrite()"
     :options="options"
     useCustomSlot
     @vdropzone-sending="addHeaderBeforeSending"
@@ -31,7 +32,7 @@ import { image } from 'helper/assets'
 import vue2Dropzone from 'vue2-dropzone'
 import 'vue2-dropzone/dist/vue2Dropzone.min.css'
 
-import { authHeader } from 'service/auth';
+import { authHeader, canWrite } from 'service/auth';
 
 export default {
   components: {
@@ -48,6 +49,7 @@ export default {
   },
   methods: {
     image,
+    canWrite,
     /**
      * Add the Authorization header when the upload process starts
      */
