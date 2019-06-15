@@ -295,8 +295,6 @@ export default {
     ])
   },
   created() {
-    
-    console.log(this.sample)
     if (this.sample.stored === false) {
       this.feedback = {
         variant: 'info',
