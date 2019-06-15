@@ -5,7 +5,7 @@
     </h1>
     <div class="d-flex">
       <form 
-        class="mr-4" 
+        class="mr-4"
         style="width: 570px"
         @submit.prevent="handleUpdateUser">
 
@@ -15,24 +15,30 @@
           <Feedback :feedback="feedback" />
 
           <ProfileSetting 
-            label="Voornaam" 
+            label="Voornaam"
+            :editMode="editMode" 
             v-model="user.given_name" />
           <ProfileSetting 
             label="Achternaam" 
+            :editMode="editMode" 
             v-model="user.last_name" />
           <ProfileSetting 
             label="E-mail" 
+            :editMode="editMode"
             :disabled="true"
             :value="email" />
           <ProfileSetting 
             label="Functie" 
+            :editMode="editMode" 
             v-model="user.job_title" />
           <ProfileSetting 
-            label="Telefoon" 
+            label="Telefoon"
+            :editMode="editMode"  
             v-model="user.phone_number" />
         </div>
 
         <b-button 
+          v-if="editMode"
           type="submit" 
           variant="primary" 
           class="SubmitButton font-weight-bold mt-4" 
@@ -40,6 +46,17 @@
           pill>
           <span class="d-inline-block my-2">
             Bewaar instellingen
+          </span>
+        </b-button>
+        <b-button 
+          v-else 
+          variant="primary" 
+          class="SubmitButton font-weight-bold mt-4" 
+          size="lg" 
+          @click.stop.prevent="toggleToEditMode"
+          pill>
+          <span class="d-inline-block my-2">
+            Profiel aanpassen
           </span>
         </b-button>
         
@@ -72,6 +89,7 @@ export default {
   },
   data() {
     return {
+      editMode: false,
       feedback: {}
     }
   },
@@ -88,6 +106,9 @@ export default {
     ...mapActions('user', [
       'updateUser'
     ]),
+    toggleToEditMode() {
+      this.editMode = true;
+    },
     async handleUpdateUser() {
       try {
         this.feedback = {
@@ -99,6 +120,7 @@ export default {
           variant: 'success', 
           message: 'Wijzigingen zijn opgeslagen'
         }
+        this.editMode = false
       } catch(err) {
         this.feedback = {
           variant: 'danger', 
