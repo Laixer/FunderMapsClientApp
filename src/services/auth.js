@@ -76,6 +76,10 @@ export const getLastUserEmail = () => {
 //  User Roles & Capabilities 
 // ****************************************************************************
 
+export const isAdmin = () => {
+  return getRole() === 'administrator';
+}
+
 export const isSuperUser = () => {
   return getRole() === 'superuser';
 }
@@ -152,7 +156,10 @@ function getRole() {
   try {
     let user = getUser()
     let role = user.claims.find((claim) => {
-      return claim.type === "fis_org_role"
+      return [
+        "fis_org_role",
+        "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+      ].includes(claim.type)
     })
     return role.value.toLowerCase(); 
   } catch(err) {

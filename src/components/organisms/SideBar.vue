@@ -17,38 +17,41 @@ export default {
   components: {
     SideMenu
   },
-  data() {
-    return {
-      menuItems: [
-        new MenuItem({
-          label: 'Dashboard',
-          icon: 'Home-icon.svg',
-          to: { name: 'dashboard' }
-        }),
-        new MenuItem({
-          label: 'Rapportages',
-          icon: 'Report-icon.svg',
-          to: { name: 'reports' }
-        }),
-        // new MenuItem({
-        //   label: 'Hersteld',
-        //   icon: 'Tools-icon.svg'
-        // }),
-        // new MenuItem({
-        //   label: 'Meldingen',
-        //   icon: 'Alarm-icon.svg',
-        //   notifications: 2
-        // }),
-        // new MenuItem({
-        //   label: 'Kaarten',
-        //   icon: 'Map-icon.svg',
-        //   notifications: 102
-        // }),
-        // new MenuItem({
-        //   label: 'Apps',
-        //   icon: 'App-icon.svg'
-        // })
-      ]
+  props: {
+    menuItems: {
+      type: Array,
+      default: function() {
+        return [
+          new MenuItem({
+            label: 'Dashboard',
+            icon: 'Home-icon.svg',
+            to: { name: 'dashboard' }
+          }),
+          new MenuItem({
+            label: 'Rapportages',
+            icon: 'Report-icon.svg',
+            to: { name: 'reports' }
+          }),
+          // new MenuItem({
+          //   label: 'Hersteld',
+          //   icon: 'Tools-icon.svg'
+          // }),
+          // new MenuItem({
+          //   label: 'Meldingen',
+          //   icon: 'Alarm-icon.svg',
+          //   notifications: 2
+          // }),
+          // new MenuItem({
+          //   label: 'Kaarten',
+          //   icon: 'Map-icon.svg',
+          //   notifications: 102
+          // }),
+          // new MenuItem({
+          //   label: 'Apps',
+          //   icon: 'App-icon.svg'
+          // })
+        ]
+      }
     }
   }
 }

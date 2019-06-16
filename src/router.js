@@ -18,11 +18,16 @@ import ReportView from '@/views/report/View'
 // Reports 
 import Reports from '@/views/Reports.vue'
 
+// Admin
+import AdminDashboard from '@/views/admin/AdminDashboard'
+import AdminOrganization from '@/views/admin/AdminOrganization'
+import AdminOrganizations from '@/views/admin/AdminOrganizations'
+
 // 404
 import NotFound from '@/views/NotFound.vue'
 
 // Services
-import { isLoggedIn } from '@/services/auth'
+import { isLoggedIn, isAdmin, logout } from '@/services/auth'
 
 Vue.use(Router)
 
@@ -49,12 +54,18 @@ let router = new Router({
     {
       path: '/logout',
       name: 'logout',
-      component: Logout
+      component: Logout,
+      meta: {
+        profile: true
+      }
     },
     {
       path: '/user',
       name: 'user',
-      component: User
+      component: User,
+      meta: {
+        profile: true
+      }
     },
     // Report
     {
@@ -89,6 +100,35 @@ let router = new Router({
       component: Reports
     },
 
+    // Admin
+    {
+      path: '/admin/',
+      name: 'admin-dashboard',
+      component: AdminDashboard,
+      meta: {
+        layout: 'admin',
+        admin: true
+      }
+    },
+    {
+      path: '/admin/organisaties',
+      name: 'admin-organizations',
+      component: AdminOrganizations,
+      meta: {
+        layout: 'admin',
+        admin: true
+      }
+    },
+    {
+      path: '/admin/organisatie/:id',
+      name: 'admin-organization',
+      component: AdminOrganization,
+      meta: {
+        layout: 'admin',
+        admin: true
+      }
+    },
+
     // 404
     {
       path: '/not-found',
@@ -98,15 +138,42 @@ let router = new Router({
     {
       path: '/*',
       name: '404',
-      component: NotFound
+      component: NotFound,
+      meta: {
+        layout: 'login',
+        public: true
+      }
     }
   ]
 })
 
 router.beforeEach((to, from, next) => {
-  if (isLoggedIn() || (! isLoggedIn() && to.meta && to.meta.public)) {
+  // Public pages
+  if (to.meta && to.meta.public) {
     next()
+  } else if (isLoggedIn()) {
+    // Admin pages are only visible to admins
+    // Anyone else will get a 404
+    if (to.meta && to.meta.admin) {
+      if (isAdmin()) {
+        next()
+      } else {
+        next({ name: '404' })
+      } 
+    // Regular dashboard pages are not available to admins
+    } else {
+      if (isAdmin() && ( ! to.meta || ! to.meta.profile)) {
+        console.log("redir")
+        next({ name: 'admin-dashboard' })
+      } else {
+        next()
+      }
+    }
   } else {
+    // If the user is logged in, log out first
+    if (isLoggedIn()) {
+      logout()
+    }
     next({ name: 'login' })
   }
 })

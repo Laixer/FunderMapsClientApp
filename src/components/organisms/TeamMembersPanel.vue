@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isSuperUser() && orgUsersExcludingSelf">
+  <div v-if="(isSuperUser() || isAdmin()) && orgUsersExcludingSelf">
     <div class="panel px-4 py-3" style="width: 300px">
       <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
       <TeamMember 
@@ -9,13 +9,15 @@
         @edit="handleEdit" />
     </div>
 
-    <TeamMemberModal :id="editUserId" />
+    <TeamMemberModal 
+      :id="editUserId" 
+      :orgId="orgId" />
 
   </div>
 </template>
 
 <script>
-import { isSuperUser } from 'service/auth'
+import { isSuperUser, isAdmin } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
 
 import TeamMember from 'molecule/TeamMember'
@@ -44,14 +46,23 @@ export default {
       return this.orgUsers ? this.orgUsers.filter(
         user => user.user.id !== id
       ) : false
+    },
+    orgId() {
+      if (isAdmin() && this.$route.params.id) {
+        return this.$route.params.id
+      } else if (this.isSuperUser()) {
+        return this.getOrgId;
+      }
+      return false
     }
   },
   async created() {
-    if (this.isSuperUser()) {
-      await this.getUsers({ orgId: this.getOrgId })
+    if (isAdmin() || isSuperUser()) {
+      await this.getUsers({ orgId: this.orgId })
     }
   },
   methods: {
+    isAdmin,
     isSuperUser,
     ...mapActions('orgUsers', [
       'getUsers'

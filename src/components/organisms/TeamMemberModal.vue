@@ -88,6 +88,10 @@ export default {
     id: {
       type: String,
       default: ''
+    },
+    orgId: {
+      type: [String, Number],
+      default: ''
     }
   },
   data() {
@@ -148,9 +152,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('org', [
-      'getOrgId'
-    ]),
     ...mapGetters('orgUsers', [
       'getUserById'
     ]),
@@ -202,7 +203,7 @@ export default {
       
       try {
         await this.updateUser({
-          orgId: this.getOrgId,
+          orgId: this.orgId,
           userData,
           role: this.fieldValue('role')
         })
@@ -236,7 +237,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-</style>

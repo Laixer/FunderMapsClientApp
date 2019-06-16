@@ -75,7 +75,6 @@ const mutations = {
     })
   },
   update_user(state, { userData, role }) {
-
     let index = state.users.findIndex(user => {
       return user.user.id === userData.id
     })
