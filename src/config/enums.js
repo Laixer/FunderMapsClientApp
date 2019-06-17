@@ -5,7 +5,7 @@
 
 export const typeOptions = [ 
   {
-    text: 'AdditionalResearch',
+    text: 'Aanvullend onderzoek',
     color: 'white',
     bgColor: '#3D5372'
   }, 
@@ -15,7 +15,7 @@ export const typeOptions = [
     bgColor: '#3D5372'
   }, 
   {
-    text: 'Note',
+    text: 'Notitie',
     color: 'white',
     bgColor: '#3D5372'
   }, 
@@ -25,47 +25,47 @@ export const typeOptions = [
     bgColor: '#3D5372'
   }, 
   {
-    text: 'Unknown',
+    text: 'Onbekend',
     color: 'white',
     bgColor: '#3D5372'
   },
   {
-    text: 'DemolitionResearch',
+    text: 'Sloopgrens onderzoek',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    text: 'SecondOpinion',
+    text: 'Second opinion',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    text: 'ArchiveResearch',
+    text: 'Archief onderzoek',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    text: 'ArchitecturalResearch',
+    text: 'Bouwkundig onderzoek',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    text: 'FoundationAdvice',
+    text: 'Funderingsadvies',
     color: 'white',
     bgColor: '#3D5372'
   },
   {
-    text: 'Inspectionpit',
+    text: 'Inspectieput',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    text: 'FoundationResearch',
+    text: 'Funderings onderzoek',
     color: 'white',
     bgColor: '#3D5372'
   }, 
   {
-    text: 'GroundWaterLevelResearch',
+    text: 'Grondwater onderzoek',
     color: 'white',
     bgColor: '#3D5372'
   }
@@ -74,36 +74,44 @@ export const typeOptions = [
 export const statusOptions = [ 
   {
     text: 'Todo',
+    label: 'Nog te beoordelen',
     bgColor: '#3D5372'
   }, 
   {
     text: 'Pending',
+    label: 'In bewerking',
     bgColor: '#F5A623'
   }, 
   {
     text: 'Done',
+    label: 'Afgerond',
     bgColor: '#28CC8B'
   }, 
   {
     text: 'Discarded',
+    label: 'Afgevallen',
     bgColor: '#3D5372'
   }, 
   {
     text: 'PendingReview',
+    label: 'Gecontroleerd',
     bgColor: '#3D5372'
   }, 
   {
     text: 'Rejected',
+    label: 'Afgekeurd',
     bgColor: '#FF4E4E'
   } 
 ]
 
 export const accessOptions = [ 
   {
-    value: 'Public'
+    value: 'Public',
+    label: 'Openbaar'
   }, 
   {
-    value: 'Private'
+    value: 'Private',
+    label: 'Gesloten'
   } 
 ]
 
