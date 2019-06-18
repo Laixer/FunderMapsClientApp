@@ -58,6 +58,25 @@ OrgUserModel.prototype.getUserName = function() {
 // ****************************************************************************
 
 /**
+ * The translated role name
+ */
+OrgUserModel.prototype.getRoleName = function() {
+  switch(this.role.name) {
+    case 'Admin':
+      return 'Admin';
+    case 'Superuser':
+      return 'Beheerder';
+    case 'Verifier':
+      return 'Reviewer'
+    case 'Writer':
+      return 'Verwerker'
+    case 'Reader':
+      return 'Alleen lezen'
+  }
+  return this.role.name
+}
+
+/**
  * Whether or not the user is able to approve / disapprove reports
  */
 OrgUserModel.prototype.canReview = function() {

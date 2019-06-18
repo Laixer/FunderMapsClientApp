@@ -7,6 +7,12 @@ export default {
   },
   updateOrganizationUser: ({ orgId, user, role }) => {
     return axios.put(`/api/organization/${orgId}/user/${user.id}`, 
-    { user, role: { name: role }})
-  }
+      { user, role: { name: role } }
+    )
+  },
+  createOrganizationUser: ({ orgId, user, role }) => {
+    return axios.post(`/api/organization/${orgId}/user/`, 
+      { email: user.email, password: user.password, role: role }
+    )
+  },
 }

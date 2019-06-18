@@ -16,7 +16,8 @@
 
           <ProfileSetting 
             label="Naam"
-            :editMode="editMode" 
+            :editMode="editMode"
+            :disabled="true"
             v-model="organisatie.name" />
           <ProfileSetting 
             label="Email" 
@@ -27,9 +28,94 @@
             :editMode="editMode"
             v-model="organisatie.phone_number" />
         </div>
+        <div class="panel px-4 py-3 mb-2">
+          <h2 class="font-weight-bold mt-1 mb-4">Factuur informatie</h2>
+          <ProfileSetting 
+            label="Naam" 
+            :editMode="editMode"
+            v-model="organisatie.invoice_name" />
+          <ProfileSetting 
+            label="PO nummer" 
+            :editMode="editMode"
+            v-model="organisatie.invoice_po_number" />
+          <ProfileSetting 
+            label="E-mail adres" 
+            :editMode="editMode"
+            v-model="organisatie.invoice_email" />
+        </div>
+
+        <div class="panel px-4 py-3 mb-2">
+          <h2 class="font-weight-bold mt-1 mb-4">Bezoek adres</h2>
+          <ProfileSetting 
+            label="Straat" 
+            :editMode="editMode"
+            v-model="organisatie.home_street" />
+          <ProfileSetting 
+            label="Huisnummer" 
+            :editMode="editMode"
+            v-model="organisatie.home_address_number" />
+          <ProfileSetting 
+            label="Toevoeging" 
+            :editMode="editMode"
+            v-model="organisatie.home_address_number_postfix" />
+          <ProfileSetting 
+            label="Postbus" 
+            :editMode="editMode"
+            v-model="organisatie.home_postbox" />
+          <ProfileSetting 
+            label="Stad" 
+            :editMode="editMode"
+            v-model="organisatie.home_city" />
+          <ProfileSetting 
+            label="Postcode" 
+            :editMode="editMode"
+            v-model="organisatie.home_zipcode" />
+          <ProfileSetting 
+            label="Provincie" 
+            :editMode="editMode"
+            v-model="organisatie.home_state" />
+          <ProfileSetting 
+            label="Land" 
+            :editMode="editMode"
+            v-model="organisatie.home_country" />
+        </div>
+        <div class="panel px-4 py-3 mb-2">
+          <h2 class="font-weight-bold mt-1 mb-4">Post adres</h2>
+          <ProfileSetting 
+            label="Straat" 
+            :editMode="editMode"
+            v-model="organisatie.postal_street" />
+          <ProfileSetting 
+            label="Huisnummer" 
+            :editMode="editMode"
+            v-model="organisatie.postal_address_number" />
+          <ProfileSetting 
+            label="Toevoeging" 
+            :editMode="editMode"
+            v-model="organisatie.postal_address_number_postfix" />
+          <ProfileSetting 
+            label="Postbus" 
+            :editMode="editMode"
+            v-model="organisatie.postal_postbox" />
+          <ProfileSetting 
+            label="Stad" 
+            :editMode="editMode"
+            v-model="organisatie.postal_city" />
+          <ProfileSetting 
+            label="Postcode" 
+            :editMode="editMode"
+            v-model="organisatie.postal_zipcode" />
+          <ProfileSetting 
+            label="Provincie" 
+            :editMode="editMode"
+            v-model="organisatie.postal_state" />
+          <ProfileSetting 
+            label="Land" 
+            :editMode="editMode"
+            v-model="organisatie.postal_country" />
+        </div>
 
         <b-button 
-          v-if="editMode"
           type="submit" 
           variant="primary" 
           class="SubmitButton font-weight-bold mt-4" 
@@ -37,17 +123,6 @@
           pill>
           <span class="d-inline-block my-2">
             Bewaar instellingen
-          </span>
-        </b-button>
-        <b-button 
-          v-else 
-          variant="primary" 
-          class="SubmitButton font-weight-bold mt-4" 
-          size="lg" 
-          @click.stop.prevent="toggleToEditMode"
-          pill>
-          <span class="d-inline-block my-2">
-            Profiel aanpassen
           </span>
         </b-button>
         
@@ -64,13 +139,13 @@ import ProfileSetting from 'molecule/ProfileSetting'
 import TeamMembersPanel from 'organism/TeamMembersPanel'
 import Feedback from 'atom/Feedback'
 
-import { image } from 'helper/assets';
+import { image } from 'helper/assets'
+import { isAdmin } from 'service/auth'
 
-import { mapGetters, mapActions } from 'vuex';
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'OrganisatieProfiel',
-  // Avoid injection errors
   
   components: {
     ProfileSetting,
@@ -79,18 +154,19 @@ export default {
   },
   data() {
     return {
-      editMode: false,
+      editMode: true,
       feedback: {}
     }
   },
   computed: {
     ...mapGetters('org', [
+      'organization',
       'getOrgById'
     ]),
     organisatie() {
-      return this.getOrgById({
-        id: this.$route.params.id
-      })
+      return isAdmin() 
+        ? this.getOrgById({ id : this.$route.params.id })
+        : this.organization
     }
   },
   methods: {
@@ -98,9 +174,6 @@ export default {
     ...mapActions('org', [
       'updateOrg'
     ]),
-    toggleToEditMode() {
-      this.editMode = true;
-    },
     async handleUpdateOrg() {
       try {
         this.feedback = {
@@ -115,9 +188,7 @@ export default {
           variant: 'success', 
           message: 'Wijzigingen zijn opgeslagen'
         }
-        this.editMode = false
       } catch(err) {
-        console.log(err)
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'

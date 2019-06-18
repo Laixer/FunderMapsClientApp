@@ -6,12 +6,17 @@
       </span>
     </div>
     <SideMenu :items="menuItems" />
+    <div
+      v-if="version"
+      class="SideBar__version">
+      Versie: {{ version }}
+    </div>
   </div>
 </template>
 
 <script>
 import SideMenu from 'molecule/SideMenu';
-import MenuItem from 'model/MenuItem';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -21,52 +26,35 @@ export default {
     menuItems: {
       type: Array,
       default: function() {
-        return [
-          new MenuItem({
-            label: 'Dashboard',
-            icon: 'Home-icon.svg',
-            to: { name: 'dashboard' }
-          }),
-          new MenuItem({
-            label: 'Rapportages',
-            icon: 'Report-icon.svg',
-            to: { name: 'reports' }
-          }),
-          // new MenuItem({
-          //   label: 'Hersteld',
-          //   icon: 'Tools-icon.svg'
-          // }),
-          // new MenuItem({
-          //   label: 'Meldingen',
-          //   icon: 'Alarm-icon.svg',
-          //   notifications: 2
-          // }),
-          // new MenuItem({
-          //   label: 'Kaarten',
-          //   icon: 'Map-icon.svg',
-          //   notifications: 102
-          // }),
-          // new MenuItem({
-          //   label: 'Apps',
-          //   icon: 'App-icon.svg'
-          // })
-        ]
+        return []
       }
     }
+  },
+  computed: {
+    ...mapGetters('version', [
+      'version'
+    ])
   }
 }
 </script>
 
 <style lang="scss">
 .SideBar {
+  position: relative;
   width: 250px;
   background: white;
   box-shadow: -1px 0px 0px 0px rgba(223,226,229,1) inset;
   user-select: none;
   color: #7F8FA4;
+  max-height: 100%;
 
   &__title {
     height: 60px;
+  }
+  &__version {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
   }
 }
 </style>

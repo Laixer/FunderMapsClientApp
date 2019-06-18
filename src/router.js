@@ -18,6 +18,9 @@ import ReportView from '@/views/report/View'
 // Reports 
 import Reports from '@/views/Reports.vue'
 
+// Organization
+import Organization from '@/views/Organization.vue'
+
 // Admin
 import AdminDashboard from '@/views/admin/AdminDashboard'
 import AdminOrganization from '@/views/admin/AdminOrganization'
@@ -67,6 +70,13 @@ let router = new Router({
         profile: true
       }
     },
+    // SuperUser
+    {
+      path: '/organization',
+      name: 'organization',
+      component: Organization
+    },
+
     // Report
     {
       path: '/report/create/:document_name',
@@ -163,7 +173,6 @@ router.beforeEach((to, from, next) => {
     // Regular dashboard pages are not available to admins
     } else {
       if (isAdmin() && ( ! to.meta || ! to.meta.profile)) {
-        console.log("redir")
         next({ name: 'admin-dashboard' })
       } else {
         next()

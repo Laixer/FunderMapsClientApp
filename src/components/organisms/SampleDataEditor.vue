@@ -298,7 +298,7 @@ export default {
     if (this.sample.stored === false) {
       this.feedback = {
         variant: 'info',
-        message: 'Let op: Dit adres is nog niet opgeslagen in de database'
+        message: 'Let op: Dit adres is nog niet opgeslagen'
       }
     }
     // Required fields by API

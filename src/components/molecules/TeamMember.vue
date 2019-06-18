@@ -3,7 +3,7 @@
     class="TeamMember mb-3 d-flex align-items-center" >
     <img class="mr-2 rounded-circle" :src="member.getAvatar()" width="60" height="60" />
     <div class="pl-1 d-flex flex-column flex-grow-1 align-items-start">
-      <span>{{ member.getUserName() }}</span>
+      <span>{{ member.getUserName() }} ({{ member.getRoleName() }})</span>
       <b-button
         class="font-weight-bold mt-2"
         variant="light"

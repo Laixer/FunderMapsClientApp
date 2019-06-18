@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="ml-2 mb-3 pb-1">
-      Account Instellingen
+      Profiel Instellingen
     </h1>
     <div class="d-flex">
       <form 
@@ -38,7 +38,6 @@
         </div>
 
         <b-button 
-          v-if="editMode"
           type="submit" 
           variant="primary" 
           class="SubmitButton font-weight-bold mt-4" 
@@ -48,21 +47,8 @@
             Bewaar instellingen
           </span>
         </b-button>
-        <b-button 
-          v-else 
-          variant="primary" 
-          class="SubmitButton font-weight-bold mt-4" 
-          size="lg" 
-          @click.stop.prevent="toggleToEditMode"
-          pill>
-          <span class="d-inline-block my-2">
-            Profiel aanpassen
-          </span>
-        </b-button>
         
       </form>
-
-      <TeamMembersPanel />
     </div>
 
   </div>
@@ -70,7 +56,6 @@
 
 <script>
 import ProfileSetting from 'molecule/ProfileSetting'
-import TeamMembersPanel from 'organism/TeamMembersPanel'
 import Feedback from 'atom/Feedback'
 
 import { image } from 'helper/assets';
@@ -80,16 +65,14 @@ import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'User',
-  // Avoid injection errors
   
   components: {
     ProfileSetting,
-    TeamMembersPanel,
     Feedback
   },
   data() {
     return {
-      editMode: false,
+      editMode: true,
       feedback: {}
     }
   },
@@ -106,9 +89,6 @@ export default {
     ...mapActions('user', [
       'updateUser'
     ]),
-    toggleToEditMode() {
-      this.editMode = true;
-    },
     async handleUpdateUser() {
       try {
         this.feedback = {
@@ -120,7 +100,6 @@ export default {
           variant: 'success', 
           message: 'Wijzigingen zijn opgeslagen'
         }
-        this.editMode = false
       } catch(err) {
         this.feedback = {
           variant: 'danger', 

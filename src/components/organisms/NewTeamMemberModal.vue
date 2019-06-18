@@ -1,11 +1,11 @@
 <template>
   <b-modal 
-    id="modal-teammember"
+    id="modal-new-teammember"
     ref="modal" 
     centered 
     @ok="onOk"
     @show="onShow"
-    :title="'Teamlid: ' + name">
+    title="Nieuw teamlid">
     <template slot="default">
       <Feedback :feedback="feedback" />
       <Form 
@@ -15,34 +15,16 @@
         @submit="handleSubmit">
 
         <FormField 
-          label="Voornaam"
-          type="text"
-          v-model="fields.given_name.value"
-          v-bind="fields.given_name" />
-
-        <FormField 
-          label="Achternaam"
-          type="text"
-          v-model="fields.last_name.value"
-          v-bind="fields.last_name" />
-
-        <FormField 
           label="Email"
           type="text"
           v-model="fields.email.value"
           v-bind="fields.email" />
 
         <FormField 
-          label="Functie"
-          type="text"
-          v-model="fields.job_title.value"
-          v-bind="fields.job_title" />
+          label="Wachtwoord"
+          v-model="fields.password.value"
+          v-bind="fields.password" />
 
-        <FormField 
-          label="Telefoon"
-          type="text"
-          v-model="fields.phone_number.value"
-          v-bind="fields.phone_number" />
         <Divider />
 
         <FormField 
@@ -50,14 +32,6 @@
           type="select"
           v-model="fields.role.value"
           v-bind="fields.role" />
-        <!-- <Divider /> -->
-
-        <!-- <FormField 
-          label="Password"
-          type="password"
-          v-model="fields.password.value"
-          v-bind="fields.password"
-          autocomplete="new-password" /> -->
 
       </Form>
     </template>
@@ -68,14 +42,13 @@
 
 import { required, minLength, email } from 'vuelidate/lib/validators';
 
-import { image } from 'helper/assets'
 import Divider from 'atom/Divider'
 
 import Feedback from 'atom/Feedback'
 import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapActions } from 'vuex'
 import fields from 'mixin/fields'
 import timeout from 'mixin/timeout'
 
@@ -87,12 +60,8 @@ export default {
   },
   mixins: [ fields, timeout ],
   props: {
-    id: {
-      type: String,
-      default: null
-    },
     orgId: {
-      type: [String, Number],
+      type: [ String, Number ],
       default: ''
     }
   },
@@ -102,20 +71,6 @@ export default {
       isDisabled: false,
       feedback: {},
       fields: {
-        given_name: {
-          value: "",
-          validationRules: {
-            minLength: minLength(2)
-          },
-          disabled: false
-        },
-        last_name: {
-          value: "",
-          validationRules: {
-            minLength: minLength(2)
-          },
-          disabled: false
-        },
         email: {
           value: "",
           placeholder: 'naam@bedrijf.nl',
@@ -134,48 +89,23 @@ export default {
             { value: null, text: 'Selecteer een optie' }
           ].concat(userRoles),
         },
-        job_title: {
-          value: "",
+        password: {
+          value: '',
+          type: 'password',
           validationRules: {
+            required,
+            minLength: minLength(7)
           },
-          disabled: false
-        },
-        phone_number: {
-          value: "",
-          validationRules: {
-          },
+          autocomplete: "new-password",
           disabled: false
         }
       }
     }
   },
-  computed: {
-    ...mapGetters('orgUsers', [
-      'getUserById'
-    ]),
-    orgUser() {
-      return this.getUserById({ id: this.id })
-    }
-  },
-  watch: {
-    orgUser(orgUser) {
-      this.setFieldValues([
-        { name: 'email', value: orgUser.user.email },
-        { name: 'role', value: orgUser.role.name },
-        { name: 'given_name', value: orgUser.user.given_name },
-        { name: 'last_name', value: orgUser.user.last_name },
-        { name: 'job_title', value: orgUser.user.job_title },
-        { name: 'phone_number', value: orgUser.user.phone_number }
-      ])
-
-      this.name = orgUser.getUserName()
-    }
-  },
   methods: {
     ...mapActions('orgUsers', [
-      'updateUser'
+      'createUser'
     ]),
-    image,
     onShow() {
       this.feedback = { show: false }
     },
@@ -195,17 +125,16 @@ export default {
       
       try {
         // Make a copy, and add form field data
-        let userData = Object.assign({}, this.orgUser.user, this.fieldValues([
-          'email', 'job_title', 'last_name', 'given_name', 'phone_number'
-        ]));
-        await this.updateUser({
+        await this.createUser({
           orgId: this.orgId,
-          userData,
+          userData: this.fieldValues([
+            'email', 'password'
+          ]),
           role: this.fieldValue('role')
         })
         this.feedback = {
           variant: 'success',
-          message: 'De wijzigingen zijn opgeslagen'
+          message: 'Het nieuwe teamlid is geregistreerd'
         }
 
         this.setTimeout(() => {
@@ -217,7 +146,7 @@ export default {
       } catch (err) {
         this.feedback = {
           variant: 'danger', 
-          message: 'Wijzigingen zijn niet opgeslagen'
+          message: 'Het teamlid kon niet worden geregistreerd. Mogelijk is het e-mail adres reeds in gebruik.'
         }
         this.isDisabled = false;
         this.enableAllFields()

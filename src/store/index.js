@@ -8,6 +8,7 @@ import user from './user'
 import orgUsers from './orgUsers'
 import samples from './samples'
 import attestation from './attestation'
+import version from './version'
 
 Vue.use(Vuex)
 
@@ -19,7 +20,8 @@ export default new Vuex.Store({
     orgUsers,
     report,
     samples,
-    attestation
+    attestation,
+    version
   },
   state: {
 
@@ -28,6 +30,5 @@ export default new Vuex.Store({
 
   },
   actions: {
-
   }
 })

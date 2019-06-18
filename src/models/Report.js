@@ -51,14 +51,14 @@ let reportModel = function ({
 
   // attribution, 
   this.creator = attribution && attribution.creator 
-    ? new AttributedUser({ user: attribution.creator, role: 'Uitvoerder' })
+    ? new AttributedUser({ user: attribution.creator, role: 'Verwerker' })
     : null;
   this.reviewer = attribution && attribution.reviewer
     ? new AttributedUser({ user: attribution.reviewer, role: 'Reviewer' })
     : null;
 
   this.contractor = attribution && attribution.contractor
-    ? new AttributedOrganisation(attribution.contractor)
+    ? new AttributedOrganisation({org: attribution.contractor, role: 'Uitvoerder' })
     : null
   //  contractor, owner: orgs
   //  project & project_navigation: ?

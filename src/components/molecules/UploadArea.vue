@@ -65,7 +65,9 @@ export default {
     handleSuccess(file, response) {
       this.$router.push({ 
         name: 'new-report', 
-        params: { document_name: response.file_name } 
+        params: { 
+          document_name: response.name.split('.').slice(0, -1).join('.') 
+        } 
       })
     }
   }

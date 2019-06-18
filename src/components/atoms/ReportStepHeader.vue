@@ -1,7 +1,7 @@
 <template>
   <div class="ReportStepHeader d-flex align-items-center justify-content-between">
-    <h2 class="font-weight-bold m-0">
-      <span>Stap {{ step }}</span>
+    <h2 class="m-0">
+      <span class="font-weight-bold">Stap {{ step }}</span>
       <span 
         class="ReportStepHeader__label ml-3 pl-3"
         v-if="label">
@@ -44,7 +44,17 @@ export default {
   }
 
   &__label {
-    border-left: 1px solid #E8EAF1;
+    position: relative;
+    font-size: 16px;
+
+    &:before {
+      position: absolute;
+      content: '';
+      border-left: 1px solid #E8EAF1;
+      height: 30px;
+      left: 0;
+      top: -50%;
+    }
   }
   .btn {
     color: #7F8FA4;

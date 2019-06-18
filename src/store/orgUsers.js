@@ -64,6 +64,15 @@ const actions = {
     })
     return response;
   },
+  async createUser({ dispatch }, { orgId, userData, role }) {
+    let response = await orgUserAPI.createOrganizationUser({ orgId, user: userData, role })
+    if (response.status === 204) {
+      dispatch('getUsers', {
+        orgId
+      })
+    }
+    return response;
+  },
   clearUsers({ commit }) {
     commit('clear_users')
   }

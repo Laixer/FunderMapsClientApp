@@ -103,7 +103,7 @@ export default {
       fields: {
         document_id: {
           label: 'Document naam',
-          value: 'REPORT-' + (new Date()).getFullYear(),
+          value: '',
           validationRules: {
             required
           },

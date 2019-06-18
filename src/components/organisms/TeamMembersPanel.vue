@@ -8,9 +8,22 @@
         :key="index"
         @edit="handleEdit" />
     </div>
+    <b-button 
+      variant="primary" 
+      class="SubmitButton font-weight-bold mt-4" 
+      size="lg"
+      @click="handleCreate"
+      pill>
+      <span class="d-inline-block my-2">
+        Gebruiker registreren
+      </span>
+    </b-button>
 
     <TeamMemberModal 
       :id="editUserId" 
+      :orgId="orgId" />
+
+    <NewTeamMemberModal 
       :orgId="orgId" />
 
   </div>
@@ -22,12 +35,13 @@ import { mapGetters, mapActions } from 'vuex'
 
 import TeamMember from 'molecule/TeamMember'
 import TeamMemberModal from 'organism/TeamMemberModal'
+import NewTeamMemberModal from 'organism/NewTeamMemberModal'
 
 import { getUserId } from 'service/auth'
 
 export default {
   components: {
-    TeamMember, TeamMemberModal
+    TeamMember, TeamMemberModal, NewTeamMemberModal
   },
   data() {
     return {
@@ -70,6 +84,9 @@ export default {
     handleEdit({ id }) {
       this.editUserId = id;
       this.$bvModal.show('modal-teammember')
+    },
+    handleCreate() {
+      this.$bvModal.show('modal-new-teammember')
     }
   }
 }

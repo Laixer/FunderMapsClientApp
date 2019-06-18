@@ -31,10 +31,16 @@
     </div>
     <div 
       v-if="activeReport" 
-      class="side p-3">
-      <h3>Gebruikers</h3>
-      <ReportUserRole :user="activeReport.creator" />
-      <ReportUserRole :user="activeReport.reviewer" />
+      class="d-flex flex-column">
+      <div class="side p-3">
+        <h3 class="">Organisaties</h3>
+        <ReportOrgRole :org="activeReport.contractor" />
+      </div>
+      <div class="side p-3 mt-3">
+        <h3>Betrokken personen</h3>
+        <ReportUserRole :user="activeReport.reviewer" />
+        <ReportUserRole :user="activeReport.creator" />
+      </div>
     </div>
 
     <div 
@@ -54,13 +60,14 @@ import { mapGetters, mapActions } from 'vuex'
 
 import ReportDetails from 'organism/ReportDetails'
 import ReportUserRole from 'atom/review/ReportUserRole'
+import ReportOrgRole from 'atom/review/ReportOrgRole'
 import Feedback from 'atom/Feedback'
 import Sample from 'organism/Sample'
 
 export default {
   components: {
     ReportUserRole, ReportDetails,
-    Sample, Feedback
+    ReportOrgRole, Sample, Feedback
   },
   data() {
     return {

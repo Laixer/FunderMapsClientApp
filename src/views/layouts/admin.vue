@@ -98,7 +98,8 @@ export default {
         this.getUser(),
         this.getOrganization(),
         this.getPrincipalUsers(),
-        this.getContractors()
+        this.getContractors(),
+        this.getVersion()
       ])
     } catch(err) {
       this.loadingDataFailed = true;
@@ -114,6 +115,9 @@ export default {
     ...mapActions('attestation', [
       'getPrincipalUsers',
       'getContractors'
+    ]),
+    ...mapActions('version', [
+      'getVersion'
     ])
   }
 }

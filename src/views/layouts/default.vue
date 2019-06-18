@@ -4,7 +4,7 @@
     class="d-flex flex-column">
     <NavBar />
     <div class="d-flex align-items-stretch flex-grow-1">
-      <SideBar />
+      <SideBar :menu-items="menuItems" />
       <div class="flex-grow-1 d-flex flex-column">
         <HeaderBar />
         <div class="p-3 m-3 flex-grow">
@@ -36,6 +36,9 @@ import SideBar from 'organism/SideBar';
 import NavBar from 'organism/NavBar';
 import HeaderBar from 'organism/HeaderBar';
 
+import MenuItem from 'model/MenuItem';
+
+import { isSuperUser } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
 
 /**
@@ -53,7 +56,19 @@ export default {
   },
   data() {
     return {
-      loadingDataFailed: false
+      loadingDataFailed: false,
+      menuItems: [
+        new MenuItem({
+          label: 'Dashboard',
+          icon: 'Home-icon.svg',
+          to: { name: 'dashboard' }
+        }),
+        new MenuItem({
+          label: 'Rapportages',
+          icon: 'Report-icon.svg',
+          to: { name: 'reports' }
+        }),
+      ]
     }
   },
   computed: {
@@ -84,9 +99,21 @@ export default {
         this.getUser(),
         this.getOrganization(),
         this.getPrincipalUsers(),
-        this.getContractors()
+        this.getContractors(),
+        this.getVersion()
       ])
+
+      if (isSuperUser()) {
+        this.menuItems.push(
+          new MenuItem({
+            label: 'Organisatie',
+            icon: 'Tools-icon.svg',
+            to: { name: 'organization' }
+          })
+        )
+      }
     } catch(err) {
+      console.log(err, this.loadingDataFailed)
       this.loadingDataFailed = true;
     }
   },
@@ -100,6 +127,9 @@ export default {
     ...mapActions('attestation', [
       'getPrincipalUsers',
       'getContractors'
+    ]),
+    ...mapActions('version', [
+      'getVersion'
     ])
   }
 }
