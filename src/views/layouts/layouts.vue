@@ -2,6 +2,7 @@
 import defaultLayout from './default'
 import adminLayout from './admin'
 import loginLayout from './login'
+import mapLayout from './map'
 
 /**
  * Determines which layout to use based on the route meta data
@@ -9,13 +10,16 @@ import loginLayout from './login'
 export default {
   name: "Layouts",
   components: {
-    defaultLayout, adminLayout, loginLayout
+    defaultLayout, adminLayout, loginLayout, mapLayout
   },
   render(h) {
     let layout = (this.$route.meta && this.$route.meta.layout) 
       ? this.$route.meta.layout
       : 'default';
 
+    if (layout === 'map') {
+      return h('mapLayout', this.$slots.default)
+    }
     if (layout === 'login') {
       return h('loginLayout', this.$slots.default)
     }

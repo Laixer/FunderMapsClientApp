@@ -4,10 +4,10 @@
     class="d-flex flex-column">
     <NavBar />
     <div class="d-flex align-items-stretch flex-grow-1">
-      <SideBar :menu-items="menuItems" />
+      <SideBar :menu-items="menuItems" :slim="true" />
       <div class="flex-grow-1 d-flex flex-column">
         <HeaderBar />
-        <div class="p-3 m-3 flex-grow">
+        <div class="flex-grow h-100 position-relative">
           <slot />
         </div>
       </div>

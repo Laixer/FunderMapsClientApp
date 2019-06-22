@@ -7,18 +7,21 @@
       :class="{ 'active' : item.isActive() }"
       class="list-group-item list-group-item-action d-flex 
              justify-content-between align-items-center pl-3 py-3">
-      <span class="px-3">
+      <span 
+        :class="{ 'px-3': !slim }">
         <img 
           v-if="item.hasIcon()"
           :src="item.icon()" 
           width="17" 
           height="17" />
       </span>
-      <span class="flex-grow-1">
+      <span 
+        v-if="!slim"
+        class="flex-grow-1">
         {{ item.label }}
       </span>
       <span 
-        v-if="item.notifications" 
+        v-if="item.notifications && !slim" 
         class="badge badge-danger badge-pill ml-1">
         {{ item.notifications }}
       </span>
@@ -36,6 +39,10 @@ export default {
       default: function() {
         return [];
       }
+    },
+    slim: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {

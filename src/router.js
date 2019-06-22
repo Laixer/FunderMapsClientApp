@@ -33,6 +33,9 @@ import AdminOrganizationProposals from '@/views/admin/AdminOrganizationProposals
 // 404
 import NotFound from '@/views/NotFound.vue'
 
+// DemoMap
+import DemoMap from '@/views/DemoMap'
+
 // Services
 import { isLoggedIn, isAdmin, logout } from '@/services/auth'
 
@@ -82,6 +85,16 @@ let router = new Router({
       meta: {
         layout: 'login',
         public: true
+      }
+    },
+
+    // DemoMap
+    {
+      path: '/demo-map',
+      name: 'demo-map',
+      component: DemoMap,
+      meta: {
+        layout: 'map'
       }
     },
 

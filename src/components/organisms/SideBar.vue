@@ -1,13 +1,17 @@
 <template>
-  <div class="SideBar">
-    <div class="SideBar__title d-flex pl-3 ml-3">
+  <div 
+    :class="{ 'SideBar--slim': slim }"
+    class="SideBar">
+    <div 
+      v-if="!slim"
+      class="SideBar__title d-flex pl-3 ml-3">
       <span class="align-self-center">
         MENU
       </span>
     </div>
-    <SideMenu :items="menuItems" />
+    <SideMenu :items="menuItems" :slim="slim" />
     <div
-      v-if="version"
+      v-if="version && !slim"
       class="SideBar__version">
       Versie: {{ version }}
     </div>
@@ -28,6 +32,10 @@ export default {
       default: function() {
         return []
       }
+    },
+    slim: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -47,6 +55,11 @@ export default {
   user-select: none;
   color: #7F8FA4;
   max-height: 100%;
+
+  &--slim {
+    width: 50px;
+    overflow: hidden;
+  }
 
   &__title {
     height: 60px;
