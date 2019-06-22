@@ -11,13 +11,13 @@
       {{ label }}
     </span>
     <img 
+      v-if="hasIcon"
       alt="arrow" 
       :src="icon({ name: 'ArrowRight-icon.svg' })" />
   </b-button>
 </template>
 
 <script>
-// TODO: May later be used as more generic button with arrow image
 
 import { icon } from "helper/assets";
 export default {
@@ -35,6 +35,10 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    hasIcon: {
+      type: Boolean,
+      default: true
     }
   },
   methods: {

@@ -2,7 +2,7 @@
   <div class="d-flex flex-column">
     <UploadArea />
 
-    <ReportList 
+    <ReportTable 
       title="Recente rapporten"
       :reports="latestReports({ count: 5 })"
       :synchronizing="loading"
@@ -16,7 +16,7 @@
 
 <script>
 import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
-import ReportList from 'organism/ReportList';
+import ReportTable from 'organism/ReportTable';
 import UploadArea from 'molecule/UploadArea';
 
 import { mapGetters, mapActions } from 'vuex'
@@ -26,7 +26,7 @@ let timer = null;
 export default {
   name: 'Dashboard',
   components: {
-    ReportList, UploadArea, PrimaryArrowButton
+    ReportTable, UploadArea, PrimaryArrowButton
   },
   data() {
     return {

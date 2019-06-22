@@ -2,11 +2,12 @@
  * Import Dependency
  */
 import OrgUserModel from 'model/OrgUser'
+import Vue from 'vue'
 
 /**
  * Import API
  */
-import orgUserAPI from 'api/orgUser';
+import orgUserAPI from 'api/orgUser'
 
 /**
  * Declare Variable
@@ -14,7 +15,6 @@ import orgUserAPI from 'api/orgUser';
 const state = {
   users : null
 }
-
 
 const getters = {
   orgUsers: state => {
@@ -73,6 +73,12 @@ const actions = {
     }
     return response;
   },
+  async removeUser({ commit }, { orgId, id }) {
+    let response = await orgUserAPI.removeOrganizationUser({ orgId, id })
+    if (response.status === 204) {
+      commit('remove_user', { id })
+    }
+  },
   clearUsers({ commit }) {
     commit('clear_users')
   }
@@ -89,6 +95,12 @@ const mutations = {
     })
     state.users[index].user = userData;
     state.users[index].role.name = role
+  },
+  remove_user(state, { id }) {
+    let index = state.users.findIndex(user => {
+      return user.user.id === id
+    })
+    Vue.delete(state.users, index);
   },
   clear_users(state) {
     state.users = null

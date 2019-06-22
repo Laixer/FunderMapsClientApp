@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="ml-2 mb-3 pb-1">
-      Organisatie Profiel
+      Organisatie Profiel<span v-if="organisatie">: {{ organisatie.name }}</span>
     </h1>
     <div class="d-flex">
       <form 

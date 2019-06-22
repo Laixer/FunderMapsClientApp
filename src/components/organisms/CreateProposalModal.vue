@@ -1,13 +1,13 @@
 <template>
   <b-modal 
-    id="modal-new-teammember"
+    id="modal-new-proposal"
     ref="modal" 
     centered 
     okTitle='Aanmaken'
     cancelTitle='Annuleren'
     @ok="onOk"
     @show="onShow"
-    title="Nieuw teamlid">
+    title="Nieuw voorstel">
     <template slot="default">
       <Feedback :feedback="feedback" />
       <Form 
@@ -17,23 +17,14 @@
         @submit="handleSubmit">
 
         <FormField 
+          label="Naam"
+          v-model="fields.name.value"
+          v-bind="fields.name" />
+        <FormField 
           label="Email"
           type="text"
           v-model="fields.email.value"
           v-bind="fields.email" />
-
-        <FormField 
-          label="Wachtwoord"
-          v-model="fields.password.value"
-          v-bind="fields.password" />
-
-        <Divider />
-
-        <FormField 
-          label="Rol"
-          type="select"
-          v-model="fields.role.value"
-          v-bind="fields.role" />
 
       </Form>
     </template>
@@ -44,8 +35,6 @@
 
 import { required, minLength, email } from 'vuelidate/lib/validators';
 
-import Divider from 'atom/Divider'
-
 import Feedback from 'atom/Feedback'
 import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
@@ -54,19 +43,11 @@ import { mapActions } from 'vuex'
 import fields from 'mixin/fields'
 import timeout from 'mixin/timeout'
 
-import { userRoles } from 'config/roles'
-
 export default {
   components: {
-    Divider, FormField, Form, Feedback
+    FormField, Form, Feedback
   },
   mixins: [ fields, timeout ],
-  props: {
-    orgId: {
-      type: [ String, Number ],
-      default: ''
-    }
-  },
   data() {
     return {
       isDisabled: false,
@@ -80,32 +61,20 @@ export default {
           },
           disabled: false
         },
-        role: {
-          value: null,
-          validationRules: {
-            required
-          },
-          disabled: false,
-          options: [
-            { value: null, text: 'Selecteer een optie' }
-          ].concat(userRoles),
-        },
-        password: {
-          value: '',
-          type: 'password',
+        name: {
+          value: "",
           validationRules: {
             required,
-            minLength: minLength(7)
+            minLength: minLength(2)
           },
-          autocomplete: "new-password",
           disabled: false
         }
       }
     }
   },
   methods: {
-    ...mapActions('orgUsers', [
-      'createUser'
+    ...mapActions('org', [
+      'createProposal'
     ]),
     onShow() {
       this.feedback = { show: false }
@@ -126,16 +95,13 @@ export default {
       
       try {
         // Make a copy, and add form field data
-        await this.createUser({
-          orgId: this.orgId,
-          userData: this.fieldValues([
-            'email', 'password'
-          ]),
-          role: this.fieldValue('role')
+        await this.createProposal({
+          name: this.fieldValue('name'), 
+          email: this.fieldValue('email')
         })
         this.feedback = {
           variant: 'success',
-          message: 'Het nieuwe teamlid is geregistreerd'
+          message: 'Het nieuwe voorstel is aangemaakt'
         }
 
         this.setTimeout(() => {
@@ -147,7 +113,7 @@ export default {
       } catch (err) {
         this.feedback = {
           variant: 'danger', 
-          message: 'Het teamlid kon niet worden geregistreerd. Mogelijk is het e-mail adres reeds in gebruik.'
+          message: 'Het voorstel kon niet aangemaakt worden.'
         }
         this.isDisabled = false;
         this.enableAllFields()

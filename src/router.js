@@ -9,6 +9,9 @@ import Login from '@/views/Login.vue'
 import Logout from '@/views/Logout.vue'
 import User from '@/views/User.vue'
 
+// Register
+import Register from '@/views/RegisterOrganization'
+
 // Single Report
 import Step1 from '@/views/report/Step1'
 import Step2 from '@/views/report/Step2'
@@ -25,6 +28,7 @@ import Organization from '@/views/Organization.vue'
 import AdminDashboard from '@/views/admin/AdminDashboard'
 import AdminOrganization from '@/views/admin/AdminOrganization'
 import AdminOrganizations from '@/views/admin/AdminOrganizations'
+import AdminOrganizationProposals from '@/views/admin/AdminOrganizationProposals'
 
 // 404
 import NotFound from '@/views/NotFound.vue'
@@ -70,6 +74,17 @@ let router = new Router({
         profile: true
       }
     },
+    // Registration
+    {
+      path: '/register/:token',
+      name: 'register',
+      component: Register,
+      meta: {
+        layout: 'login',
+        public: true
+      }
+    },
+
     // SuperUser
     {
       path: '/organization',
@@ -133,6 +148,15 @@ let router = new Router({
       path: '/admin/organisatie/:id',
       name: 'admin-organization',
       component: AdminOrganization,
+      meta: {
+        layout: 'admin',
+        admin: true
+      }
+    },
+    {
+      path: '/admin/aanmeldingen/',
+      name: 'admin-organization-proposals',
+      component: AdminOrganizationProposals,
       meta: {
         layout: 'admin',
         admin: true

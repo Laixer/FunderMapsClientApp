@@ -388,7 +388,6 @@ export default {
         })
         return;
       }
-      console.log(this.activeReport)
       
       this.setFieldValues({
         document_id: report.document_id,

@@ -3,6 +3,8 @@
     id="modal-teammember"
     ref="modal" 
     centered 
+    okTitle='Opslaan'
+    cancelTitle='Annuleren'
     @ok="onOk"
     @show="onShow"
     :title="'Teamlid: ' + name">

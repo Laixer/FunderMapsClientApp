@@ -1,5 +1,5 @@
 <template>
-  <div class="ReportList">
+  <div class="OrganizationProposalTable">
     <div class="d-flex align-items-end">
       <h2 v-if="hasTitle" class="ml-2 mb-3 d-inline-block">
         {{ title }}
@@ -13,41 +13,35 @@
     <table>
       <thead>
         <tr class="d-flex p-2">
-          <th scope="col" class="text-center">
-            Status
+          <th scope="col">
+            Naam
           </th>
           <th scope="col">
-            Document ID
+            E-mail
           </th>
           <th scope="col">
-            Reviewer
-          </th>
-          <th scope="col" >
-            Rapportdatum
-          </th>
-          <th scope="col">
-            Type
+            Token
           </th>
           <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
-        <ReportTableLine 
-          v-for="(report, index) in reports" 
+        <OrganizationProposalLine 
+          v-for="(proposal, index) in proposals" 
           :key="index" 
-          :report="report" />
+          :proposal="proposal" />
       </tbody>
     </table>
   </div>
 </template>
 
 <script>
-import ReportTableLine from 'molecule/ReportTableLine';
+import OrganizationProposalLine from 'molecule/OrganizationProposalLine';
 
 export default {
-  name: 'ReportList',
+  name: 'OrganizationProposalTable',
   components: {
-    ReportTableLine
+    OrganizationProposalLine
   },
   props: {
     title: {
@@ -58,7 +52,7 @@ export default {
       type: Boolean,
       default: false
     },
-    reports: {
+    proposals: {
       type: Array,
       default: function() {
         return []
@@ -74,7 +68,7 @@ export default {
 </script>
 
 <style lang="scss">
-.ReportList {
+.OrganizationProposalTable {
   width: 100%;
   user-select: none;
 
@@ -93,25 +87,18 @@ export default {
     }
     th, td {
       &:nth-child(1) {
-        width: 100px
+        min-width: 200px;
+        flex-grow: 1;
       }
       &:nth-child(2) {
         min-width: 300px;
-        flex-grow: 1;
+        flex-grow: 2;
       }
       &:nth-child(3) {
-        width: 200px
+        width: 300px;
       }
       &:nth-child(4) {
-        width: 200px
-      }
-      &:nth-child(5) {
-        // width: 295px
-        width: 245px
-      }
-      &:nth-child(6) {
-        // width: 155px
-        width: 75px
+        min-width: 100px;
       }
     }
   }

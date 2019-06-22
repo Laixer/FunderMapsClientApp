@@ -5,10 +5,9 @@
 <script>
 export default {
   created() {
-    console.log("Admin")
-  },
-  beforeDestroy() {
-    console.log("destroy")
+    this.$router.push({
+      name: "admin-organizations"
+    })
   }
 }
 </script>

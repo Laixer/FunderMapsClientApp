@@ -57,16 +57,21 @@ export default {
     return {
       loadingDataFailed: false,
       menuItems: [
-        new MenuItem({
-          label: 'Dashboard',
-          icon: 'Home-icon.svg',
-          to: { name: 'admin-dashboard' }
-        }),
+        // new MenuItem({
+        //   label: 'Dashboard',
+        //   icon: 'Home-icon.svg',
+        //   to: { name: 'admin-dashboard' }
+        // }),
         new MenuItem({
           label: 'Organisaties',
           icon: 'Report-icon.svg',
           to: { name: 'admin-organizations' }
         }),
+        new MenuItem({
+          label: 'Aanmeldingen',
+          icon: 'Report-icon.svg',
+          to: { name: 'admin-organization-proposals' }
+        })
       ]
     }
   },
@@ -76,7 +81,8 @@ export default {
     ]),
     ...mapGetters('org', [
       'isOrganizationAvailable',
-      'getOrgId'
+      'getOrgId',
+      'areProposalsAvailable'
     ]),
     ...mapGetters('attestation', [
       'arePrincipalUsersAvailable',
@@ -87,6 +93,7 @@ export default {
         && this.isOrganizationAvailable
         && this.arePrincipalUsersAvailable
         && this.areContractorsAvailable
+        && this.areProposalsAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -99,7 +106,8 @@ export default {
         this.getOrganization(),
         this.getPrincipalUsers(),
         this.getContractors(),
-        this.getVersion()
+        this.getVersion(),
+        this.getProposals()
       ])
     } catch(err) {
       this.loadingDataFailed = true;
@@ -110,7 +118,8 @@ export default {
       'getUser'
     ]),
     ...mapActions('org', [
-      'getOrganization'
+      'getOrganization',
+      'getProposals'
     ]),
     ...mapActions('attestation', [
       'getPrincipalUsers',

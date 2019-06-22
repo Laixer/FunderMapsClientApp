@@ -1,42 +1,26 @@
 <template>
-  <div> 
-    <ul>
-      <li 
-        v-for="(org, index) in organisations"
-        :key="index + Date.now()"
-        @click="handleClick({ id: org.getId() })">
-        {{ org.name }} ({{ org.email }})
-      </li>
-    </ul>
+  <div>
+    <OrganizationTable 
+      title="Alle organisaties"
+      :organizations="organisations"
+      class="mt-4 pt-2 mb-5" />
   </div>
 </template>
 
 <script>
+import OrganizationTable from 'organism/OrganizationTable'
 
 import { mapGetters } from 'vuex'
 
 export default {
+  components: {
+    OrganizationTable
+  },
   computed: {
     ...mapGetters('org', [
       'organisations'
     ])
-  },
-  created() {
-    console.log("Admin Org", this.organisations)
-  },
-  methods: {
-    handleClick({ id }) {
-      return function(){
-        this.$router.push({
-          name: 'admin-organization',
-          params: { id }
-        })
-      }.apply(this)
-    }
   }
 }
 </script>
 
-<style>
-
-</style>

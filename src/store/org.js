@@ -2,6 +2,8 @@
  * Import Dependency
  */
 import OrganizationModel from 'model/Organization'
+import OrganizationProposalModal from 'model/OrganizationProposalModal'
+import Vue from 'vue'
 
 /**
  * Import API
@@ -14,7 +16,8 @@ import orgAPI from 'api/org';
 const state = {
   organization : null,
   // Admin
-  organizations: null
+  organizations: null,
+  proposals: null
 }
 
 const getters = {
@@ -37,6 +40,12 @@ const getters = {
     return state.organizations.find(org => {
       return org.id === id
     })
+  },
+  proposals: state => {
+    return state.proposals
+  },
+  areProposalsAvailable: state => {
+    return state.proposals !== null
   }
 }
 const actions = {
@@ -61,6 +70,34 @@ const actions = {
     }
     return response;
   },
+  async getProposals({ commit }) {
+    let response = await orgAPI.getProposals();
+    if (response.status === 200 && response.data) {
+      commit('set_proposals', {
+        proposals: response.data
+      })
+    } 
+  },
+  async removeProposal({ commit }, { token }) {
+    let response = await orgAPI.removeProposal({ token });
+    if (response.status === 204) {
+      commit('remove_proposal', {
+        token
+      })
+    } 
+  },
+  async createProposal({ commit }, { name, email }) {
+    let response = await orgAPI.createProposal({ name, email });
+    if (response.status === 200 && response.data) {
+      commit('create_proposal', {
+        proposal: response.data
+      })
+    } 
+  },
+  // New Organization
+  async registerOrganization(context, { email, password, token }) {
+    return await orgAPI.createOrganization({ email, password, token });
+  }
 }
 const mutations = {
   set_organizations(state, { organizations }) {
@@ -77,6 +114,22 @@ const mutations = {
       return org.id === orgId
     })
     state.organizations[index] = data
+  },
+  set_proposals(state, { proposals }) {
+    state.proposals = proposals.map(
+      proposal => new OrganizationProposalModal(proposal)
+    )
+  },
+  remove_proposal(state, { token }) {
+    let index = state.proposals.findIndex(proposal => {
+      return proposal.token === token
+    })
+    Vue.delete(state.proposals, index);
+  },
+  create_proposal(state, { proposal }) {
+    state.proposals.unshift(
+      new OrganizationProposalModal(proposal)
+    )
   }
 }
 

@@ -15,4 +15,7 @@ export default {
       { email: user.email, password: user.password, role: role }
     )
   },
+  removeOrganizationUser: ({ orgId, id }) => {
+    return axios.delete(`/api/organization/${orgId}/user/${id}`)
+  }
 }

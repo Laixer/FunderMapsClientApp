@@ -6,7 +6,8 @@
         v-for="(member, index) in orgUsersExcludingSelf" 
         :member="member"
         :key="index"
-        @edit="handleEdit" />
+        @edit="handleEdit"
+        @remove="handleRemove" />
     </div>
     <b-button 
       variant="primary" 
@@ -26,6 +27,11 @@
     <NewTeamMemberModal 
       :orgId="orgId" />
 
+    <RemoveTeamMemberModal 
+      :id="editUserId" 
+      :orgId="orgId" />
+
+
   </div>
 </template>
 
@@ -36,12 +42,13 @@ import { mapGetters, mapActions } from 'vuex'
 import TeamMember from 'molecule/TeamMember'
 import TeamMemberModal from 'organism/TeamMemberModal'
 import NewTeamMemberModal from 'organism/NewTeamMemberModal'
+import RemoveTeamMemberModal from 'organism/RemoveTeamMemberModal'
 
 import { getUserId } from 'service/auth'
 
 export default {
   components: {
-    TeamMember, TeamMemberModal, NewTeamMemberModal
+    TeamMember, TeamMemberModal, NewTeamMemberModal, RemoveTeamMemberModal
   },
   data() {
     return {
@@ -84,6 +91,10 @@ export default {
     handleEdit({ id }) {
       this.editUserId = id;
       this.$bvModal.show('modal-teammember')
+    },
+    handleRemove({ id }) {
+      this.editUserId = id;
+      this.$bvModal.show('modal-remove-teammember')
     },
     handleCreate() {
       this.$bvModal.show('modal-new-teammember')

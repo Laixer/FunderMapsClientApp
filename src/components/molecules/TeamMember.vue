@@ -3,13 +3,24 @@
     class="TeamMember mb-3 d-flex align-items-center" >
     <img class="mr-2 rounded-circle" :src="member.getAvatar()" width="60" height="60" />
     <div class="pl-1 d-flex flex-column flex-grow-1 align-items-start">
-      <span>{{ member.getUserName() }} ({{ member.getRoleName() }})</span>
-      <b-button
-        class="font-weight-bold mt-2"
-        variant="light"
-        @click="$emit('edit', { id: member.user.id })">
-        Bewerk
-      </b-button>
+      <div class="w-100 d-flex justify-content-between flex-wrap">
+        <span class="mr-3 mb-2">{{ member.getUserName() }}</span>
+        <span class="text-muted mb-2">{{ member.getRoleName() }}</span>
+      </div>
+      <div class="d-flex justify-content-between w-100">
+        <b-button
+          class="font-weight-bold"
+          variant="light"
+          @click="$emit('remove', { id: member.user.id })">
+          Verwijderen
+        </b-button>
+        <b-button
+          class="font-weight-bold"
+          variant="light"
+          @click="$emit('edit', { id: member.user.id })">
+          Bewerk
+        </b-button>
+      </div>
     </div>
   </div>
 </template>

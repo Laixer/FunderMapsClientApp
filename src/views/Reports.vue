@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ReportList 
+    <ReportTable 
       title="Alle rapporten"
       :reports="reports"
       class="mt-4 pt-2 mb-5" />
@@ -14,13 +14,13 @@
 </template>
 
 <script>
-import ReportList from 'organism/ReportList'
+import ReportTable from 'organism/ReportTable'
 
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
   components: {
-    ReportList
+    ReportTable
   },
   data() {
     return {
