@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { required, email } from 'vuelidate/lib/validators';
+import { required, minLength, email } from 'vuelidate/lib/validators';
 
 import Feedback from 'atom/Feedback'
 import Form from 'molecule/form/Form'
@@ -66,7 +66,8 @@ export default {
           type: "password",
           value: '',
           validationRules: {
-            required
+            required,
+            minLength: minLength(7)
           },
           disabled: false
         }
