@@ -37,13 +37,17 @@ export default {
       select: {
         type: 'select',
         label: 'Selecteer een laag',
-        value: 'samples',
+        value: 'all',
         novalidate: true,
         options: [
           {
-            value: 'samples',
-            text: 'Op basis van rapportages'
+            value: 'all',
+            text: 'Alle lagen'
           },
+          // {
+          //   value: 'samples',
+          //   text: 'Op basis van rapportages'
+          // },
           {
             value: 'samples2',
             text: 'Historische fundering'
@@ -110,7 +114,7 @@ export default {
         "type": "circle",
         "source": 'sample-source',
         'layout': {
-          'visibility': 'visible',
+          'visibility': 'none',
         },
         "paint": {
             'circle-radius': 8,
@@ -124,7 +128,7 @@ export default {
         "type": "circle",
         "source": 'historic-foundation',
         'layout': {
-          'visibility': 'none',
+          'visibility': 'visible',
         },
         "paint": {
             'circle-radius': 8,
@@ -138,7 +142,7 @@ export default {
         "type": "circle",
         "source": 'wood-concrete',
         'layout': {
-          'visibility': 'none',
+          'visibility': 'visible',
         },
         "paint": {
             'circle-radius': 8,
@@ -152,7 +156,7 @@ export default {
         "type": "circle",
         "source": 'no-pile',
         'layout': {
-          'visibility': 'none',
+          'visibility': 'visible',
         },
         "paint": {
             'circle-radius': 8,
@@ -166,7 +170,7 @@ export default {
         "type": "circle",
         "source": 'concrete',
         'layout': {
-          'visibility': 'none',
+          'visibility': 'visible',
         },
         "paint": {
             'circle-radius': 8,
@@ -180,7 +184,9 @@ export default {
       [
         'samples', 'samples2', 'samples3', 'samples4', 'samples5'
       ].forEach(layer => {
-        let state = layer === selectedLayer ? 'visible' : 'none'
+        let state = (layer === selectedLayer || selectedLayer === 'all') 
+          ? 'visible' 
+          : 'none'
         this.$store.map.setLayoutProperty(layer, 'visibility', state);
       })
     }
