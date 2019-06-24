@@ -47,6 +47,22 @@ export default {
         type: 'geojson',
         data: '/mapData.json'
       });
+      this.$store.map.addSource('historic-foundation', {
+        type: 'geojson',
+        data: '/historic_foundation.json'
+      });
+      this.$store.map.addSource('wood-concrete', {
+        type: 'geojson',
+        data: '/wood_or_concrete.json'
+      });
+      this.$store.map.addSource('no-pile', {
+        type: 'geojson',
+        data: '/no_pile.json'
+      });
+      this.$store.map.addSource('concrete', {
+        type: 'geojson',
+        data: '/concrete.json'
+      });
       this.$store.map.addLayer({
         "id": "samples",
         "type": "circle",
@@ -54,6 +70,50 @@ export default {
         "paint": {
             'circle-radius': 8,
             "circle-color": '#2da798',
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 0,
+        }
+      });
+      this.$store.map.addLayer({
+        "id": "samples2",
+        "type": "circle",
+        "source": 'historic-foundation',
+        "paint": {
+            'circle-radius': 8,
+            "circle-color": '#005ce6',
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 0,
+        }
+      });
+      this.$store.map.addLayer({
+        "id": "samples3",
+        "type": "circle",
+        "source": 'wood-concrete',
+        "paint": {
+            'circle-radius': 8,
+            "circle-color": '#e60000',
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 0,
+        }
+      });
+      this.$store.map.addLayer({
+        "id": "samples4",
+        "type": "circle",
+        "source": 'no-pile',
+        "paint": {
+            'circle-radius': 8,
+            "circle-color": '#00e64d',
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 0,
+        }
+      });
+      this.$store.map.addLayer({
+        "id": "samples5",
+        "type": "circle",
+        "source": 'concrete',
+        "paint": {
+            'circle-radius': 8,
+            "circle-color": '#ac00e6',
             "circle-opacity": 0.8,
             "circle-stroke-width": 0,
         }
