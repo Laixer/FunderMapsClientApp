@@ -133,6 +133,11 @@ export default {
         return {}
       }
     },
+    // Makes it possible to disable validation
+    novalidate: {
+      type: Boolean,
+      default: false
+    },
     // Used by `type === select & radio`
     options: {
       type: Array,
@@ -156,6 +161,9 @@ export default {
   },
   computed: {
     state() {
+      if (this.novalidate) {
+        return null
+      }
       return this.$v.fieldValue.$dirty ? !this.$v.fieldValue.$error : null
     },
     invalidFeedback() {
@@ -275,10 +283,13 @@ export default {
       this.$emit('input', value)
     },
     validate() {
-      this.$v.$touch()
+      if (!this.novalidate) {
+        this.$v.$touch()
+      }
     },
     isValid() {
-      return !! this.state;
+      // Not ideal, but otherwise form processing would cancel
+      return this.novalidate ? true : !! this.state;
     },
     resetValidation() {
       this.$v.$reset()

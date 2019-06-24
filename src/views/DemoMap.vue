@@ -1,25 +1,67 @@
 <template>
-  <MglMap
-    class="MapBox" 
-    :accessToken="accessToken"
-    :mapStyle.sync="mapStyle"
-    @load="onMapLoaded" />
+  <div class="MapBox">
+    <MglMap
+      class="MapBox__wrapper" 
+      :accessToken="accessToken"
+      :mapStyle.sync="mapStyle"
+      @load="onMapLoaded" />
+
+    <div class="MapBox__tools">
+      <Form @submit="() => null">
+        <FormField 
+          v-model="select.value"
+          v-bind="select"
+          @input="toggleLayer" />
+      </Form>
+    </div>
+  </div>
 </template>
 
 <script>
 import { MglMap } from 'vue-mapbox';
-// import mapboxgl from 'mapbox-gl';
+
+import Form from 'molecule/form/Form'
+import FormField from 'molecule/form/FormField'
 
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
   components: {
-    MglMap
+    MglMap, Form, FormField
   },
   data() {
     return {
       accessToken: 'pk.eyJ1Ijoiam91cm5leXdvcmtzIiwiYSI6ImNqeDd6Nm5oNDBlZGkzc3A3Zm40ZzVhb3YifQ.7Pi9HnHW3r-PU-koxWLYGw',
-      mapStyle: 'mapbox://styles/journeyworks/cjx7z8ar10m081cm6gq6uyjez'
+      mapStyle: 'mapbox://styles/journeyworks/cjx7z8ar10m081cm6gq6uyjez',
+
+      select: {
+        type: 'select',
+        label: 'Selecteer een laag',
+        value: 'samples',
+        novalidate: true,
+        options: [
+          {
+            value: 'samples',
+            text: 'b'
+          },
+          {
+            value: 'samples2',
+            text: 'Historische fundering'
+          },
+          {
+            value: 'samples3',
+            text: 'Hout of beton'
+          },
+          {
+            value: 'samples4',
+            text: 'Geen fundering'
+          },
+          {
+            value: 'samples5',
+            text: 'Beton'
+          }
+        ]
+      }
     }
   },
   computed: {
@@ -67,6 +109,9 @@ export default {
         "id": "samples",
         "type": "circle",
         "source": 'sample-source',
+        'layout': {
+          'visibility': 'visible',
+        },
         "paint": {
             'circle-radius': 8,
             "circle-color": '#2da798',
@@ -78,6 +123,9 @@ export default {
         "id": "samples2",
         "type": "circle",
         "source": 'historic-foundation',
+        'layout': {
+          'visibility': 'none',
+        },
         "paint": {
             'circle-radius': 8,
             "circle-color": '#005ce6',
@@ -89,6 +137,9 @@ export default {
         "id": "samples3",
         "type": "circle",
         "source": 'wood-concrete',
+        'layout': {
+          'visibility': 'none',
+        },
         "paint": {
             'circle-radius': 8,
             "circle-color": '#e60000',
@@ -100,6 +151,9 @@ export default {
         "id": "samples4",
         "type": "circle",
         "source": 'no-pile',
+        'layout': {
+          'visibility': 'none',
+        },
         "paint": {
             'circle-radius': 8,
             "circle-color": '#00e64d',
@@ -111,6 +165,9 @@ export default {
         "id": "samples5",
         "type": "circle",
         "source": 'concrete',
+        'layout': {
+          'visibility': 'none',
+        },
         "paint": {
             'circle-radius': 8,
             "circle-color": '#ac00e6',
@@ -118,6 +175,14 @@ export default {
             "circle-stroke-width": 0,
         }
       });
+    },
+    toggleLayer(selectedLayer) {
+      [
+        'samples', 'samples2', 'samples3', 'samples4', 'samples5'
+      ].forEach(layer => {
+        let state = layer === selectedLayer ? 'visible' : 'none'
+        this.$store.map.setLayoutProperty(layer, 'visibility', state);
+      })
     }
   }
 }
@@ -142,9 +207,9 @@ export default {
 
   // Hide MapBox logo
   .mapboxgl-ctrl.mapboxgl-ctrl-attrib, .mapboxgl-ctrl {
-    display: none !important;
+    // display: none !important;
   }
-  .MapBox {
+  .MapBox, .MapBox__wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -155,4 +220,14 @@ export default {
     right: 0;
     user-select: none;
   }
+  .MapBox__tools {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    
+    background: white;
+    padding: 10px 15px 5px;
+    box-shadow: 0px -1px 0px 0px rgba(223,226,229,1) inset;
+  }
+
 </style>
