@@ -43,7 +43,7 @@ export default {
       options: {
         maxFiles: 1,
         maxFileSize: 20,
-        url: 'https://fundermaps-staging.azurewebsites.net/api/upload' // TODO: Fix url
+        url: process.env.API_BASE_URL + '/api/upload' || 'https://staging.fundermaps.com/api/upload' // TODO: Fix url
       }
     }
   },

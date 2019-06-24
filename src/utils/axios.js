@@ -11,7 +11,7 @@ const Axios = axios.create();
  * Config
  */
 Axios.defaults.timeout = process.env.timeout || 10000;
-Axios.defaults.baseURL = process.env.API_BASE_URL || 'https://fundermaps-staging.azurewebsites.net/' || 'https://fundermaps.azurewebsites.net/';
+Axios.defaults.baseURL = process.env.API_BASE_URL || 'https://staging.fundermaps.com' || 'https://fundermaps.azurewebsites.net/';
 Axios.defaults.headers.common = Object.assign(
   Axios.defaults.headers.common,
   {
