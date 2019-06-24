@@ -42,7 +42,7 @@ export default {
         options: [
           {
             value: 'samples',
-            text: 'b'
+            text: 'Op basis van rapportages'
           },
           {
             value: 'samples2',
@@ -50,15 +50,15 @@ export default {
           },
           {
             value: 'samples3',
-            text: 'Hout of beton'
+            text: 'Mogelijk houten- of betonpalen'
           },
           {
             value: 'samples4',
-            text: 'Geen fundering'
+            text: 'Mogelijk houtenpalen of niet onderheid'
           },
           {
             value: 'samples5',
-            text: 'Beton'
+            text: 'Zeer hoge kans op beton'
           }
         ]
       }
