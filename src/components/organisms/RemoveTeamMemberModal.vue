@@ -85,7 +85,7 @@ export default {
       try {
         await this.removeUser({
           orgId: this.orgId,
-          userId: this.id
+          id: this.id
         })
         this.feedback = {
           variant: 'success',
