@@ -57,7 +57,9 @@ export default {
   },
   watch: {
     orgUser(orgUser) {
-      this.name = orgUser.getUserName()
+      if (orgUser) {
+        this.name = orgUser.getUserName()
+      }
     }
   },
   methods: {

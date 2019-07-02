@@ -161,16 +161,18 @@ export default {
   },
   watch: {
     orgUser(orgUser) {
-      this.setFieldValues([
-        { name: 'email', value: orgUser.user.email },
-        { name: 'role', value: orgUser.role.name },
-        { name: 'given_name', value: orgUser.user.given_name },
-        { name: 'last_name', value: orgUser.user.last_name },
-        { name: 'job_title', value: orgUser.user.job_title },
-        { name: 'phone_number', value: orgUser.user.phone_number }
-      ])
+      if (orgUser){
+        this.setFieldValues([
+          { name: 'email', value: orgUser.user.email },
+          { name: 'role', value: orgUser.role.name },
+          { name: 'given_name', value: orgUser.user.given_name },
+          { name: 'last_name', value: orgUser.user.last_name },
+          { name: 'job_title', value: orgUser.user.job_title },
+          { name: 'phone_number', value: orgUser.user.phone_number }
+        ])
 
-      this.name = orgUser.getUserName()
+        this.name = orgUser.getUserName()
+      }
     }
   },
   methods: {

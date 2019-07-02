@@ -1,5 +1,6 @@
 <template>
-  <div v-if="(isSuperUser() || isAdmin()) && orgUsersExcludingSelf">
+  <div>
+   <div v-if="(isSuperUser() || isAdmin()) && orgUsersExcludingSelf">
     <div class="panel px-4 py-3" style="width: 300px">
       <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
       <TeamMember 
@@ -9,7 +10,17 @@
         @edit="handleEdit"
         @remove="handleRemove" />
     </div>
-    <b-button 
+   
+    <TeamMemberModal 
+      :id="editUserId" 
+      :orgId="orgId" />
+
+    <RemoveTeamMemberModal 
+      :id="editUserId" 
+      :orgId="orgId" />
+  
+  </div>
+      <b-button 
       variant="primary" 
       class="SubmitButton font-weight-bold mt-4" 
       size="lg"
@@ -19,19 +30,8 @@
         Gebruiker registreren
       </span>
     </b-button>
-
-    <TeamMemberModal 
-      :id="editUserId" 
+        <NewTeamMemberModal 
       :orgId="orgId" />
-
-    <NewTeamMemberModal 
-      :orgId="orgId" />
-
-    <RemoveTeamMemberModal 
-      :id="editUserId" 
-      :orgId="orgId" />
-
-
   </div>
 </template>
 
@@ -79,6 +79,7 @@ export default {
   },
   async created() {
     if (isAdmin() || isSuperUser()) {
+      this.clearUsers()
       await this.getUsers({ orgId: this.orgId })
     }
   },
@@ -86,7 +87,8 @@ export default {
     isAdmin,
     isSuperUser,
     ...mapActions('orgUsers', [
-      'getUsers'
+      'getUsers',
+      'clearUsers'
     ]),
     handleEdit({ id }) {
       this.editUserId = id;
