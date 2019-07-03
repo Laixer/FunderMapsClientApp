@@ -110,7 +110,11 @@ export default {
         this.getProposals()
       ])
     } catch(err) {
-      this.loadingDataFailed = true;
+      if (err.response && err.response.status === 401) {
+        this.$router.push({ name: 'login' })
+      } else {
+        this.loadingDataFailed = true;
+      }
     }
   },
   methods: {

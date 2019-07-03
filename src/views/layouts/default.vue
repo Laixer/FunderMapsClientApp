@@ -118,7 +118,12 @@ export default {
         )
       }
     } catch(err) {
-      this.loadingDataFailed = true;
+      // TODO: Check if error was 401
+      if (err.response && err.response.status === 401) {
+        this.$router.push({ name: 'login' })
+      } else {
+        this.loadingDataFailed = true;
+      }
     }
   },
   methods: {
