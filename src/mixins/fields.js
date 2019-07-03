@@ -43,7 +43,7 @@ export default {
       this.setFieldValue({ name, value: '' })
     },
     clearFieldValues(names) {
-      names.forEach(name => this.clearFieldValue(name))
+      names.forEach(name => this.clearFieldValue({name}))
     },
     clearAllFieldValues() {
       this.clearFieldValues(Object.keys(this.fields))

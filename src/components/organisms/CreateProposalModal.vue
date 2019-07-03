@@ -108,6 +108,7 @@ export default {
           this.$refs.modal.hide()
           this.isDisabled = false
           this.enableAllFields()
+          this.clearAllFieldValues()
         }, 500)
         
       } catch (err) {
@@ -117,6 +118,7 @@ export default {
         }
         this.isDisabled = false;
         this.enableAllFields()
+        this.clearAllFieldValues()
       }
       
     },
