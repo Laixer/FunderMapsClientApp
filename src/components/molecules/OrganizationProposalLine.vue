@@ -7,7 +7,11 @@
       {{ proposal.email }}
     </td>
     <td>
-      {{ proposal.token }}
+      <b-input readonly
+        variant="light"
+        type="url"
+        v-model="tokenLink">
+      </b-input>
     </td>
     <td class="d-flex justify-content-end">
       <b-button 
@@ -30,6 +34,13 @@ export default {
       default: function() {
         return {}
       }
+    }
+  },
+  computed: {
+    tokenLink() {
+      // TODO: We may want to improve this
+      let host = process.env.API_BASE_URL || 'https://staging.fundermaps.com' || 'https://fundermaps.azurewebsites.net/'
+      return host + '/register/' + this.proposal.token
     }
   },
   methods: {

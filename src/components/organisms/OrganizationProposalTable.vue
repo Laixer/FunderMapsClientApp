@@ -20,7 +20,7 @@
             E-mail
           </th>
           <th scope="col">
-            Token
+            Registratielink
           </th>
           <th scope="col"></th>
         </tr>
@@ -91,11 +91,11 @@ export default {
         flex-grow: 1;
       }
       &:nth-child(2) {
-        min-width: 300px;
+        min-width: 200px;
         flex-grow: 2;
       }
       &:nth-child(3) {
-        width: 300px;
+        width: 400px;
       }
       &:nth-child(4) {
         min-width: 100px;
