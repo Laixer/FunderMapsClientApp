@@ -148,6 +148,7 @@ export default {
           validationRules: {
             required,
             numeric,
+            minValue: minValue(1),
             maxValue: maxValue(65536)
           }
         },

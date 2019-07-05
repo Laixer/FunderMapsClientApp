@@ -309,14 +309,14 @@ export const enforcementTermOptions = [
 export const BaseMeasurementLevelOptions = [
   {
     value: 'NAP',
-    text: 'NAP'
+    text: 'NAP (Nederland)'
   }, 
   {
-    value: 'TAW',
+    value: 'TAW (België)',
     text: 'TAW'
   },
   {
-    value: 'NN',
+    value: 'NN (Duitsland)',
     text: 'NN'
   }
 ]
