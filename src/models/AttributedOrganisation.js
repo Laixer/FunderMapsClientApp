@@ -4,6 +4,7 @@ import { generateAvatar } from 'utils/namedavatar';
 /**
  * Mostly just a pretty wrapper for now
  */
+// TODO: Can we remove 'role'?
 let AttributedOrganisation = function ({ org, role }) {
   Object.assign(this, org);
   this.role = role;
