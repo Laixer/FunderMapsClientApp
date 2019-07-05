@@ -19,8 +19,8 @@
       :id="editUserId" 
       :orgId="orgId" />
   
-  </div>
-      <b-button 
+    </div>
+    <b-button 
       variant="primary" 
       class="SubmitButton font-weight-bold mt-4" 
       size="lg"
@@ -30,8 +30,10 @@
         Gebruiker registreren
       </span>
     </b-button>
-        <NewTeamMemberModal 
+    
+    <NewTeamMemberModal 
       :orgId="orgId" />
+  
   </div>
 </template>
 
