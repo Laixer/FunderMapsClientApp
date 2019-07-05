@@ -81,7 +81,7 @@ import Feedback from 'atom/Feedback'
 import ReportStepHeader from 'atom/ReportStepHeader'
 import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 
-import { required } from 'vuelidate/lib/validators';
+import { required, maxLength } from 'vuelidate/lib/validators';
 import { typeOptions } from 'config/enums'
 import { canWrite, isSuperUser } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
@@ -105,7 +105,8 @@ export default {
           label: 'Document naam',
           value: '',
           validationRules: {
-            required
+            required,
+            maxLength: maxLength(64)
           },
           disabled: false
         },
@@ -420,8 +421,8 @@ export default {
     },
     mapToOrgOption(org) {
       return {
-        value: org.name,
-        text: org.name
+        value: org.getName(),
+        text: org.getName()
       }
     },
 
