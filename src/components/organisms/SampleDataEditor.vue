@@ -137,7 +137,8 @@ export default {
           type: 'text',
           value: '',
           validationRules: {
-            required
+            required,
+            maxLength: maxLength(128)
           }
         },
         building_number: {
@@ -146,14 +147,17 @@ export default {
           value: '',
           validationRules: {
             required,
-            numeric
+            numeric,
+            maxValue: maxValue(65536)
           }
         },
         building_number_suffix: {
           label: 'Toevoeging',
           type: 'text',
           value: '',
-          validationRules: {}
+          validationRules: {
+            maxLength: maxLength(8)
+          }
         },
         // LINE 2
         foundation_type: {
@@ -199,7 +203,9 @@ export default {
           label: 'Sondering',
           type: 'text',
           value: '',
-          validationRules: {}
+          validationRules: {
+            maxLength: maxLength(32)
+          }
         },
         // DIVIDER 
         // LINE 4
