@@ -43,7 +43,7 @@ let reportModel = function ({
 
   // Is the report public or private?
   this.access_policy = accessOptions[access_policy]
-    ? accessOptions[accessOptions]
+    ? accessOptions[access_policy]
     : 'Invalid'
 
   // Samples are set / added / removed 
