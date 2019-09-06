@@ -51,7 +51,7 @@ const getters = {
 const actions = {
   async getOrganization({ commit }) {
     let response = await orgAPI.getOrganization();
-    if (response.status === 200 && response.data.length > 0) {
+    if (response.status === 200 && response.data) {
       commit('set_organizations', {
         organizations: response.data
       })
