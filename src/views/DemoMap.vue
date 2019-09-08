@@ -4,6 +4,7 @@
       class="MapBox__wrapper" 
       :accessToken="accessToken"
       :mapStyle.sync="mapStyle"
+      :transformRequest="transformRequest"
       @load="onMapLoaded" />
 
     <div class="MapBox__tools">
@@ -22,6 +23,7 @@ import { MglMap } from 'vue-mapbox';
 
 import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
+import { authHeader } from 'service/auth';
 
 import { mapGetters, mapActions } from 'vuex'
 
@@ -87,6 +89,14 @@ export default {
       this.$store.map = event.map;
 
       this.addSamplePoints();
+    },
+    transformRequest(url, resourceType) {
+      if (resourceType == 'Source' && url.startsWith('https://localhost:44345/api')) {
+        return {
+          url: url,
+          headers: authHeader()
+        }
+      }
     },
     addSamplePoints() {
       this.$store.map.addSource('sample-source', {
