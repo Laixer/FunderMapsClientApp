@@ -22,3 +22,5 @@ yarn-error.log*
 
 # Demo source files
 public/*.json
+.env
+.env.*
