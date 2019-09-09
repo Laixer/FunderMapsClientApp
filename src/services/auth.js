@@ -1,5 +1,6 @@
 
 import authAPI from '@/api/auth'
+import { organizationUserRoleClaimType, userClaimType } from '@/config/claimTypes'
 
 /**
  * Check whether the user has credentials stored
@@ -81,16 +82,16 @@ export const isAdmin = () => {
 }
 
 export const isSuperUser = () => {
-  return getRole() === 'superuser';
+  return getOrganizationRole() === 'superuser';
 }
 export const isVerifier = () => {
-  return getRole() === 'verifier'
+  return getOrganizationRole() === 'verifier'
 }
 export const isWriter = () => {
-  return getRole() === 'writer'
+  return getOrganizationRole() === 'writer'
 }
 export const isReader = () => {
-  return getRole() === 'reader'
+  return getOrganizationRole() === 'reader'
 }
 export const canManageUsers = () => {
   return isSuperUser()
@@ -152,14 +153,26 @@ function getAccessToken() {
 /**
  * 
  */
+function getOrganizationRole() {
+  try {
+    let user = getUser()
+    let role = user.claims.find((claim) => {
+      return organizationUserRoleClaimType == claim.type
+    })
+    return role.value.toLowerCase(); 
+  } catch(err) {
+    return ''
+  }
+}
+
+/**
+ * 
+ */
 function getRole() {
   try {
     let user = getUser()
     let role = user.claims.find((claim) => {
-      return [
-        "http://fundermaps.com/2019/identity/claims/orgrole",
-        "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-      ].includes(claim.type)
+      return userClaimType == claim.type
     })
     return role.value.toLowerCase(); 
   } catch(err) {
