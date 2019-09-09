@@ -157,7 +157,7 @@ function getRole() {
     let user = getUser()
     let role = user.claims.find((claim) => {
       return [
-        "fis_org_role",
+        "http://fundermaps.com/2019/identity/claims/orgrole",
         "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
       ].includes(claim.type)
     })
