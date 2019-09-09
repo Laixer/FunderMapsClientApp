@@ -106,9 +106,15 @@ export default {
 
         this.setTimeout(() => {
           this.$refs.modal.hide()
-          this.isDisabled = false
-          this.enableAllFields()
-          this.clearAllFieldValues()
+
+          // Reset the form & validation once it is hidden (after 300ms)
+          this.setTimeout(() => {
+            this.isDisabled = false
+            this.enableAllFields()
+            this.clearAllFieldValues()
+            this.$refs.form.resetValidation()
+          }, 400)
+
         }, 500)
         
       } catch (err) {
@@ -118,7 +124,6 @@ export default {
         }
         this.isDisabled = false;
         this.enableAllFields()
-        this.clearAllFieldValues()
       }
       
     },
