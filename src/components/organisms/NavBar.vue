@@ -7,7 +7,7 @@
     </div>
     <p class="NavBar__description align-self-center my-0 ml-3 pl-3">
       <span class="ml-2">
-        Uploadtool voor uw rapportages
+        Funderingskaart voor beheerders
       </span>
     </p>
     <b-nav class="d-flex flex-row-reverse flex-grow-1">
