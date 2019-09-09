@@ -3,6 +3,9 @@ const path = require('path');
 //     .BundleAnalyzerPlugin;
 
 module.exports = {
+  transpileDependencies: [
+    'vue-mapbox'
+  ],
   configureWebpack: {
     resolve: {
       alias: {
