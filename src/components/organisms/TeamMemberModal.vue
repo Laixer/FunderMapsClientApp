@@ -83,6 +83,8 @@ import timeout from 'mixin/timeout'
 
 import { userRoles } from 'config/roles'
 
+import { getUserId } from 'service/auth'
+
 export default {
   components: {
     Divider, FormField, Form, Feedback
@@ -174,6 +176,14 @@ export default {
         this.name = orgUser.getUserName()
       }
     }
+  },
+  created() {
+
+    // If the active user is the same as the user being edited
+    if (this.orgUser.user.id === getUserId()) {
+      this.fields.role.disabled = true;
+    }
+
   },
   methods: {
     ...mapActions('orgUsers', [

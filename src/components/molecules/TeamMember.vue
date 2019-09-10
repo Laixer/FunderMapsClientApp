@@ -9,6 +9,7 @@
       </div>
       <div class="d-flex justify-content-between w-100">
         <b-button
+          v-if="member.user.id !== getUserId"
           class="font-weight-bold"
           variant="light"
           @click="$emit('remove', { id: member.user.id })">
@@ -27,6 +28,9 @@
 
 <script>
 import { image } from 'helper/assets'
+
+import { getUserId } from 'service/auth'
+
 export default {
   props: {
     member: {
@@ -35,7 +39,10 @@ export default {
     }
   },
   methods: {
-    image
+    image,
+
+    // id of current user
+    getUserId
   }
 }
 </script>

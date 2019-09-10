@@ -1,10 +1,10 @@
 <template>
   <div>
-   <div v-if="(isSuperUser() || isAdmin()) && orgUsersExcludingSelf">
+   <div v-if="(isSuperUser() || isAdmin()) && orgUsers">
     <div class="panel px-4 py-3" style="width: 300px">
       <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
       <TeamMember 
-        v-for="(member, index) in orgUsersExcludingSelf" 
+        v-for="(member, index) in orgUsers" 
         :member="member"
         :key="index"
         @edit="handleEdit"
@@ -64,12 +64,6 @@ export default {
     ...mapGetters('orgUsers', [
       'orgUsers'
     ]),
-    orgUsersExcludingSelf() {
-      let id = getUserId()
-      return this.orgUsers ? this.orgUsers.filter(
-        user => user.user.id !== id
-      ) : false
-    },
     orgId() {
       if (isAdmin() && this.$route.params.id) {
         return this.$route.params.id
@@ -97,8 +91,10 @@ export default {
       this.$bvModal.show('modal-teammember')
     },
     handleRemove({ id }) {
-      this.editUserId = id;
-      this.$bvModal.show('modal-remove-teammember')
+      if (id !== getUserId()) {
+        this.editUserId = id;
+        this.$bvModal.show('modal-remove-teammember')
+      }
     },
     handleCreate() {
       this.$bvModal.show('modal-new-teammember')
