@@ -33,13 +33,22 @@
       v-if="activeReport" 
       class="d-flex flex-column">
       <div class="side p-3">
-        <h3 class="">Organisaties</h3>
+        <h3>Organisaties</h3>
         <ReportOrgRole :org="activeReport.contractor" />
       </div>
       <div class="side p-3 mt-3">
         <h3>Betrokken personen</h3>
         <ReportUserRole :user="activeReport.reviewer" />
         <ReportUserRole :user="activeReport.creator" />
+      </div>
+      <!-- TODO: This needs to be replaced -->
+      <div class="side p-3 mt-3">
+        <b-button 
+          variant="light" 
+          class="font-weight-bold d-flex align-items-center"
+          @click="handleDownloadReport">
+          <span class="ml-1">Download report</span>
+        </b-button>
       </div>
     </div>
 
@@ -114,7 +123,10 @@ export default {
     ...mapActions('samples', [
       'getSamples',
       'clearSamples'
-    ])
+    ]),
+    handleDownloadReport() {
+      // TODO: API to /api/report/{id}/{document_id}/download will return a link
+    }
   }
 }
 </script>

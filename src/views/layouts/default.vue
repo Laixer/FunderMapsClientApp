@@ -99,6 +99,16 @@ export default {
     }
   },
   async created() {
+    if (isSuperUser()) {
+      this.menuItems.push(
+        new MenuItem({
+          label: 'Organisatie',
+          icon: 'Tools-icon.svg',
+          to: { name: 'organization' }
+        })
+      )
+    }
+
     try {
       await Promise.all([
         this.getUser(),
@@ -113,16 +123,6 @@ export default {
       } else {
         this.loadingDataFailed = true;
       }
-    }
-
-    if (isSuperUser()) {
-      this.menuItems.push(
-        new MenuItem({
-          label: 'Organisatie',
-          icon: 'Tools-icon.svg',
-          to: { name: 'organization' }
-        })
-      )
     }
   },
   methods: {
