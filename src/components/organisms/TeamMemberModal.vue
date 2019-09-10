@@ -124,7 +124,7 @@ export default {
           validationRules: {
             required, email
           },
-          disabled: false
+          disabled: true
         },
         role: {
           value: null,
