@@ -58,8 +58,7 @@ export default {
       await this.getLatestReports({ count: 5 })
       this.loading = false;
 
-      // TODO: Enable when not in dev
-      timer = setTimeout(this.syncReports, (60 * 1000 * 9999999999999999)); // every minute
+      timer = setTimeout(this.syncReports, (60 * 1000)); // every minute
     }
   }
 }
