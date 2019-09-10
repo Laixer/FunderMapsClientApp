@@ -43,13 +43,19 @@ export default {
   components: {
     Logo
   },
+  props: {
+    admin: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       company: 'FunderMaps',
       menuItems: [
         new MenuItem({
           label: 'Profile',
-          to: { name: 'user' }
+          to: { name: this.admin ? 'admin-user' : 'user' }
         }),
         new MenuItem({
           label: 'Sign out',

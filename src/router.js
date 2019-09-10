@@ -72,10 +72,7 @@ let router = new Router({
     {
       path: '/user',
       name: 'user',
-      component: User,
-      meta: {
-        profile: true
-      }
+      component: User
     },
     // Registration
     {
@@ -175,12 +172,25 @@ let router = new Router({
         admin: true
       }
     },
+    {
+      path: '/admin/user',
+      name: 'admin-user',
+      component: User,
+      meta: {
+        layout: 'admin',
+        profile: true
+      }
+    },
 
     // 404
     {
       path: '/not-found',
       name: 'not-found',
-      component: NotFound
+      component: NotFound,
+      meta: {
+        layout: 'login',
+        public: true
+      }
     },
     {
       path: '/*',

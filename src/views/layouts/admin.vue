@@ -2,7 +2,7 @@
   <div 
     v-if="hasRequiredData" 
     class="d-flex flex-column">
-    <NavBar />
+    <NavBar :admin="true" />
     <div class="d-flex align-items-stretch flex-grow-1">
       <SideBar :menu-items="menuItems" />
       <div class="flex-grow-1 d-flex flex-column">
