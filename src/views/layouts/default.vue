@@ -107,22 +107,22 @@ export default {
         this.getContractors(),
         this.getVersion()
       ])
-
-      if (isSuperUser()) {
-        this.menuItems.push(
-          new MenuItem({
-            label: 'Organisatie',
-            icon: 'Tools-icon.svg',
-            to: { name: 'organization' }
-          })
-        )
-      }
     } catch(err) {
       if (err.response && err.response.status === 401) {
         this.$router.push({ name: 'login' })
       } else {
         this.loadingDataFailed = true;
       }
+    }
+
+    if (isSuperUser()) {
+      this.menuItems.push(
+        new MenuItem({
+          label: 'Organisatie',
+          icon: 'Tools-icon.svg',
+          to: { name: 'organization' }
+        })
+      )
     }
   },
   methods: {
