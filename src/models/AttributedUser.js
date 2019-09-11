@@ -1,13 +1,4 @@
 
-// email: "batman@gotham.gov"
-// first_name: "Bruce"
-// id: 30141
-// last_name: "Wayne"
-// middle_name: null
-// nick_name: "bruce"
-// organization: {id: 85615, name: "Gotham City"}
-// phone: "+19001117774"
-
 import { generateAvatar } from 'utils/namedavatar';
 
 /**

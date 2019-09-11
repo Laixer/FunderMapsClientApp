@@ -49,6 +49,7 @@ const getters = {
   }
 }
 const actions = {
+  // FUTURE: We do not want to make 1+n remote calls.
   async getUsers({ commit }, { orgId }) {
     let response = await orgUserAPI.getOrganizationUsers({ orgId });
     if (response.status === 200 && response.data.length > 0) {
