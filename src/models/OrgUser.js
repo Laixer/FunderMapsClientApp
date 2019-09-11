@@ -1,20 +1,4 @@
 
-// {
-//   "given_name": "string",
-//   "last_name": "string",
-//   "avatar": "string",
-//   "job_title": "string",
-//   "two_factor_enabled": true,
-//   "phone_number_confirmed": true,
-//   "email_confirmed": true,
-//   "lockout_enabled": true,
-//   "id": "string",
-//   "user_name": "string",
-//   "email": "string",
-//   "phone_number": "string",
-//   "lockout_end": "2019-05-27T21:09:25.212Z"
-// }
-
 import { generateAvatar } from 'utils/namedavatar'
 
 /**
@@ -32,25 +16,24 @@ let OrgUserModel = function (user) {
  * Aim to get the most natural name by which to identify the user
  */
 OrgUserModel.prototype.getUserName = function() {
-  let user = this.user;
 
   // First try given and/or last name
   let name = '';
-  if (user.given_name) {
-    name += user.given_name;
+  if (this.given_name) {
+    name += this.given_name;
   }
-  if (user.last_name) {
-    name += ' ' + user.last_name
+  if (this.last_name) {
+    name += ' ' + this.last_name
   }
   if (name) {
     return name.trim();
   }
   // Check for a specific user_name as alternative
-  if (user.user_name) {
-    return user.user_name
+  if (this.user_name) {
+    return this.user_name
   }
   // Resort to email
-  return user.email;
+  return this.email;
 }
 
 // ****************************************************************************
@@ -99,7 +82,7 @@ OrgUserModel.prototype.canCreate = function() {
  */
 OrgUserModel.prototype.getAvatar = function() {
   if (this.hasAvatar()) {
-    return this.user.avatar
+    return this.avatar
   }
   return this.generateAvatar();
 }
@@ -108,7 +91,7 @@ OrgUserModel.prototype.getAvatar = function() {
  * Whether the user has uploaded an Avatar
  */
 OrgUserModel.prototype.hasAvatar = function() {
-  return this.user.avatar !== '' && this.user.avatar !== null
+  return this.avatar !== '' && this.avatar !== null
 }
 
 /**

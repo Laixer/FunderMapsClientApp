@@ -165,25 +165,21 @@ export default {
     orgUser(orgUser) {
       if (orgUser){
         this.setFieldValues([
-          { name: 'email', value: orgUser.user.email },
+          { name: 'email', value: orgUser.email },
           { name: 'role', value: orgUser.role.name },
-          { name: 'given_name', value: orgUser.user.given_name },
-          { name: 'last_name', value: orgUser.user.last_name },
-          { name: 'job_title', value: orgUser.user.job_title },
-          { name: 'phone_number', value: orgUser.user.phone_number }
+          { name: 'given_name', value: orgUser.given_name },
+          { name: 'last_name', value: orgUser.last_name },
+          { name: 'job_title', value: orgUser.job_title },
+          { name: 'phone_number', value: orgUser.phone_number }
         ])
+        
+        // FUTURE: Hide the role form when editing self
+        // If the active user is the same as the user being edited
+        this.fields.role.disabled = this.orgUser.user_id === getUserId();
 
         this.name = orgUser.getUserName()
       }
     }
-  },
-  created() {
-
-    // If the active user is the same as the user being edited
-    if (this.orgUser.user.id === getUserId()) {
-      this.fields.role.disabled = true;
-    }
-
   },
   methods: {
     ...mapActions('orgUsers', [
@@ -209,7 +205,7 @@ export default {
       
       try {
         // Make a copy, and add form field data
-        let userData = Object.assign({}, this.orgUser.user, this.fieldValues([
+        let userData = Object.assign({}, this.orgUser, this.fieldValues([
           'email', 'job_title', 'last_name', 'given_name', 'phone_number'
         ]));
         await this.updateUser({

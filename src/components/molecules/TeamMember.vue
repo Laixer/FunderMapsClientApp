@@ -9,16 +9,16 @@
       </div>
       <div class="d-flex justify-content-between w-100">
         <b-button
-          v-if="member.user.id !== getUserId"
+          v-if="member.user_id !== getUserId"
           class="font-weight-bold"
           variant="light"
-          @click="$emit('remove', { id: member.user.id })">
+          @click="$emit('remove', { id: member.user_id })">
           Verwijderen
         </b-button>
         <b-button
           class="font-weight-bold"
           variant="light"
-          @click="$emit('edit', { id: member.user.id })">
+          @click="$emit('edit', { id: member.user_id })">
           Bewerk
         </b-button>
       </div>
