@@ -20,6 +20,7 @@ Vue.use(BootstrapVue)
 
 // V-calender
 import VCalender from 'v-calendar'
+import 'v-calendar/lib/v-calendar.min.css';
 Vue.use(VCalender)
 
 // Named Avatar Generator
