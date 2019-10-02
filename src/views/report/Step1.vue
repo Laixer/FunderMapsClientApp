@@ -449,7 +449,7 @@ export default {
         status: values.status,
 
         type: parseInt(values.type),
-        document_date: this.formatDate(values.date) + 'T12:00:00.000Z', 
+        document_date: values.date.toISOString(), 
         attribution: {
           reviewer: {
             id: reviewer.id,
@@ -512,16 +512,6 @@ export default {
           message: 'Onbekende fout. Probeer het later nog eens.'
         }
       }
-    },
-    // TODO: Not ideal, but works for now
-    formatDate(date) { // e.g. 4 Jun 2019
-      let months = [
-        "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
-        "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" ]
-      date = date.split(' ');
-      return date[2] + '-' 
-        + ('0'+ (months.indexOf(date[1]) + 1)).slice(-2) 
-        + '-' + ('0' + date[0]).slice(-2)
     }
   }
 }
