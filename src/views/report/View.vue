@@ -78,7 +78,6 @@ import Sample from 'organism/Sample'
 
 import { icon } from 'helper/assets'
 import reportsAPI from 'api/reports'
-import axios from 'axios'
 
 export default {
   components: {
@@ -140,21 +139,7 @@ export default {
         })
         .then((response) => {
           if (response.data && response.data.url) {
-            axios({
-              url: response.data.url,
-              method: 'GET',
-              responseType: 'blob',
-            }).then((response) => {
-              let fileURL = window.URL.createObjectURL(new Blob([response.data]))
-              let fileLink = document.createElement('a')
-
-              fileLink.href = fileURL
-              fileLink.target = '_blank'
-              fileLink.setAttribute('download', 'report.pdf')
-              document.body.appendChild(fileLink)
-
-              fileLink.click()
-            })
+            window.open(response.data.url)
           } else {
             this.feedback = {
               variant: 'danger',
