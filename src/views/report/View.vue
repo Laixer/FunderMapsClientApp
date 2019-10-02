@@ -32,7 +32,19 @@
     <div 
       v-if="activeReport" 
       class="d-flex flex-column">
-      <div class="side p-3">
+
+      <b-button 
+        variant="primary" 
+        class="side__btn p-3 font-weight-bold d-flex align-items-center"
+        target="_blank"
+        @click="getReportDownloadLink">
+        <img 
+          alt="arrow" 
+          :src="icon({ name: 'Download-icon.svg' })"
+          width="17" />
+        <span class="ml-2">Download report</span>
+      </b-button>
+      <div class="side p-3 mt-3">
         <h3>Organisaties</h3>
         <ReportOrgRole :org="activeReport.contractor" />
       </div>
@@ -40,15 +52,6 @@
         <h3>Betrokken personen</h3>
         <ReportUserRole :user="activeReport.reviewer" />
         <ReportUserRole :user="activeReport.creator" />
-      </div>
-      <!-- TODO: This needs to be replaced -->
-      <div class="side p-3 mt-3">
-        <b-button 
-          variant="light" 
-          class="font-weight-bold d-flex align-items-center"
-          @click="handleDownloadReport">
-          <span class="ml-1">Download report</span>
-        </b-button>
       </div>
     </div>
 
@@ -72,6 +75,9 @@ import ReportUserRole from 'atom/review/ReportUserRole'
 import ReportOrgRole from 'atom/review/ReportOrgRole'
 import Feedback from 'atom/Feedback'
 import Sample from 'organism/Sample'
+
+import { icon } from 'helper/assets'
+import reportsAPI from 'api/reports'
 
 export default {
   components: {
@@ -124,8 +130,25 @@ export default {
       'getSamples',
       'clearSamples'
     ]),
-    handleDownloadReport() {
-      // TODO: API to /api/report/{id}/{document_id}/download will return a link
+    icon,
+    getReportDownloadLink() {
+      reportsAPI.getDownloadLink({ 
+        id: this.activeReport.id, 
+        document: this.activeReport.document_id 
+      })
+      .then((response) => {
+        if (response.url) {
+          window.open(response.url, "_blank")
+        } else {
+          throw new Error()
+        }
+      })
+      .catch(() => {
+        this.feedback = {
+          variant: 'danger',
+          message: 'Het opgevraagde rapport kan op dit moment niet gedownload worden'
+        }
+      })
     }
   }
 }
@@ -142,6 +165,11 @@ export default {
   background: white;
   border: 1px solid #CED0DA;
   border-radius: 5px;
+
+  &__btn {
+    width: 360px;
+    font-size: 16px;
+  }
 }
 h3 {
   font-size: 16px;

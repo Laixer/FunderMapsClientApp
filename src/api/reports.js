@@ -41,6 +41,9 @@ const setStatusToTodo = ({ id, document }) => {
     status: 0
   })
 }
+const getDownloadLink = ({ id, document }) => {
+  return axios.get(`/api/report/${id}/${document}/download`)
+}
 
 export default { 
   getReports, 
@@ -52,5 +55,6 @@ export default {
   updateReport,
   validateReport,
   submitForReview,
-  setStatusToTodo
+  setStatusToTodo,
+  getDownloadLink
 }
