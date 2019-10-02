@@ -33,8 +33,8 @@ export default {
   },
   data() {
     return {
-      accessToken: 'pk.eyJ1Ijoiam91cm5leXdvcmtzIiwiYSI6ImNqeDd6Nm5oNDBlZGkzc3A3Zm40ZzVhb3YifQ.7Pi9HnHW3r-PU-koxWLYGw',
-      mapStyle: 'mapbox://styles/journeyworks/cjx7z8ar10m081cm6gq6uyjez',
+      accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
+      mapStyle: process.env.VUE_APP_MAPBOX_STYLE,
 
       select: {
         type: 'select',
