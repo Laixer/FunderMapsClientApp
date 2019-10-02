@@ -1,15 +1,28 @@
 <template>
   <b-form-group
     class="FormField"
-    :label="label"
     :state="state">
+    <!-- :label="label" -->
+    <template v-slot:label>
+      <span>{{ label }}</span>
+      <span 
+        v-if="hasInfo"
+        class="info ml-1"
+        @click="openInfo">
+        <img 
+          style="margin-top: -2px; cursor: pointer"
+          :src="icon({ name: 'info-circle-light.svg' })" 
+          width="16" 
+          height="16" />
+      </span>
+    </template>
 
     <b-form-select 
       v-if="type === 'select'"
       v-model="fieldValue" 
       :options="options"
       :state="state" 
-      :disabled="disabled"
+      :disabled="isDisabled"
       @input="handleInput"
       @blur="handleBlur" />
     
@@ -20,7 +33,7 @@
         class="check"
         v-model="fieldValue"
         :state="state"
-        :disabled="disabled" 
+        :disabled="isDisabled" 
         :value="options[0].value">
         {{ options[0].text }}
       </b-form-radio>
@@ -28,7 +41,7 @@
         class="ml-3 none"
         v-model="fieldValue"
         :state="state"
-        :disabled="disabled" 
+        :disabled="isDisabled" 
         :value="options[1].value">
         {{ options[1].text }}
       </b-form-radio>
@@ -41,12 +54,12 @@
       :state="state" 
       :placeholder="placeholder"
       :autocomplete="autocomplete"
-      :disabled="disabled"
+      :disabled="isDisabled"
       @input="handleInput"
       @blur="handleBlur"
     ></b-form-radio-group>
     
-    <v-date-picker
+    <!-- <v-date-picker
       locale="nl"
       :popover="{ visibility: 'click' }"
       v-else-if="type === 'datepicker'"
@@ -59,36 +72,63 @@
         :state="state" 
         :placeholder="placeholder"
         :autocomplete="autocomplete"
-        :disabled="disabled"
+        :disabled="isDisabled"
         @blur="handleDatepickerBlur"
         trim />
-    </v-date-picker>
+    </v-date-picker> -->
+
+    <Datepicker 
+      v-else-if="type === 'datepicker'"
+      :monday-first="true"
+      :disabled="isDisabled"
+      :language="nl"
+      :input-class="state ? 'form-control is-valid' : 'form-control'"
+      :value="fieldValue"
+      :bootstrap-styling="true"
+      @input="handleInput"></Datepicker>
 
     <b-form-textarea
       v-else-if="type === 'textarea'"
       v-model="fieldValue" 
-      :type="type"
       :state="state" 
       :placeholder="placeholder"
       :autocomplete="autocomplete"
-      :disabled="disabled"
+      :disabled="isDisabled"
       @input="handleInput"
       @blur="handleBlur"
       :rows="rows"
       trim 
     ></b-form-textarea>
 
-    <b-form-input 
-      v-else
-      v-model="fieldValue" 
-      :type="type"
+    <b-form-file
+      v-else-if="type === 'upload'"
+      v-model="fieldValue"
       :state="state" 
-      :placeholder="placeholder"
-      :autocomplete="autocomplete"
-      :disabled="disabled"
+      :accept="accept"
+      :browse-text="browseLabel"
+      :placeholder="placeholder || 'Choose a file...'"
+      :disabled="isDisabled"
+      :drop-placeholder="dropInPlaceholder"
       @input="handleInput"
       @blur="handleBlur"
-      trim />
+    ></b-form-file>
+
+    <b-input-group
+      v-else
+      :prepend="prepend"
+      :append="append">
+      <b-form-input 
+        v-model="fieldValue" 
+        :type="type"
+        :state="state"
+        :accept="accept" 
+        :placeholder="placeholder"
+        :autocomplete="autocomplete"
+        :disabled="isDisabled"
+        @input="handleInput"
+        @blur="handleBlur"
+        trim />
+    </b-input-group>
 
     <template slot="invalid-feedback">
       {{ invalidFeedback }}
@@ -98,13 +138,21 @@
 
 <script>
 import { validationMixin } from 'vuelidate'
+import { icon } from 'helper/assets'
+
+// TODO: https://github.com/charliekassel/vuejs-datepicker
+// TODO: https://vue-multiselect.js.org 
+
+import Datepicker from 'vuejs-datepicker'
+import { nl } from 'vuejs-datepicker/dist/locale'
 
 export default {
   name: 'FormField',
   inject: ['registerFormField'],
+  components: { Datepicker },
   props: {
     value: {
-      type: [String, Boolean, Number, Date],
+      type: [String, Boolean, Number, Date, File],
       default: ''
     },
     label: {
@@ -112,6 +160,13 @@ export default {
       default: ''
     },
     disabled: {
+      type: Boolean,
+      default: false
+    },
+    /**
+     * Field is always disabled
+     */
+    permaDisabled: {
       type: Boolean,
       default: false
     },
@@ -145,10 +200,45 @@ export default {
         return []
       }
     },
+    // Used by `type === text`
+    append: {
+      type: String,
+      default: ''
+    },
+    prepend: {
+      type: String,
+      default: ''
+    },
     // Used by `type === textarea`
     rows: {
       type: Number,
       default: 5,
+    },
+    // Used by `type === upload`
+    browseLabel: {
+      type: String,
+      default: 'Browse'
+    },
+    dropInPlaceholder: {
+      type: String,
+      default: 'Drop file here...'
+    },
+    accept: {
+      type: String,
+      default: null
+    },
+    // Info icon in label
+    info: {
+      type: String,
+      default: null
+    },
+    infoHeader: {
+      type: String,
+      default: null
+    },
+    infoHTML: {
+      type: Boolean,
+      default: false
     }
   },
   mixins: [ validationMixin ],
@@ -156,7 +246,8 @@ export default {
     return {
       fieldValue: '',
       datepickerValue: '',
-      blurred: false
+      blurred: false,
+      nl: nl // Datepicker translation object
     }
   },
   computed: {
@@ -165,6 +256,9 @@ export default {
         return null
       }
       return this.$v.fieldValue.$dirty ? !this.$v.fieldValue.$error : null
+    },
+    isDisabled() {
+      return this.disabled || this.permaDisabled
     },
     invalidFeedback() {
       let validator = this.$v.fieldValue
@@ -191,30 +285,14 @@ export default {
           return 'Uw invoer moet minimaal ' + params.minLength.min +' karakters zijn.'
         case 'maxLength': 
           return 'Uw invoer mag maximaal ' + params.maxLength.max + ' karakters zijn.'
-        
+        case 'combinedHundred':
+          return 'De verdeling moet samen uit komen op 100%'
       }
 
       return 'Controleer uw invoer a.u.b.'
     },
-    /**
-     * V-Calender overrides the validation border set by Bootstrap.
-     *  These style enforce the Bootstrap styles
-     */
-    datepickerStyle() {
-      // TODO: Use bootstrap variables
-      let color = '#ced4da';
-      switch(this.state) {
-        case true: 
-          color = '#29CC8B'
-          break;
-        case false: 
-          color = '#FF4E4E'
-          break;
-      }
-      return { 
-        'borderWidth': '1px',
-        'borderColor' : color
-      }
+    hasInfo() {
+      return this.info
     }
   },
   watch: {
@@ -223,27 +301,6 @@ export default {
      */
     value(newValue) {
       this.fieldValue = newValue
-    },
-    /**
-     * Update Date Picker if appropriate
-     *  And inform the parent when a date is invalid
-     */
-    fieldValue(newValue) {
-      if (this.type === 'datepicker') {
-        let date = new Date(newValue)
-        if (! isNaN(date.getTime())) {
-          this.datepickerValue = date
-        } else {
-          // NL formatting
-          date = new Date(this.formatDate(newValue));
-          if (! isNaN(date.getTime())) {
-            this.datepickerValue = date
-          } else {
-            // Handle an invalid formatted date
-            this.$emit('input', '')
-          }
-        }
-      }
     }
   },
   created() {
@@ -252,7 +309,7 @@ export default {
 
     // If no value was passed, and this is a datepicker, default to today
     if (this.type === 'datepicker' && ! this.value) {
-      this.fieldValue = this.formatDateToString(new Date())
+      this.fieldValue = new Date() 
     }
 
     // If contained within a Form component, register the form field
@@ -269,6 +326,34 @@ export default {
       : {}
   },
   methods: {
+    /**
+     * Info modal
+     */
+    icon,
+    openInfo() {
+      this.openModal({
+        title: this.infoHeader,
+        content: this.infoHTML 
+          ? this.$createElement('div', { 
+            domProps: { 
+              innerHTML: this.info
+            }
+          }) 
+          : this.info
+      })
+    },
+    openModal({ title, content }) {
+      this.$bvModal.msgBoxOk(
+        content,
+        {
+          title,
+          okVariant: 'secondary',
+          headerClass: 'pl-5',
+          bodyClass: 'pr-5 pl-5 pt-4 pb-4'
+        }
+      )
+    },
+
     // Start validation after initial blur
     handleBlur() {
       if (this.blurred === false) {
@@ -293,34 +378,6 @@ export default {
     },
     resetValidation() {
       this.$v.$reset()
-    },
-    /*****
-     * DATE PICKER
-     */
-    handleDatepickerBlur() {
-      this.validate();
-    },
-    handleDatepickerInput(date) {
-       this.fieldValue = this.formatDateToString(date) 
-       this.$emit('input', this.fieldValue)
-    },
-    formatDateToString(date) {
-      let months = [
-        "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
-        "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" ]
-      return date.getDate() 
-        + ' ' + months[date.getMonth()] 
-        + ' ' + date.getFullYear();
-    },
-    // TODO: Not ideal, but works for now
-    formatDate(date) { // e.g. 4 Jun 2019
-      let months = [
-        "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
-        "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" ]
-      date = date.split(' ');
-      return date[2] + '-' 
-        + ('0'+ (months.indexOf(date[1]) + 1)).slice(-2) 
-        + '-' + ('0' + date[0]).slice(-2)
     }
   }
 }
@@ -329,9 +386,13 @@ export default {
 <style lang="scss">
 .FormField {
   font-size: 16px;
+  position: relative;
 
   input {
     color: rgba(53, 64, 82, 0.5);
+  }
+  input:disabled {
+    color: #495057 !important
   }
 
   label, legend {
@@ -339,6 +400,12 @@ export default {
     text-transform: uppercase;
     padding-bottom: 0;
   }
+
+  // .invalid-feedback {
+  //   position: absolute;
+  //   top: -1.75rem;
+  //   text-align: right;
+  // }
 
   &--choice {
     height: 33px;
@@ -356,6 +423,15 @@ export default {
       background-color: white;
       background-image: url('../../../assets/icons/None-icon.svg');
       background-size: cover;
+    }
+  }
+
+  .vdp-datepicker {
+    .form-control[readonly] {
+      background-color: #fff;
+    }
+    &__calendar, .cell:hover, .selected {
+      border-radius: 0.25rem;
     }
   }
 }
