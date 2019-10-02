@@ -1,6 +1,6 @@
 <template>
   <div class="ReportStepHeader d-flex align-items-center justify-content-between">
-    <h2 class="m-0">
+    <h2 class="m-0 flex-grow-1">
       <span class="font-weight-bold">Stap {{ step }}</span>
       <span 
         class="ReportStepHeader__label ml-3 pl-3"
