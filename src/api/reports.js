@@ -45,6 +45,14 @@ const getDownloadLink = ({ id, document }) => {
   return axios.get(`/api/report/${id}/${document}/download`)
 }
 
+// Input options
+const getContractors = () => {
+  return axios.get('/api/report/contractors')
+}
+const getReviewers = () => {
+  return axios.get('/api/report/reviewers')
+}
+
 export default { 
   getReports, 
   getLatestReports,
@@ -56,5 +64,8 @@ export default {
   validateReport,
   submitForReview,
   setStatusToTodo,
-  getDownloadLink
+  getDownloadLink,
+
+  getContractors,
+  getReviewers
 }
