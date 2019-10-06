@@ -10,6 +10,9 @@
       </span>
     </div>
     <SideMenu :items="menuItems" :slim="slim" />
+    <MapLegend  
+      class="SideBar__legend"
+      v-if="hasLegend && !slim" />
     <div
       v-if="version && !slim"
       class="SideBar__version">
@@ -20,11 +23,12 @@
 
 <script>
 import SideMenu from 'molecule/SideMenu';
+import MapLegend from 'molecule/MapLegend'
 import { mapGetters } from 'vuex';
 
 export default {
   components: {
-    SideMenu
+    SideMenu, MapLegend
   },
   props: {
     menuItems: {
@@ -41,7 +45,10 @@ export default {
   computed: {
     ...mapGetters('version', [
       'version'
-    ])
+    ]),
+    hasLegend() {
+      return this.$route.meta.layout === 'map'
+    }
   }
 }
 </script>

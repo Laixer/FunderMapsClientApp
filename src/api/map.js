@@ -2,7 +2,5 @@
 import axios from '@/utils/axios'
 
 export default {
-  getJson: async () => {
-    return await axios.get('/api/map');
-  }
+  getLayers: async () => await axios.get('/api/map/layer')
 }

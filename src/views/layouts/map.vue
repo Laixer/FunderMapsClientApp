@@ -4,7 +4,7 @@
     class="d-flex flex-column">
     <NavBar />
     <div class="d-flex align-items-stretch flex-grow-1">
-      <SideBar :menu-items="menuItems" :slim="true" />
+      <SideBar :menu-items="menuItems" :slim="false" />
       <div class="flex-grow-1 d-flex flex-column">
         <HeaderBar />
         <div class="flex-grow h-100 position-relative">
