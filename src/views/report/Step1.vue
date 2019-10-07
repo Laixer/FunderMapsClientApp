@@ -250,7 +250,6 @@ export default {
   computed: {
     ...mapGetters('attestation', [
       'principalUsers',
-      'contractors',
       'getUserById'
     ]),
     ...mapGetters('report', [
@@ -258,6 +257,9 @@ export default {
     ]),
     ...mapGetters('org', [
       'organization'
+    ]),
+    ...mapGetters('contractors',[
+      'contractors'
     ]),
     nextStep() {
       let report = this.activeReport || { id: 'id', document_id: 'document_id' };
@@ -389,6 +391,15 @@ export default {
         })
         return;
       }
+
+      let conform_f3o = report.norm 
+        ? report.norm.find(
+            norm => norm.hasOwnProperty('conform_f3o')
+          ) 
+        : null
+      conform_f3o = conform_f3o 
+        ? conform_f3o.conform_f3o 
+        : null
       
       this.setFieldValues({
         document_id: report.document_id,
@@ -400,9 +411,7 @@ export default {
         reviewer: this.activeReport.reviewer 
           ? this.activeReport.reviewer.id 
           : null,
-        conform_f3o: report.norm 
-          ? report.norm.conform_f3o
-          : null,
+        conform_f3o,
         inspection: report.inspection,
         joint_measurement: report.joint_measurement,
         floor_measurement: report.floor_measurement,
@@ -464,9 +473,9 @@ export default {
             name: values.contractor
           },
         },
-        norm: {
+        norm: [{
           conform_f3o: values.conform_f3o
-        },
+        }],
       }
 
       if (this.activeReport) {

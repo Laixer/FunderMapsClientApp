@@ -46,9 +46,7 @@ const getDownloadLink = ({ id, document }) => {
 }
 
 // Input options
-const getContractors = () => {
-  return axios.get('/api/report/contractors')
-}
+
 const getReviewers = () => {
   return axios.get('/api/report/reviewers')
 }
@@ -66,6 +64,5 @@ export default {
   setStatusToTodo,
   getDownloadLink,
 
-  getContractors,
   getReviewers
 }

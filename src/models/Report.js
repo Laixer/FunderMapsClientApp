@@ -2,7 +2,7 @@
 import AttributedUser from 'model/AttributedUser'
 
 import { typeOptions, statusOptions, accessOptions } from 'config/enums'
-import AttributedOrganisation from './AttributedOrganisation';
+import AttributedOrganisation from './AttributedOrganisation'
 
 /**
  * The Report model

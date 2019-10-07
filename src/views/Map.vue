@@ -76,9 +76,12 @@ export default {
       if (this.isMapboxReady) {
         // TODO: Test whether we first need to hide all
         this.mapLayers.forEach(layer => {
-          this.$store.map.setLayoutProperty(
-            layer.id, 'visibility', this.getLayerVisibility({ layer })
-          )
+          let source = this.$store.map.getSource(layer.id)
+          if (source) {
+            this.$store.map.setLayoutProperty(
+              layer.id, 'visibility', this.getLayerVisibility({ layer })
+            )
+          }
         })
       }
     },

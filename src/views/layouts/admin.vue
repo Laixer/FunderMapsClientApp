@@ -85,15 +85,17 @@ export default {
       'areProposalsAvailable'
     ]),
     ...mapGetters('attestation', [
-      'arePrincipalUsersAvailable',
+      'arePrincipalUsersAvailable'
+    ]),
+    ...mapGetters('contractors', [
       'areContractorsAvailable'
     ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        // && this.arePrincipalUsersAvailable
-        // && this.areContractorsAvailable
+        && this.areContractorsAvailable
         && this.areProposalsAvailable
+        // && this.arePrincipalUsersAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -104,10 +106,10 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        // this.getPrincipalUsers(),
-        // this.getContractors(),
+        this.getContractors(),
         this.getVersion(),
-        this.getProposals()
+        this.getProposals(),
+        // this.getPrincipalUsers(),
       ])
     } catch(err) {
       if (err.response && err.response.status === 401) {
@@ -127,10 +129,12 @@ export default {
     ]),
     ...mapActions('attestation', [
       'getPrincipalUsers',
-      'getContractors'
     ]),
     ...mapActions('version', [
       'getVersion'
+    ]),
+    ...mapActions('contractors', [
+      'getContractors'
     ])
   }
 }

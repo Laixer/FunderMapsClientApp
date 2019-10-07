@@ -85,14 +85,16 @@ export default {
       'getOrgId'
     ]),
     ...mapGetters('attestation', [
-      'arePrincipalUsersAvailable',
+      'arePrincipalUsersAvailable'
+    ]),
+    ...mapGetters('contractors', [
       'areContractorsAvailable'
     ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
+        && this.areContractorsAvailable
         // && this.arePrincipalUsersAvailable
-        // && this.areContractorsAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -103,9 +105,9 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
+        this.getContractors(),
+        this.getVersion(),
         // this.getPrincipalUsers(),
-        // this.getContractors(),
-        this.getVersion()
       ])
 
       if (isSuperUser()) {
@@ -133,11 +135,13 @@ export default {
       'getOrganization'
     ]),
     ...mapActions('attestation', [
-      'getPrincipalUsers',
-      'getContractors'
+      'getPrincipalUsers'
     ]),
     ...mapActions('version', [
       'getVersion'
+    ]),
+    ...mapActions('contractors', [
+      'getContractors'
     ])
   }
 }

@@ -13,13 +13,11 @@ import reportAPI from 'api/reports';
  */
 const state = {
   report : false,
-  contractors: [],
   reviewers: []
 }
 
 const getters = {
   activeReport: state => state.report,
-  contractors: state => state.contractors,
   reviewers: state => state.reviewers
 }
 const actions = {
@@ -80,14 +78,7 @@ const actions = {
       commit('set_report_pending_review')
     }
   },
-  async getContractors({ commit }) {
-    let response = await reportAPI.getContractors()
-    if (response.status === 200 && response.data) {
-      commit('set_contractors', {
-        contractors: response.data
-      })
-    }
-  },
+  
   async getReviewers({ commit }) {
     let response = await reportAPI.getReviewers()
     if (response.status === 200 && response.data) {
@@ -116,15 +107,9 @@ const mutations = {
   set_report_status_todo(state) {
     state.report.setStatus({ status: 0 })
   },
-  set_contractors(state, { contractors }) {
-    state.contractors = contractors
-  },
   set_reviewers(state, { reviewers }) {
     state.reviewers = reviewers
   },
-  clear_contractors(state) {
-    state.contractors = []
-  }, 
   clear_reviewers(state) {
     state.reviewers = []
   }
