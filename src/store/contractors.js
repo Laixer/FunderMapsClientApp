@@ -33,7 +33,7 @@ const actions = {
 }
 const mutations = {
   set_contractors(state, { contractors }) {
-    state.contractors = contractors.forEach(
+    state.contractors = contractors.map(
       contractor => new AttributedOrganisation({ org: contractor, role: 'Uitvoerder' })
     )
   },

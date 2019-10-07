@@ -34,7 +34,7 @@ const actions = {
 }
 const mutations = {
   set_reviewers(state, { reviewers }) {
-    state.reviewers = reviewers.forEach(
+    state.reviewers = reviewers.map(
       reviewer => new AttributedUser({ user: reviewer, role: 'Reviewer' })
     )
   },
