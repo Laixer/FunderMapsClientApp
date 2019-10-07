@@ -63,7 +63,7 @@ export default {
 .list-group {
   &.list-group {
     margin-right: 1px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    // border-bottom: 1px solid rgba(0, 0, 0, 0.125);
     line-height: 1;
   }
   .list-group-item {

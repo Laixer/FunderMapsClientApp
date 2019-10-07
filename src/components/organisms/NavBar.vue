@@ -11,7 +11,6 @@
       </span>
     </p>
     <b-nav class="d-flex flex-row-reverse flex-grow-1">
-      <MapControls v-if="hasMapControls" />
       <b-nav-item-dropdown class="align-self-center mr-3" right>
         <template slot="button-content">
           <img 
@@ -28,6 +27,7 @@
           {{ item.label }}
         </b-dropdown-item>
       </b-nav-item-dropdown>
+      <MapControls v-if="hasMapControls" />
     </b-nav>
   </nav>
 </template>

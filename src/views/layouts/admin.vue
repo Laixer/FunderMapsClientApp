@@ -91,8 +91,8 @@ export default {
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.arePrincipalUsersAvailable
-        && this.areContractorsAvailable
+        // && this.arePrincipalUsersAvailable
+        // && this.areContractorsAvailable
         && this.areProposalsAvailable
     },
     hasLoadingDataFailed() {
@@ -104,8 +104,8 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        this.getPrincipalUsers(),
-        this.getContractors(),
+        // this.getPrincipalUsers(),
+        // this.getContractors(),
         this.getVersion(),
         this.getProposals()
       ])

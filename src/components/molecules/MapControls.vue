@@ -1,5 +1,7 @@
 <template>
-  <div class="align-self-center mr-4">
+  <div 
+    v-if="mapLayers"
+    class="align-self-center mr-3">
     <Form 
       class="d-flex"
       @submit="() => null">
@@ -7,7 +9,7 @@
         class="mr-3"
         v-model="mapModel"
         v-bind="mapModelField"
-        :options="getMapLayers" />
+        :options="mapLayerOptions" />
     </Form>
   </div>
 </template>
@@ -33,11 +35,11 @@ export default {
   },
   computed: {
     ...mapGetters('map', [
-      'getMapLayers',
-      'getActiveLayer'
+      'mapLayers',
+      'activeLayer'
     ]),
     mapLayerOptions() {
-      return this.getMapLayers.map(layer => {
+      return this.mapLayers.map(layer => {
         return {
           value: layer.id,
           text: layer.name
@@ -46,11 +48,24 @@ export default {
     },
     mapModel: {
       get() {
-        return this.getActiveLayer.id
+        return this.activeLayer ? this.activeLayer.id : null
       },
       set (value) {
         this.setActiveLayer({ id: value })
       }
+    }
+  },
+  watch: {
+    mapLayers(value) {
+      if (value && !this.activeLayer) {
+        this.setActiveLayer({ id: value[0].id })  
+      }
+    }
+  },
+  created() {
+    // If layers are available, yet none is selected, select the first
+    if (this.mapLayers && !this.activeLayer) {
+      this.setActiveLayer({ id: this.mapLayers[0].id })
     }
   },
   methods: {

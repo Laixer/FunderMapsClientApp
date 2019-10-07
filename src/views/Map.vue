@@ -14,7 +14,7 @@ import { MglMap } from 'vue-mapbox';
 
 import { authHeader } from 'service/auth'
 
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 export default {
   components: {
@@ -47,7 +47,15 @@ export default {
       this.switchLayer()
     }
   },
+  created() {
+    if (! this.hasMapLayers) {
+      this.getMapLayers()
+    }
+  },
   methods: {
+    ...mapActions('map', [
+      'getMapLayers'
+    ]),
     ...mapMutations('map', [
       'mapboxIsReady'
     ]),
@@ -65,12 +73,14 @@ export default {
       }
     },
     switchLayer() {
-      // TODO: Test whether we first need to hide all
-      this.mapLayers.forEach(layer => {
-        this.$store.map.setLayoutProperty(
-          layer.id, 'visibility', this.getLayerVisibility({ layer })
-        )
-      })
+      if (this.isMapboxReady) {
+        // TODO: Test whether we first need to hide all
+        this.mapLayers.forEach(layer => {
+          this.$store.map.setLayoutProperty(
+            layer.id, 'visibility', this.getLayerVisibility({ layer })
+          )
+        })
+      }
     },
     addLayersToMapbox() {
       this.mapLayers.forEach(layer => {
@@ -95,7 +105,7 @@ export default {
       })
     },
     getLayerVisibility({ layer }) {
-      return this.activeLayer.id === layer.id ? 'visible' : 'none'
+      return (this.activeLayer && this.activeLayer.id === layer.id) ? 'visible' : 'none'
     }
   }
 }

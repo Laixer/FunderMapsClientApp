@@ -71,7 +71,7 @@ export default {
         new MenuItem({
           label: 'Kaart',
           icon: 'Map-icon.svg',
-          to: { name: 'demo-map' }
+          to: { name: 'map' }
         }),
       ]
     }
@@ -91,8 +91,8 @@ export default {
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.arePrincipalUsersAvailable
-        && this.areContractorsAvailable
+        // && this.arePrincipalUsersAvailable
+        // && this.areContractorsAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -113,8 +113,8 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        this.getPrincipalUsers(),
-        this.getContractors(),
+        // this.getPrincipalUsers(),
+        // this.getContractors(),
         this.getVersion()
       ])
     } catch(err) {
