@@ -249,8 +249,7 @@ export default {
   },
   computed: {
     ...mapGetters('reviewers', [
-      'reviewers',
-      'getUserById'
+      'reviewers'
     ]),
     ...mapGetters('report', [
       'activeReport'
@@ -391,14 +390,14 @@ export default {
         })
         return;
       }
-
-      let conform_f3o = report.norm 
+      
+      let conform_f3oValue = report.norm 
         ? report.norm.find(
             norm => norm.hasOwnProperty('conform_f3o')
           ) 
         : null
-      conform_f3o = conform_f3o 
-        ? conform_f3o.conform_f3o 
+      conform_f3oValue = conform_f3oValue 
+        ? conform_f3oValue.conform_f3o 
         : null
       
       this.setFieldValues({
@@ -406,12 +405,12 @@ export default {
         type: report.typeNumber ? ''+report.typeNumber : null,
         date: report.document_date,
         contractor: this.activeReport.contractor 
-          ? this.activeReport.contractor.name 
+          ? this.activeReport.contractor.id 
           : null,
         reviewer: this.activeReport.reviewer 
           ? this.activeReport.reviewer.id 
           : null,
-        conform_f3o,
+        conform_f3o: conform_f3oValue || false,
         inspection: report.inspection,
         joint_measurement: report.joint_measurement,
         floor_measurement: report.floor_measurement,
@@ -430,7 +429,7 @@ export default {
     },
     mapToOrgOption(org) {
       return {
-        value: org.getName(),
+        value: org.id,
         text: org.getName()
       }
     },
@@ -447,7 +446,7 @@ export default {
       }
 
       let values = this.allFieldValues();
-      let reviewer = this.getUserById({ id: values.reviewer })
+      
       
       let data = {
         document_id: values.document_id,
@@ -460,18 +459,12 @@ export default {
         type: parseInt(values.type),
         document_date: values.date.toISOString(), 
         attribution: {
-          reviewer: {
-            id: reviewer.id,
-            email: reviewer.email,
-            nick_name: reviewer.nick_name
-          },
+          reviewer: values.reviewer,
           // {
           //   nick_name: reviewer.getUserName(),
           //   email: reviewer.user.email
           // },
-          contractor: {
-            name: values.contractor
-          },
+          contractor: values.contractor,
         },
         norm: [{
           conform_f3o: values.conform_f3o
