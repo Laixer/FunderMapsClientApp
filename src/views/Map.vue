@@ -65,7 +65,8 @@ export default {
       this.mapboxIsReady()
     },
     transformRequest(url, resourceType) {
-      if (resourceType == 'Source' && url.startsWith('https://localhost:44345/api')) {
+      // TODO: This url matching trick is dangerous and should be replaced
+      if (resourceType == 'Source' && url.startsWith('https://localhost:44345/')) {
         return {
           url: url,
           headers: authHeader()
@@ -89,7 +90,7 @@ export default {
       this.mapLayers.forEach(layer => {
         this.$store.map.addSource(layer.id, {
           type: 'geojson',
-          data: `${process.env.VUE_APP_API_BASE_URL}/${layer.source}`
+          data: `${process.env.VUE_APP_API_BASE_URL}${layer.source}`
         })
         this.$store.map.addLayer({
           "id": layer.id,
