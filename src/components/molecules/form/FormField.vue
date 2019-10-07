@@ -34,6 +34,8 @@
         v-model="fieldValue"
         :state="state"
         :disabled="isDisabled" 
+        @input="handleInput" 
+        @blur="handleBlur"
         :value="options[0].value">
         {{ options[0].text }}
       </b-form-radio>
@@ -42,6 +44,8 @@
         v-model="fieldValue"
         :state="state"
         :disabled="isDisabled" 
+        @input="handleInput"
+        @blur="handleBlur" 
         :value="options[1].value">
         {{ options[1].text }}
       </b-form-radio>
