@@ -248,8 +248,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('attestation', [
-      'principalUsers',
+    ...mapGetters('reviewers', [
+      'reviewers',
       'getUserById'
     ]),
     ...mapGetters('report', [
@@ -272,11 +272,11 @@ export default {
       return this.activeReport ? this.activeReport.document_id : null
     },
     getReviewerOptions() {
-      if (this.principalUsers) {
+      if (this.reviewers) {
         return [{
             value: null,
             text: 'Selecteer een reviewer'
-          }].concat(this.principalUsers.map(
+          }].concat(this.reviewers.map(
             this.mapToUserOption
           )
         )

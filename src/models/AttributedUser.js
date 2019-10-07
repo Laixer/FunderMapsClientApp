@@ -39,6 +39,11 @@ AttributedUser.prototype.getUserName = function() {
   if (this.nick_name) {
     return this.nick_name
   }
+
+  if (this.name) {
+    return this.name
+  }
+  
   // Resort to email
   return this.email;
 }

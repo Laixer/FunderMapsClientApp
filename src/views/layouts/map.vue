@@ -84,8 +84,8 @@ export default {
       'isOrganizationAvailable',
       'getOrgId'
     ]),
-    ...mapGetters('attestation', [
-      'arePrincipalUsersAvailable'
+    ...mapGetters('reviewers', [
+      'areReviewersAvailable'
     ]),
     ...mapGetters('contractors', [
       'areContractorsAvailable'
@@ -94,7 +94,7 @@ export default {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
         && this.areContractorsAvailable
-        // && this.arePrincipalUsersAvailable
+        && this.areReviewersAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -107,7 +107,7 @@ export default {
         this.getOrganization(),
         this.getContractors(),
         this.getVersion(),
-        // this.getPrincipalUsers(),
+        this.getReviewers()
       ])
 
       if (isSuperUser()) {
@@ -134,8 +134,8 @@ export default {
     ...mapActions('org', [
       'getOrganization'
     ]),
-    ...mapActions('attestation', [
-      'getPrincipalUsers'
+    ...mapActions('reviewers', [
+      'getReviewers'
     ]),
     ...mapActions('version', [
       'getVersion'

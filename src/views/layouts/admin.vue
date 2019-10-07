@@ -84,8 +84,8 @@ export default {
       'getOrgId',
       'areProposalsAvailable'
     ]),
-    ...mapGetters('attestation', [
-      'arePrincipalUsersAvailable'
+    ...mapGetters('reviewers', [
+      'areReviewersAvailable'
     ]),
     ...mapGetters('contractors', [
       'areContractorsAvailable'
@@ -95,7 +95,7 @@ export default {
         && this.isOrganizationAvailable
         && this.areContractorsAvailable
         && this.areProposalsAvailable
-        // && this.arePrincipalUsersAvailable
+        && this.areReviewersAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -109,7 +109,7 @@ export default {
         this.getContractors(),
         this.getVersion(),
         this.getProposals(),
-        // this.getPrincipalUsers(),
+        this.getReviewers()
       ])
     } catch(err) {
       if (err.response && err.response.status === 401) {
@@ -127,8 +127,8 @@ export default {
       'getOrganization',
       'getProposals'
     ]),
-    ...mapActions('attestation', [
-      'getPrincipalUsers',
+    ...mapActions('reviewers', [
+      'getReviewers',
     ]),
     ...mapActions('version', [
       'getVersion'
