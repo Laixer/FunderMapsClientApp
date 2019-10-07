@@ -2,7 +2,7 @@
 import axios from '@/utils/axios'
 
 const getReviewers = () => {
-  return axios.get('/api/report/reviewers')
+  return axios.get('/api/organization/reviewers')
 }
 
 export default { 
