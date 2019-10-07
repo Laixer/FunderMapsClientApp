@@ -52,6 +52,9 @@ export default {
       this.getMapLayers()
     }
   },
+  beforeDestroy() {
+    this.mapboxIsReady({ status: false })
+  },
   methods: {
     ...mapActions('map', [
       'getMapLayers'
@@ -62,11 +65,11 @@ export default {
     onMapLoaded(event) {
       // Note: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.map;
-      this.mapboxIsReady()
+      this.mapboxIsReady({ status: true })
     },
     transformRequest(url, resourceType) {
       // TODO: This url matching trick is dangerous and should be replaced
-      if (resourceType == 'Source' && url.startsWith('https://localhost:44345/')) {
+      if (resourceType == 'Source' && url.startsWith(process.env.VUE_APP_API_BASE_URL)) {
         return {
           url: url,
           headers: authHeader()

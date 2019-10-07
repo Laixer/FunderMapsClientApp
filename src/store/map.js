@@ -36,8 +36,8 @@ const actions = {
   }
 }
 const mutations = {
-  mapboxIsReady(state) {
-    state.mapboxIsReady = true
+  mapboxIsReady(state, { status }) {
+    state.mapboxIsReady = status
   },
   setActiveLayer(state, { id }) {
     state.activeLayer = state.layers.find(layer => layer.id === id) || null
