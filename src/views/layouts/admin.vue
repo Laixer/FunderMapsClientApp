@@ -84,18 +84,10 @@ export default {
       'getOrgId',
       'areProposalsAvailable'
     ]),
-    ...mapGetters('reviewers', [
-      'areReviewersAvailable'
-    ]),
-    ...mapGetters('contractors', [
-      'areContractorsAvailable'
-    ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.areContractorsAvailable
         && this.areProposalsAvailable
-        && this.areReviewersAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -106,10 +98,8 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        this.getContractors(),
         this.getVersion(),
-        this.getProposals(),
-        this.getReviewers()
+        this.getProposals()
       ])
     } catch(err) {
       if (err.response && err.response.status === 401) {
@@ -127,14 +117,8 @@ export default {
       'getOrganization',
       'getProposals'
     ]),
-    ...mapActions('reviewers', [
-      'getReviewers',
-    ]),
     ...mapActions('version', [
       'getVersion'
-    ]),
-    ...mapActions('contractors', [
-      'getContractors'
     ])
   }
 }
