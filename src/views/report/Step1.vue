@@ -399,16 +399,16 @@ export default {
       conform_f3oValue = conform_f3oValue 
         ? conform_f3oValue.conform_f3o 
         : null
-      
+
       this.setFieldValues({
         document_id: report.document_id,
         type: report.typeNumber ? ''+report.typeNumber : null,
         date: report.document_date,
-        contractor: this.activeReport.contractor 
-          ? this.activeReport.contractor.id 
+        contractor: report.contractor 
+          ? report.contractor.id 
           : null,
-        reviewer: this.activeReport.reviewer 
-          ? this.activeReport.reviewer.id 
+        reviewer: report.reviewer 
+          ? report.reviewer.id 
           : null,
         conform_f3o: conform_f3oValue || false,
         inspection: report.inspection,
@@ -446,7 +446,6 @@ export default {
       }
 
       let values = this.allFieldValues();
-      
       
       let data = {
         document_id: values.document_id,

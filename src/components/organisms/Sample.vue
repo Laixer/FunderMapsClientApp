@@ -69,6 +69,9 @@ export default {
         this.sample.openEditor()
       }
     },
+    save() {
+      this.handleSave()
+    },
     handleSave() {
       if (this.$refs.editor) {
         this.$refs.editor.save()

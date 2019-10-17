@@ -249,9 +249,8 @@ export default {
   data() {
     return {
       fieldValue: '',
-      datepickerValue: '',
       blurred: false,
-      nl: nl // Datepicker translation object
+      nl // Datepicker translation object
     }
   },
   computed: {
@@ -313,7 +312,8 @@ export default {
 
     // If no value was passed, and this is a datepicker, default to today
     if (this.type === 'datepicker' && ! this.value) {
-      this.fieldValue = new Date() 
+      this.$emit('input', new Date())
+      this.resetValidation()
     }
 
     // If contained within a Form component, register the form field
