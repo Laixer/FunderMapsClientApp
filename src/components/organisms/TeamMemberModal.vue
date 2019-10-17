@@ -166,7 +166,7 @@ export default {
       if (orgUser){
         this.setFieldValues([
           { name: 'email', value: orgUser.email },
-          { name: 'role', value: orgUser.role.name },
+          { name: 'role', value: orgUser.getRoleSlug() },
           { name: 'given_name', value: orgUser.given_name },
           { name: 'last_name', value: orgUser.last_name },
           { name: 'job_title', value: orgUser.job_title },
