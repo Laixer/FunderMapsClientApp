@@ -25,10 +25,12 @@
           class="Report__samples">  
 
           <Sample  
-            v-for="(sample, index) in samples" 
+            v-for="(sample, index) in samples"
+            :ref="'sample_'+index" 
             :key="index + '-' + Date.now()" 
             :sample="sample"
-            :editMode="true" />
+            :editMode="true"
+            @stored="handleStored" />
 
         </div>
         <div 
@@ -62,7 +64,7 @@
         label="Vorige" />
       <PrimaryArrowButton 
         :disabled="isDisabled"
-        :to="nextStep"
+        @click="handleSaveSamplesAndNextStep"
         label="Volgende" />
     </div>
 
@@ -92,6 +94,7 @@ export default {
   },
   data() {
     return {
+      countdownToNextPage: false,
       feedback: {},
       nosamples: false,
       isDisabled: false,
@@ -191,6 +194,40 @@ export default {
     ]),
     handleAddSample() {
       this.addUnsavedSample()
+    },
+    async handleSaveSamplesAndNextStep() {
+      
+      this.countdownToNextPage = this.samples.length
+
+      let promises = this.samples.map( async (sample, index) => {
+        return await this.$refs['sample_'+index][0].save()
+      })
+
+      await Promise.all(promises)
+      
+      // Check if nothing had to be submitted
+      // let allGood = this.samples.every((sample, index) => {
+      //   return this.$refs['sample_' + index] && this.$refs['sample_'+index][0].isStored()
+      // })
+      // if (allGood) {
+      //   this.$router.push(this.nextStep)
+      // }
+    },
+    /**
+     * If we're counting down, and the submit event was a success, 
+     * count down, until we reach the end and can go to the next page.
+     * 
+     * One mistake and we cancel the countdown.
+     */
+    handleStored(payload) {
+      if (this.countdownToNextPage !== false && payload.success) {
+        this.countdownToNextPage = this.countdownToNextPage - 1
+        if (this.countdownToNextPage === 0) {
+          this.$router.push(this.nextStep)
+        }
+      } else if (payload.success === false) {
+        this.countdownToNextPage = false
+      }
     }
   }
 }
