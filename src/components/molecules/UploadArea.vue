@@ -1,48 +1,58 @@
 <template>
-
-  <vue2Dropzone 
-    id="dropzone"
-    v-if="canWrite()"
-    :options="options"
-    useCustomSlot
-    @vdropzone-sending="addHeaderBeforeSending"
-    @vdropzone-success="handleSuccess"
-    class="UploadArea d-flex justify-content-center">
-    <div class="align-self-center">
-      <img 
-        alt="upload" 
-        :src="image({ name: 'upload.svg' })" />
-      <p class="mb-0 mt-3">
-        <strong>
-          Slepen en neerzetten voor upload
-        </strong>
-        <br>
-        <span>
-          of 
-          <span>bladeren</span>
-          om een bestand te kiezen
-        </span>
-      </p>
-    </div>
-  </vue2Dropzone>
+  <div>
+    <Feedback :feedback="feedback" />
+    <vue2Dropzone 
+      id="dropzone"
+      v-if="canWrite()"
+      ref="dropzone"
+      :options="options"
+      useCustomSlot
+      @vdropzone-sending="addHeaderBeforeSending"
+      @vdropzone-success="handleSuccess"
+      @vdropzone-error="handleError"
+      class="UploadArea d-flex justify-content-center">
+      <div class="align-self-center">
+        <img 
+          alt="upload" 
+          :src="image({ name: 'upload.svg' })" />
+        <p class="mb-0 mt-3">
+          <strong>
+            Slepen en neerzetten voor upload
+          </strong>
+          <br>
+          <span>
+            of 
+            <span>bladeren</span>
+            om een bestand te kiezen
+          </span>
+        </p>
+      </div>
+    </vue2Dropzone>
+  </div>
 </template>
 
 <script>
 import { image } from 'helper/assets'
 import vue2Dropzone from 'vue2-dropzone'
 import 'vue2-dropzone/dist/vue2Dropzone.min.css'
+import Feedback from 'atom/Feedback'
 
 import { authHeader, canWrite } from 'service/auth';
 
 export default {
   components: {
-    vue2Dropzone
+    vue2Dropzone, Feedback
   },
   data() {
     return {
+      feedback: {
+        message: '',
+        variant: ''
+      },
       options: {
         maxFiles: 1,
         maxFileSize: 20,
+        // acceptedFiles: 'image/*,application/pdf',
         url: process.env.VUE_APP_API_BASE_URL + '/api/report/upload' // TODO: Move to API
       }
     }
@@ -54,6 +64,11 @@ export default {
      * Add the Authorization header when the upload process starts
      */
     addHeaderBeforeSending(file, xhr) {
+      this.feedback = {
+        message: '',
+        variant: ''
+      }
+
       if (xhr.setRequestHeader) {
         let header = authHeader()
         xhr.setRequestHeader('Authorization', header.Authorization);
@@ -63,12 +78,26 @@ export default {
      * Start the creation of a new report once the upload has finished with success
      */
     handleSuccess(file, response) {
+      if (file && this.$refs.dropzone) {
+        this.$refs.dropzone.removeFile(file)
+      }
+      
       this.$router.push({ 
         name: 'new-report', 
         params: { 
           document_name: response.name.split('.').slice(0, -1).join('.') 
         } 
       })
+    },
+    handleError(file) { // error
+      if (file && this.$refs.dropzone) {
+        this.$refs.dropzone.removeFile(file)
+      }
+      
+      this.feedback = {
+        message: 'Het bestand kon niet verwerkt worden.',
+        variant: 'danger'
+      }
     }
   }
 }
