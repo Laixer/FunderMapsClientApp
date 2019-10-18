@@ -39,12 +39,12 @@ const getters = {
   },
   getUserById: (state) => ({id}) => {
     return state.users.find(user => {
-      return user.user_id === id
+      return user.id === id
     })
   },
   getUserByEmail: (state) => ({email}) => {
     return state.users.find(user => {
-      return user.user.email === email
+      return user.email === email
     })
   }
 }
@@ -54,7 +54,7 @@ const actions = {
     let response = await orgUserAPI.getOrganizationUsers({ orgId });
     if (response.status === 200 && response.data.length > 0) {
       await Promise.all(response.data.map(organizationUser => {
-        return orgUserAPI.getOrganizationUserProfile({ orgId, id: organizationUser.user_id }).then(result => {
+        return orgUserAPI.getOrganizationUserProfile({ orgId, id: organizationUser.id }).then(result => {
           if (response.status === 200 && response.data) {
             return Object.assign(organizationUser, result.data)
           }

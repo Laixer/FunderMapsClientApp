@@ -175,7 +175,7 @@ export default {
         
         // FUTURE: Hide the role form when editing self
         // If the active user is the same as the user being edited
-        this.fields.role.disabled = this.orgUser.user_id === getUserId();
+        this.fields.role.disabled = this.orgUser.id === getUserId();
 
         this.name = orgUser.getUserName()
       }
