@@ -17,7 +17,8 @@ const state = {
 
 const getters = {
   areContractorsAvailable: state => state.contractors !== null,
-  contractors: state => state.contractors
+  contractors: state => state.contractors,
+  getOrgById: state => ({ id }) => state.contractors.find(contractor => contractor.id === id)
 }
 const actions = {
   async getContractors({ commit }) {

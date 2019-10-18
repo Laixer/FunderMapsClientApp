@@ -1,19 +1,35 @@
 <template>
-  <div class="ReportOrgRole d-flex align-items-center mt-4">
-    <img :src="org.getAvatar()" width="32" height="32" class="rounded-circle" />
+  <div 
+    v-if="orgObject"
+    class="ReportOrgRole d-flex align-items-center mt-4">
+    <img :src="orgObject.getAvatar()" width="32" height="32" class="rounded-circle" />
     <div class="ml-3">
-      <div class="ReportOrgRole__name">{{ org.getName() }}</div>
-      <div class="ReportOrgRole__role">{{ org.getRole() }}</div>
+      <div class="ReportOrgRole__name">{{ orgObject.getName() }}</div>
+      <div class="ReportOrgRole__role">{{ orgObject.getRole() }}</div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   props: {
     org: {
       type: Object,
       required: true
+    }
+  },
+  computed: {
+    ...mapGetters('contractors', [
+      'getOrgById'
+    ]),
+    orgObject() {
+      if (this.org.getName()) {
+        return this.org
+      }
+      
+      return this.getOrgById({ id: this.org.id })
     }
   }
 }
