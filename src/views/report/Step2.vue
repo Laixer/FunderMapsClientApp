@@ -193,30 +193,25 @@ export default {
       'addUnsavedSample'
     ]),
     handleAddSample() {
+      this.saveAllSamples()
       this.addUnsavedSample()
     },
-    async handleSaveSamplesAndNextStep() {
+    async saveAllSamples() {
+      return await Promise.all(this.samples.map( async (sample, index) => {
+        return await this.$refs['sample_'+index][0].save()
+      }))
+    },
+    handleSaveSamplesAndNextStep() {
       
+      // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
       this.countdownToNextPage = this.samples.length
 
       // No samples to store
       if (this.countdownToNextPage === 0) {
         this.$router.push(this.nextStep)
       } else {
-        let promises = this.samples.map( async (sample, index) => {
-          return await this.$refs['sample_'+index][0].save()
-        })
-
-        await Promise.all(promises)
+        this.saveAllSamples()
       }
-      
-      // Check if nothing had to be submitted
-      // let allGood = this.samples.every((sample, index) => {
-      //   return this.$refs['sample_' + index] && this.$refs['sample_'+index][0].isStored()
-      // })
-      // if (allGood) {
-      //   this.$router.push(this.nextStep)
-      // }
     },
     /**
      * If we're counting down, and the submit event was a success, 
