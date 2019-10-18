@@ -199,11 +199,16 @@ export default {
       
       this.countdownToNextPage = this.samples.length
 
-      let promises = this.samples.map( async (sample, index) => {
-        return await this.$refs['sample_'+index][0].save()
-      })
+      // No samples to store
+      if (this.countdownToNextPage === 0) {
+        this.$router.push(this.nextStep)
+      } else {
+        let promises = this.samples.map( async (sample, index) => {
+          return await this.$refs['sample_'+index][0].save()
+        })
 
-      await Promise.all(promises)
+        await Promise.all(promises)
+      }
       
       // Check if nothing had to be submitted
       // let allGood = this.samples.every((sample, index) => {
