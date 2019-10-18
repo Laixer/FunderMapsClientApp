@@ -95,6 +95,7 @@ export default {
   data() {
     return {
       countdownToNextPage: false,
+      countdownToNewSample: false,
       feedback: {},
       nosamples: false,
       isDisabled: false,
@@ -193,8 +194,12 @@ export default {
       'addUnsavedSample'
     ]),
     handleAddSample() {
-      this.saveAllSamples()
-      this.addUnsavedSample()
+      this.countdownToNewSample = this.samples.length
+      if (this.countdownToNewSample === 0) {
+        this.addUnsavedSample()
+      } else {
+        this.saveAllSamples() 
+      }
     },
     async saveAllSamples() {
       return await Promise.all(this.samples.map( async (sample, index) => {
@@ -227,6 +232,15 @@ export default {
         }
       } else if (payload.success === false) {
         this.countdownToNextPage = false
+      }
+
+      if (this.countdownToNewSample !== false && payload.success) {
+        this.countdownToNewSample = this.countdownToNewSample - 1
+        if (this.countdownToNewSample === 0) {
+          this.addUnsavedSample()
+        }
+      } else if (payload.success === false) {
+        this.countdownToNewSample = false
       }
     }
   }

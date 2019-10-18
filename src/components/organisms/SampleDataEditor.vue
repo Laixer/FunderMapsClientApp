@@ -302,6 +302,7 @@ export default {
     fields: {
       handler() {
         this.stored = false
+
       },
       deep: true
     }
@@ -367,7 +368,7 @@ export default {
 
     // After setting the field values, set the DB storage status
     this.$nextTick(() => {
-      // this.stored = this.sample.stored !== false
+      this.stored = this.sample.stored !== false
     })
   },
   methods: {
