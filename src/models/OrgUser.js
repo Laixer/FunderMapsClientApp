@@ -5,7 +5,7 @@ import { generateAvatar } from 'utils/namedavatar'
  * Just a pretty wrapper for now
  */
 let OrgUserModel = function (user) {
-  Object.assign(this, user.user, { role: user.role })
+  Object.assign(this, user.profile, { role: user.role })
 }
 
 // ****************************************************************************
