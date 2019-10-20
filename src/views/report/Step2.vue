@@ -84,6 +84,7 @@ import Sample from 'organism/Sample'
 import { mapActions, mapGetters } from 'vuex'
 import { icon } from 'helper/assets'
 import { isSuperUser, canWrite } from 'service/auth'
+import { EventBus } from 'utils/eventBus.js'
 
 export default {
   name: 'Step2',
@@ -167,10 +168,13 @@ export default {
         return;
       }
       
+      EventBus.$on('save-report', this.handleSaveSamplesAndNextStep)
+
       await this.getSamples({ reportId: this.activeReport.id })
       if (this.samples.length === 0) {
         this.nosamples = true
       }
+      
     } catch(err) {
       this.feedback = {
         variant: 'danger',
@@ -181,6 +185,8 @@ export default {
   beforeDestroy() {
     this.clearActiveReport()
     this.clearSamples()
+
+    EventBus.$off('save-report', this.handleSaveSamplesAndNextStep)
   },
   methods: {
     icon,

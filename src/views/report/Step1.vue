@@ -86,6 +86,7 @@ import { typeOptions } from 'config/enums'
 import { canWrite, isSuperUser } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
 import fields from 'mixin/fields'
+import { EventBus } from 'utils/eventBus.js'
 
 
 export default {
@@ -307,6 +308,10 @@ export default {
     } else {
       this.prepareExistingReport()
     }
+    EventBus.$on('save-report', this.saveReport)
+  },
+  beforeDestroy() {
+    EventBus.$off('save-report', this.saveReport)
   },
   /**
    * If we're leaving and heading towards step 2, save the document!
@@ -435,6 +440,10 @@ export default {
         value: org.id,
         text: org.getName()
       }
+    },
+
+    saveReport() {
+      this.$refs.form.submit()
     },
 
     /**
