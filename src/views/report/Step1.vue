@@ -350,6 +350,8 @@ export default {
       // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
       this.fields.contractor.options = this.getContractorOptions
+      this.fields.reviewer.permaDisabled = false
+      this.fields.contractor.permaDisabled = false
 
       // If there is only one actual option, select it
       if (this.fields.reviewer.options.length === 2) {
@@ -371,6 +373,8 @@ export default {
       // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
       this.fields.contractor.options = this.getContractorOptions
+      this.fields.reviewer.permaDisabled = true
+      this.fields.contractor.permaDisabled = true
 
       await this.getReportByIds({
         id: this.$route.params.id,
