@@ -372,9 +372,8 @@ export default {
 
       // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
-      this.fields.contractor.options = this.getContractorOptions
-      this.fields.reviewer.permaDisabled = true
-      this.fields.contractor.permaDisabled = true
+      this.fields.contractor.options = this.getContractorOptions 
+      
 
       await this.getReportByIds({
         id: this.$route.params.id,
