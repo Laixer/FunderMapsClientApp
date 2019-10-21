@@ -345,7 +345,7 @@ export default {
 
       // Make the document_name accessible as data
       this.document_name = this.$route.params.document_name
-      this.fields.document_id.value = this.document_name + '';
+      this.fields.document_id.value = this.document_name.split('.').slice(0, -1).join('.')
 
       // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions

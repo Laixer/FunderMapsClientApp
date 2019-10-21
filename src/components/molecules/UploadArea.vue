@@ -85,7 +85,7 @@ export default {
       this.$router.push({ 
         name: 'new-report', 
         params: { 
-          document_name: response.name.split('.').slice(0, -1).join('.') 
+          document_name: response.file_name
         } 
       })
     },
