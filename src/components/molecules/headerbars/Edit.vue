@@ -12,7 +12,7 @@
         v-if="activeReport"
         variant="outline-secondary"
         class="SaveBtn mt-2 font-weight-bold d-flex align-items-center"
-        @click="handleStore">
+        @click="handleSaveReport">
         <img :src='icon({ name: "Edit-icon.svg" })' width="11" height="11" /> 
         <span class="ml-1">Opslaan</span>
       </b-button>
@@ -23,6 +23,7 @@
 <script>
 import { mapGetters } from 'vuex' 
 import { icon } from 'helper/assets'
+import { EventBus } from 'utils/eventBus.js'
 
 export default {
   computed: {
@@ -32,9 +33,8 @@ export default {
   },
   methods: {
     icon,
-    handleStore() {
-      // TODO: handle this through Vuex. 
-      // console.log("handle Store")
+    handleSaveReport() {
+      EventBus.$emit('save-report')
     }
   }
 }
