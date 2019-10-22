@@ -410,7 +410,7 @@ export default {
 
       this.setFieldValues({
         document_id: report.document_id,
-        type: report.typeNumber ? ''+report.typeNumber : null,
+        type: report.typeNumber,
         date: report.document_date,
         contractor: report.contractor 
           ? report.contractor.id 
