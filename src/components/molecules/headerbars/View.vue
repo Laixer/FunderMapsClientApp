@@ -19,9 +19,7 @@
         <span class="ml-3">{{ disapproveLabel }}</span>
       </span>
     </div>
-    <div class="flex-grow-1">
-      <Feedback class="mb-0 mr-3" :feedback="feedback" />
-    </div>
+    <div class="flex-grow-1"></div>
 
     <b-button 
       v-if="editable"
@@ -49,20 +47,18 @@
 import { icon } from 'helper/assets'
 import { mapGetters, mapActions } from 'vuex'
 import DisapproveModal from 'organism/DisapproveModal'
-import Feedback from 'atom/Feedback'
 
 import { isSuperUser, canWrite } from 'service/auth'
 
 export default {
   name: 'ViewHeader',
   components: {
-    DisapproveModal, Feedback
+    DisapproveModal
   },
   data() {
     return {
       processing: false,
       // approved: null,
-      feedback: {}
     }
   },
   computed: {
@@ -149,10 +145,6 @@ export default {
         return;
       }
       this.processing = true;
-      this.feedback = {
-        variant: 'info',
-        message: 'Bezig met verwerken...'
-      }
       await this.approveReport()
       // this.approved = true
       this.processing = false
