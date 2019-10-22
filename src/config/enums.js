@@ -119,7 +119,15 @@ export const foundationTypeOptions = [
   {
     value: 'Wood',
     text: 'Hout'
-  }, 
+  },
+  {
+    value: 'WoodAmsterdam',
+    text: 'Hout: Amsterdam fundering'
+  },
+  {
+    value: 'WoodRotterdam',
+    text: 'Hout: Rotterdam fundering'
+  },
   {
     value: 'Concrete',
     text: 'Beton'
@@ -127,6 +135,26 @@ export const foundationTypeOptions = [
   {
     value: 'NoPile',
     text: 'Niet onderheid'
+  },
+  {
+    value: 'NoPileMasonry',
+    text: 'Niet onderheid: gemetseld'
+  },
+  {
+    value: 'NoPileStrips',
+    text: 'Niet onderheid: stroken fundering'
+  },
+  {
+    value: 'NoPileBearingFloor',
+    text: 'Niet onderheid: fundering met dragen vloer'
+  },
+  {
+    value: 'NoPileConcreteFloor',
+    text: 'Niet onderheid: dragende betonvloer'
+  },
+  {
+    value: 'NoPileSlit',
+    text: 'Niet onderheid: slieten'
   },
   {
     value: 'WoodCharger',
@@ -151,34 +179,6 @@ export const foundationTypeOptions = [
   {
     value: 'Unknown',
     text: 'Onbekend'
-  },
-  {
-    value: 'NoPileMasonry',
-    text: 'Niet onderheid: gemetseld'
-  },
-  {
-    value: 'NoPileStrips',
-    text: 'Niet onderheid: stroken fundering'
-  },
-  {
-    value: 'NoPileBearingFloor',
-    text: 'Niet onderheid: fundering met dragen vloer'
-  },
-  {
-    value: 'NoPileConcreteFloor',
-    text: 'Niet onderheid: dragende betonvloer'
-  },
-  {
-    value: 'NoPileSlit',
-    text: 'Niet onderheid: slieten'
-  },
-  {
-    value: 'WoodAmsterdam',
-    text: 'Hout: Amsterdam fundering'
-  },
-  {
-    value: 'WoodRotterdam',
-    text: 'Hout: Rotterdam fundering'
   }
 ]
 
