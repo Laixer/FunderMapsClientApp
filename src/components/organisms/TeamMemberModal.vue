@@ -28,11 +28,11 @@
           v-model="fields.last_name.value"
           v-bind="fields.last_name" />
 
-        <FormField 
+        <!-- <FormField 
           label="Email"
           type="text"
           v-model="fields.email.value"
-          v-bind="fields.email" />
+          v-bind="fields.email" /> -->
 
         <FormField 
           label="Functie"
@@ -68,7 +68,7 @@
 
 <script>
 
-import { required, minLength, email } from 'vuelidate/lib/validators';
+import { required, minLength /*, email */ } from 'vuelidate/lib/validators';
 
 import { image } from 'helper/assets'
 import Divider from 'atom/Divider'
@@ -120,14 +120,14 @@ export default {
           },
           disabled: false
         },
-        email: {
-          value: "",
-          placeholder: 'naam@bedrijf.nl',
-          validationRules: {
-            required, email
-          },
-          disabled: true
-        },
+        // email: {
+        //   value: "",
+        //   placeholder: 'naam@bedrijf.nl',
+        //   validationRules: {
+        //     required, email
+        //   },
+        //   disabled: true
+        // },
         role: {
           value: null,
           validationRules: {
@@ -165,7 +165,6 @@ export default {
     orgUser(orgUser) {
       if (orgUser){
         this.setFieldValues([
-          { name: 'email', value: orgUser.email },
           { name: 'role', value: orgUser.getRoleSlug() },
           { name: 'given_name', value: orgUser.given_name },
           { name: 'last_name', value: orgUser.last_name },
@@ -206,7 +205,7 @@ export default {
       try {
         // Make a copy, and add form field data
         let userData = Object.assign({}, this.orgUser, this.fieldValues([
-          'email', 'job_title', 'last_name', 'given_name', 'phone_number'
+          'job_title', 'last_name', 'given_name', 'phone_number'
         ]));
         await this.updateUser({
           orgId: this.orgId,
@@ -225,6 +224,7 @@ export default {
         }, 500)
         
       } catch (err) {
+        console.log(err)
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'

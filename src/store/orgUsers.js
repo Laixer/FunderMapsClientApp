@@ -66,11 +66,13 @@ const actions = {
       })
     } 
   },
-  async updateUser({ commit }, { orgId, userData, role }) {
+  async updateUser({ dispatch }, { orgId, userData, role }) {
     let response = await orgUserAPI.updateOrganizationUser({ orgId, user: userData, role })
-    commit('update_user', {
-      userData, role
-    })
+    if (response.status === 204) {
+      dispatch('getUsers', {
+        orgId
+      })
+    }
     return response;
   },
   async createUser({ dispatch }, { orgId, userData, role }) {

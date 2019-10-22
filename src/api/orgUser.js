@@ -9,8 +9,8 @@ export default {
     return axios.get(`/api/organization/${orgId}/user/${id}/profile`)
   },
   updateOrganizationUser: ({ orgId, user, role }) => {
-    return axios.put(`/api/organization/${orgId}/user/${user.id}`, 
-      { user, role: { name: role } }
+    return axios.put(`/api/organization/${orgId}/user/${user.id}/profile`, 
+      { profile: user, role: role }
     )
   },
   createOrganizationUser: ({ orgId, user, role }) => {
