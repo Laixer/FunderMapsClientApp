@@ -129,6 +129,7 @@ export default {
   data() {
     return {
       isDisabled: false,
+      stored: false,
       feedback: {},
       fields: {
         // LINE 1
@@ -296,6 +297,16 @@ export default {
       }
     }
   },
+  watch: {
+    // If any field changes, mark the stored status as false
+    fields: {
+      handler() {
+        this.stored = false
+
+      },
+      deep: true
+    }
+  },
   computed: {
     ...mapGetters('report', [
       'activeReport'
@@ -354,6 +365,11 @@ export default {
       groundwater_level: this.sample.groundwater_level,
       ground_level: this.sample.ground_level
     })
+
+    // After setting the field values, set the DB storage status
+    this.$nextTick(() => {
+      this.stored = this.sample.stored !== false
+    })
   },
   methods: {
     ...mapActions('samples', [
@@ -371,8 +387,16 @@ export default {
         : null;
     },
     // Called by parent
-    save() {
-      this.$refs.form.submit()
+    async save() {
+      if (!this.stored) {
+        return await this.$refs.form.submit()
+      } else {
+        this.$emit("stored", { success: true })
+      }
+    },
+    // Called by parent
+    isStored() {
+      return this.stored
     },
     // Called by parent
     delete() {
@@ -449,8 +473,12 @@ export default {
         this.enableAllFields()
         this.isDisabled = false
         this.$refs.form.resetValidation()
+        this.stored = true
+        
+        this.$emit("stored", { success: true })
       } catch(err) {
         console.log(err)
+        this.$emit("stored", { success: false, message: err })
       }
     },
     handleError(err) {
@@ -461,12 +489,14 @@ export default {
       }
       this.enableAllFields()
       this.isDisabled = false
+      this.$emit("stored", { success: false, message: 'Unable to save' })
     },
     handleFormError() {
       this.feedback = {
         variant: 'danger',
         message: 'Controleer a.u.b. de invoer'
       }
+      this.$emit("stored", { success: false, message: 'Invalid input' })
     }
   }
 }

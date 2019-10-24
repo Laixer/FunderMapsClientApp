@@ -27,6 +27,7 @@
           {{ item.label }}
         </b-dropdown-item>
       </b-nav-item-dropdown>
+      <MapControls v-if="hasMapControls" />
     </b-nav>
   </nav>
 </template>
@@ -35,13 +36,14 @@
 import { image } from 'helper/assets'
 import Logo from 'atom/branding/Logo';
 import MenuItem from 'model/MenuItem';
+import MapControls from 'molecule/MapControls'
 
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'NavBar',
   components: {
-    Logo
+    Logo, MapControls
   },
   props: {
     admin: {
@@ -67,7 +69,10 @@ export default {
   computed: {
     ...mapGetters('user', [
       'user'
-    ])
+    ]),
+    hasMapControls() {
+      return this.$route.meta.layout === 'map'
+    }
   },
   methods: {
     image
@@ -89,6 +94,9 @@ export default {
   }
   &__description {
     color: #7F8FA4;
+  }
+  .form-group {
+    margin-bottom: 0
   }
 }
 </style>

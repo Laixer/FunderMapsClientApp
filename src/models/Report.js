@@ -2,7 +2,7 @@
 import AttributedUser from 'model/AttributedUser'
 
 import { typeOptions, statusOptions, accessOptions } from 'config/enums'
-import AttributedOrganisation from './AttributedOrganisation';
+import AttributedOrganisation from './AttributedOrganisation'
 
 /**
  * The Report model
@@ -50,15 +50,34 @@ let reportModel = function ({
   this.samples = [];
 
   // attribution, 
-  this.creator = attribution && attribution.creator 
-    ? new AttributedUser({ user: attribution.creator, role: 'Verwerker' })
-    : null;
-  this.reviewer = attribution && attribution.reviewer
-    ? new AttributedUser({ user: attribution.reviewer, role: 'Reviewer' })
+  let user = attribution && attribution.creator ? attribution.creator : null
+  if (typeof user === 'string') {
+    user = {
+      id: user
+    }
+  }
+  this.creator = user
+    ? new AttributedUser({ user, role: 'Verwerker' })
     : null;
 
-  this.contractor = attribution && attribution.contractor
-    ? new AttributedOrganisation({org: attribution.contractor, role: 'Uitvoerder' })
+  user = attribution && attribution.reviewer ? attribution.reviewer : null
+  if (typeof user === 'string') {
+    user = {
+      id: user
+    }
+  } 
+  this.reviewer = user
+    ? new AttributedUser({ user, role: 'Reviewer' })
+    : null;
+
+  let org = attribution && attribution.contractor ? attribution.contractor : null
+    if (typeof org === 'string') {
+      org = {
+        id: org
+      }
+    } 
+  this.contractor = org
+    ? new AttributedOrganisation({org, role: 'Uitvoerder' })
     : null
   //  contractor, owner: orgs
   //  project & project_navigation: ?

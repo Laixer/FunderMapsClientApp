@@ -13,6 +13,7 @@
       <SampleDataEditor 
         v-if="editMode"
         ref="editor"
+        @stored="handleStored"
         :sample="sample" />
       <SampleDataPresentation 
         v-if="!editMode"
@@ -69,15 +70,26 @@ export default {
         this.sample.openEditor()
       }
     },
+    async save() {
+      return await this.handleSave()
+    },
+    isStored() {
+      return this.$refs.editor 
+        ? this.$refs.editor.isStored()
+        : false
+    },
     handleSave() {
       if (this.$refs.editor) {
-        this.$refs.editor.save()
+        return this.$refs.editor.save()
       }
     },
     handleDelete() {
       if (this.$refs.editor) {
         this.$refs.editor.delete()
       }
+    },
+    handleStored(payload) {
+      this.$emit('stored', payload)
     }
   }
 }

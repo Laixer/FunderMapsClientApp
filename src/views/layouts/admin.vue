@@ -84,15 +84,9 @@ export default {
       'getOrgId',
       'areProposalsAvailable'
     ]),
-    ...mapGetters('attestation', [
-      'arePrincipalUsersAvailable',
-      'areContractorsAvailable'
-    ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.arePrincipalUsersAvailable
-        && this.areContractorsAvailable
         && this.areProposalsAvailable
     },
     hasLoadingDataFailed() {
@@ -104,8 +98,6 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        this.getPrincipalUsers(),
-        this.getContractors(),
         this.getVersion(),
         this.getProposals()
       ])
@@ -124,10 +116,6 @@ export default {
     ...mapActions('org', [
       'getOrganization',
       'getProposals'
-    ]),
-    ...mapActions('attestation', [
-      'getPrincipalUsers',
-      'getContractors'
     ]),
     ...mapActions('version', [
       'getVersion'

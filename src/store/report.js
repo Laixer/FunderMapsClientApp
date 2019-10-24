@@ -12,13 +12,13 @@ import reportAPI from 'api/reports';
  * Declare Variable
  */
 const state = {
-  report : false
+  report : false,
+  reviewers: []
 }
 
 const getters = {
-  activeReport: state => {
-    return state.report
-  },
+  activeReport: state => state.report,
+  reviewers: state => state.reviewers
 }
 const actions = {
   async getReportByIds({ commit }, { id, document }) {
@@ -77,6 +77,15 @@ const actions = {
     if (response.status === 204) {
       commit('set_report_pending_review')
     }
+  },
+  
+  async getReviewers({ commit }) {
+    let response = await reportAPI.getReviewers()
+    if (response.status === 200 && response.data) {
+      commit('set_reviewers', {
+        reviewers: response.data
+      })
+    }
   }
 }
 const mutations = {
@@ -97,6 +106,12 @@ const mutations = {
   },
   set_report_status_todo(state) {
     state.report.setStatus({ status: 0 })
+  },
+  set_reviewers(state, { reviewers }) {
+    state.reviewers = reviewers
+  },
+  clear_reviewers(state) {
+    state.reviewers = []
   }
 }
 

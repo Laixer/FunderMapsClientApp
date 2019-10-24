@@ -25,10 +25,12 @@
           class="Report__samples">  
 
           <Sample  
-            v-for="(sample, index) in samples" 
+            v-for="(sample, index) in samples"
+            :ref="'sample_'+index" 
             :key="index + '-' + Date.now()" 
             :sample="sample"
-            :editMode="true" />
+            :editMode="true"
+            @stored="handleStored" />
 
         </div>
         <div 
@@ -62,7 +64,7 @@
         label="Vorige" />
       <PrimaryArrowButton 
         :disabled="isDisabled"
-        :to="nextStep"
+        @click="handleSaveSamplesAndNextStep"
         label="Volgende" />
     </div>
 
@@ -82,6 +84,7 @@ import Sample from 'organism/Sample'
 import { mapActions, mapGetters } from 'vuex'
 import { icon } from 'helper/assets'
 import { isSuperUser, canWrite } from 'service/auth'
+import { EventBus } from 'utils/eventBus.js'
 
 export default {
   name: 'Step2',
@@ -92,6 +95,8 @@ export default {
   },
   data() {
     return {
+      countdownToNextPage: false,
+      countdownToNewSample: false,
       feedback: {},
       nosamples: false,
       isDisabled: false,
@@ -163,10 +168,13 @@ export default {
         return;
       }
       
+      EventBus.$on('save-report', this.handleSaveSamplesAndNextStep)
+
       await this.getSamples({ reportId: this.activeReport.id })
       if (this.samples.length === 0) {
         this.nosamples = true
       }
+      
     } catch(err) {
       this.feedback = {
         variant: 'danger',
@@ -177,6 +185,8 @@ export default {
   beforeDestroy() {
     this.clearActiveReport()
     this.clearSamples()
+
+    EventBus.$off('save-report', this.handleSaveSamplesAndNextStep)
   },
   methods: {
     icon,
@@ -190,7 +200,54 @@ export default {
       'addUnsavedSample'
     ]),
     handleAddSample() {
-      this.addUnsavedSample()
+      this.countdownToNewSample = this.samples.length
+      if (this.countdownToNewSample === 0) {
+        this.addUnsavedSample()
+      } else {
+        this.saveAllSamples() 
+      }
+    },
+    async saveAllSamples() {
+      return await Promise.all(this.samples.map( async (sample, index) => {
+        return await this.$refs['sample_'+index][0].save()
+      }))
+    },
+    handleSaveSamplesAndNextStep() {
+      
+      // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
+      this.countdownToNextPage = this.samples.length
+
+      // No samples to store
+      if (this.countdownToNextPage === 0) {
+        this.$router.push(this.nextStep)
+      } else {
+        this.saveAllSamples()
+      }
+    },
+    /**
+     * If we're counting down, and the submit event was a success, 
+     * count down, until we reach the end and can go to the next page.
+     * 
+     * One mistake and we cancel the countdown.
+     */
+    handleStored(payload) {
+      if (this.countdownToNextPage !== false && payload.success) {
+        this.countdownToNextPage = this.countdownToNextPage - 1
+        if (this.countdownToNextPage === 0) {
+          this.$router.push(this.nextStep)
+        }
+      } else if (payload.success === false) {
+        this.countdownToNextPage = false
+      }
+
+      if (this.countdownToNewSample !== false && payload.success) {
+        this.countdownToNewSample = this.countdownToNewSample - 1
+        if (this.countdownToNewSample === 0) {
+          this.addUnsavedSample()
+        }
+      } else if (payload.success === false) {
+        this.countdownToNewSample = false
+      }
     }
   }
 }

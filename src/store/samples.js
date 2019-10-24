@@ -3,6 +3,7 @@
  */
 import SampleModel from 'model/Sample'
 import Vue from 'vue'
+import clonedeep from 'lodash.clonedeep'
 
 /**
  * Import API
@@ -89,10 +90,9 @@ const mutations = {
         new SampleModel({ sample: {}, stored: false, editorState: 'open' })
       ]
     } else {
-      let address = Object.assign({}, state.samples[0].address);
-      let sample = Object.assign({}, state.samples[0]);
+      let sample = clonedeep(state.samples[0])
       sample.id = ''
-      sample.address = address;
+      // sample.address = address;
       sample.address.building_number = ''
       sample.address.building_number_suffix = ''
 
@@ -112,9 +112,12 @@ const mutations = {
    * Update sample data in store (after positive API response)
    */
   update_sample(state, { id, data }) {
-    let index = state.samples.findIndex(
-      (sample) => sample.id === id
-    )
+    let index = -1 
+    if (id) {
+      index = state.samples.findIndex(
+        (sample) => sample.id === id
+      )
+    }
     // For new samples we depend on an internal timestamp
     if (index === -1) {
       index = state.samples.findIndex(

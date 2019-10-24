@@ -71,7 +71,7 @@ export default {
         new MenuItem({
           label: 'Kaart',
           icon: 'Map-icon.svg',
-          to: { name: 'demo-map' }
+          to: { name: 'map' }
         }),
       ]
     }
@@ -84,15 +84,17 @@ export default {
       'isOrganizationAvailable',
       'getOrgId'
     ]),
-    ...mapGetters('attestation', [
-      'arePrincipalUsersAvailable',
+    ...mapGetters('reviewers', [
+      'areReviewersAvailable',
+    ]),
+    ...mapGetters('contractors', [
       'areContractorsAvailable'
     ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.arePrincipalUsersAvailable
         && this.areContractorsAvailable
+        && this.areReviewersAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -113,9 +115,9 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        this.getPrincipalUsers(),
         this.getContractors(),
-        this.getVersion()
+        this.getVersion(),
+        this.getReviewers()
       ])
     } catch(err) {
       if (err.response && err.response.status === 401) {
@@ -132,12 +134,14 @@ export default {
     ...mapActions('org', [
       'getOrganization'
     ]),
-    ...mapActions('attestation', [
-      'getPrincipalUsers',
-      'getContractors'
+    ...mapActions('reviewers', [
+      'getReviewers'
     ]),
     ...mapActions('version', [
       'getVersion'
+    ]),
+    ...mapActions('contractors', [
+      'getContractors'
     ])
   }
 }

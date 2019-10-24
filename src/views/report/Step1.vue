@@ -86,6 +86,7 @@ import { typeOptions } from 'config/enums'
 import { canWrite, isSuperUser } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
 import fields from 'mixin/fields'
+import { EventBus } from 'utils/eventBus.js'
 
 
 export default {
@@ -248,16 +249,17 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('attestation', [
-      'principalUsers',
-      'contractors',
-      'getUserById'
+    ...mapGetters('reviewers', [
+      'reviewers'
     ]),
     ...mapGetters('report', [
       'activeReport'
     ]),
     ...mapGetters('org', [
       'organization'
+    ]),
+    ...mapGetters('contractors',[
+      'contractors'
     ]),
     nextStep() {
       let report = this.activeReport || { id: 'id', document_id: 'document_id' };
@@ -270,11 +272,11 @@ export default {
       return this.activeReport ? this.activeReport.document_id : null
     },
     getReviewerOptions() {
-      if (this.principalUsers) {
+      if (this.reviewers) {
         return [{
             value: null,
             text: 'Selecteer een reviewer'
-          }].concat(this.principalUsers.map(
+          }].concat(this.reviewers.map(
             this.mapToUserOption
           )
         )
@@ -306,6 +308,10 @@ export default {
     } else {
       this.prepareExistingReport()
     }
+    EventBus.$on('save-report', this.saveReport)
+  },
+  beforeDestroy() {
+    EventBus.$off('save-report', this.saveReport)
   },
   /**
    * If we're leaving and heading towards step 2, save the document!
@@ -344,11 +350,13 @@ export default {
 
       // Make the document_name accessible as data
       this.document_name = this.$route.params.document_name
-      this.fields.document_id.value = this.document_name + '';
+      this.fields.document_id.value = this.document_name.split('.').slice(0, -1).join('.')
 
       // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
       this.fields.contractor.options = this.getContractorOptions
+      this.fields.reviewer.permaDisabled = false
+      this.fields.contractor.permaDisabled = false
 
       // If there is only one actual option, select it
       if (this.fields.reviewer.options.length === 2) {
@@ -369,7 +377,8 @@ export default {
 
       // Set the contractor & reviewer user options (from Vuex)
       this.fields.reviewer.options = this.getReviewerOptions
-      this.fields.contractor.options = this.getContractorOptions
+      this.fields.contractor.options = this.getContractorOptions 
+      
 
       await this.getReportByIds({
         id: this.$route.params.id,
@@ -390,19 +399,26 @@ export default {
         return;
       }
       
+      let conform_f3oValue = report.norm 
+        ? report.norm.find(
+            norm => norm.hasOwnProperty('conform_f3o')
+          ) 
+        : null
+      conform_f3oValue = conform_f3oValue 
+        ? conform_f3oValue.conform_f3o 
+        : null
+
       this.setFieldValues({
         document_id: report.document_id,
-        type: report.typeNumber ? ''+report.typeNumber : null,
+        type: report.typeNumber,
         date: report.document_date,
-        contractor: this.activeReport.contractor 
-          ? this.activeReport.contractor.name 
+        contractor: report.contractor 
+          ? report.contractor.id 
           : null,
-        reviewer: this.activeReport.reviewer 
-          ? this.activeReport.reviewer.id 
+        reviewer: report.reviewer 
+          ? report.reviewer.id 
           : null,
-        conform_f3o: report.norm 
-          ? report.norm.conform_f3o
-          : null,
+        conform_f3o: conform_f3oValue || false,
         inspection: report.inspection,
         joint_measurement: report.joint_measurement,
         floor_measurement: report.floor_measurement,
@@ -421,9 +437,13 @@ export default {
     },
     mapToOrgOption(org) {
       return {
-        value: org.getName(),
+        value: org.id,
         text: org.getName()
       }
+    },
+
+    saveReport() {
+      this.$refs.form.submit()
     },
 
     /**
@@ -438,7 +458,6 @@ export default {
       }
 
       let values = this.allFieldValues();
-      let reviewer = this.getUserById({ id: values.reviewer })
       
       let data = {
         document_id: values.document_id,
@@ -449,24 +468,18 @@ export default {
         status: values.status,
 
         type: parseInt(values.type),
-        document_date: this.formatDate(values.date) + 'T12:00:00.000Z', 
+        document_date: values.date.toISOString(), 
         attribution: {
-          reviewer: {
-            id: reviewer.id,
-            email: reviewer.email,
-            nick_name: reviewer.nick_name
-          },
+          reviewer: values.reviewer,
           // {
           //   nick_name: reviewer.getUserName(),
           //   email: reviewer.user.email
           // },
-          contractor: {
-            name: values.contractor
-          },
+          contractor: values.contractor,
         },
-        norm: {
+        norm: [{
           conform_f3o: values.conform_f3o
-        },
+        }],
       }
 
       if (this.activeReport) {
@@ -512,16 +525,6 @@ export default {
           message: 'Onbekende fout. Probeer het later nog eens.'
         }
       }
-    },
-    // TODO: Not ideal, but works for now
-    formatDate(date) { // e.g. 4 Jun 2019
-      let months = [
-        "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
-        "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" ]
-      date = date.split(' ');
-      return date[2] + '-' 
-        + ('0'+ (months.indexOf(date[1]) + 1)).slice(-2) 
-        + '-' + ('0' + date[0]).slice(-2)
     }
   }
 }

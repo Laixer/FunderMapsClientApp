@@ -18,10 +18,7 @@ import "@/assets/sass/bootstrap.scss";
 import BootstrapVue from 'bootstrap-vue'
 Vue.use(BootstrapVue)
 
-// V-calender
-import VCalender from 'v-calendar'
-import 'v-calendar/lib/v-calendar.min.css';
-Vue.use(VCalender)
+
 
 // Named Avatar Generator
 import { config as configNamedAvatars } from 'utils/namedavatar'

@@ -4,7 +4,7 @@
     class="d-flex flex-column">
     <NavBar />
     <div class="d-flex align-items-stretch flex-grow-1">
-      <SideBar :menu-items="menuItems" :slim="true" />
+      <SideBar :menu-items="menuItems" :slim="false" />
       <div class="flex-grow-1 d-flex flex-column">
         <HeaderBar />
         <div class="flex-grow h-100 position-relative">
@@ -71,7 +71,7 @@ export default {
         new MenuItem({
           label: 'Kaart',
           icon: 'Map-icon.svg',
-          to: { name: 'demo-map' }
+          to: { name: 'map' }
         }),
       ]
     }
@@ -84,15 +84,17 @@ export default {
       'isOrganizationAvailable',
       'getOrgId'
     ]),
-    ...mapGetters('attestation', [
-      'arePrincipalUsersAvailable',
+    ...mapGetters('reviewers', [
+      'areReviewersAvailable'
+    ]),
+    ...mapGetters('contractors', [
       'areContractorsAvailable'
     ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.arePrincipalUsersAvailable
         && this.areContractorsAvailable
+        && this.areReviewersAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -103,9 +105,9 @@ export default {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        this.getPrincipalUsers(),
         this.getContractors(),
-        this.getVersion()
+        this.getVersion(),
+        this.getReviewers()
       ])
 
       if (isSuperUser()) {
@@ -132,12 +134,14 @@ export default {
     ...mapActions('org', [
       'getOrganization'
     ]),
-    ...mapActions('attestation', [
-      'getPrincipalUsers',
-      'getContractors'
+    ...mapActions('reviewers', [
+      'getReviewers'
     ]),
     ...mapActions('version', [
       'getVersion'
+    ]),
+    ...mapActions('contractors', [
+      'getContractors'
     ])
   }
 }

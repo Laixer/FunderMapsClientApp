@@ -75,6 +75,7 @@ import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 import BackButton from 'atom/navigation/BackButton'
 
 import { canWrite, isSuperUser } from 'service/auth'
+import { EventBus } from 'utils/eventBus.js'
 
 export default {
   components: {
@@ -149,6 +150,8 @@ export default {
         })
         return;
       }
+
+      EventBus.$on('save-report', this.handleToPendingReview)
       
       await this.getSamples({ reportId: this.activeReport.id })
       if (this.samples.length === 0) {
@@ -164,6 +167,8 @@ export default {
   beforeDestroy() {
     this.clearActiveReport()
     this.clearSamples()
+
+    EventBus.$off('save-report', this.handleToPendingReview)
   },
   methods: {
     ...mapActions('report', [

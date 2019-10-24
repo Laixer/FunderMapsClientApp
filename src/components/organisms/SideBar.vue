@@ -1,7 +1,7 @@
 <template>
   <div 
     :class="{ 'SideBar--slim': slim }"
-    class="SideBar">
+    class="SideBar d-flex flex-column">
     <div 
       v-if="!slim"
       class="SideBar__title d-flex pl-3 ml-3">
@@ -9,7 +9,13 @@
         MENU
       </span>
     </div>
-    <SideMenu :items="menuItems" :slim="slim" />
+    <SideMenu 
+      class="SideBar__sidemenu"
+      :items="menuItems" 
+      :slim="slim" />
+    <MapLegend  
+      class="SideBar__legend"
+      v-if="hasLegend && !slim" />
     <div
       v-if="version && !slim"
       class="SideBar__version">
@@ -20,11 +26,12 @@
 
 <script>
 import SideMenu from 'molecule/SideMenu';
+import MapLegend from 'molecule/MapLegend'
 import { mapGetters } from 'vuex';
 
 export default {
   components: {
-    SideMenu
+    SideMenu, MapLegend
   },
   props: {
     menuItems: {
@@ -41,7 +48,10 @@ export default {
   computed: {
     ...mapGetters('version', [
       'version'
-    ])
+    ]),
+    hasLegend() {
+      return this.$route.meta.layout === 'map'
+    }
   }
 }
 </script>
@@ -64,10 +74,15 @@ export default {
   &__title {
     height: 60px;
   }
+  &__sidemenu {
+    flex-grow: 1
+  }
   &__version {
-    position: absolute;
-    bottom: 1rem;
-    left: 1rem;
+    // position: absolute;
+    // bottom: 1rem;
+    // left: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
   }
 }
 </style>

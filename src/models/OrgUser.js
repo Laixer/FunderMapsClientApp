@@ -5,7 +5,7 @@ import { generateAvatar } from 'utils/namedavatar'
  * Just a pretty wrapper for now
  */
 let OrgUserModel = function (user) {
-  Object.assign(this, user);
+  Object.assign(this, user.profile, { role: user.role })
 }
 
 // ****************************************************************************
@@ -40,11 +40,25 @@ OrgUserModel.prototype.getUserName = function() {
 //  Role
 // ****************************************************************************
 
+OrgUserModel.prototype.getRoleSlug = function() {
+  switch(this.role) {
+    case 0:
+      return 'Superuser';
+    case 1:
+      return 'Verifier'
+    case 2:
+      return 'Writer'
+    case 3:
+      return 'Reader'
+  }
+  return 'Unknown'
+}
+
 /**
  * The translated role name
  */
 OrgUserModel.prototype.getRoleName = function() {
-  switch(this.role.name) {
+  switch(this.getRoleSlug()) {
     case 'Admin':
       return 'Admin';
     case 'Superuser':
@@ -56,21 +70,21 @@ OrgUserModel.prototype.getRoleName = function() {
     case 'Reader':
       return 'Alleen lezen'
   }
-  return this.role.name
+  return 'Unknown'
 }
 
 /**
  * Whether or not the user is able to approve / disapprove reports
  */
 OrgUserModel.prototype.canReview = function() {
-  return ['Admin', 'Superuser', 'Reviewer'].includes(this.role.name);
+  return ['Admin', 'Superuser', 'Reviewer'].includes(this.getRoleSlug());
 }
 
 /**
  * Whether or not the user is able to create and edit reports
  */
 OrgUserModel.prototype.canCreate = function() {
-  return ['Admin', 'Superuser', 'Creator'].includes(this.role.name);
+  return ['Admin', 'Superuser', 'Creator'].includes(this.getRoleSlug());
 }
 
 // ****************************************************************************
