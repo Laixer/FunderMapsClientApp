@@ -9,7 +9,7 @@
       <input 
         v-if="editMode"
         class="form-control d-inline-block flex-grow-1" 
-        type="text" 
+        :type="type" 
         :disabled="disabled"
         :value="value"
         @input="$emit('input', $event.target.value)" />
@@ -29,6 +29,10 @@ export default {
     value: {
       type: [String, Number],
       default: ''
+    },
+    type: {
+      type: String,
+      default: 'text'
     },
     label: {
       type: String,
