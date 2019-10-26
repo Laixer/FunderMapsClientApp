@@ -8,6 +8,7 @@ import Dashboard from '@/views/Dashboard.vue'
 import Login from '@/views/Login.vue'
 import Logout from '@/views/Logout.vue'
 import User from '@/views/User.vue'
+import Security from '@/views/Security.vue'
 
 // Register
 import Register from '@/views/RegisterOrganization'
@@ -74,6 +75,11 @@ let router = new Router({
       path: '/user',
       name: 'user',
       component: User
+    },
+    {
+      path: '/security',
+      name: 'security',
+      component: Security
     },
     // Registration
     {

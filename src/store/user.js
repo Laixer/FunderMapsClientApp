@@ -35,6 +35,12 @@ const actions = {
   async updateUser({ state }) {
     return await userAPI.updateUser(state.user)
   },
+  // TODO: This is not the way to save the users password
+  // eslint-disable-next-line
+  async updateUserPassword({ state }, { password, password_new }) {
+    console.log({ password, password_new })
+    return await userAPI.updateUserPassword({ old_password: password, new_password: password_new })
+  },
   clearUser({ commit }) {
     commit('clear_user')
   }

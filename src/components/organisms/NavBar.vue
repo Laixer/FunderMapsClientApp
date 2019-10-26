@@ -56,11 +56,15 @@ export default {
       company: 'FunderMaps',
       menuItems: [
         new MenuItem({
-          label: 'Profile',
+          label: 'Profiel',
           to: { name: this.admin ? 'admin-user' : 'user' }
         }),
         new MenuItem({
-          label: 'Sign out',
+          label: 'Wachtwoord Wijzigen',
+          to: { name: this.admin ? 'security' : 'security' }
+        }),
+        new MenuItem({
+          label: 'Uitloggen',
           to: { name: 'logout' }
         })
       ]

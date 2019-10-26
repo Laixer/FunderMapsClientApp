@@ -34,11 +34,11 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-
 import TypeTag from 'atom/TypeTag';
 
 import { isSuperUser, canWrite } from 'service/auth'
+
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'ReportTableLine',
