@@ -10,7 +10,7 @@
     <td class="py-1 flex-grow-1">
       <strong>{{ report.label() }}</strong>
     </td>
-    <td>{{ report.reviewerName() }}</td>
+    <td>{{ userObject ? userObject.getUserName() : null }}</td>
     <td>{{ report.date() }}</td>
     <td>
       <TypeTag 
@@ -34,6 +34,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 import TypeTag from 'atom/TypeTag';
 
 import { isSuperUser, canWrite } from 'service/auth'
@@ -52,6 +54,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('reviewers', [
+      'getUserById'
+    ]),
     editable() {
       if ( ! canWrite()) {
         return false
@@ -60,6 +65,9 @@ export default {
         ! this.report.isPendingReview() && 
         ! this.report.isApproved()
       ) || isSuperUser()
+    },
+    userObject() {
+      return this.getUserById({ id: this.report.reviewer.id })
     }
   },
   methods: {
