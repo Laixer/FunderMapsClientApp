@@ -10,7 +10,6 @@ export const config = () => {
 }
 
 export const generateAvatar = ({ name }) => {
-  console.log(name)
   return namedavatar.getDataURI(
     namedavatar.getSVGString(name[0])
   )
