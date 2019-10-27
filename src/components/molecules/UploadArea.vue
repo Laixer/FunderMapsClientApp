@@ -81,11 +81,10 @@ export default {
       if (file && this.$refs.dropzone) {
         this.$refs.dropzone.removeFile(file)
       }
-      
-      this.$router.push({ 
-        name: 'new-report', 
-        params: { 
-          document_name: response.file_name
+      this.$router.push({
+        name: 'new-report',
+        params: {
+          file: response
         } 
       })
     },

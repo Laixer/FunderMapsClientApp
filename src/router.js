@@ -119,7 +119,7 @@ let router = new Router({
 
     // Report
     {
-      path: '/report/create/:document_name',
+      path: '/report/create/',
       name: 'new-report',
       component: Step1
     },
