@@ -53,7 +53,7 @@ export default {
   computed: {
     classList() {
       return {
-        'SampleLine--open': !! this.open,
+        // 'SampleLine--open': !! this.open,
         'SampleLine--edit': !! this.editMode
       }
     },
@@ -80,11 +80,12 @@ export default {
 .SampleLine {
   height: 60px;
   padding: 0 30px;
+  background-color: white;
   cursor: pointer;
 
-  &--open &__address {
-    font-weight: 600;
-  }
+  // &--open &__address {
+  //   font-weight: 600;
+  // }
   &__edit {
     border-right: 1px solid #E8EAF1;
     height: 30px;

@@ -98,7 +98,7 @@ export default {
 <style lang="scss">
 .Sample {
   border: 1px solid #CED0DA;
-  background-color: white;
+  background-color: #FAFBFC;
   border-radius: 5px;
   margin-top: 10px;
   overflow: hidden;
