@@ -112,7 +112,7 @@ OrgUserModel.prototype.hasAvatar = function() {
  * Generate a default avatar
  */
 OrgUserModel.prototype.generateAvatar = function() {
-  return generateAvatar({ name: this.getUserName() })
+  return generateAvatar({ name: this.getUserName() || '?' }) // TODO: This should not be the fix
 }
 
 export default OrgUserModel;

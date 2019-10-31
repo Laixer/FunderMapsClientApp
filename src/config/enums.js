@@ -312,12 +312,12 @@ export const BaseMeasurementLevelOptions = [
     text: 'NAP (Nederland)'
   }, 
   {
-    value: 'TAW (België)',
-    text: 'TAW'
+    value: 'TAW',
+    text: 'TAW (België)'
   },
   {
-    value: 'NN (Duitsland)',
-    text: 'NN'
+    value: 'NN',
+    text: 'NN (Duitsland)'
   }
 ]
 

@@ -7,7 +7,6 @@ import { mapActions } from 'vuex'
 export default {
   name: 'Logout',
   created() {
-    // console.log("LOGGING OUT")
     
     // Clean up Vuex
     this.clearUser()

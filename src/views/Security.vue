@@ -74,7 +74,6 @@ export default {
       'updateUserPassword'
     ]),
     async handleUpdateUser() {
-      console.log(this.user)
       try {
         this.feedback = {
           variant: 'info', 
