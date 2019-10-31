@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="ml-2 mb-3 pb-1">
-      Wachtwoord wijzigingen
+      Wachtwoord Wijzigingen
     </h1>
     <div class="d-flex">
       <form 
