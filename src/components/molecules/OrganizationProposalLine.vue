@@ -38,8 +38,7 @@ export default {
   },
   computed: {
     tokenLink() {
-      // TODO: We may want to improve this
-      let host = process.env.API_BASE_URL || 'https://staging.fundermaps.com' || 'https://fundermaps.azurewebsites.net/'
+      let host = process.env.VUE_APP_API_BASE_URL || ''
       return host + '/register/' + this.proposal.token
     }
   },
