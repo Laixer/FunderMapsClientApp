@@ -35,7 +35,7 @@ import AdminOrganizationProposals from '@/views/admin/AdminOrganizationProposals
 import NotFound from '@/views/NotFound.vue'
 
 // Maps
-import DemoMap from '@/views/DemoMap'
+// import DemoMap from '@/views/DemoMap'
 import MapView from '@/views/Map'
 
 // Services
@@ -93,14 +93,6 @@ let router = new Router({
     },
 
     // Maps
-    {
-      path: '/demo-map',
-      name: 'demo-map',
-      component: DemoMap,
-      meta: {
-        layout: 'map'
-      }
-    },
     {
       path: '/map',
       name: 'map',
