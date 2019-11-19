@@ -27,7 +27,7 @@ const actions = {
       commit('set_report', {
         report: response.data
       })
-    } 
+    }
   },
   clearActiveReport({ commit }) {
     commit('clear_report')
