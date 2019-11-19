@@ -117,6 +117,7 @@
       @blur="handleBlur"
     ></b-form-file>
 
+    <!-- TODO: Hide the listview if no items exist -->
     <vue-bootstrap-typeahead
       v-else-if="type === 'typeahead'"
       v-model="fieldValue"

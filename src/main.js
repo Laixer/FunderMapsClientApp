@@ -18,7 +18,8 @@ import "@/assets/sass/bootstrap.scss";
 import BootstrapVue from 'bootstrap-vue'
 Vue.use(BootstrapVue)
 
-
+import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
+Vue.component('vue-bootstrap-typeahead', VueBootstrapTypeahead)
 
 // Named Avatar Generator
 import { config as configNamedAvatars } from 'utils/namedavatar'
