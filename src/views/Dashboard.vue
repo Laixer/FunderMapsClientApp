@@ -46,7 +46,7 @@ export default {
   },
   methods: {
     ...mapActions('reports', [
-      'getLatestReports'
+      'getReports'
     ]),
 
     // Update the report details on the dashboard every minute
@@ -55,7 +55,10 @@ export default {
       if (timer !== null) {
         clearTimeout(timer);
       }
-      await this.getLatestReports({ count: 5 })
+      await this.getReports({
+        page: 1,
+        limit: 25,
+      });
       this.loading = false;
 
       timer = setTimeout(this.syncReports, (60 * 1000)); // every minute

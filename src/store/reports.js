@@ -29,14 +29,6 @@ const getters = {
   }
 }
 const actions = {
-  async getLatestReports({ commit }, { count }) {
-    let response = await reportAPI.getLatestReports({ limit: count || 5 });
-    if (response.status === 200 && response.data.length > 0) {
-      commit('set_reports', {
-        reports: response.data
-      })
-    } 
-  },
   async getReportCount({ commit }) {
     let response = await reportAPI.getReportCount()
     if (response.status === 200 && response.data) {

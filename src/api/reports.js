@@ -7,10 +7,6 @@ const getReports = ({ limit, offset }) => {
     params: { limit, offset }
   })
 }
-const getLatestReports = ({ limit }) => {
-  return getReports({ limit, offset: 0 })
-}
-
 const getReportCount = () => {
   return axios.get('/api/report/stats')
 }
@@ -53,7 +49,6 @@ const getReviewers = () => {
 
 export default { 
   getReports, 
-  getLatestReports,
   getReportCount,
 
   getReport,
