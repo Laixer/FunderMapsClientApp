@@ -7,7 +7,7 @@
       <SideBar :menu-items="menuItems" />
       <div class="flex-grow-1 d-flex flex-column">
         <HeaderBar />
-        <div class="p-3 m-3 flex-grow">
+        <div :class="[isFullScreen ? 'flex-grow h-100 position-relative' : 'flex-grow p-3 m-3']">
           <slot />
         </div>
       </div>
