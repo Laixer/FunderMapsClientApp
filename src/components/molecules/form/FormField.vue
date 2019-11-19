@@ -128,6 +128,7 @@
       :data="data"
       @input="handleInput"
       @blur="handleBlur"
+      @hit="handleHit"
       ></vue-bootstrap-typeahead>
 
     <b-input-group
@@ -394,6 +395,9 @@ export default {
         this.validate();
       }
       this.$emit('input', value)
+    },
+    handleHit(value) {
+      this.$emit('hit', value)
     },
     validate() {
       if (!this.novalidate) {

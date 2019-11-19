@@ -13,6 +13,7 @@
         v-bind="fields.street_name"
         :serializer="addressSerializer"
         @input="getAddresses"
+        @hit="handleHit"
         class="col-md-8" />
       <FormField 
         v-model="fields.building_number.value"
@@ -392,7 +393,11 @@ export default {
     addressSerializer(address) {
       return `${address.street}, ${address.city}`
     },
+    handleHit(a) {
+      this.fields.street_name.value = a.street
+    },
     async getAddresses(query) {
+      // TODO: This should be handled via a store
       if (query.length > 3 && query.length % 4 === 0) {
         let response = await axios.get(`/api/geocoder/address?streetName=${query}`)
         if (response.status === 200 && response.data) {
