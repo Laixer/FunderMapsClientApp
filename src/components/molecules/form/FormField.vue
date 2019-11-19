@@ -117,15 +117,27 @@
       @blur="handleBlur"
     ></b-form-file>
 
+    <vue-bootstrap-typeahead
+      v-else-if="type === 'typeahead'"
+      v-model="fieldValue"
+      :state="state"
+      :serializer="serializer"
+      :placeholder="placeholder"
+      :disabled="isDisabled"
+      :data="data"
+      @input="handleInput"
+      @blur="handleBlur"
+      ></vue-bootstrap-typeahead>
+
     <b-input-group
       v-else
       :prepend="prepend"
       :append="append">
-      <b-form-input 
-        v-model="fieldValue" 
+      <b-form-input
+        v-model="fieldValue"
         :type="type"
         :state="state"
-        :accept="accept" 
+        :accept="accept"
         :placeholder="placeholder"
         :autocomplete="autocomplete"
         :disabled="isDisabled"
@@ -203,6 +215,17 @@ export default {
       default: () => {
         return []
       }
+    },
+    // Used by `type === typahead`
+    data: {
+      type: Array,
+      default: () => {
+        return []
+      }
+    },
+    serializer: {
+      type: Function,
+      default: (d) => d
     },
     // Used by `type === text`
     append: {
