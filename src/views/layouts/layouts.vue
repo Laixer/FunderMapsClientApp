@@ -17,13 +17,10 @@ export default {
       ? this.$route.meta.layout
       : 'default';
 
-    if (layout === 'map') {
-      return h('mapLayout', this.$slots.default)
-    }
     if (layout === 'login') {
       return h('loginLayout', this.$slots.default)
     }
-    if (layout === 'admin') {
+    else if (layout === 'admin') {
       return h('adminLayout', this.$slots.default)
     }
 

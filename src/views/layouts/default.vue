@@ -98,6 +98,9 @@ export default {
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
+    },
+    isFullScreen() {
+      return this.$route.meta.layout === 'map'
     }
   },
   async created() {

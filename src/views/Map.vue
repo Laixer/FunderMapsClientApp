@@ -53,6 +53,7 @@ export default {
     }
   },
   beforeDestroy() {
+    // TODO: We may want to keep the map in memory for faster loading
     this.mapboxIsReady({ status: false })
   },
   methods: {
