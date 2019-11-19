@@ -11,6 +11,8 @@
       <FormField 
         v-model="fields.street_name.value"
         v-bind="fields.street_name"
+        :serializer="addressSerializer"
+        @input="getAddresses"
         class="col-md-8" />
       <FormField 
         v-model="fields.building_number.value"
@@ -112,6 +114,7 @@ import FormField from 'molecule/form/FormField'
 import Feedback from 'atom/Feedback'
 
 import fields from 'mixin/fields'
+import axios from '@/utils/axios'
 
 import { mapGetters, mapActions } from 'vuex'
 
@@ -135,8 +138,9 @@ export default {
         // LINE 1
         street_name: {
           label: 'Straatnaam',
-          type: 'text',
+          type: 'typeahead',
           value: '',
+          data: [],
           validationRules: {
             required,
             maxLength: maxLength(128)
@@ -302,9 +306,8 @@ export default {
     fields: {
       handler() {
         this.stored = false
-
       },
-      deep: true
+      deep: true,
     }
   },
   computed: {
@@ -320,7 +323,7 @@ export default {
       }
     }
     // Required fields by API
-    if ( ! this.sample.base_measurement_level) {
+    if (!this.sample.base_measurement_level) {
       this.sample.base_measurement_level = 0; // NAP
     }
     if (this.sample.foundation_damage_cause === null) {
@@ -385,6 +388,21 @@ export default {
       return this.sample[name] === true || this.sample[name] === false 
         ? this.sample[name]
         : null;
+    },
+    addressSerializer(address) {
+      return `${address.street}, ${address.city}`
+    },
+    async getAddresses(query) {
+      if (query.length > 3 && query.length % 4 === 0) {
+        let response = await axios.get(`/api/geocoder/address?streetName=${query}`)
+        if (response.status === 200 && response.data) {
+          this.fields.street_name.data = response.data.map(element => {
+            element.street = element.street.charAt(0).toUpperCase() + element.street.slice(1)
+            element.city = element.city.charAt(0).toUpperCase() + element.city.slice(1)
+            return element
+          });
+        }
+      }
     },
     // Called by parent
     async save() {
