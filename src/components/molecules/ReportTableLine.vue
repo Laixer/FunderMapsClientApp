@@ -10,7 +10,7 @@
     <td class="py-1 flex-grow-1">
       <strong>{{ report.label() }}</strong>
     </td>
-    <td>{{ userObject ? userObject.getUserName() : null }}</td>
+    <td>{{ userObject ? userObject.getUserName() : 'Unknown' }}</td>
     <td>{{ report.date() }}</td>
     <td>
       <TypeTag 
@@ -55,7 +55,8 @@ export default {
   },
   computed: {
     ...mapGetters('reviewers', [
-      'getUserById'
+      'getUserById',
+      'areReviewersAvailable'
     ]),
     editable() {
       if ( ! canWrite()) {
@@ -67,7 +68,7 @@ export default {
       ) || isSuperUser()
     },
     userObject() {
-      return this.getUserById({ id: this.report.reviewer.id })
+      return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewer.id }) : null
     }
   },
   methods: {

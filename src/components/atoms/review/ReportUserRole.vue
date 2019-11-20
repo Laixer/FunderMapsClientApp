@@ -23,13 +23,14 @@ export default {
   },
   computed: {
     ...mapGetters('reviewers', [
-      'getUserById'
+      'getUserById',
+      'areReviewersAvailable'
     ]),
     userObject() {
       if (this.user.getUserName()) {
         return this.user
       }
-      if (this.user.getRole() === 'Reviewer') {
+      if (this.user.getRole() === 'Reviewer' && this.areReviewersAvailable) {
         return this.getUserById({ id: this.user.id })
       }
       return null
