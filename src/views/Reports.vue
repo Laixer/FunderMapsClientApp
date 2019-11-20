@@ -46,20 +46,26 @@ export default {
     });
     next();
   },
-  created() {
+  async created() {
     this.page = this.$route.params.page || 1;
 
     // Always perform a report count update when loading this page
-    this.getReportCount();
-    this.getReports({
-      page: this.page, 
-      limit: this.reportsPerPage
-    });
+    await Promise.all([
+      this.getReviewers(),
+      this.getReportCount(),
+      this.getReports({
+        page: this.page, 
+        limit: this.reportsPerPage
+      }),
+    ])
   },
   methods: {
     ...mapActions('reports', [
       'getReportCount', 
       'getReports'
+    ]),
+    ...mapActions('reviewers', [
+      'getReviewers'
     ]),
     pageLink(pageNum) {
       return {

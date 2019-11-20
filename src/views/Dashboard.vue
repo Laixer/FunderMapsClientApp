@@ -38,8 +38,11 @@ export default {
       "latestReports"
     ])
   },
-  created() {
-    this.syncReports();
+  async created() {
+    await Promise.all([
+      this.syncReports(),
+      this.getReviewers(),
+    ])
   },
   destroyed() {
     clearTimeout(timer);
@@ -47,6 +50,9 @@ export default {
   methods: {
     ...mapActions('reports', [
       'getReports'
+    ]),
+    ...mapActions('reviewers', [
+      'getReviewers'
     ]),
 
     // Update the report details on the dashboard every minute
