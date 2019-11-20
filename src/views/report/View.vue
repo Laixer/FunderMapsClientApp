@@ -21,7 +21,7 @@
       <div 
         v-else-if="nosamples"
         class="text-center mt-4">
-        Deze rapportage bevat nog geen samples
+        Deze rapportage bevat nog geen adressen
       </div>
       <div 
         class="text-center mt-4"
