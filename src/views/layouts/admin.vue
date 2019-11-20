@@ -57,11 +57,6 @@ export default {
     return {
       loadingDataFailed: false,
       menuItems: [
-        // new MenuItem({
-        //   label: 'Dashboard',
-        //   icon: 'Home-icon.svg',
-        //   to: { name: 'admin-dashboard' }
-        // }),
         new MenuItem({
           label: 'Organisaties',
           icon: 'Report-icon.svg',
@@ -82,12 +77,10 @@ export default {
     ...mapGetters('org', [
       'isOrganizationAvailable',
       'getOrgId',
-      'areProposalsAvailable'
     ]),
     hasRequiredData() {
       return this.isUserAvailable 
         && this.isOrganizationAvailable
-        && this.areProposalsAvailable
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed
@@ -99,7 +92,6 @@ export default {
         this.getUser(),
         this.getOrganization(),
         this.getVersion(),
-        this.getProposals()
       ])
     } catch(err) {
       if (err.response && err.response.status === 401) {
@@ -114,8 +106,7 @@ export default {
       'getUser'
     ]),
     ...mapActions('org', [
-      'getOrganization',
-      'getProposals'
+      'getOrganization'
     ]),
     ...mapActions('version', [
       'getVersion'

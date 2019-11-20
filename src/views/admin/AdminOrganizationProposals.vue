@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex flex-column justify-content-center">
     <OrganizationProposalTable 
-      v-if="proposals.length > 0"
+      v-if="areProposalsAvailable && proposals.length > 0"
       title="Alle organisatie voorstellen"
       :proposals="proposals"
       class="mt-4 pt-2 mb-5" />
@@ -24,7 +24,7 @@ import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
 import OrganizationProposalTable from 'organism/OrganizationProposalTable'
 import CreateProposalModal from 'organism/CreateProposalModal'
 
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   components: {
@@ -44,10 +44,17 @@ export default {
   },
   computed: {
     ...mapGetters('org', [
-      'proposals'
+      'proposals',
+      'areProposalsAvailable'
     ])
   },
+  async created() {
+    await this.getProposals()
+  },
   methods: {
+    ...mapActions('org', [
+      'getProposals'
+    ]),
     handleClick() {
       this.$bvModal.show('modal-new-proposal')
     }
