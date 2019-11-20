@@ -1,5 +1,7 @@
 <template>
-  <div class="ReportForm">
+  <div 
+    v-if="areReviewersAvailable"
+    class="ReportForm">
     <ProgressSteps :steps="steps" />
     <Form 
       ref="form"
@@ -69,6 +71,11 @@
     </div>
 
   </div>
+  <div v-else>
+    <!-- TODO: Show an error page -->
+    Geen reviewer beschikbaar.
+  </div>
+
 </template>
 
 <script>
@@ -91,7 +98,7 @@ import { EventBus } from 'utils/eventBus.js'
 
 export default {
   components: {
-    Form, FormField, Feedback, ProgressSteps, 
+    Form, FormField, Feedback, ProgressSteps,
     Divider, PrimaryArrowButton, ReportStepHeader
   },
   mixins: [ fields ],
@@ -250,7 +257,8 @@ export default {
   },
   computed: {
     ...mapGetters('reviewers', [
-      'reviewers'
+      'reviewers',
+      'areReviewersAvailable'
     ]),
     ...mapGetters('report', [
       'activeReport'
@@ -276,10 +284,7 @@ export default {
         return [{
             value: null,
             text: 'Selecteer een reviewer'
-          }].concat(this.reviewers.map(
-            this.mapToUserOption
-          )
-        )
+          }].concat(this.reviewers.map(this.mapToUserOption))
       }
       return [{
         value: null,
@@ -303,6 +308,7 @@ export default {
     }
   },
   async created() {
+    await this.getReviewers()
     if (this.$route.name === 'new-report') {
       this.prepareEmptyForm()
     } else {
@@ -334,6 +340,9 @@ export default {
       'updateReport',
       'createReport',
       'clearActiveReport'
+    ]),
+    ...mapActions('reviewers', [
+      'getReviewers'
     ]),
     /**
      * Prepare an empty form, for creating a new document
