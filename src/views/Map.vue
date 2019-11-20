@@ -47,9 +47,9 @@ export default {
       this.switchLayer()
     }
   },
-  created() {
-    if (! this.hasMapLayers) {
-      this.getMapLayers()
+  async created() {
+    if (!this.hasMapLayers) {
+      await this.getMapLayers()
     }
   },
   beforeDestroy() {
@@ -98,16 +98,14 @@ export default {
         })
         this.$store.map.addLayer({
           "id": layer.id,
-          "type": "circle",
+          "type": "fill",
           "source": layer.id,
           'layout': {
             'visibility': this.getLayerVisibility({ layer }),
           },
           "paint": {
-            'circle-radius': 8,
-            "circle-color": ['get', 'color'],
-            "circle-opacity": 0.8,
-            "circle-stroke-width": 0,
+            "fill-color": ['get', 'color'],
+            "fill-opacity": 0.8,
           }
         })
       })
