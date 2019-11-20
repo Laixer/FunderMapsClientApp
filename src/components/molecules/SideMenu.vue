@@ -74,7 +74,7 @@ export default {
     color: #17A4EA;
     background: white;
     border-color: rgba(0, 0, 0, 0.125);
-    font-weight: 600;
+    // font-weight: 600;
 
     &:hover, &:focus {
       background-color: #f8f9fa
