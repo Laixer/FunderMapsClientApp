@@ -47,6 +47,7 @@
       <div class="side p-3 mt-3">
         <h3>Organisaties</h3>
         <ReportOrgRole :org="activeReport.contractor" />
+        <ReportOrgRole :org="activeReport.owner" />
       </div>
       <div class="side p-3 mt-3">
         <h3>Betrokken personen</h3>
