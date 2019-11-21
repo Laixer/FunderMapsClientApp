@@ -104,8 +104,6 @@ export default {
         id: this.$route.params.id,
         document: this.$route.params.document
       })
-      // console.log(this.activeReport)
-      
       await this.getSamples({ reportId: this.activeReport.id })
       if (this.samples.length === 0) {
         this.nosamples = true
