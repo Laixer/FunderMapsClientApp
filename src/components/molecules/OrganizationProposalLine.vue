@@ -39,7 +39,8 @@ export default {
   computed: {
     tokenLink() {
       let host = process.env.VUE_APP_API_BASE_URL || ''
-      return host + '/register/' + this.proposal.token
+      // TODO: Build wrapper
+      return new URL(`register/${this.proposal.token}`, host).toString()
     }
   },
   methods: {
