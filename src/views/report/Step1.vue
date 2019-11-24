@@ -119,7 +119,7 @@ export default {
           disabled: false
         },
         type: {
-          label: 'Type',
+          label: 'Type document',
           value: '4',
           type: 'select',
           options: [{
@@ -139,7 +139,7 @@ export default {
           disabled: false
         },
         date: {
-          label: 'Datum onderzoek',
+          label: 'Datum document',
           value: '',
           type: 'datepicker',
           validationRules: {
