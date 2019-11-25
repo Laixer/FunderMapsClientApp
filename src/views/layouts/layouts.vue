@@ -1,4 +1,5 @@
 <script>
+import emptyLayout from './empty'
 import defaultLayout from './default'
 import adminLayout from './admin'
 import loginLayout from './login'
@@ -9,21 +10,23 @@ import loginLayout from './login'
 export default {
   name: "Layouts",
   components: {
-    defaultLayout, adminLayout, loginLayout
+    emptyLayout, defaultLayout, adminLayout, loginLayout
   },
   render(h) {
     let layout = (this.$route.meta && this.$route.meta.layout) 
       ? this.$route.meta.layout
       : 'default';
 
-    if (layout === 'login') {
-      return h('loginLayout', this.$slots.default)
+    switch (layout) {
+      case 'login':
+        return h('loginLayout', this.$slots.default)
+      case 'admin':
+        return h('adminLayout', this.$slots.default)
+      case 'empty':
+        return h('emptyLayout', this.$slots.default)
+      default:
+        return h('defaultLayout', this.$slots.default)
     }
-    else if (layout === 'admin') {
-      return h('adminLayout', this.$slots.default)
-    }
-
-    return h('defaultLayout', this.$slots.default)
   }
 }
 </script>

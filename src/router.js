@@ -67,6 +67,7 @@ let router = new Router({
       name: 'logout',
       component: Logout,
       meta: {
+        layout: 'empty',
         profile: true
       }
     },
