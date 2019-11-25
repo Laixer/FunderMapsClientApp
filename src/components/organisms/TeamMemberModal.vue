@@ -224,7 +224,6 @@ export default {
         }, 500)
         
       } catch (err) {
-        console.log(err)
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'

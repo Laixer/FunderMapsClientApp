@@ -500,12 +500,10 @@ export default {
         
         this.$emit("stored", { success: true })
       } catch(err) {
-        console.log(err)
         this.$emit("stored", { success: false, message: err })
       }
     },
-    handleError(err) {
-      console.log(err)
+    handleError() {
       this.feedback = {
         variant: 'danger',
         message: 'De wijzigingen zijn niet opgeslagen'
