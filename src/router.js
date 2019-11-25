@@ -226,7 +226,7 @@ router.beforeEach((to, from, next) => {
       } 
     // Regular dashboard pages are not available to admins
     } else {
-      if (isAdmin() && ( ! to.meta || ! to.meta.profile)) {
+      if (isAdmin() && (!to.meta || !to.meta.profile)) {
         next({ name: 'admin-dashboard' })
       } else {
         next()
