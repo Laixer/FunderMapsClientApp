@@ -120,6 +120,7 @@
     <!-- TODO: Hide the listview if no items exist -->
     <vue-bootstrap-typeahead
       v-else-if="type === 'typeahead'"
+      ref="typeahead"
       v-model="fieldValue"
       :prepend="prepend"
       :append="append"
@@ -332,6 +333,12 @@ export default {
      */
     value(newValue) {
       this.fieldValue = newValue
+    }
+  },
+  mounted() {
+    // NOTE: Workaround. Cannot set value on typeahead via interface
+    if (this.$refs.typeahead) {
+      this.$refs.typeahead.inputValue = this.fieldValue;
     }
   },
   created() {
