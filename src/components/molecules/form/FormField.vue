@@ -121,6 +121,8 @@
     <vue-bootstrap-typeahead
       v-else-if="type === 'typeahead'"
       v-model="fieldValue"
+      :prepend="prepend"
+      :append="append"
       :state="state"
       :serializer="serializer"
       :placeholder="placeholder"
@@ -129,6 +131,7 @@
       @input="handleInput"
       @blur="handleBlur"
       @hit="handleHit"
+      trim
       ></vue-bootstrap-typeahead>
 
     <b-input-group
@@ -218,7 +221,7 @@ export default {
         return []
       }
     },
-    // Used by `type === typahead`
+    // Used by `type === typeahead`
     data: {
       type: Array,
       default: () => {
@@ -336,7 +339,7 @@ export default {
     this.fieldValue = this.value;
 
     // If no value was passed, and this is a datepicker, default to today
-    if (this.type === 'datepicker' && ! this.value) {
+    if (this.type === 'datepicker' && !this.value) {
       this.$emit('input', new Date())
       this.resetValidation()
     }

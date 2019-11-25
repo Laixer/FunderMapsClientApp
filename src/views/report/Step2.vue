@@ -143,7 +143,7 @@ export default {
   },
   async created() {
     try {
-      if ( ! canWrite()) {
+      if (!canWrite()) {
         this.$router.push({
           name: 'view-report',
           params: this.$route.params
@@ -159,7 +159,7 @@ export default {
       if (
         (this.activeReport.isPendingReview() ||
         this.activeReport.isApproved()) && 
-        ! isSuperUser()
+        !isSuperUser()
       ) {
         this.$router.push({
           name: 'view-report',
