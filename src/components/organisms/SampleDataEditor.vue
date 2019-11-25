@@ -199,7 +199,7 @@ export default {
         },
         // LINE 3
         monitoring_well: {
-          label: 'Monitoringsput',
+          label: 'Peilbuis',
           type: 'text',
           value: '',
           validationRules: {
