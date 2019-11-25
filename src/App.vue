@@ -14,9 +14,7 @@ export default {
 }
 </script>
 
-
 <style lang="scss">
-
 html, body {
   height: 100%;
   font-family: 'Gibson' !important;
@@ -31,5 +29,4 @@ html {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100%;
 }
-
 </style>
