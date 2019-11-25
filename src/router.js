@@ -35,7 +35,6 @@ import AdminOrganizationProposals from '@/views/admin/AdminOrganizationProposals
 import NotFound from '@/views/NotFound.vue'
 
 // Maps
-// import DemoMap from '@/views/DemoMap'
 import MapView from '@/views/Map'
 
 // Services
