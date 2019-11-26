@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 14 17" style="enable-background:new 0 0 14 17;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#17A4EA;}
+	.st1{fill:none;}
+</style>
+<title>Report-icon</title>
+<desc>Created with Sketch.</desc>
+<g id="FunderMaps">
+	<g id="Dashboard" transform="translate(-30.000000, -195.000000)">
+		<g id="Screen-Structure">
+			<g id="Left-Navigation-White" transform="translate(0.000000, 70.000000)">
+				<g id="Menu" transform="translate(0.000000, 15.000000)">
+					<g id="Report-icon" transform="translate(28.500000, 110.000000)">
+						<g id="Filled_Icons" transform="translate(2.125000, 0.000000)">
+							<g id="Group">
+								<path id="Path" class="st0" d="M1.8,15.6c-0.2,0-0.4-0.2-0.4-0.4V2.1H0.4C0.2,2.1,0,2.3,0,2.5v14.2C0,16.8,0.2,17,0.4,17
+									h9.9c0.2,0,0.4-0.2,0.4-0.4v-1.1H1.8z"/>
+								<path id="Shape" class="st0" d="M12.8,4.6c0-0.1,0-0.2-0.1-0.3L8.4,0.1C8.3,0,8.2,0,8.1,0H2.5C2.3,0,2.1,0.2,2.1,0.4v14.2
+									c0,0.2,0.2,0.4,0.4,0.4h9.9c0.2,0,0.4-0.2,0.4-0.4V4.6z M7.8,5V0.7L12,5H7.8z"/>
+							</g>
+						</g>
+						<g id="Invisible_Shape">
+							<rect id="Rectangle" y="0" class="st1" width="17" height="17"/>
+						</g>
+					</g>
+				</g>
+			</g>
+		</g>
+	</g>
+</g>
+</svg>

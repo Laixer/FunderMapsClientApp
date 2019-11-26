@@ -61,16 +61,19 @@ export default {
         new MenuItem({
           label: 'Dashboard',
           icon: 'Home-icon.svg',
+          iconActive: 'Home-icon-active.svg',
           to: { name: 'dashboard' }
         }),
         new MenuItem({
           label: 'Rapportages',
           icon: 'Report-icon.svg',
+          iconActive: 'Report-icon-active.svg',
           to: { name: 'reports' }
         }),
         new MenuItem({
           label: 'Kaart',
           icon: 'Map-icon.svg',
+          iconActive: 'Map-icon-active.svg',
           to: { name: 'map' }
         }),
       ]
@@ -105,6 +108,7 @@ export default {
         new MenuItem({
           label: 'Organisatie',
           icon: 'Tools-icon.svg',
+          iconActive: 'Tools-icon-active.svg',
           to: { name: 'organization' }
         })
       )

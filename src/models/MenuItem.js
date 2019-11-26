@@ -10,17 +10,18 @@ import { icon } from 'helper/assets';
  *  Used in SideBar and Profile Menu
  */
 let MenuItemModel = function ({
-  label, active, icon, notifications, to
+  label, active, icon, iconActive, notifications, to
 }) {
   this.label = label || 'Label'
   this.active = active || false;
   this.iconName = icon || false;
+  this.iconActiveName = iconActive || false;
   this.notifications = notifications || false;
   this.to = to || { name: 'not-found' }
 }
 
 MenuItemModel.prototype.icon = function() {
-  return icon({ name: this.iconName })
+  return icon({ name: this.iconActiveName && this.active ? this.iconActiveName : this.iconName })
 }
 MenuItemModel.prototype.hasIcon = function() {
   return !! this.iconName
