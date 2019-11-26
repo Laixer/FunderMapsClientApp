@@ -65,6 +65,9 @@ export default {
   user-select: none;
   color: #7F8FA4;
   max-height: 100%;
+  overflow-x: hidden;
+  z-index: 1;
+  left: 0;
 
   &--slim {
     width: 50px;
