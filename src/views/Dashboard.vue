@@ -39,10 +39,16 @@ export default {
     ])
   },
   async created() {
-    await Promise.all([
-      this.syncReports(),
-      this.getReviewers(),
-    ])
+    try {
+      await Promise.all([
+        this.syncReports(),
+        this.getReviewers(),
+      ])
+    } catch(err) {
+      if (err.response && err.response.status === 401) {
+        this.$router.push({ name: 'login' })
+      }
+    }
   },
   destroyed() {
     clearTimeout(timer);

@@ -49,15 +49,21 @@ export default {
   async created() {
     this.page = this.$route.params.page || 1;
 
-    // Always perform a report count update when loading this page
-    await Promise.all([
-      this.getReviewers(),
-      this.getReportCount(),
-      this.getReports({
-        page: this.page, 
-        limit: this.reportsPerPage
-      }),
-    ])
+    try {
+      // Always perform a report count update when loading this page
+      await Promise.all([
+        this.getReviewers(),
+        this.getReportCount(),
+        this.getReports({
+          page: this.page, 
+          limit: this.reportsPerPage
+        }),
+      ])
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        this.$router.push({ name: 'login' })
+      }
+    }
   },
   methods: {
     ...mapActions('reports', [

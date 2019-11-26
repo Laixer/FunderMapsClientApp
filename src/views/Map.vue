@@ -49,7 +49,13 @@ export default {
   },
   async created() {
     if (!this.hasMapLayers) {
-      await this.getMapLayers()
+      try {
+        await this.getMapLayers()
+      } catch (err) {
+        if (err.response && err.response.status === 401) {
+          this.$router.push({ name: 'login' })
+        }
+      }
     }
   },
   beforeDestroy() {

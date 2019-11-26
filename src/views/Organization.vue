@@ -1,4 +1,3 @@
-
 <script>
 import Organization from '@/views/admin/AdminOrganization'
 
