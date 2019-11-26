@@ -26,7 +26,10 @@
       </router-link>
     </div>
     <div v-else>
-      Refreshing data, please wait...
+      <div class="d-flex align-items-center">
+        <div class="spinner-border ml-auto text-primary" style="width: 3rem; height: 3rem;" role="status" aria-hidden="true"></div>
+        <span class="m-3">Refreshing data, please wait...</span>
+      </div>
     </div>
   </div>
 </template>
