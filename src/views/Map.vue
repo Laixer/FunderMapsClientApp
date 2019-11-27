@@ -123,6 +123,8 @@ export default {
 }
 </script>
 
+<style src='mapbox-gl/dist/mapbox-gl.css'></style>
+
 <style lang="scss">
   .mapboxgl-canvas-container, .mapboxgl-canvas {
     &:active, &:focus {
@@ -152,4 +154,7 @@ export default {
     user-select: none;
   }
 
+  a.mapboxgl-ctrl-logo {
+    display: none;
+  }
 </style>
