@@ -86,6 +86,7 @@ export default {
     // left: 1rem;
     margin-bottom: 1rem;
     margin-left: 1rem;
+    font-weight: 100;
   }
 }
 </style>
