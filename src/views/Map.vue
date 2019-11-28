@@ -5,12 +5,20 @@
       :accessToken="accessToken"
       :mapStyle.sync="mapStyle"
       :transformRequest="transformRequest"
-      @load="onMapLoaded" />
+      :attributionControl="false"
+      @load="onMapLoaded">
+      <MglFullscreenControl />
+      <MglGeolocateControl position="top-right" />
+    </MglMap>
   </div>
 </template>
 
 <script>
-import { MglMap } from 'vue-mapbox';
+import {
+  MglMap,
+  MglGeolocateControl,
+  MglFullscreenControl,
+} from "vue-mapbox";
 
 import { authHeader } from 'service/auth'
 
@@ -18,7 +26,9 @@ import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 export default {
   components: {
-    MglMap
+    MglMap,
+    MglGeolocateControl,
+    MglFullscreenControl,
   },
   data() {
     return {
@@ -156,5 +166,9 @@ export default {
 
   a.mapboxgl-ctrl-logo {
     display: none;
+  }
+
+  .mapboxgl-ctrl-group {
+    border-radius: 0;
   }
 </style>
