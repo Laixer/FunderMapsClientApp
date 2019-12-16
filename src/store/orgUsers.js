@@ -102,14 +102,14 @@ const mutations = {
   },
   update_user(state, { userData, role }) {
     let index = state.users.findIndex(user => {
-      return user.user.id === userData.id
+      return user.id === userData.id
     })
-    state.users[index].user = userData;
-    state.users[index].role.name = role
+    state.users[index] = userData;
+    state.users[index].role = role
   },
   remove_user(state, { id }) {
     let index = state.users.findIndex(user => {
-      return user.user.id === id
+      return user.id === id
     })
     Vue.delete(state.users, index);
   },
