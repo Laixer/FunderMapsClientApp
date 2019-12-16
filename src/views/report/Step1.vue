@@ -348,7 +348,7 @@ export default {
      * Prepare an empty form, for creating a new document
      */
     prepareEmptyForm() {
-      if ( ! canWrite()) {
+      if (!canWrite()) {
         this.$router.push({
           name: 'dashboard'
         })
@@ -378,7 +378,7 @@ export default {
      * Prepare the fields with data from the active report
      */
     async prepareExistingReport() {
-      if ( ! canWrite()) {
+      if (!canWrite()) {
         this.$router.push({
           name: 'view-report',
           params: this.$route.params
@@ -390,7 +390,6 @@ export default {
       this.fields.reviewer.options = this.getReviewerOptions
       this.fields.contractor.options = this.getContractorOptions 
       
-
       await this.getReportByIds({
         id: this.$route.params.id,
         document: this.$route.params.document
@@ -410,25 +409,15 @@ export default {
         return;
       }
       
-      let conform_f3oValue = report.norm 
-        ? report.norm.find(
-            norm => norm.hasOwnProperty('conform_f3o')
-          ) 
-        : null
-      conform_f3oValue = conform_f3oValue 
-        ? conform_f3oValue.conform_f3o 
-        : null
+      let conform_f3oValue = report.norm ? report.norm.find(norm => norm.hasOwnProperty('conform_f3o')) : null
+      conform_f3oValue = conform_f3oValue ? conform_f3oValue.conform_f3o : null
 
       this.setFieldValues({
         document_id: report.document_id,
         type: report.typeNumber,
         date: report.document_date,
-        contractor: report.contractor 
-          ? report.contractor.id 
-          : null,
-        reviewer: report.reviewer 
-          ? report.reviewer.id 
-          : null,
+        contractor: report.contractor ? report.contractor.id : null,
+        reviewer: report.reviewer ? report.reviewer.id : null,
         conform_f3o: conform_f3oValue || false,
         inspection: report.inspection,
         joint_measurement: report.joint_measurement,
