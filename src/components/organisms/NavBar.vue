@@ -1,5 +1,5 @@
 <template>
-  <nav class="NavBar d-flex flex-row">
+  <nav class="NavBar d-flex flex-row sticky-top">
     <div class="NavBar__logo">
       <router-link :to="{ name: 'dashboard' }">
         <Logo :company="company" />
