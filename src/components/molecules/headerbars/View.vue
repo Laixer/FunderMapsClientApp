@@ -48,7 +48,7 @@ import { icon } from 'helper/assets'
 import { mapGetters, mapActions } from 'vuex'
 import DisapproveModal from 'organism/DisapproveModal'
 
-import { isSuperUser, canWrite } from 'service/auth'
+import { isSuperUser, canWrite, canApprove } from 'service/auth'
 
 export default {
   name: 'ViewHeader',
@@ -75,7 +75,7 @@ export default {
       }
     },
     editable() {
-      if ( ! canWrite()) {
+      if (!canWrite()) {
         return false
       }
       if (this.activeReport) {
@@ -87,7 +87,9 @@ export default {
       return false
     },
     isAvailableForReview() {
-      // TODO: Can user review...? 
+      if (!canApprove()) {
+        return false
+      }
       if (this.activeReport) {
         return this.activeReport.isAvailableForReview()
       }
