@@ -28,11 +28,11 @@
           v-model="fields.last_name.value"
           v-bind="fields.last_name" />
 
-        <!-- <FormField 
+        <FormField 
           label="Email"
           type="text"
           v-model="fields.email.value"
-          v-bind="fields.email" /> -->
+          v-bind="fields.email" />
 
         <FormField 
           label="Functie"
@@ -120,14 +120,14 @@ export default {
           },
           disabled: false
         },
-        // email: {
-        //   value: "",
-        //   placeholder: 'naam@bedrijf.nl',
-        //   validationRules: {
-        //     required, email
-        //   },
-        //   disabled: true
-        // },
+        email: {
+          value: "",
+          placeholder: 'naam@bedrijf.nl',
+          // validationRules: {
+          //   required, email
+          // },
+          disabled: true
+        },
         role: {
           value: null,
           validationRules: {
