@@ -303,6 +303,10 @@ export const enforcementTermOptions = [
   {
     text: '30 jaar',
     value: 'Term30'
+  }, 
+  {
+    text: '40 jaar',
+    value: 'Term40'
   }
 ]
 
