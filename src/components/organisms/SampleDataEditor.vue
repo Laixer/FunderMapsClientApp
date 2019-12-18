@@ -9,20 +9,12 @@
 
     <div class="form-row mb-3">
       <FormField 
-        v-model="fields.street_name.value"
-        v-bind="fields.street_name"
+        v-model="fields.address.value"
+        v-bind="fields.address"
         :serializer="addressSerializer"
         @input="getAddresses"
         @hit="handleHit"
-        class="col-md-8" />
-      <FormField 
-        v-model="fields.building_number.value"
-        v-bind="fields.building_number"
-        class="col-md-2" />
-      <FormField 
-        v-model="fields.building_number_suffix.value"
-        v-bind="fields.building_number_suffix"
-        class="col-md-2" />
+        class="col-md-12" />
     </div>
 
     <div class="form-row mb-3">
@@ -99,6 +91,7 @@
 
 <script>
 
+import axios from 'axios';
 import { required, numeric, decimal, maxLength, minValue, maxValue } from 'vuelidate/lib/validators';
 import { 
   foundationTypeOptions,
@@ -115,7 +108,6 @@ import FormField from 'molecule/form/FormField'
 import Feedback from 'atom/Feedback'
 
 import fields from 'mixin/fields'
-import axios from '@/utils/axios'
 
 import { mapGetters, mapActions } from 'vuex'
 
@@ -137,33 +129,15 @@ export default {
       feedback: {},
       fields: {
         // LINE 1
-        street_name: {
-          label: 'Straatnaam',
+        address: {
+          label: 'Adres',
           type: 'typeahead',
+          selected: null,
           value: '',
           data: [],
           validationRules: {
             required,
             maxLength: maxLength(128)
-          }
-        },
-        building_number: {
-          label: 'Nummer',
-          type: 'text', 
-          value: '',
-          validationRules: {
-            required,
-            numeric,
-            minValue: minValue(1),
-            maxValue: maxValue(65536)
-          }
-        },
-        building_number_suffix: {
-          label: 'Toevoeging',
-          type: 'text',
-          value: '',
-          validationRules: {
-            maxLength: maxLength(8)
           }
         },
         // LINE 2
@@ -332,9 +306,7 @@ export default {
     }
 
     this.setFieldValues({
-      street_name: this.sample.address.street_name,
-      building_number: this.sample.address.building_number,
-      building_number_suffix: this.sample.address.building_number_suffix,
+      address: this.sample.address.street_name,
       foundation_type: this.optionValue({
         options: foundationTypeOptions,
         name: 'foundation_type' 
@@ -391,21 +363,25 @@ export default {
         : null;
     },
     addressSerializer(address) {
-      return `${address.street}, ${address.city}`
+      return address.weergavenaam
     },
-    handleHit(a) {
-      this.fields.street_name.value = a.street
+    async handleHit(a) {
+      // TODO: This should be handled via a store
+      let response = await axios(`https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?id=${a.id}`)
+      if (response.status === 200 && response.data) {
+        if (response.data.response.numFound == 1) {
+          let address = response.data.response.docs[0]
+          this.fields.address.value = address.weergavenaam
+          this.fields.address.selected = address
+        }
+      }
     },
     async getAddresses(query) {
       // TODO: This should be handled via a store
-      if (query.length > 3 && query.length % 4 === 0) {
-        let response = await axios.get(`/api/geocoder/address?streetName=${query}`)
-        if (response.status === 200 && response.data) {
-          this.fields.street_name.data = response.data.map(element => {
-            element.street = element.street.charAt(0).toUpperCase() + element.street.slice(1)
-            element.city = element.city.charAt(0).toUpperCase() + element.city.slice(1)
-            return element
-          });
+      let response = await axios(`https://geodata.nationaalgeoregister.nl/locatieserver/v3/suggest?q=${query}&fq=type:adres`)
+      if (response.status === 200 && response.data) {
+        if (response.data.response.numFound > 0) {
+          this.fields.address.data = response.data.response.docs
         }
       }
     },
@@ -465,13 +441,13 @@ export default {
       }
 
       data.address = {
-        street_name: data.street_name,
-        building_number: data.building_number,
-        building_number_suffix: data.building_number_suffix
+        street_name: this.fields.address.selected.straatnaam,
+        building_number: this.fields.address.selected.huisnummer,
+        bag: this.fields.address.selected.nummeraanduiding_id,
+        additional: this.fields.address.selected
       }
       data.report = this.activeReport.id
-      
-      // console.log("save in editor 2", data)
+
       if (data.id) {
         await this.updateSample({
           id: data.id,
