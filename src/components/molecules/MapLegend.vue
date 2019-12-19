@@ -50,16 +50,16 @@ export default {
             color: '#9E511F'
           }, {
             label: 'Beton paal',
-            color: '#9F9E9E'
+            color: '#7A7A7A'
           }, {
             label: 'Niet onderheid',
-            color: '#C1301B'
+            color: '#A30500'
           }, {
             label: 'Hout met oplanger',
-            color: '#D36E2C'
+            color: '#641C68'
           }, {
             label: 'Overig',
-            color: '#E78932'
+            color: '#FFCD17'
           }]
         case 'Handhavingstermijnen':
           return [{
