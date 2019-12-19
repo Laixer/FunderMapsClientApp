@@ -104,6 +104,38 @@ export default {
             label: 'Goede staat',
             color: '#28922A'
           }]
+        case 'Pandzakking':
+          return [{
+            label: 'Minder dan 1mm/jaar of rijzing',
+            color: '#293575'
+          }, {
+            label: '1 tot 2 mm/jaar',
+            color: '#1261A3'
+          }, {
+            label: '2 tot 3 mm/jaar',
+            color: '#69A8DE'
+          }, {
+            label: '3 tot 4 mm/jaar',
+            color: '#99C1E9'
+          }, {
+            label: '4 tot 5 mm/jaar',
+            color: '#B378B1'
+          }, {
+            label: '5 tot 6 mm/jaar',
+            color: '#A860A6'
+          }, {
+            label: '6 tot 7 mm/jaar',
+            color: '#8F3C8D'
+          }, {
+            label: '7 tot 8 mm/jaar',
+            color: '#641C68'
+          }, {
+            label: '8 tot 9 mm/jaar',
+            color: '#E15601'
+          }, {
+            label: '9 mm/jaar of meer',
+            color: '#A30500'
+          }]
       }
 
       return null
