@@ -43,6 +43,9 @@ export default {
       'hasMapLayers',
       'isMapboxReady'
     ]),
+    ...mapGetters('org', [
+      'organization'
+    ]),
     readyToLoadLayers() {
       return this.isMapboxReady && this.hasMapLayers
     }
@@ -80,8 +83,13 @@ export default {
       'mapboxIsReady'
     ]),
     onMapLoaded(event) {
-      // Note: a reference to the map has to be stored in a non-reactive manner.
+      // NOTE: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.map;
+      // TODO: this.organization.getCenter()
+      if (this.organization.center_x != 0 && this.organization.center_y != 0){
+        // TODO: We should initialize the map straight away here.
+        this.$store.map.flyTo({ center: [this.organization.center_x,this.organization.center_y], zoom: 13, speed: 2.5 });
+      }
       this.mapboxIsReady({ status: true })
     },
     transformRequest(url, resourceType) {
