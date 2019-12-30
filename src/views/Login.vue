@@ -82,14 +82,14 @@ export default {
     async handleSubmit(e) {
       e.preventDefault();
       
-      this.disableAllFields()
-      this.isDisabled = true
-      this.feedback = {
-        variant: 'info', 
-        message: 'Bezig met inloggen...'
-      }
-      
       try {
+        this.disableAllFields()
+        this.isDisabled = true
+        this.feedback = {
+          variant: 'info', 
+          message: 'Bezig met inloggen...'
+        }
+        
         await login({
           email:    this.fieldValue('email'), 
           password: this.fieldValue('password')
