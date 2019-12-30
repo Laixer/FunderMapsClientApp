@@ -34,8 +34,6 @@ import PasswordResetLink from 'atom/branding/PasswordResetLink';
 
 import { required, email } from 'vuelidate/lib/validators';
 
-import { mapActions } from 'vuex'
-
 import Feedback from 'atom/Feedback'
 import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
@@ -81,13 +79,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('org', [
-      'getOrganization'
-    ]),
-    ...mapActions('user', [
-      'getUser'
-    ]),
-    handleSubmit(e) {
+    async handleSubmit(e) {
       e.preventDefault();
       
       this.disableAllFields()
@@ -96,30 +88,30 @@ export default {
         variant: 'info', 
         message: 'Bezig met inloggen...'
       }
-
-      login({
-        email:    this.fieldValue('email'), 
-        password: this.fieldValue('password')
-      })
-        .then(() => {
-          this.$router.push({ name: 'dashboard' })
+      
+      try {
+        await login({
+          email:    this.fieldValue('email'), 
+          password: this.fieldValue('password')
         })
-        .catch((err) => {
-          this.enableAllFields()
-          this.isDisabled = false
 
-          if (err.response && err.response.status === 401) {
-            this.feedback = {
-              variant: 'danger', 
-              message: 'Uw inlog gegevens zijn ongeldig'
-            }
-          } else {
-            this.feedback = {
-              variant: 'danger', 
-              message: 'Onbekende fout. Probeer het later nog eens.'
-            }
+        this.$router.push({ name: 'dashboard' })
+      } catch (error) {
+        this.enableAllFields()
+        this.isDisabled = false
+
+        if (error.response && error.response.status === 401) {
+          this.feedback = {
+            variant: 'danger', 
+            message: 'Uw inlog gegevens zijn ongeldig'
           }
-        });
+        } else {
+          this.feedback = {
+            variant: 'danger', 
+            message: 'Onbekende fout. Probeer het later nog eens.'
+          }
+        }
+      }
     },
   }
 }
