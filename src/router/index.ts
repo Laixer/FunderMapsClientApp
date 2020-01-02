@@ -11,13 +11,13 @@ import User from '@/views/User.vue'
 import Security from '@/views/Security.vue'
 
 // Register
-import Register from '@/views/RegisterOrganization'
+import Register from '@/views/RegisterOrganization.vue'
 
 // Single Report
-import Step1 from '@/views/report/Step1'
-import Step2 from '@/views/report/Step2'
-import Step3 from '@/views/report/Step3'
-import ReportView from '@/views/report/View'
+import Step1 from '@/views/report/Step1.vue'
+import Step2 from '@/views/report/Step2.vue'
+import Step3 from '@/views/report/Step3.vue'
+import ReportView from '@/views/report/View.vue'
 
 // Reports 
 import Reports from '@/views/Reports.vue'
@@ -26,19 +26,19 @@ import Reports from '@/views/Reports.vue'
 import Organization from '@/views/Organization.vue'
 
 // Admin
-import AdminDashboard from '@/views/admin/AdminDashboard'
-import AdminOrganization from '@/views/admin/AdminOrganization'
-import AdminOrganizations from '@/views/admin/AdminOrganizations'
-import AdminOrganizationProposals from '@/views/admin/AdminOrganizationProposals'
+import AdminDashboard from '@/views/admin/AdminDashboard.vue'
+import AdminOrganization from '@/views/admin/AdminOrganization.vue'
+import AdminOrganizations from '@/views/admin/AdminOrganizations.vue'
+import AdminOrganizationProposals from '@/views/admin/AdminOrganizationProposals.vue'
 
 // 404
 import NotFound from '@/views/NotFound.vue'
 
 // Maps
-import MapView from '@/views/Map'
+import MapView from '@/views/Map.vue'
 
 // Services
-import { isLoggedIn, isAdmin, logout } from '@/services/auth'
+import { isLoggedIn, isAdmin, logout } from '../services/auth.js'
 
 Vue.use(VueRouter)
 
@@ -213,7 +213,7 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to: any, from: any, next: any) => {
   // Public pages
   if (to.meta && to.meta.public) {
     next()

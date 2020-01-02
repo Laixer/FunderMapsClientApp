@@ -30,10 +30,8 @@ export default new Vuex.Store({
     reviewers
   },
   state: {
-
   },
   mutations: {
-
   },
   actions: {
   }

@@ -38,9 +38,6 @@ export default {
     ...mapActions('reports', [
       'clearReports'
     ])
-  },
-  render() {
-    return ''
   }
 }
 </script>

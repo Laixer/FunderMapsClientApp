@@ -1,13 +1,13 @@
 import Vue from 'vue'
-import App from '@/App.vue'
+import App from './App.vue'
 import './registerServiceWorker'
-import router from '@/router'
-import store from '@/store'
+import router from './router'
+import store from './store'
 
 Vue.config.productionTip = false
 
 // Services
-import { refreshLogin } from '@/services/auth'
+import { refreshLogin } from './services/auth'
 
 // Fonts (Gibson)
 import "@/assets/sass/fonts.scss";
@@ -23,20 +23,19 @@ import VueBootstrapTypeahead from 'vue-bootstrap-typeahead'
 Vue.component('vue-bootstrap-typeahead', VueBootstrapTypeahead)
 
 // Named Avatar Generator
-import { config as configNamedAvatars } from 'utils/namedavatar'
+import { config as configNamedAvatars } from './utils/namedavatar'
 configNamedAvatars()
-
 
 new Vue({
   router,
   store,
   data() {
     return {
-      timer: null
+    //   timer: 0
     }
   },
   created () {
-    this.timer = setInterval(() => {
+    setInterval(() => {
       refreshLogin()
     }, 60000 * 10)
   },
