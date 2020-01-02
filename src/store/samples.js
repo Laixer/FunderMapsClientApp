@@ -49,6 +49,7 @@ const actions = {
       })
     }
   },
+  // TODO: where does creationstamp come from?
   async createSample({ commit }, { data }) {
     let response = await samplesAPI.createSample({ data });
     if (response.status === 200 && response.data) {
@@ -93,8 +94,8 @@ const mutations = {
       let sample = clonedeep(state.samples[0])
       sample.id = ''
       // sample.address = address;
-      sample.address.building_number = ''
-      sample.address.building_number_suffix = ''
+      sample.address.buildingNumber = ''
+      sample.address.buildingNumberSuffix = ''
 
       // used as alternative to 'id' reference for newly created items
       sample.creationstamp = Date.now() 

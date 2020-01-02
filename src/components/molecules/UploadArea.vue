@@ -53,7 +53,7 @@ export default {
         maxFiles: 1,
         maxFileSize: 20,
         // acceptedFiles: 'image/*,application/pdf',
-        url: process.env.VUE_APP_API_BASE_URL + '/api/report/upload' // TODO: Move to API
+        url: (process.env.VUE_APP_API_BASE_URL + '/api/report/upload').replace(/([^:]\/)\/+/g, "$1") // TODO: Move to API
       }
     }
   },

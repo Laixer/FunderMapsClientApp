@@ -54,7 +54,7 @@ const actions = {
     let response = await orgUserAPI.getOrganizationUsers({ orgId });
     if (response.status === 200 && response.data.length > 0) {
       await Promise.all(response.data.map(organizationUser => {
-        return orgUserAPI.getOrganizationUserProfile({ orgId, id: organizationUser.user_id }).then(result => {
+        return orgUserAPI.getOrganizationUserProfile({ orgId, id: organizationUser.userId }).then(result => {
           if (response.status === 200 && response.data) {
             return Object.assign(organizationUser, result.data)
           }

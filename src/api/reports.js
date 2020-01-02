@@ -33,7 +33,7 @@ const submitForReview = ({id, document }) => {
 const setStatusToTodo = ({ id, document }) => {
   return axios.put(`/api/report/${id}/${document}`, {
     id,
-    document_id: document,
+    documentId: document,
     status: 0
   })
 }

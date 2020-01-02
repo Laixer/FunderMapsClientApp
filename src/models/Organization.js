@@ -2,12 +2,14 @@
 /**
  * Just a pretty wrapper for now
  */
-let OrganizationModel = function (org) {
-  Object.assign(this, org);
+class OrganizationModel {
+  constructor(org) {
+    Object.assign(this, org);
+  }
+  getId() {
+    return this.id;
+  }
 }
 
-OrganizationModel.prototype.getId = function() {
-  return this.id;
-}
 
 export default OrganizationModel;

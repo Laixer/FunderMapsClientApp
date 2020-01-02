@@ -3,7 +3,7 @@
     <header class="d-flex align-items-center justify-content-between">
       <div>
         <h3>
-          {{ activeReport.document_id }}
+          {{ activeReport.documentId }}
         </h3>
         <span v-if="showLastEdited && hasEditedDate">
           Laatst bewerkt: {{ lastEdited }}
@@ -11,7 +11,7 @@
       </div>
       <TypeTag :type="activeReport.getType()" />
     </header>
-    <ReportDate :date="activeReport.document_date" />
+    <ReportDate :date="activeReport.documentDate" />
     <Divider />
     <div 
       v-if="showUsers"
@@ -27,7 +27,7 @@
         class="mb-1" 
         label="Conform F3O" />
       <CheckboxIndicator 
-        :value="activeReport.joint_measurement"
+        :value="activeReport.jointMeasurement"
         class="mb-1" 
         label="Lintvoegmeting"  />
       <CheckboxIndicator 
@@ -35,7 +35,7 @@
         class="mb-1" 
         label="Onderzoeksput" />
       <CheckboxIndicator 
-        :value="activeReport.floor_measurement"
+        :value="activeReport.floorMeasurement"
         class="mb-1" 
         label="Vloer waterpas" />
     </div>
@@ -85,16 +85,16 @@ export default {
     // OUT: zondag 21:55 uur
     lastEdited() {
       let date = convertDateStringToDate(
-        this.activeReport.update_date.substr(0, 10)
+        this.activeReport.updateDate.substr(0, 10)
       )
       return weekDayFromDate({ date }) + ' ' 
         + date.getDate() + ' ' 
         + monthYearStringFromDate({ date }) + ' - '
-        + this.activeReport.update_date.substr(11, 5) 
+        + this.activeReport.updateDate.substr(11, 5) 
         + ' uur'
     },
     hasEditedDate() {
-      return this.activeReport.update_date !== null
+      return this.activeReport.updateDate !== null
     },
     conform_f3o: {
       get() {

@@ -86,9 +86,9 @@ export default {
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.map;
       // TODO: this.organization.getCenter()
-      if (this.organization.center_x != 0 && this.organization.center_y != 0){
+      if (this.organization.centerX != 0 && this.organization.centerY != 0){
         // TODO: We should initialize the map straight away here.
-        this.$store.map.flyTo({ center: [this.organization.center_x,this.organization.center_y], zoom: 13, speed: 2.5 });
+        this.$store.map.flyTo({ center: [this.organization.centerX,this.organization.centerY], zoom: 13, speed: 2.5 });
       }
       this.mapboxIsReady({ status: true })
     },

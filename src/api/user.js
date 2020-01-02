@@ -6,18 +6,18 @@ export default {
     return axios.get('/api/user')
   },
   updateUser: ({ 
-    given_name, last_name, avatar, job_title, phone_number
+    givenName, lastName, avatar, jobTitle, phoneNumber
   }) => {
     return axios.put('/api/user', {
-      given_name, last_name, avatar, job_title, phone_number
+      givenName, lastName, avatar, jobTitle, phoneNumber
     })
   },
   // TODO: This is not the way to save the users password
   updateUserPassword: ({ 
-    new_password, old_password
+    newPassword, oldPassword
   }) => {
     return axios.post('/api/user/change_password', {
-      new_password, old_password
+      newPassword, oldPassword
     })
   }
 }

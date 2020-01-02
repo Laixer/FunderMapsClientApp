@@ -55,7 +55,7 @@ export default {
         return 'Nieuw adres...'
       }
       let address = this.sample.address;
-      return ['street_name', 'building_number', 'building_number_suffix']
+      return ['streetName', 'buildingNumber', 'buildingNumberSuffix']
         .reduce((addr, key) => {
           return address[key] ? addr + ' ' + address[key] : addr;
         }, '')

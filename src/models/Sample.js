@@ -16,79 +16,75 @@ import {
 let structure = {
   id: '',
   report: '',
-  foundation_type: null,
-  foundation_quality: null,
+  foundationType: null,
+  foundationQuality: null,
   substructure: null,
-  monitoring_well: '',
+  monitoringWell: '',
   cpt: '',
   note: '',
-  wood_level: null,
-  groundwater_level: null,
-  ground_level: null,
-  foundation_recovery_adviced: false,
-  foundation_damage_cause: null,
-  built_year: '',
-  enforcement_term: null,
-  base_measurement_level: null,
+  woodLevel: null,
+  groundwaterLevel: null,
+  groundLevel: null,
+  foundationRecoveryAdviced: false,
+  foundationDamageCause: null,
+  builtYear: '',
+  enforcementTerm: null,
+  baseMeasurementLevel: null,
   address: {
     id: null,
-    street_name: null,
-    building_number: null,
-    building_number_suffix: null
+    streetName: null,
+    buildingNumber: null,
+    buildingNumberSuffix: null
   },
   policy: 0,
-  create_date: '',
-  update_date: '',
-  delete_date: ''
+  createDate: '',
+  updateDate: '',
+  deleteDate: ''
 }
 
-
-let SampleModel = function ({ sample, stored, editorState }) {
-  Object.assign(this, structure, sample)
-  this.stored = stored;
-  this.editorState = editorState || 'close'
-}
-
-SampleModel.prototype.updateValues = function({ data }) {
-  Object.assign(this, structure, data)
-}
-
-// ****************************************************************************
-//  Editor states
-// ****************************************************************************
-
-SampleModel.prototype.openEditor = function() {
-  this.editorState = 'open'
-}
-SampleModel.prototype.closeEditor = function() {
-  this.editorState = 'close'
-}
-
-// ****************************************************************************
-//  Dropdown values
-// ****************************************************************************
-
-SampleModel.prototype.getFoundationType = function() {
-  return foundationTypeOptions[this.foundation_type] || null; 
-}
-SampleModel.prototype.getFoundationQuality = function() {
-  return foundationQualityOptions[this.foundation_quality] || null; 
-}
-SampleModel.prototype.getSubstructure = function() {
-  return substructureOptions[this.substructure] || null; 
-}
-SampleModel.prototype.getFoundationDamageCause = function() {
-  return foundationDamageCauseOptions[this.foundation_damage_cause] || null
-}
-// Note: returns an object {text, value}
-SampleModel.prototype.getEnforcementTerm = function() {
-  return enforcementTermOptions[this.enforcement_term] || null; 
-}
-SampleModel.prototype.getBaseMeasurementLevel = function() {
-  return BaseMeasurementLevelOptions[this.base_measurement_level] || null; 
-}
-SampleModel.prototype.getAccess = function() {
-  return accessOptions[this.policy] || null; 
+class SampleModel {
+  constructor({ sample, stored, editorState }) {
+    Object.assign(this, structure, sample);
+    this.stored = stored;
+    this.editorState = editorState || 'close';
+  }
+  updateValues({ data }) {
+    Object.assign(this, structure, data);
+  }
+  // ****************************************************************************
+  //  Editor states
+  // ****************************************************************************
+  openEditor() {
+    this.editorState = 'open';
+  }
+  closeEditor() {
+    this.editorState = 'close';
+  }
+  // ****************************************************************************
+  //  Dropdown values
+  // ****************************************************************************
+  getFoundationType() {
+    return foundationTypeOptions[this.foundationType] || null;
+  }
+  getFoundationQuality() {
+    return foundationQualityOptions[this.foundationQuality] || null;
+  }
+  getSubstructure() {
+    return substructureOptions[this.substructure] || null;
+  }
+  getFoundationDamageCause() {
+    return foundationDamageCauseOptions[this.foundationDamageCause] || null;
+  }
+  // Note: returns an object {text, value}
+  getEnforcementTerm() {
+    return enforcementTermOptions[this.enforcementTerm] || null;
+  }
+  getBaseMeasurementLevel() {
+    return BaseMeasurementLevelOptions[this.baseMeasurementLevel] || null;
+  }
+  getAccess() {
+    return accessOptions[this.policy] || null;
+  }
 }
 
 export default SampleModel;

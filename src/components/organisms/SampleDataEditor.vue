@@ -19,23 +19,23 @@
 
     <div class="form-row mb-3">
       <FormField 
-        v-model="fields.foundation_type.value"
-        v-bind="fields.foundation_type"
+        v-model="fields.foundationType.value"
+        v-bind="fields.foundationType"
         class="col-md-5" />
       <FormField 
         v-model="fields.substructure.value"
         v-bind="fields.substructure"
         class="col-md-5" />
       <FormField 
-        v-model="fields.built_year.value"
-        v-bind="fields.built_year"
+        v-model="fields.builtYear.value"
+        v-bind="fields.builtYear"
         class="col-md-2" />
     </div>
 
     <div class="form-row">
       <FormField 
-        v-model="fields.monitoring_well.value"
-        v-bind="fields.monitoring_well"
+        v-model="fields.monitoringWell.value"
+        v-bind="fields.monitoringWell"
         class="col-md-6" />
       <FormField 
         v-model="fields.cpt.value"
@@ -47,19 +47,19 @@
 
     <div class="form-row mb-3">
       <FormField 
-        v-model="fields.foundation_quality.value"
-        v-bind="fields.foundation_quality"
+        v-model="fields.foundationQuality.value"
+        v-bind="fields.foundationQuality"
         class="col-md-6" />
       <FormField 
-        v-model="fields.foundation_recovery_adviced.value"
-        v-bind="fields.foundation_recovery_adviced"
+        v-model="fields.foundationRecoveryAdviced.value"
+        v-bind="fields.foundationRecoveryAdviced"
         class="col-md-6" />
     </div>
 
     <div class="form-row mb-3">
       <FormField 
-        v-model="fields.foundation_damage_cause.value"
-        v-bind="fields.foundation_damage_cause"
+        v-model="fields.foundationDamageCause.value"
+        v-bind="fields.foundationDamageCause"
         class="col-md-6" />
       <FormField 
         v-model="fields.enforcement_term.value"
@@ -69,20 +69,20 @@
 
     <div class="form-row">
       <FormField 
-        v-model="fields.base_measurement_level.value"
-        v-bind="fields.base_measurement_level"
+        v-model="fields.baseMeasurementLevel.value"
+        v-bind="fields.baseMeasurementLevel"
         class="col-md-3" />
       <FormField 
-        v-model="fields.wood_level.value"
-        v-bind="fields.wood_level"
+        v-model="fields.woodLevel.value"
+        v-bind="fields.woodLevel"
         class="col-md-3" />
       <FormField 
-        v-model="fields.groundwater_level.value"
-        v-bind="fields.groundwater_level"
+        v-model="fields.groundwaterLevel.value"
+        v-bind="fields.groundwaterLevel"
         class="col-md-3" />
       <FormField 
-        v-model="fields.ground_level.value"
-        v-bind="fields.ground_level"
+        v-model="fields.groundLevel.value"
+        v-bind="fields.groundLevel"
         class="col-md-3" />
     </div>
 
@@ -141,7 +141,7 @@ export default {
           }
         },
         // LINE 2
-        foundation_type: {
+        foundationType: {
           label: 'Funderingstype',
           type: 'select',
           value: null,
@@ -161,9 +161,9 @@ export default {
           }].concat(substructureOptions),
           validationRules: {}
         },
-        built_year: {
+        builtYear: {
           label: 'Bouwjaar',
-          type: 'text', 
+          type: 'text', // TODO: int
           value: '',
           validationRules: {
             numeric,
@@ -172,7 +172,7 @@ export default {
           }
         },
         // LINE 3
-        monitoring_well: {
+        monitoringWell: {
           label: 'Peilbuis',
           type: 'text',
           value: '',
@@ -190,7 +190,7 @@ export default {
         },
         // DIVIDER 
         // LINE 4
-        foundation_quality: {
+        foundationQuality: {
           label: 'Funderingskwaliteit',
           type: 'select',
           value: null,
@@ -200,7 +200,7 @@ export default {
           }].concat(foundationQualityOptions),
           validationRules: {}
         },
-        foundation_recovery_adviced: {
+        foundationRecoveryAdviced: {
           label: 'Funderingsherstel advies',
           type: 'radio',
           value: null,
@@ -214,7 +214,7 @@ export default {
           validationRules: {}
         },
         // LINE 5
-        foundation_damage_cause: {
+        foundationDamageCause: {
           label: 'Oorzaak funderingsschade',
           type: 'select',
           value: null,
@@ -237,7 +237,7 @@ export default {
           validationRules: {}
         },
         // LINE 6
-        base_measurement_level: {
+        baseMeasurementLevel: {
           label: 'Referentiestelsel',
           type: 'select',
           value: 'NAP',
@@ -249,7 +249,7 @@ export default {
             required
           }
         },
-        wood_level: {
+        woodLevel: {
           label: 'Hoogte langshout',
           type: 'text',
           value: '',
@@ -257,7 +257,7 @@ export default {
             decimal
           }
         },
-        groundwater_level: {
+        groundwaterLevel: {
           label: 'Grondwaterstand',
           type: 'text',
           value: '',
@@ -265,7 +265,7 @@ export default {
             decimal
           }
         },
-        ground_level: {
+        groundLevel: {
           label: 'Maaiveldhoogte',
           type: 'text',
           value: '',
@@ -298,48 +298,48 @@ export default {
       }
     }
     // Required fields by API
-    if (!this.sample.base_measurement_level) {
-      this.sample.base_measurement_level = 0; // NAP
+    if (!this.sample.baseMeasurementLevel) {
+      this.sample.baseMeasurementLevel = 0; // NAP
     }
-    if (this.sample.foundation_damage_cause === null) {
-      this.sample.foundation_damage_cause = 7 // Unknown
+    if (this.sample.foundationDamageCause === null) {
+      this.sample.foundationDamageCause = 7 // Unknown
     }
 
     this.setFieldValues({
-      address: this.sample.address.street_name,
-      foundation_type: this.optionValue({
+      address: this.sample.address.streetName ? this.sample.address.streetName : '',
+      foundationType: this.optionValue({
         options: foundationTypeOptions,
-        name: 'foundation_type' 
+        name: 'foundationType' 
       }),
       substructure: this.optionValue({
         options: substructureOptions,
         name: 'substructure' 
       }),
-      built_year: this.sample.built_year,
-      monitoring_well: this.sample.monitoring_well,
+      builtYear: this.sample.builtYear,
+      monitoringWell: this.sample.monitoringWell,
       cpt: this.sample.cpt,
-      foundation_quality: this.optionValue({
+      foundationQuality: this.optionValue({
         options: foundationQualityOptions,
-        name: 'foundation_quality' 
+        name: 'foundationQuality' 
       }),
-      foundation_recovery_adviced: this.booleanValue({ 
-        name: 'foundation_recovery_adviced'
+      foundationRecoveryAdviced: this.booleanValue({ 
+        name: 'foundationRecoveryAdviced'
       }),
-      foundation_damage_cause: this.optionValue({
+      foundationDamageCause: this.optionValue({
         options: foundationDamageCauseOptions,
-        name: 'foundation_damage_cause' 
+        name: 'foundationDamageCause' 
       }),
       enforcement_term: this.optionValue({
         options: enforcementTermOptions,
         name: 'enforcement_term' 
       }),
-      base_measurement_level: this.optionValue({
+      baseMeasurementLevel: this.optionValue({
         options: BaseMeasurementLevelOptions,
-        name: 'base_measurement_level' 
+        name: 'baseMeasurementLevel' 
       }),
-      wood_level: this.sample.wood_level,
-      groundwater_level: this.sample.groundwater_level,
-      ground_level: this.sample.ground_level
+      woodLevel: this.sample.woodLevel,
+      groundwaterLevel: this.sample.groundwaterLevel,
+      groundLevel: this.sample.groundLevel
     })
 
     // After setting the field values, set the DB storage status
@@ -433,15 +433,15 @@ export default {
       }
 
       // required by API
-      if (data.base_measurement_level === null) {
-        data.base_measurement_level = 0 // NAP
+      if (data.baseMeasurementLevel === null) {
+        data.baseMeasurementLevel = 0 // NAP
       }
-      if (data.foundation_damage_cause === null) {
-        data.foundation_damage_cause = 7 // Unknown
+      if (data.foundationDamageCause === null) {
+        data.foundationDamageCause = 7 // Unknown
       }
 
       data.address = {
-        street_name: this.fields.address.selected.straatnaam,
+        streetName: this.fields.address.selected.straatnaam,
         building_number: this.fields.address.selected.huisnummer,
         bag: this.fields.address.selected.nummeraanduiding_id,
         additional: this.fields.address.selected

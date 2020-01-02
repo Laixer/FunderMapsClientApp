@@ -17,11 +17,11 @@
           <ProfileSetting 
             label="Voornaam"
             :editMode="editMode" 
-            v-model="user.given_name" />
+            v-model="user.givenName" />
           <ProfileSetting 
             label="Achternaam" 
             :editMode="editMode" 
-            v-model="user.last_name" />
+            v-model="user.lastName" />
           <ProfileSetting 
             label="E-mail" 
             :editMode="editMode"
@@ -30,11 +30,11 @@
           <ProfileSetting 
             label="Functie" 
             :editMode="editMode" 
-            v-model="user.job_title" />
+            v-model="user.jobTitle" />
           <ProfileSetting 
             label="Telefoon"
             :editMode="editMode"  
-            v-model="user.phone_number" />
+            v-model="user.phoneNumber" />
         </div>
 
         <b-button 

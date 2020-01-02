@@ -17,8 +17,8 @@
         <Feedback :feedback="feedback" />
 
         <FormField 
-          v-model="fields.document_id.value"
-          v-bind="fields.document_id" />
+          v-model="fields.documentId.value"
+          v-bind="fields.documentId" />
         <div class="form-row">
           <FormField 
             v-model="fields.type.value"
@@ -50,12 +50,12 @@
             v-bind="fields.inspection"
             class="col-md-3" />
           <FormField 
-            v-model="fields.joint_measurement.value"
-            v-bind="fields.joint_measurement"
+            v-model="fields.jointMeasurement.value"
+            v-bind="fields.jointMeasurement"
             class="col-md-3" />
           <FormField 
-            v-model="fields.floor_measurement.value"
-            v-bind="fields.floor_measurement"
+            v-model="fields.floorMeasurement.value"
+            v-bind="fields.floorMeasurement"
             class="col-md-3" />
         </div>
         <FormField 
@@ -109,7 +109,7 @@ export default {
       document_name: null,
       stored: false, // navigation blocker
       fields: {
-        document_id: {
+        documentId: {
           label: 'Document naam',
           value: '',
           validationRules: {
@@ -198,7 +198,7 @@ export default {
           },
           disabled: false
         },
-        joint_measurement: {
+        jointMeasurement: {
           label: 'Lintvoegmetingen',
           value: false,
           type: 'radio',
@@ -214,7 +214,7 @@ export default {
           },
           disabled: false
         },
-        floor_measurement: {
+        floorMeasurement: {
           label: 'Vloer Waterpas',
           value: false,
           type: 'radio',
@@ -270,14 +270,14 @@ export default {
       'contractors'
     ]),
     nextStep() {
-      let report = this.activeReport || { id: 'id', document_id: 'document_id' };
+      let report = this.activeReport || { id: 'id', documentId: 'documentId' };
       return { 
         name: 'edit-report-2', 
-        params: { id: report.id, document: report.document_id } 
+        params: { id: report.id, document: report.documentId } 
       }
     },
     headerLabel() {
-      return this.activeReport ? this.activeReport.document_id : null
+      return this.activeReport ? this.activeReport.documentId : null
     },
     getReviewerOptions() {
       if (this.reviewers) {
@@ -360,7 +360,7 @@ export default {
       // Make the document_name accessible as data
       if (this.$route.params.file) {
         this.document_name = this.$route.params.file.file_name
-        this.fields.document_id.value = this.$route.params.file.name.split('.').slice(0, -1).join('.')
+        this.fields.documentId.value = this.$route.params.file.name.split('.').slice(0, -1).join('.')
       }
 
       // Set the contractor & reviewer user options (from Vuex)
@@ -413,15 +413,15 @@ export default {
       conform_f3oValue = conform_f3oValue ? conform_f3oValue.conform_f3o : null
 
       this.setFieldValues({
-        document_id: report.document_id,
+        documentId: report.documentId,
         type: report.typeNumber,
-        date: report.document_date,
+        date: report.documentDate,
         contractor: report.contractor ? report.contractor.id : null,
         reviewer: report.reviewer ? report.reviewer.id : null,
         conform_f3o: conform_f3oValue || false,
         inspection: report.inspection,
-        joint_measurement: report.joint_measurement,
-        floor_measurement: report.floor_measurement,
+        jointMeasurement: report.jointMeasurement,
+        floorMeasurement: report.floorMeasurement,
         note: report.note
       })
     },
@@ -460,10 +460,10 @@ export default {
       let values = this.allFieldValues();
       
       let data = {
-        document_id: values.document_id,
+        documentId: values.documentId,
         inspection: values.inspection,
-        joint_measurement: values.joint_measurement,
-        floor_measurement: values.floor_measurement,
+        jointMeasurement: values.jointMeasurement,
+        floorMeasurement: values.floorMeasurement,
         note: values.note,
         status: values.status,
 
@@ -506,7 +506,7 @@ export default {
         name: 'edit-report-2',
         params: {
           id: this.activeReport.id,
-          document: this.activeReport.document_id
+          document: this.activeReport.documentId
         }
       })
     },

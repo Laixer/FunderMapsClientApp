@@ -68,10 +68,10 @@ export default {
     editRoute() {
       let report = this.activeReport 
         ? this.activeReport 
-        : { id: 'id', document_id: 'document' }
+        : { id: 'id', documentId: 'document' }
       return { 
         name: 'edit-report-2', 
-        params: { id: report.id, document: report.document_id }
+        params: { id: report.id, document: report.documentId }
       }
     },
     editable() {

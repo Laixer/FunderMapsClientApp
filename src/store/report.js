@@ -51,7 +51,7 @@ const actions = {
   async approveReport({ commit, state }) {
     let response = await reportAPI.validateReport({
       id: state.report.id, 
-      document: state.report.document_id,
+      document: state.report.documentId,
       verify: 'Verified'
     })
     if (response.status === 204) {
@@ -61,7 +61,7 @@ const actions = {
   async rejectReport({ commit, state }, { message }) {
     let response = await reportAPI.validateReport({
       id: state.report.id, 
-      document: state.report.document_id,
+      document: state.report.documentId,
       verify: 'Rejected',
       message
     })
@@ -72,7 +72,7 @@ const actions = {
   async submitForReview({ commit, state }) {
     let response = await reportAPI.submitForReview({
       id: state.report.id, 
-      document: state.report.document_id,
+      document: state.report.documentId,
     })
     if (response.status === 204) {
       commit('set_report_pending_review')

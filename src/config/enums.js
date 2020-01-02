@@ -1,4 +1,6 @@
 
+// TODO: Only submit integers to backend
+
 /**
  * Configuration of Enums
  */

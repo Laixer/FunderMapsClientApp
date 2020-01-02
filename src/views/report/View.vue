@@ -134,7 +134,7 @@ export default {
       try {
         reportsAPI.getDownloadLink({ 
           id: this.activeReport.id, 
-          document: this.activeReport.document_id 
+          document: this.activeReport.documentId 
         })
         .then((response) => {
           if (response.data && response.data.url) {

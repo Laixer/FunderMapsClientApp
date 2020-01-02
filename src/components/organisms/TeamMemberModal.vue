@@ -19,14 +19,14 @@
         <FormField 
           label="Voornaam"
           type="text"
-          v-model="fields.given_name.value"
-          v-bind="fields.given_name" />
+          v-model="fields.givenName.value"
+          v-bind="fields.givenName" />
 
         <FormField 
           label="Achternaam"
           type="text"
-          v-model="fields.last_name.value"
-          v-bind="fields.last_name" />
+          v-model="fields.lastName.value"
+          v-bind="fields.lastName" />
 
         <FormField 
           label="Email"
@@ -37,14 +37,14 @@
         <FormField 
           label="Functie"
           type="text"
-          v-model="fields.job_title.value"
-          v-bind="fields.job_title" />
+          v-model="fields.jobTitle.value"
+          v-bind="fields.jobTitle" />
 
         <FormField 
           label="Telefoon"
           type="text"
-          v-model="fields.phone_number.value"
-          v-bind="fields.phone_number" />
+          v-model="fields.phoneNumber.value"
+          v-bind="fields.phoneNumber" />
         <Divider />
 
         <FormField 
@@ -106,14 +106,14 @@ export default {
       isDisabled: false,
       feedback: {},
       fields: {
-        given_name: {
+        givenName: {
           value: "",
           validationRules: {
             minLength: minLength(2)
           },
           disabled: false
         },
-        last_name: {
+        lastName: {
           value: "",
           validationRules: {
             minLength: minLength(2)
@@ -138,13 +138,13 @@ export default {
             { value: null, text: 'Selecteer een optie' }
           ].concat(userRoles),
         },
-        job_title: {
+        jobTitle: {
           value: "",
           validationRules: {
           },
           disabled: false
         },
-        phone_number: {
+        phoneNumber: {
           value: "",
           validationRules: {
           },
@@ -166,10 +166,10 @@ export default {
       if (orgUser){
         this.setFieldValues([
           { name: 'role', value: orgUser.getRoleSlug() },
-          { name: 'given_name', value: orgUser.given_name },
-          { name: 'last_name', value: orgUser.last_name },
-          { name: 'job_title', value: orgUser.job_title },
-          { name: 'phone_number', value: orgUser.phone_number }
+          { name: 'givenName', value: orgUser.givenName },
+          { name: 'lastName', value: orgUser.lastName },
+          { name: 'jobTitle', value: orgUser.jobTitle },
+          { name: 'phoneNumber', value: orgUser.phoneNumber }
         ])
         
         // FUTURE: Hide the role form when editing self
@@ -205,7 +205,7 @@ export default {
       try {
         // Make a copy, and add form field data
         let userData = Object.assign({}, this.orgUser, this.fieldValues([
-          'job_title', 'last_name', 'given_name', 'phone_number'
+          'jobTitle', 'lastName', 'givenName', 'phoneNumber'
         ]));
         await this.updateUser({
           orgId: this.orgId,

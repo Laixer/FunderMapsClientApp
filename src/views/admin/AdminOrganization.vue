@@ -26,22 +26,22 @@
           <ProfileSetting 
             label="Telefoonnummer" 
             :editMode="editMode"
-            v-model="organisatie.phone_number" />
+            v-model="organisatie.phoneNumber" />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Factuur informatie</h2>
           <ProfileSetting 
             label="Naam" 
             :editMode="editMode"
-            v-model="organisatie.invoice_name" />
+            v-model="organisatie.invoiceName" />
           <ProfileSetting 
             label="PO nummer" 
             :editMode="editMode"
-            v-model="organisatie.invoice_po_number" />
+            v-model="organisatie.invoicePONumber" />
           <ProfileSetting 
             label="E-mail adres" 
             :editMode="editMode"
-            v-model="organisatie.invoice_email" />
+            v-model="organisatie.invoiceEmail" />
         </div>
 
         <div class="panel px-4 py-3 mb-2">
@@ -49,70 +49,70 @@
           <ProfileSetting 
             label="Straat" 
             :editMode="editMode"
-            v-model="organisatie.home_street" />
+            v-model="organisatie.homeStreet" />
           <ProfileSetting 
             label="Huisnummer" 
             :editMode="editMode"
-            v-model="organisatie.home_address_number" />
+            v-model="organisatie.homeAddressNumber" />
           <ProfileSetting 
             label="Toevoeging" 
             :editMode="editMode"
-            v-model="organisatie.home_address_number_postfix" />
+            v-model="organisatie.homeAddressNumberPostfix" />
           <ProfileSetting 
             label="Postbus" 
             :editMode="editMode"
-            v-model="organisatie.home_postbox" />
+            v-model="organisatie.homePostbox" />
           <ProfileSetting 
             label="Stad" 
             :editMode="editMode"
-            v-model="organisatie.home_city" />
+            v-model="organisatie.homeCity" />
           <ProfileSetting 
             label="Postcode" 
             :editMode="editMode"
-            v-model="organisatie.home_zipcode" />
+            v-model="organisatie.homeZipcode" />
           <ProfileSetting 
             label="Provincie" 
             :editMode="editMode"
-            v-model="organisatie.home_state" />
+            v-model="organisatie.homeState" />
           <ProfileSetting 
             label="Land" 
             :editMode="editMode"
-            v-model="organisatie.home_country" />
+            v-model="organisatie.homeCountry" />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Post adres</h2>
           <ProfileSetting 
             label="Straat" 
             :editMode="editMode"
-            v-model="organisatie.postal_street" />
+            v-model="organisatie.postalStreet" />
           <ProfileSetting 
             label="Huisnummer" 
             :editMode="editMode"
-            v-model="organisatie.postal_address_number" />
+            v-model="organisatie.postalAddressNumber" />
           <ProfileSetting 
             label="Toevoeging" 
             :editMode="editMode"
-            v-model="organisatie.postal_address_number_postfix" />
+            v-model="organisatie.postalAddressNumberPostfix" />
           <ProfileSetting 
             label="Postbus" 
             :editMode="editMode"
-            v-model="organisatie.postal_postbox" />
+            v-model="organisatie.postalPostbox" />
           <ProfileSetting 
             label="Stad" 
             :editMode="editMode"
-            v-model="organisatie.postal_city" />
+            v-model="organisatie.postalCity" />
           <ProfileSetting 
             label="Postcode" 
             :editMode="editMode"
-            v-model="organisatie.postal_zipcode" />
+            v-model="organisatie.postalZipcode" />
           <ProfileSetting 
             label="Provincie" 
             :editMode="editMode"
-            v-model="organisatie.postal_state" />
+            v-model="organisatie.postalState" />
           <ProfileSetting 
             label="Land" 
             :editMode="editMode"
-            v-model="organisatie.postal_country" />
+            v-model="organisatie.postalCountry" />
         </div>
 
         <b-button 

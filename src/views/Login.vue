@@ -89,18 +89,18 @@ export default {
           variant: 'info', 
           message: 'Bezig met inloggen...'
         }
-        
+
         await login({
           email:    this.fieldValue('email'), 
           password: this.fieldValue('password')
         })
-
+        
         this.$router.push({ name: 'dashboard' })
-      } catch (error) {
+      } catch (err) {
         this.enableAllFields()
         this.isDisabled = false
 
-        if (error.response && error.response.status === 401) {
+        if (err.response && err.response.status === 401) {
           this.feedback = {
             variant: 'danger', 
             message: 'Uw inlog gegevens zijn ongeldig'

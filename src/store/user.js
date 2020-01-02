@@ -38,7 +38,7 @@ const actions = {
   // TODO: This is not the way to save the users password
   // eslint-disable-next-line
   async updateUserPassword({ state }, { password, password_new }) {
-    return await userAPI.updateUserPassword({ old_password: password, new_password: password_new })
+    return await userAPI.updateUserPassword({ oldPassword: password, newPassword: password_new })
   },
   clearUser({ commit }) {
     commit('clear_user')
@@ -47,11 +47,11 @@ const actions = {
 const mutations = {
   set_user(state, { user }) {
     state.user = new UserModel({
-      given_name: user.given_name, 
-      last_name: user.last_name, 
+      givenName: user.givenName, 
+      lastName: user.lastName, 
       avatar: user.avatar, 
-      job_title: user.job_title, 
-      phone_number: user.phone_number
+      jobTitle: user.jobTitle, 
+      phoneNumber: user.phoneNumber
     });
   },
   clear_user(state) {

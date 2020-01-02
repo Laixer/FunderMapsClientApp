@@ -9,34 +9,34 @@ import AttributedOrganisation from './AttributedOrganisation'
  */
 class reportModel {
   constructor({
-    id, document_id, document_date, status, type,
-    attribution, document_name, floor_measurement, 
-    inspection, joint_measurement, norm, note, access_policy,
-    update_date, create_date, delete_date }) {
+    id, documentId, documentDate, status, type,
+    attribution, documentName, floorMeasurement, 
+    inspection, jointMeasurement, norm, note, accessPolicy,
+    updateDate, createDate, deleteDate }) {
     
     if (!id) {
       throw "Missing identifier";
     }
-    if (!document_id) {
-      throw "Missing document_id";
+    if (!documentId) {
+      throw "Missing documentId";
     }
-    if (!document_date) {
-      throw "Missing document_date";
+    if (!documentDate) {
+      throw "Missing documentDate";
     }
     
     // The database id
     this.id = id;
     // The document reference provided by the user (the label)
-    this.document_id = document_id;
+    this.documentId = documentId;
     // Formatted as '2019-05-23T19:17:39.804Z', which parse accepts
-    this.document_date = new Date(document_date);
+    this.documentDate = new Date(documentDate);
     // Status of process
     this.setStatus({ status });
     // Type of report 
     this.type = typeOptions[type] ? typeOptions[type] : null;
     this.typeNumber = type;
     // Is the report public or private?
-    this.access_policy = accessOptions[access_policy] ? accessOptions[access_policy] : 'Invalid';
+    this.accessPolicy = accessOptions[accessPolicy] ? accessOptions[accessPolicy] : 'Invalid';
     // Samples are set / added / removed 
     this.samples = [];
     // attribution, 
@@ -75,24 +75,24 @@ class reportModel {
 
     // Direct input
     Object.assign(this, {
-      document_name, floor_measurement,
-      inspection, joint_measurement, norm, note,
-      update_date, create_date, delete_date
+      documentName, floorMeasurement,
+      inspection, jointMeasurement, norm, note,
+      updateDate, createDate, deleteDate
     });
   }
   /**
    * Document ID / Label
    */
   label() {
-    return this.document_id;
+    return this.documentId;
   }
   /**
    * Formatted date
    */
   date() {
-    return this.document_date.getDate() + " - " +
-      this.document_date.getMonth() + " - " +
-      this.document_date.getFullYear();
+    return this.documentDate.getDate() + " - " +
+      this.documentDate.getMonth() + " - " +
+      this.documentDate.getFullYear();
   }
   /**
    * Status

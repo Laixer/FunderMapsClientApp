@@ -59,12 +59,12 @@ export default {
       'areReviewersAvailable'
     ]),
     editable() {
-      if ( ! canWrite()) {
+      if (!canWrite()) {
         return false
       }
       return (
-        ! this.report.isPendingReview() && 
-        ! this.report.isApproved()
+        !this.report.isPendingReview() && 
+        !this.report.isApproved()
       ) || isSuperUser()
     },
     userObject() {
@@ -77,7 +77,7 @@ export default {
         name: 'view-report', 
         params: { 
           id: this.report.id, 
-          document: this.report.document_id 
+          document: this.report.documentId 
         } 
       })
     },
@@ -86,7 +86,7 @@ export default {
         name: 'edit-report-2', 
         params: { 
           id: this.report.id, 
-          document: this.report.document_id 
+          document: this.report.documentId 
         } 
       })
     }

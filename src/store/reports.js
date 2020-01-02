@@ -52,9 +52,7 @@ const actions = {
 }
 const mutations = {
   set_reports(state, { reports }) {
-    state.reports = reports.map( report => {
-      return new ReportModel(report)
-    })
+    state.reports = reports.map(report => new ReportModel(report))
   },
   set_report_count(state, { count }) {
     state.reportCount = count;
