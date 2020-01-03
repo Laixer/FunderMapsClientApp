@@ -1,35 +1,30 @@
 <template>
-  <b-button 
-    variant="primary" 
+  <b-button
+    variant="primary"
     :to="to"
-    :disabled="disabled" 
-    class="PrimaryArrowButton font-weight-bold d-inline-flex align-items-center" 
+    :disabled="disabled"
+    class="PrimaryArrowButton font-weight-bold d-inline-flex align-items-center"
     size="lg"
-    @click="$emit('click')" 
-    pill>
-    <span class="mx-4 my-2">
-      {{ label }}
-    </span>
-    <img 
-      v-if="hasIcon"
-      alt="arrow" 
-      :src="icon({ name: 'ArrowRight-icon.svg' })" />
+    @click="$emit('click')"
+    pill
+  >
+    <span class="mx-4 my-2">{{ label }}</span>
+    <img v-if="hasIcon" alt="arrow" :src="icon('ArrowRight-icon.svg')" />
   </b-button>
 </template>
 
 <script>
-
 import { icon } from "helper/assets";
 export default {
   props: {
     label: {
       type: String,
-      default: 'Alle rapporten'
+      default: "Alle rapporten"
     },
     to: {
       type: [Object, String],
       default: function() {
-        return ''
+        return "";
       }
     },
     disabled: {
@@ -44,7 +39,7 @@ export default {
   methods: {
     icon
   }
-}
+};
 </script>
 
 <style>
