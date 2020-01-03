@@ -29,15 +29,10 @@ configNamedAvatars()
 new Vue({
   router,
   store,
-  data() {
-    return {
-    //   timer: 0
-    }
-  },
-  created () {
+  created() {
     setInterval(() => {
       refreshLogin()
     }, 60000 * 10)
   },
-  render: h => h(App)
+  render: createElement => createElement(App)
 }).$mount('#app')
