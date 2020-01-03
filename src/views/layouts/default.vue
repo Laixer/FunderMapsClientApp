@@ -61,24 +61,9 @@ export default {
     return {
       loadingDataFailed: false,
       menuItems: [
-        new MenuItem({
-          label: 'Dashboard',
-          icon: 'Home-icon.svg',
-          iconActive: 'Home-icon-active.svg',
-          to: { name: 'dashboard' }
-        }),
-        new MenuItem({
-          label: 'Rapportages',
-          icon: 'Report-icon.svg',
-          iconActive: 'Report-icon-active.svg',
-          to: { name: 'reports' }
-        }),
-        new MenuItem({
-          label: 'Kaart',
-          icon: 'Map-icon.svg',
-          iconActive: 'Map-icon-active.svg',
-          to: { name: 'map' }
-        }),
+        new MenuItem('Dashboard', { name: 'dashboard' }, 'Home-icon.svg', 'Home-icon-active.svg'),
+        new MenuItem('Rapportages', { name: 'reports' }, 'Report-icon.svg', 'Report-icon-active.svg'),
+        new MenuItem('Kaart', { name: 'map' }, 'Map-icon.svg', 'Map-icon-active.svg'),
       ]
     }
   },
@@ -107,14 +92,7 @@ export default {
   },
   async created() {
     if (isSuperUser()) {
-      this.menuItems.push(
-        new MenuItem({
-          label: 'Organisatie',
-          icon: 'Tools-icon.svg',
-          iconActive: 'Tools-icon-active.svg',
-          to: { name: 'organization' }
-        })
-      )
+      this.menuItems.push(new MenuItem('Organisatie', { name: 'organization' }, 'Tools-icon.svg', 'Tools-icon-active.svg'))
     }
 
     try {

@@ -57,16 +57,8 @@ export default {
     return {
       loadingDataFailed: false,
       menuItems: [
-        new MenuItem({
-          label: 'Organisaties',
-          icon: 'Report-icon.svg',
-          to: { name: 'admin-organizations' }
-        }),
-        new MenuItem({
-          label: 'Aanmeldingen',
-          icon: 'Report-icon.svg',
-          to: { name: 'admin-organization-proposals' }
-        })
+        new MenuItem('Organisaties', { name: 'admin-organizations' }, 'Report-icon.svg'),
+        new MenuItem('Aanmeldingen', { name: 'admin-organization-proposals' }, 'Report-icon.svg')
       ]
     }
   },

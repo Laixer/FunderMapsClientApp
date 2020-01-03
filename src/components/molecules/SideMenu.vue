@@ -11,7 +11,7 @@
         :class="{ 'px-3': !slim }">
         <img 
           v-if="item.hasIcon()"
-          :src="item.icon()" 
+          :src="item.getIcon()" 
           width="17" 
           height="17" />
       </span>
@@ -50,7 +50,7 @@ export default {
       let currentRouteName = this.$route.name;
       return this.items
         .map(item => {
-          item.active = (item.to.name && item.to.name === currentRouteName);
+          item.setActive(item.to.name && item.to.name === currentRouteName);
           return item;
         })
     }

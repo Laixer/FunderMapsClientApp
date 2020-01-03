@@ -55,18 +55,9 @@ export default {
     return {
       company: 'FunderMaps',
       menuItems: [
-        new MenuItem({
-          label: 'Profiel',
-          to: { name: this.admin ? 'admin-user' : 'user' }
-        }),
-        new MenuItem({
-          label: 'Wachtwoord Wijzigen',
-          to: { name: this.admin ? 'security' : 'security' }
-        }),
-        new MenuItem({
-          label: 'Uitloggen',
-          to: { name: 'logout' }
-        })
+        new MenuItem('Profiel', { name: this.admin ? 'admin-user' : 'user' }),
+        new MenuItem('Wachtwoord Wijzigen', { name: this.admin ? 'security' : 'security'}),
+        new MenuItem('Uitloggen', { name: 'logout' })
       ]
     }
   },
