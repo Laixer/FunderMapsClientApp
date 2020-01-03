@@ -1,4 +1,3 @@
-
 <script>
 import { logout } from 'service/auth';
 
@@ -38,6 +37,9 @@ export default {
     ...mapActions('reports', [
       'clearReports'
     ])
-  }
+  },
+  render(createElement) {
+    return createElement();
+  },
 }
 </script>
