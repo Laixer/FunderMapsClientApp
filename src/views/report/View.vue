@@ -40,7 +40,7 @@
         @click="getReportDownloadLink">
         <img 
           alt="arrow" 
-          :src="icon({ name: 'Download-icon.svg' })"
+          :src="icon('Download-icon.svg')"
           width="17" />
         <span class="ml-2">Download report</span>
       </b-button>

@@ -2,7 +2,7 @@
   <div class="LoginBranding">
     <img 
       class="d-none d-lg-block" 
-      :src="image({ name: 'login/focus.jpg' })" 
+      :src="image('login/focus.jpg')" 
       width="480" 
       height="480" />
     <Logo 

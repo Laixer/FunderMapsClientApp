@@ -14,7 +14,7 @@
       <div class="align-self-center">
         <img 
           alt="upload" 
-          :src="image({ name: 'upload.svg' })" />
+          :src="image('upload.svg')" />
         <p class="mb-0 mt-3">
           <strong>
             Slepen en neerzetten voor upload

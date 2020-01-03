@@ -18,7 +18,7 @@ export default {
         'FadedBackgroundCover' : true
       },
       style: {
-        backgroundImage: 'url(' + image({ name: context.props.image } ) + ')'
+        backgroundImage: 'url(' + image(context.props.image) + ')'
       },
     })
   }

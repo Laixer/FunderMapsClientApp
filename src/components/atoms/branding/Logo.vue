@@ -15,7 +15,7 @@ export default {
   render(h, context) {
     return h('img', {
       attrs: {
-        src: image({ name: 'logo.svg' })
+        src: image('logo.svg')
       },
       class: combineClassLists({ 
         classList: { Logo: true },

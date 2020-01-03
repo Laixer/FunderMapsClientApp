@@ -5,7 +5,7 @@
     <div class="ProgressIndicator__sphere d-flex align-items-center justify-content-center">
       <img 
         v-if="iconName"
-        :src="icon({ name: iconName })" 
+        :src="icon(iconName)" 
         width="45" 
         height="45" />
     </div>

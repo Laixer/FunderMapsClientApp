@@ -12,7 +12,7 @@
           variant="light" 
           class="font-weight-bold d-flex align-items-center"
           @click="handleAddSample">
-          <img :src='icon({ name: "Plus-icon.svg" })' width="11" height="11" /> 
+          <img :src='icon("Plus-icon.svg")' width="11" height="11" /> 
           <span class="ml-1">Adres toevoegen</span>
         </b-button>
       </ReportStepHeader>

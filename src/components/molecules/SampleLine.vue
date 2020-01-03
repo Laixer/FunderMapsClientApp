@@ -61,10 +61,10 @@ export default {
       let name = this.open 
         ? 'ArrowUp-icon.svg' 
         : 'ArrowDown-icon.svg'
-      return icon({name});
+      return icon(name);
     },
     delIcon() {
-      return icon({ name: 'Delete-icon.svg' });
+      return icon('Delete-icon.svg');
     }
   },
   methods: {

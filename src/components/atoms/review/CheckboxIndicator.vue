@@ -1,7 +1,7 @@
 <template>
   <div class="CheckboxIndicator d-flex align-items-center">
     <span>
-      <img :src="icon({ name: iconName })" width="16" height="16" /> 
+      <img :src="icon(iconName)" width="16" height="16" /> 
     </span>
     <span>{{ label }}</span>
   </div>

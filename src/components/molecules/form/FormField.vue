@@ -11,7 +11,7 @@
         @click="openInfo">
         <img 
           style="margin-top: -2px; cursor: pointer"
-          :src="icon({ name: 'info-circle-light.svg' })" 
+          :src="icon('info-circle-light.svg')" 
           width="16" 
           height="16" />
       </span>

@@ -32,7 +32,7 @@
       :to="{ name: 'dashboard' }"
       variant="primary" 
       class="ml-2 mr-3 font-weight-bold d-flex align-items-center">
-      <img :src='icon({ name: "Close-icon.svg" })' width="11" height="11" /> 
+      <img :src='icon("Close-icon.svg")' width="11" height="11" /> 
       <span class="ml-1">Sluiten</span>
     </b-button>
 
@@ -122,12 +122,10 @@ export default {
       return null
     },
     approveIcon() {
-      let name = this.approved === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg';
-      return icon({ name })
+      return icon(this.approved === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg');
     },
     disapproveIcon() {
-      let name = this.approved === false ? 'ActiveDisapprove-icon.svg' : 'NeutralDisapprove-icon.svg';
-      return icon({ name })
+      return icon(this.approved === false ? 'ActiveDisapprove-icon.svg' : 'NeutralDisapprove-icon.svg');
     },
     approveLabel() {
       return this.approved === true ? 'Goedgekeurd' : 'Goedkeuren'

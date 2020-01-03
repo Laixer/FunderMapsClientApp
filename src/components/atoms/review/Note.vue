@@ -1,7 +1,7 @@
 <template>
   <div class="Note d-flex">
     <div class="Note__icon">
-      <img class="mt-3" :src="icon({ name: 'Notification-icon.svg'})" width="15" height="15" />
+      <img class="mt-3" :src="icon('Notification-icon.svg')" width="15" height="15" />
     </div>
     <div class="Note__note">
       {{ note }}

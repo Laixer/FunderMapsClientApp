@@ -5,7 +5,7 @@
         :to="{ name: 'dashboard' }"
         variant="primary" 
         class="font-weight-bold d-flex align-items-center">
-        <img :src='icon({ name: "Close-icon.svg" })' width="11" height="11" /> 
+        <img :src='icon("Close-icon.svg")' width="11" height="11" /> 
         <span class="ml-1">Sluiten</span>
       </b-button>
       <b-button 
@@ -13,7 +13,7 @@
         variant="outline-secondary"
         class="SaveBtn mt-2 font-weight-bold d-flex align-items-center"
         @click="handleSaveReport">
-        <img :src='icon({ name: "Edit-icon.svg" })' width="11" height="11" /> 
+        <img :src='icon("Edit-icon.svg")' width="11" height="11" /> 
         <span class="ml-1">Opslaan</span>
       </b-button>
     </div>

@@ -1,7 +1,7 @@
 <template>
   <div class="ReportDate d-flex align-items-center">
     <span>
-      <img :src="icon({ name: 'Date-icon.svg' })" width="16" height="16" />
+      <img :src="icon('Date-icon.svg')" width="16" height="16" />
     </span>
     <span class="mr-3">Datum onderzoek</span>
     <span>{{ boundDate }}</span>

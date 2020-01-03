@@ -6,7 +6,7 @@
 
 /**
  * Provide meaningful defaults for MenuItems
- *  Used in SideBar and Profile Menu
+ * Used in SideBar and Profile Menu
  */
 let ProgressStepModel = function ({
   status, icon, step, to, clickable

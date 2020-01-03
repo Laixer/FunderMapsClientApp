@@ -8,7 +8,7 @@
     pill>
     <img 
       alt="arrow" 
-      :src="icon({ name: 'ArrowLeft-icon.svg' })" />
+      :src="icon('ArrowLeft-icon.svg')" />
       
     <span class="mx-4 my-2">
       {{ label }}
