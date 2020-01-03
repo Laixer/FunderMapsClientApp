@@ -33,7 +33,6 @@
 </template>
 
 <script>
-import { image } from 'helper/assets'
 import Logo from 'atom/branding/Logo';
 import MenuItem from 'model/MenuItem';
 import MapControls from 'molecule/MapControls'
@@ -68,9 +67,6 @@ export default {
     hasMapControls() {
       return this.$route.meta.layout === 'map'
     }
-  },
-  methods: {
-    image
   }
 }
 </script>
