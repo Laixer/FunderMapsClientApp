@@ -10,10 +10,10 @@ import AttributedOrganisation from './AttributedOrganisation'
 class reportModel {
   constructor({
     id, documentId, documentDate, status, type,
-    attribution, documentName, floorMeasurement, 
+    attribution, documentName, floorMeasurement,
     inspection, jointMeasurement, norm, note, accessPolicy,
     updateDate, createDate, deleteDate }) {
-    
+
     if (!id) {
       throw "Missing identifier";
     }
@@ -23,7 +23,7 @@ class reportModel {
     if (!documentDate) {
       throw "Missing documentDate";
     }
-    
+
     // The database id
     this.id = id;
     // The document reference provided by the user (the label)
@@ -56,7 +56,7 @@ class reportModel {
       };
     }
     this.reviewer = user ? new AttributedUser({ user, role: 'Reviewer' }) : null;
-    
+
     let orgContractor = attribution && attribution.contractor ? attribution.contractor : null;
     if (typeof orgContractor === 'string') {
       orgContractor = {
@@ -64,7 +64,7 @@ class reportModel {
       };
     }
     this.contractor = orgContractor ? new AttributedOrganisation({ orgContractor, role: 'Uitvoerder' }) : null;
-  
+
     let orgOwner = attribution && attribution.owner ? attribution.owner : null;
     if (typeof orgOwner === 'string') {
       orgOwner = {

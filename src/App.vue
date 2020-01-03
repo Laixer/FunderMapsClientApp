@@ -5,8 +5,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import Layout from './views/layouts/layouts.vue'
+import { Component, Vue } from "vue-property-decorator";
+import Layout from "./views/layouts/layouts.vue";
 
 @Component({
   components: {
@@ -17,9 +17,10 @@ export default class App extends Vue {}
 </script>
 
 <style lang="scss">
-html, body {
+html,
+body {
   height: 100%;
-  font-family: 'Gibson' !important;
+  font-family: "Gibson" !important;
   font-size: 14px;
 }
 html {

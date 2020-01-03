@@ -1,31 +1,37 @@
-<script>
-import emptyLayout from './empty'
-import defaultLayout from './default'
-import adminLayout from './admin'
-import loginLayout from './login'
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import emptyLayout from "./empty.vue";
+import defaultLayout from "./default.vue";
+import adminLayout from "./admin.vue";
+import loginLayout from "./login.vue";
 
 /**
  * Determines which layout to use based on the route meta data
  */
-export default {
-  name: "Layouts",
+@Component({
   components: {
-    emptyLayout, defaultLayout, adminLayout, loginLayout
-  },
-  render(h) {
-    let layout = (this.$route.meta && this.$route.meta.layout) 
-      ? this.$route.meta.layout
-      : 'default';
+    emptyLayout,
+    defaultLayout,
+    adminLayout,
+    loginLayout
+  }
+})
+export default class Layouts extends Vue {
+  render(createElement: any) {
+    let layout =
+      this.$route.meta && this.$route.meta.layout
+        ? this.$route.meta.layout
+        : "default";
 
     switch (layout) {
-      case 'login':
-        return h('loginLayout', this.$slots.default)
-      case 'admin':
-        return h('adminLayout', this.$slots.default)
-      case 'empty':
-        return h('emptyLayout', this.$slots.default)
+      case "login":
+        return createElement("loginLayout", this.$slots.default);
+      case "admin":
+        return createElement("adminLayout", this.$slots.default);
+      case "empty":
+        return createElement("emptyLayout", this.$slots.default);
       default:
-        return h('defaultLayout', this.$slots.default)
+        return createElement("defaultLayout", this.$slots.default);
     }
   }
 }

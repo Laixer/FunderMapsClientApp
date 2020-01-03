@@ -1,5 +1,5 @@
 
-import { 
+import {
   foundationTypeOptions,
   foundationQualityOptions,
   substructureOptions,
