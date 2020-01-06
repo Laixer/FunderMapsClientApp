@@ -169,7 +169,8 @@ export default {
           { name: 'givenName', value: orgUser.givenName },
           { name: 'lastName', value: orgUser.lastName },
           { name: 'jobTitle', value: orgUser.jobTitle },
-          { name: 'phoneNumber', value: orgUser.phoneNumber }
+          { name: 'phoneNumber', value: orgUser.phoneNumber },
+          { name: 'email', value: orgUser.email },
         ])
         
         // FUTURE: Hide the role form when editing self
