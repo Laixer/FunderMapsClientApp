@@ -1,11 +1,11 @@
 
-import axios from '@/utils/axios'
+import axios from '../utils/axios'
 
-export default { 
-  getPrincipalUsers: () => {
+export default {
+  getPrincipalUsers() {
     return axios.post('/api/attestation/principal')
   },
-  getOrganizations: () => {
+  getOrganizations() {
     return axios.post('/api/attestation/organization')
   }
 }
