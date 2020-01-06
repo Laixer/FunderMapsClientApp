@@ -38,7 +38,7 @@ import NotFound from '@/views/NotFound.vue'
 import MapView from '@/views/Map.vue'
 
 // Services
-import { isLoggedIn, isAdmin, logout } from '../services/auth.js'
+import { isLoggedIn, isAdmin, logout } from '../services/auth'
 
 Vue.use(VueRouter)
 

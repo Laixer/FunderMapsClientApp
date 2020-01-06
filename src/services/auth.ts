@@ -1,19 +1,19 @@
 
-import authAPI from '@/api/auth'
-import { organizationUserRoleClaimType, userClaimType } from '@/config/claimTypes'
+import authAPI from '../api/auth'
+import { organizationUserRoleClaimType, userClaimType } from '../config/claimTypes'
 
 /**
  * Check whether the user has credentials stored
  * Note: the credentials may be invalid
  */
-export const isLoggedIn = () => {
-  return !! (getUser() && getAccessToken());
+export function isLoggedIn() {
+  return !!(getUser() && getAccessToken());
 }
 
 /**
  * Login based on email & password. Store credentials on success.
  */
-export const login = ({ email, password }) => {
+export function login(email: string, password: string) {
   return authAPI
     .login({ email, password })
     .then(handleAuthResponse)
@@ -22,7 +22,7 @@ export const login = ({ email, password }) => {
 /**
  * End the user session
  */
-export const logout = () => {
+export function logout(): void {
   removeUserInformation();
 }
 
@@ -44,30 +44,30 @@ export const refreshLogin = () => {
 /**
  * return authorization header with jwt token
  */
-export const authHeader = () => {
+export function authHeader(): object {
   let user = getUser()
-  return (user) 
+  return (user)
     ? { 'Authorization': 'Bearer ' + getAccessToken() }
     : {}
 }
 
-export const getUserEmail = () => {
+export function getUserEmail(): string {
   let user = getUser()
-  return (user)  
-    ? user.email 
+  return (user)
+    ? user.email
     : ''
 }
 
-export const getUserId = () => {
+export function getUserId(): string {
   let user = getUser()
-  return user 
+  return user
     ? user.id
     : ''
 }
 
-export const getLastUserEmail = () => {
+export function getLastUserEmail(): string {
   let email = getLastUserEmailFromStorage()
-  return email 
+  return email
     ? email
     : ''
 }
@@ -77,33 +77,33 @@ export const getLastUserEmail = () => {
 //  User Roles & Capabilities 
 // ****************************************************************************
 
-export const isAdmin = () => {
+export function isAdmin() {
   return getRole() === 'administrator';
 }
-
-export const isSuperUser = () => {
+export function isSuperUser() {
   return getOrganizationRole() === 'superuser';
 }
-export const isVerifier = () => {
+export function isVerifier() {
   return getOrganizationRole() === 'verifier'
 }
-export const isWriter = () => {
+export function isWriter() {
   return getOrganizationRole() === 'writer'
 }
-export const isReader = () => {
+export function isReader() {
   return getOrganizationRole() === 'reader'
 }
-export const canManageUsers = () => {
+export function canManageUsers() {
   return isSuperUser()
 }
-export const canApprove = () => {
+export function canApprove() {
   return isVerifier() || isSuperUser()
 }
-export const canWrite = () => {
+export function canWrite() {
   return canApprove() || isWriter()
 }
-export const canRead = () => {
-  return true; // everyone can read
+export function canRead() {
+  // Everyone can read
+  return true;
 }
 
 // ****************************************************************************
@@ -118,7 +118,7 @@ const access_token_key = 'access_token';
 /**
  * Store the authentication or refresh response
  */
-function handleAuthResponse(response) {
+function handleAuthResponse(response: any) {
   localStorage.setItem(access_token_key, response.data.token)
   localStorage.setItem(user_key, JSON.stringify(response.data.principal))
   sessionStorage.setItem(last_user, response.data.principal.email)
@@ -132,8 +132,12 @@ function removeUserInformation() {
 /**
  * Get the user from storage
  */
-function getUser() {
-  return JSON.parse(localStorage.getItem(user_key)) || false
+function getUser(): any {
+  let userObject = localStorage.getItem(user_key);
+  if (!userObject) {
+    return false;
+  }
+  return JSON.parse(userObject) || false
 }
 
 /**
@@ -146,8 +150,8 @@ function getLastUserEmailFromStorage() {
 /**
  * Get the access token from storage
  */
-function getAccessToken() {
-  return localStorage.getItem(access_token_key) || false
+function getAccessToken(): string | null {
+  return localStorage.getItem(access_token_key)
 }
 
 /**
@@ -156,11 +160,11 @@ function getAccessToken() {
 function getOrganizationRole() {
   try {
     let user = getUser()
-    let role = user.claims.find((claim) => {
+    let role = user.claims.find((claim: any) => {
       return organizationUserRoleClaimType == claim.type
     })
-    return role.value.toLowerCase(); 
-  } catch(err) {
+    return role.value.toLowerCase();
+  } catch (err) {
     return ''
   }
 }
@@ -171,11 +175,11 @@ function getOrganizationRole() {
 function getRole() {
   try {
     let user = getUser()
-    let role = user.claims.find((claim) => {
+    let role = user.claims.find((claim: any) => {
       return userClaimType == claim.type
     })
-    return role.value.toLowerCase(); 
-  } catch(err) {
+    return role.value.toLowerCase();
+  } catch (err) {
     return ''
   }
 }

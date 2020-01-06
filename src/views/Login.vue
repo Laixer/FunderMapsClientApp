@@ -89,12 +89,7 @@ export default {
           variant: 'info', 
           message: 'Bezig met inloggen...'
         }
-
-        await login({
-          email:    this.fieldValue('email'), 
-          password: this.fieldValue('password')
-        })
-        
+        await login(this.fieldValue('email'), this.fieldValue('password'));
         this.$router.push({ name: 'dashboard' })
       } catch (err) {
         this.enableAllFields()
