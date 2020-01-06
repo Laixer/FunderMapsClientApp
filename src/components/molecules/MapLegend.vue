@@ -147,6 +147,29 @@ export default {
             label: '9 mm/jaar of meer',
             color: '#A30500'
           }]
+        case 'Bouwjaar':
+          return [{
+            label: '<1900',
+            color: '#293575'
+          }, {
+            label: '1900-1930',
+            color: '#1261A3'
+          }, {
+            label: '1930-1945',
+            color: '#69A8DE'
+          }, {
+            label: '1945-1960',
+            color: '#99C1E9'
+          }, {
+            label: '1960-1970',
+            color: '#B378B1'
+          }, {
+            label: '1970-1980',
+            color: '#A860A6'
+          }, {
+            label: '1980>',
+            color: '#8F3C8D'
+          },]
       }
 
       return null
