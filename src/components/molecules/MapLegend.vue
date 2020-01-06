@@ -169,7 +169,56 @@ export default {
           }, {
             label: '1980>',
             color: '#8F3C8D'
-          },]
+          }]
+        case 'Type Rapport':
+          return [{
+            label: 'Funderingsonderzoek',
+            color: '#293575'
+          }, {
+            label: 'Quickscan',
+            color: '#1261A3'
+          }, {
+            label: 'Bouwkundigonderzoek',
+            color: '#69A8DE'
+          }, {
+            label: 'Archiefonderzoek',
+            color: '#99C1E9'
+          }, {
+            label: 'Sloopgrensonderzoek',
+            color: '#B378B1'
+          }, {
+            label: 'Monitoring',
+            color: '#A860A6'
+          }, {
+            label: 'Funderingsadvies',
+            color: '#8F3C8D'
+          }, {
+            label: 'Overig',
+            color: '#641C68'
+          }]
+        case 'Jaar Uitvoering Onderzoek':
+          return [{
+            label: '1960-1970',
+            color: '#293575'
+          }, {
+            label: '1970-1980',
+            color: '#1261A3'
+          }, {
+            label: '1980-1990',
+            color: '#69A8DE'
+          }, {
+            label: '1990-2000',
+            color: '#99C1E9'
+          }, {
+            label: '2000-2010',
+            color: '#B378B1'
+          }, {
+            label: '2010-2020',
+            color: '#A860A6'
+          }, {
+            label: '2020>',
+            color: '#8F3C8D'
+          }]
       }
 
       return null
