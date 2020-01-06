@@ -26,24 +26,18 @@
   </div>
 </template>
 
-<script>
-import { image } from 'helper/assets'
+<script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+import { image } from '../../helpers/assets'
 
-import { getUserId } from 'service/auth'
+import { getUserId } from '../../services/auth'
 
-export default {
-  props: {
-    member: {
-      type: [Object, Boolean],
-      default: false
-    }
-  },
-  methods: {
-    image,
+@Component
+export default class TeamMember extends Vue {
+  @Prop() private readonly member!: Object;
 
-    // id of current user
-    getUserId
-  }
+  get image() { return image; }
+  get getUserId() { return getUserId; }
 }
 </script>
 
