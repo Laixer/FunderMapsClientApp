@@ -61,6 +61,17 @@ export default {
             label: 'Overig',
             color: '#FFCD17'
           }]
+        case 'Funderingstype Indicatief':
+          return [{
+            label: 'Hoge kans op houten paal',
+            color: '#9E511f'
+          }, {
+            label: 'Zeer hoge kans op beton paal',
+            color: '#7A7A7A'
+          }, {
+            label: 'Kans op houten paal en betonpaal',
+            color: '#A860A6'
+          }]
         case 'Handhavingstermijnen':
           return [{
             label: 'ruim 30 jaar verlopen',
