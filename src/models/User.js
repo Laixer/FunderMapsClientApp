@@ -38,7 +38,7 @@ class UserModel {
     if (this.givenName) {
       name += this.givenName
     }
-    if (this.last_name) {
+    if (this.lastName) {
       name += ' ' + this.lastName
     }
     if (name) {

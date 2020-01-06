@@ -17,18 +17,14 @@ class OrgUserModel {
   getUserName() {
     // First try given and/or last name
     let name = '';
-    if (this.given_name) {
-      name += this.given_name;
+    if (this.givenName) {
+      name += this.givenName;
     }
-    if (this.last_name) {
-      name += ' ' + this.last_name;
+    if (this.lastName) {
+      name += ' ' + this.lastName;
     }
     if (name) {
       return name.trim();
-    }
-    // Check for a specific user_name as alternative
-    if (this.user_name) {
-      return this.user_name;
     }
     // Resort to email
     return this.email;
