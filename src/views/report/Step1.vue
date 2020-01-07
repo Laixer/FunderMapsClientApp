@@ -438,7 +438,7 @@ export default {
     mapToOrgOption(org) {
       return {
         value: org.id,
-        text: org.getName()
+        text: org.name
       }
     },
 
