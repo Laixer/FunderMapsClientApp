@@ -42,7 +42,7 @@ let structure = {
   deleteDate: ''
 }
 
-class SampleModel {
+export default class SampleModel {
   constructor({ sample, stored, editorState }) {
     Object.assign(this, structure, sample);
     this.stored = stored;
@@ -87,4 +87,3 @@ class SampleModel {
   }
 }
 
-export default SampleModel;
