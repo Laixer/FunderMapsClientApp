@@ -441,7 +441,7 @@ export default {
       }
 
       data.address = {
-        streetName: this.fields.address.selected.straatnaam,
+        streetName: this.fields.address.selected.weergavenaam, // NOTE: For now, just so we get back the entire name
         building_number: this.fields.address.selected.huisnummer,
         bag: this.fields.address.selected.nummeraanduiding_id,
         additional: this.fields.address.selected
