@@ -42,8 +42,8 @@
         <Divider />
         <div class="form-row">
           <FormField 
-            v-model="fields.conform_f3o.value"
-            v-bind="fields.conform_f3o"
+            v-model="fields.conformF3o.value"
+            v-bind="fields.conformF3o"
             class="col-md-3" />
           <FormField 
             v-model="fields.inspection.value"
@@ -144,6 +144,7 @@ export default {
           type: 'datepicker',
           validationRules: {
             required
+            // TODO: Set min/max
           },
           disabled: false
         },
@@ -166,7 +167,7 @@ export default {
           },
           disabled: false
         },
-        conform_f3o: {
+        conformF3o: {
           label: 'Conform F3O',
           value: false,
           type: 'radio',
@@ -309,6 +310,7 @@ export default {
   },
   async created() {
     await this.getReviewers()
+    await this.getContractors()
     if (this.$route.name === 'new-report') {
       this.prepareEmptyForm()
     } else {
@@ -344,14 +346,15 @@ export default {
     ...mapActions('reviewers', [
       'getReviewers'
     ]),
+    ...mapActions('contractors',[
+      'getContractors'
+    ]),
     /**
      * Prepare an empty form, for creating a new document
      */
     prepareEmptyForm() {
       if (!canWrite()) {
-        this.$router.push({
-          name: 'dashboard'
-        })
+        this.$router.push('dashboard');
         return;
       }
 
@@ -379,7 +382,7 @@ export default {
      */
     async prepareExistingReport() {
       if (!canWrite()) {
-        this.$router.push({
+        await this.$router.push({
           name: 'view-report',
           params: this.$route.params
         })
@@ -409,7 +412,7 @@ export default {
         return;
       }
       
-      let conform_f3oValue = report.norm ? report.norm.find(norm => norm.hasOwnProperty('conform_f3o')) : null
+      let conform_f3oValue = report.norm ? report.norm.find(norm => norm.hasOwnProperty('conformF3o')) : null
       conform_f3oValue = conform_f3oValue ? conform_f3oValue.conform_f3o : null
 
       this.setFieldValues({
@@ -418,7 +421,7 @@ export default {
         date: report.documentDate,
         contractor: report.contractor ? report.contractor.id : null,
         reviewer: report.reviewer ? report.reviewer.id : null,
-        conform_f3o: conform_f3oValue || false,
+        conformF3o: conform_f3oValue || false,
         inspection: report.inspection,
         jointMeasurement: report.jointMeasurement,
         floorMeasurement: report.floorMeasurement,
@@ -468,7 +471,7 @@ export default {
         status: values.status,
 
         type: parseInt(values.type),
-        document_date: values.date.toISOString(), 
+        documentDate: values.date.toISOString(), 
         attribution: {
           reviewer: values.reviewer,
           // {
@@ -478,7 +481,7 @@ export default {
           contractor: values.contractor,
         },
         norm: [{
-          conform_f3o: values.conform_f3o
+          conformF3o: values.conform_f3o
         }],
       }
 
