@@ -59,19 +59,13 @@ class reportModel {
 
     let orgContractor = attribution && attribution.contractor ? attribution.contractor : null;
     if (typeof orgContractor === 'string') {
-      orgContractor = {
-        id: orgContractor
-      };
+      this.contractor = new AttributedOrganisation(orgContractor, 'Uitvoerder');
     }
-    this.contractor = orgContractor ? new AttributedOrganisation({ orgContractor, role: 'Uitvoerder' }) : null;
 
     let orgOwner = attribution && attribution.owner ? attribution.owner : null;
     if (typeof orgOwner === 'string') {
-      orgOwner = {
-        id: orgOwner
-      };
+      this.owner = new AttributedOrganisation(orgOwner, 'Eigenaar');
     }
-    this.owner = orgOwner ? new AttributedOrganisation({ orgOwner, role: 'Eigenaar' }) : null;
 
     // Direct input
     Object.assign(this, {

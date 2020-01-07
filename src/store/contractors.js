@@ -23,7 +23,6 @@ const getters = {
 const actions = {
   async getContractors({ commit }) {
     let response = await contractorsAPI.getContractors();
-    
     if (response.status === 200 && response.data) {
       commit('set_contractors', { contractors: response.data })
     }
@@ -34,9 +33,7 @@ const actions = {
 }
 const mutations = {
   set_contractors(state, { contractors }) {
-    state.contractors = contractors.map(
-      contractor => new AttributedOrganisation({ org: contractor, role: 'Uitvoerder' })
-    )
+    state.contractors = contractors.map(contractor => new AttributedOrganisation(contractor.id, 'Uitvoerder', contractor.name))
   },
   clear_contractors(state) {
     state.contractors = null;

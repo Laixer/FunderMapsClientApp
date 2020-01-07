@@ -70,7 +70,7 @@ const mutations = {
     }));
   },
   set_contractors(state, { contractors }) {
-    state.contractors = contractors.map(org => new AttributedOrganisation({org}))
+    state.contractors = contractors.map(org => new AttributedOrganisation(org.id, org.role, org.name));
   },
   clear_principal_users(state) {
     state.users = null
