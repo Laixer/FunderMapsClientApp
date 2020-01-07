@@ -1,38 +1,35 @@
 <template>
-  <div 
-    v-if="orgObject"
-    class="ReportOrgRole d-flex align-items-center mt-4">
+  <div v-if="orgObject" class="ReportOrgRole d-flex align-items-center mt-4">
     <img :src="orgObject.getAvatar()" width="32" height="32" class="rounded-circle" />
     <div class="ml-3">
-      <div class="ReportOrgRole__name">{{ orgObject.getName() }}</div>
-      <div class="ReportOrgRole__role">{{ orgObject.getRole() }}</div>
+      <div class="ReportOrgRole__name">{{ orgObject.name }}</div>
+      <div class="ReportOrgRole__role">{{ orgObject.role }}</div>
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
+import AttributedOrganisation from "../../../models/AttributedOrganisation";
 
 export default {
   props: {
     org: {
-      type: Object,
+      type: AttributedOrganisation,
       required: true
     }
   },
   computed: {
-    ...mapGetters('contractors', [
-      'getOrgById'
-    ]),
+    ...mapGetters("contractors", ["getOrgById"]),
     orgObject() {
-      if (this.org.getName()) {
-        return this.org
+      if (this.org.name) {
+        return this.org;
       }
-      
-      return this.getOrgById({ id: this.org.id })
+
+      return this.getOrgById({ id: this.org.id });
     }
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -40,11 +37,11 @@ export default {
   &__name {
     color: #354052;
     font-size: 16px;
-    line-height: 1
+    line-height: 1;
   }
   &__role {
-    color: #7F8FA4;
-    line-height: 1
+    color: #7f8fa4;
+    line-height: 1;
   }
 }
 </style>
