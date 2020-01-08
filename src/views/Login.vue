@@ -3,23 +3,16 @@
     <h1 class="mb-5">Inloggen</h1>
 
     <Form @submit="handleSubmit">
-      
       <Feedback :feedback="feedback" />
 
-      <FormField 
-        v-model="fields.email.value"
-        v-bind="fields.email" />
-      <FormField 
-        v-model="fields.password.value"
-        v-bind="fields.password"
-        class="mt-2" />
-      
-      <button 
+      <FormField v-model="fields.email.value" v-bind="fields.email" />
+      <FormField v-model="fields.password.value" v-bind="fields.password" class="mt-2" />
+
+      <button
         type="submit"
-        :disabled='isDisabled'
-        class="btn btn-success btn-lg btn-block rounded-pill font-weight-bold border-0 mt-3 p-3">
-        Aanmelden
-      </button>
+        :disabled="isDisabled"
+        class="btn btn-success btn-lg btn-block rounded-pill font-weight-bold border-0 mt-3 p-3"
+      >Aanmelden</button>
     </Form>
 
     <div class="d-flex justify-content-center mt-5">
@@ -29,26 +22,26 @@
 </template>
 
 <script>
-import { login, getLastUserEmail } from 'service/auth'
-import PasswordResetLink from 'atom/branding/PasswordResetLink';
+import { login, getLastUserEmail } from "service/auth";
+import PasswordResetLink from "atom/branding/PasswordResetLink";
 
-import { required, email } from 'vuelidate/lib/validators';
+import { required, email } from "vuelidate/lib/validators";
 
-import Feedback from 'atom/Feedback'
-import Form from 'molecule/form/Form'
-import FormField from 'molecule/form/FormField'
+import Feedback from "atom/Feedback";
+import Form from "molecule/form/Form";
+import FormField from "molecule/form/FormField";
 
-import fields from 'mixin/fields'
+import fields from "mixin/fields";
 
 export default {
-  name: 'LoginForm',
+  name: "LoginForm",
   components: {
     PasswordResetLink,
     Feedback,
     Form,
     FormField
   },
-  mixins: [ fields ],
+  mixins: [fields],
   data() {
     return {
       feedback: {},
@@ -61,7 +54,8 @@ export default {
           placeholder: "naam@bedrijf.nl",
           value: getLastUserEmail(),
           validationRules: {
-            required, email
+            required,
+            email
           },
           disabled: false
         },
@@ -69,45 +63,48 @@ export default {
           label: "Wachtwoord",
           autocomplete: "current-password",
           type: "password",
-          value: '',
+          value: "",
           validationRules: {
             required
           },
           disabled: false
         }
       }
-    }
+    };
   },
   methods: {
     async handleSubmit(e) {
       e.preventDefault();
       
       try {
-        this.disableAllFields()
-        this.isDisabled = true
+        this.disableAllFields();
+        this.isDisabled = true;
         this.feedback = {
-          variant: 'info', 
-          message: 'Bezig met inloggen...'
-        }
-        await login(this.fieldValue('email'), this.fieldValue('password'));
-        this.$router.push({ name: 'dashboard' })
+          variant: "info",
+          message: "Bezig met inloggen..."
+        };
+        await login(this.fieldValue("email"), this.fieldValue("password"));
+        await this.$router.push({ name: "dashboard" });
       } catch (err) {
-        this.enableAllFields()
-        this.isDisabled = false
+        console.log('err', err);
+        this.enableAllFields();
+        this.isDisabled = false;
 
         if (err.response && err.response.status === 401) {
+          this.fields.password.value = null;
           this.feedback = {
-            variant: 'danger', 
-            message: 'Uw inlog gegevens zijn ongeldig'
-          }
+            variant: "danger",
+            message: "Uw inlog gegevens zijn ongeldig"
+          };
         } else {
           this.feedback = {
-            variant: 'danger', 
-            message: 'Onbekende fout. Probeer het later nog eens.'
-          }
+            variant: "danger",
+            message: "Onbekende fout. Probeer het later nog eens."
+          };
         }
       }
-    },
+
+    }
   }
-}
+};
 </script>

@@ -354,7 +354,7 @@ export default {
      */
     prepareEmptyForm() {
       if (!canWrite()) {
-        this.$router.push('dashboard');
+        this.$router.push({ name: "dashboard" });
         return;
       }
 
