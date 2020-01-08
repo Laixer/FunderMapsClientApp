@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
+import Vuex, { StoreOptions } from 'vuex'
 
 import org from './org';
 import reports from './reports'
@@ -15,7 +15,7 @@ import reviewers from './reviewers'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+const store: StoreOptions<{}> = {
   modules: {
     org,
     reports,
@@ -35,4 +35,6 @@ export default new Vuex.Store({
   },
   actions: {
   }
-})
+};
+
+export default new Vuex.Store(store);
