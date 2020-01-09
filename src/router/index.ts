@@ -185,6 +185,15 @@ const routes = [
       profile: true
     }
   },
+  {
+    path: '/admin/security',
+    name: 'admin-security',
+    component: Security,
+    meta: {
+      layout: 'admin',
+      profile: true
+    }
+  },
 
   // 404
   {
