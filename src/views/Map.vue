@@ -1,12 +1,13 @@
 <template>
   <div class="MapBox">
     <MglMap
-      class="MapBox__wrapper" 
+      class="MapBox__wrapper"
       :accessToken="accessToken"
       :mapStyle.sync="mapStyle"
       :transformRequest="transformRequest"
       :attributionControl="false"
-      @load="onMapLoaded">
+      @load="onMapLoaded"
+    >
       <MglFullscreenControl />
       <MglGeolocateControl position="top-right" />
     </MglMap>
@@ -14,169 +15,173 @@
 </template>
 
 <script>
-import {
-  MglMap,
-  MglGeolocateControl,
-  MglFullscreenControl,
-} from "vue-mapbox";
+import { MglMap, MglGeolocateControl, MglFullscreenControl } from "vue-mapbox";
 
-import { authHeader } from 'service/auth'
+import { authHeader } from "service/auth";
 
-import { mapGetters, mapMutations, mapActions } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from "vuex";
 
 export default {
   components: {
     MglMap,
     MglGeolocateControl,
-    MglFullscreenControl,
+    MglFullscreenControl
   },
   data() {
     return {
       accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
       mapStyle: process.env.VUE_APP_MAPBOX_STYLE
-    }
+    };
   },
   computed: {
-    ...mapGetters('map', [
-      'mapLayers',
-      'activeLayer',
-      'hasMapLayers',
-      'isMapboxReady'
+    ...mapGetters("map", [
+      "mapLayers",
+      "activeLayer",
+      "hasMapLayers",
+      "isMapboxReady"
     ]),
-    ...mapGetters('org', [
-      'organization'
-    ]),
+    ...mapGetters("org", ["organization"]),
     readyToLoadLayers() {
-      return this.isMapboxReady && this.hasMapLayers
+      return this.isMapboxReady && this.hasMapLayers;
     }
   },
   watch: {
     readyToLoadLayers(value) {
       if (value) {
-        this.addLayersToMapbox()
+        this.addLayersToMapbox();
       }
     },
     activeLayer() {
-      this.switchLayer()
+      this.switchLayer();
     }
   },
   async created() {
     if (!this.hasMapLayers) {
       try {
-        await this.getMapLayers()
+        await this.getMapLayers();
       } catch (err) {
         if (err.response && err.response.status === 401) {
-          this.$router.push({ name: 'login' })
+          this.$router.push({ name: "login" });
         }
       }
     }
   },
   beforeDestroy() {
     // TODO: We may want to keep the map in memory for faster loading
-    this.mapboxIsReady({ status: false })
+    this.mapboxIsReady({ status: false });
   },
   methods: {
-    ...mapActions('map', [
-      'getMapLayers'
-    ]),
-    ...mapMutations('map', [
-      'mapboxIsReady'
-    ]),
+    ...mapActions("map", ["getMapLayers"]),
+    ...mapMutations("map", ["mapboxIsReady"]),
     onMapLoaded(event) {
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.map;
       // TODO: this.organization.getCenter()
-      if (this.organization.centerX != 0 && this.organization.centerY != 0){
+      if (this.organization.centerX != 0 && this.organization.centerY != 0) {
         // TODO: We should initialize the map straight away here.
-        this.$store.map.flyTo({ center: [this.organization.centerX,this.organization.centerY], zoom: 13, speed: 2.5 });
+        this.$store.map.flyTo({
+          center: [this.organization.centerX, this.organization.centerY],
+          zoom: 13,
+          speed: 2.5
+        });
       }
-      this.mapboxIsReady({ status: true })
+      this.mapboxIsReady({ status: true });
     },
     transformRequest(url, resourceType) {
       // TODO: This url matching trick is dangerous and should be replaced
-      if (resourceType == 'Source' && url.startsWith(process.env.VUE_APP_API_BASE_URL)) {
+      if (
+        resourceType == "Source" &&
+        url.startsWith(process.env.VUE_APP_API_BASE_URL)
+      ) {
         return {
           url: url,
           headers: authHeader()
-        }
+        };
       }
     },
     switchLayer() {
       if (this.isMapboxReady) {
         // TODO: Test whether we first need to hide all
         this.mapLayers.forEach(layer => {
-          let source = this.$store.map.getSource(layer.id)
+          let source = this.$store.map.getSource(layer.id);
           if (source) {
             this.$store.map.setLayoutProperty(
-              layer.id, 'visibility', this.getLayerVisibility({ layer })
-            )
+              layer.id,
+              "visibility",
+              this.getLayerVisibility({ layer })
+            );
           }
-        })
+        });
       }
     },
     addLayersToMapbox() {
       this.mapLayers.forEach(layer => {
         this.$store.map.addSource(layer.id, {
-          type: 'geojson',
+          type: "geojson",
           data: `${process.env.VUE_APP_API_BASE_URL}${layer.source}`
-        })
+        });
         this.$store.map.addLayer({
-          "id": layer.id,
-          "type": "fill",
-          "source": layer.id,
-          'layout': {
-            'visibility': this.getLayerVisibility({ layer }),
+          id: layer.id,
+          type: "fill",
+          source: layer.id,
+          layout: {
+            visibility: this.getLayerVisibility({ layer })
           },
-          "paint": {
-            "fill-color": ['get', 'color'],
-            "fill-opacity": 0.8,
+          paint: {
+            "fill-color": ["get", "color"],
+            "fill-opacity": 0.8
           }
-        })
-      })
+        });
+      });
     },
     getLayerVisibility({ layer }) {
-      return (this.activeLayer && this.activeLayer.id === layer.id) ? 'visible' : 'none'
+      return this.activeLayer && this.activeLayer.id === layer.id
+        ? "visible"
+        : "none";
     }
   }
-}
+};
 </script>
 
 <style src='mapbox-gl/dist/mapbox-gl.css'></style>
 
 <style lang="scss">
-  .mapboxgl-canvas-container, .mapboxgl-canvas {
-    &:active, &:focus {
-      outline: none;
-    }
+.mapboxgl-canvas-container,
+.mapboxgl-canvas {
+  &:active,
+  &:focus {
+    outline: none;
   }
+}
 
-  .mapboxgl-marker {
-    position: absolute;
-    cursor: pointer;
-  }
+.mapboxgl-marker {
+  position: absolute;
+  cursor: pointer;
+}
 
-  .mapboxgl-map {
-    width: 100% !important;
-    height: 100% !important;
-  }
+.mapboxgl-map {
+  width: 100% !important;
+  height: 100% !important;
+}
 
-  .MapBox, .MapBox__wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    user-select: none;
-  }
+.MapBox,
+.MapBox__wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  user-select: none;
+}
 
-  a.mapboxgl-ctrl-logo {
-    display: none;
-  }
+a.mapboxgl-ctrl-logo {
+  display: none;
+}
 
-  .mapboxgl-ctrl-group {
-    border-radius: 0;
-  }
+.mapboxgl-ctrl-group {
+  border-radius: 0;
+}
 </style>

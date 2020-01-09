@@ -297,11 +297,7 @@ export default {
 
       // Go over the validation rules, and return the 
       // name of the first rule that is broken
-      let match = Object.keys(this.validationRules)
-        .find((rule) => {
-          return ! validator[rule]
-        })
-
+      let match = Object.keys(this.validationRules).find((rule) => !validator[rule]);
       if (match === -1) {
         return ''; // apparently no rules are broken?
       }

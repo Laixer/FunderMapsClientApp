@@ -10,8 +10,8 @@ export default {
       return this.fields[name].value;
     },
     fieldValues(names) {
-      return names.reduce((obj, name) => { 
-        obj[name] = this.fields[name].value; 
+      return names.reduce((obj, name) => {
+        obj[name] = this.fields[name].value;
         return obj
       }, {})
     },
@@ -31,19 +31,19 @@ export default {
         })
       }
     },
-    setFieldValue({name, value}) {
+    setFieldValue({ name, value }) {
       this.fields[name].value = value;
     },
 
     /**
      * Clear fields
      */
-    clearFieldValue({name}) {
+    clearFieldValue({ name }) {
       // TODO: Check type (select, radio, checkbox || text, etc.)
       this.setFieldValue({ name, value: '' })
     },
     clearFieldValues(names) {
-      names.forEach(name => this.clearFieldValue({name}))
+      names.forEach(name => this.clearFieldValue({ name }))
     },
     clearAllFieldValues() {
       this.clearFieldValues(Object.keys(this.fields))

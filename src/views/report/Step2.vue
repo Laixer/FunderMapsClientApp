@@ -72,7 +72,6 @@
 </template>
 
 <script>
-
 import ProgressSteps from 'molecule/ProgressSteps'
 import ProgressStep from 'model/ProgressStep'
 import Feedback from 'atom/Feedback'
@@ -144,7 +143,7 @@ export default {
   async created() {
     try {
       if (!canWrite()) {
-        this.$router.push({
+        await this.$router.push({
           name: 'view-report',
           params: this.$route.params
         })

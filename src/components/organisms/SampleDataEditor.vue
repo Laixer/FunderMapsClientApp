@@ -104,6 +104,7 @@ import Feedback from "atom/Feedback";
 import fields from "mixin/fields";
 
 import { mapGetters, mapActions } from "vuex";
+import SampleModel from '../../models/Sample';
 
 export default {
   components: {
@@ -115,7 +116,7 @@ export default {
   mixins: [fields],
   props: {
     sample: {
-      type: Object,
+      type: SampleModel,
       required: true
     }
   },
@@ -307,6 +308,7 @@ export default {
         message: "Let op: Dit adres is nog niet opgeslagen"
       };
     }
+
     // Required fields by API
     if (!this.sample.baseMeasurementLevel) {
       this.sample.baseMeasurementLevel = 0; // NAP
