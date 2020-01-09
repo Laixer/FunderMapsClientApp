@@ -75,7 +75,7 @@ export default {
   methods: {
     async handleSubmit(e) {
       e.preventDefault();
-      
+
       try {
         this.disableAllFields();
         this.isDisabled = true;
@@ -86,7 +86,10 @@ export default {
         await login(this.fieldValue("email"), this.fieldValue("password"));
         await this.$router.push({ name: "dashboard" });
       } catch (err) {
-        console.log('err', err);
+        // FUTURE: BUG: Cannot throw empty exception.
+        if (typeof err == "undefined") {
+          return;
+        }
         this.enableAllFields();
         this.isDisabled = false;
 
@@ -103,7 +106,6 @@ export default {
           };
         }
       }
-
     }
   }
 };

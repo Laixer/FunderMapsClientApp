@@ -1,26 +1,25 @@
 <template>
   <div>
-    <OrganizationTable 
+    <OrganizationTable
       title="Alle organisaties"
       :organizations="organisations"
-      class="mt-4 pt-2 mb-5" />
+      class="mt-4 pt-2 mb-5"
+    />
   </div>
 </template>
 
 <script>
-import OrganizationTable from 'organism/OrganizationTable'
+import OrganizationTable from "organism/OrganizationTable";
 
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 
 export default {
   components: {
     OrganizationTable
   },
   computed: {
-    ...mapGetters('org', [
-      'organisations'
-    ])
+    ...mapGetters("org", ["organisations"])
   }
-}
+};
 </script>
 

@@ -2,51 +2,46 @@
   <div class="d-flex flex-column">
     <UploadArea />
 
-    <ReportTable 
+    <ReportTable
       title="Recente rapporten"
       :reports="latestReports({ count: 5 })"
       :synchronizing="loading"
-      class="mt-4 pt-2 mb-5" />
-    <PrimaryArrowButton
-      class="mx-auto"
-      label="Alle rapporten"
-      :to="{ name: 'reports' }" />
+      class="mt-4 pt-2 mb-5"
+    />
+    <PrimaryArrowButton class="mx-auto" label="Alle rapporten" :to="{ name: 'reports' }" />
   </div>
 </template>
 
 <script>
-import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
-import ReportTable from 'organism/ReportTable';
-import UploadArea from 'molecule/UploadArea';
+import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
+import ReportTable from "organism/ReportTable";
+import UploadArea from "molecule/UploadArea";
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from "vuex";
 
 let timer = null;
 
 export default {
-  name: 'Dashboard',
+  name: "Dashboard",
   components: {
-    ReportTable, UploadArea, PrimaryArrowButton
+    ReportTable,
+    UploadArea,
+    PrimaryArrowButton
   },
   data() {
     return {
       loading: true
-    }
+    };
   },
   computed: {
-    ...mapGetters('reports', [
-      "latestReports"
-    ])
+    ...mapGetters("reports", ["latestReports"])
   },
   async created() {
     try {
-      await Promise.all([
-        this.syncReports(),
-        this.getReviewers(),
-      ])
-    } catch(err) {
+      await Promise.all([this.syncReports(), this.getReviewers()]);
+    } catch (err) {
       if (err.response && err.response.status === 401) {
-        this.$router.push({ name: 'login' })
+        await this.$router.push({ name: "login" });
       }
     }
   },
@@ -54,12 +49,8 @@ export default {
     clearTimeout(timer);
   },
   methods: {
-    ...mapActions('reports', [
-      'getReports'
-    ]),
-    ...mapActions('reviewers', [
-      'getReviewers'
-    ]),
+    ...mapActions("reports", ["getReports"]),
+    ...mapActions("reviewers", ["getReviewers"]),
 
     // Update the report details on the dashboard every minute
     async syncReports() {
@@ -69,12 +60,12 @@ export default {
       }
       await this.getReports({
         page: 1,
-        limit: 25,
+        limit: 25
       });
       this.loading = false;
 
-      timer = setTimeout(this.syncReports, (60 * 1000)); // every minute
+      timer = setTimeout(this.syncReports, 60 * 1000); // every minute
     }
   }
-}
+};
 </script>

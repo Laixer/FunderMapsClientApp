@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import VueRouter from 'vue-router'
+import VueRouter, { Route } from 'vue-router'
 
 // Dashboard
 import Dashboard from '@/views/Dashboard.vue'
@@ -145,7 +145,7 @@ const routes = [
     name: 'admin-dashboard',
     component: AdminDashboard,
     meta: {
-      layout: 'admin',
+      layout: 'empty',
       admin: true
     }
   },
@@ -213,7 +213,7 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeEach((to: any, from: any, next: any) => {
+router.beforeEach((to: Route, from: Route, next: any) => {
   // Public pages
   if (to.meta && to.meta.public) {
     next()
