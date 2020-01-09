@@ -161,7 +161,7 @@ export default {
         this.activeReport.isApproved()) && 
         !isSuperUser()
       ) {
-        this.$router.push({
+        await this.$router.push({
           name: 'view-report',
           params: this.$route.params
         })

@@ -54,8 +54,8 @@
         class="col-md-6"
       />
       <FormField
-        v-model="fields.enforcement_term.value"
-        v-bind="fields.enforcement_term"
+        v-model="fields.enforcementTerm.value"
+        v-bind="fields.enforcementTerm"
         class="col-md-6"
       />
     </div>
@@ -234,7 +234,7 @@ export default {
             required
           }
         },
-        enforcement_term: {
+        enforcementTerm: {
           label: "Handhavingstermijn",
           type: "select",
           value: null,
@@ -341,9 +341,9 @@ export default {
         options: foundationDamageCauseOptions,
         name: "foundationDamageCause"
       }),
-      enforcement_term: this.optionValue({
+      enforcementTerm: this.optionValue({
         options: enforcementTermOptions,
-        name: "enforcement_term"
+        name: "enforcementTerm"
       }),
       baseMeasurementLevel: this.optionValue({
         options: BaseMeasurementLevelOptions,
