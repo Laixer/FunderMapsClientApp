@@ -104,7 +104,7 @@ import Feedback from "atom/Feedback";
 import fields from "mixin/fields";
 
 import { mapGetters, mapActions } from "vuex";
-import SampleModel from '../../models/Sample';
+import SampleModel from "../../models/Sample";
 
 export default {
   components: {

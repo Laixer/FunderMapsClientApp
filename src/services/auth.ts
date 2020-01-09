@@ -6,7 +6,7 @@ import { organizationUserRoleClaimType, userClaimType } from '../config/claimTyp
  * Check whether the user has credentials stored
  * Note: the credentials may be invalid
  */
-export function isLoggedIn() {
+export function isLoggedIn(): boolean {
   return !!(getUser() && getAccessToken());
 }
 
@@ -29,7 +29,7 @@ export function logout(): void {
 /**
  * Renew the authentication credentials
  */
-export const refreshLogin = () => {
+export function refreshLogin(): void {
   if (isLoggedIn()) {
     authAPI
       .refresh()
@@ -77,31 +77,31 @@ export function getLastUserEmail(): string {
 //  User Roles & Capabilities 
 // ****************************************************************************
 
-export function isAdmin() {
+export function isAdmin(): boolean {
   return getRole() === 'administrator';
 }
-export function isSuperUser() {
+export function isSuperUser(): boolean {
   return getOrganizationRole() === 'superuser';
 }
-export function isVerifier() {
+export function isVerifier(): boolean {
   return getOrganizationRole() === 'verifier'
 }
-export function isWriter() {
+export function isWriter(): boolean {
   return getOrganizationRole() === 'writer'
 }
-export function isReader() {
+export function isReader(): boolean {
   return getOrganizationRole() === 'reader'
 }
-export function canManageUsers() {
+export function canManageUsers(): boolean {
   return isSuperUser()
 }
-export function canApprove() {
+export function canApprove(): boolean {
   return isVerifier() || isSuperUser()
 }
-export function canWrite() {
+export function canWrite(): boolean {
   return canApprove() || isWriter()
 }
-export function canRead() {
+export function canRead(): boolean {
   // Everyone can read
   return true;
 }
