@@ -11,6 +11,7 @@
 
 <script>
 import DataRow from "molecule/DataRow";
+import SampleModel from "../../models/Sample";
 
 export default {
   name: "SampleDataPresentation",
@@ -19,7 +20,7 @@ export default {
   },
   props: {
     sample: {
-      type: Object,
+      type: SampleModel,
       required: true
     }
   },
