@@ -301,7 +301,7 @@ export default {
   computed: {
     ...mapGetters("report", ["activeReport"])
   },
-  created() {
+  async created() {
     if (this.sample.stored === false) {
       this.feedback = {
         variant: "info",
@@ -356,6 +356,12 @@ export default {
       groundLevel: this.sample.groundLevel
     });
 
+    // Set existing bag as selected item.
+    if (this.sample.address.bag) {
+      let record = await this.getGeocoderByBag(this.sample.address.bag);
+      await this.handleHit(record);
+    }
+
     // After setting the field values, set the DB storage status
     this.$nextTick(() => {
       this.stored = this.sample.stored !== false;
@@ -396,6 +402,17 @@ export default {
       if (response.status === 200 && response.data) {
         if (response.data.response.numFound > 0) {
           this.fields.address.data = response.data.response.docs;
+        }
+      }
+    },
+    async getGeocoderByBag(id) {
+      // TODO: This should be handled via a store
+      let response = await axios(
+        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/free?fq=nummeraanduiding_id:${id}`
+      );
+      if (response.status === 200 && response.data) {
+        if (response.data.response.numFound > 0) {
+          return response.data.response.docs[0];
         }
       }
     },
