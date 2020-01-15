@@ -5,27 +5,27 @@
  * Configuration of Enums
  */
 
-export const typeOptions = [ 
+export const typeOptions = [
   {
     text: 'Aanvullend onderzoek',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Monitoring',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Notitie',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Quickscan',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Onbekend',
     color: 'white',
@@ -35,22 +35,22 @@ export const typeOptions = [
     text: 'Sloopgrens onderzoek',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Second opinion',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Archief onderzoek',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Bouwkundig onderzoek',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Funderingsadvies',
     color: 'white',
@@ -60,12 +60,12 @@ export const typeOptions = [
     text: 'Inspectieput',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Funderings onderzoek',
     color: 'white',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Grondwater onderzoek',
     color: 'white',
@@ -73,48 +73,48 @@ export const typeOptions = [
   }
 ]
 
-export const statusOptions = [ 
+export const statusOptions = [
   {
     text: 'Todo',
     label: 'Nog te beoordelen',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Pending',
     label: 'In bewerking',
     bgColor: '#F5A623'
-  }, 
+  },
   {
     text: 'Done',
     label: 'Afgerond',
     bgColor: '#28CC8B'
-  }, 
+  },
   {
     text: 'Discarded',
     label: 'Afgevallen',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'PendingReview',
     label: 'Gecontroleerd',
     bgColor: '#3D5372'
-  }, 
+  },
   {
     text: 'Rejected',
     label: 'Afgekeurd',
     bgColor: '#FF4E4E'
-  } 
+  }
 ]
 
-export const accessOptions = [ 
+export const accessOptions = [
   {
     value: 'Public',
     label: 'Openbaar'
-  }, 
+  },
   {
     value: 'Private',
     label: 'Gesloten'
-  } 
+  }
 ]
 
 export const foundationTypeOptions = [
@@ -188,11 +188,11 @@ export const foundationQualityOptions = [
   {
     value: 'Bad',
     text: 'Slecht'
-  }, 
+  },
   {
     value: 'Mediocre',
     text: 'Matig'
-  }, 
+  },
   {
     value: 'Tolerable',
     text: 'Redelijk'
@@ -215,16 +215,16 @@ export const substructureOptions = [
   {
     value: 'Cellar',
     text: 'Kelder'
-  }, 
-  { 
+  },
+  {
     value: 'Basement',
     text: 'Souterrain'
-  }, 
+  },
   {
     value: 'Crawlspace',
     text: 'Kruipruimte'
-  }, 
-  { 
+  },
+  {
     value: 'None',
     text: 'Geen'
   }
@@ -232,7 +232,7 @@ export const substructureOptions = [
 
 export const foundationDamageCauseOptions = [
   {
-    value: 'Drainage', 
+    value: 'Drainage',
     text: 'Bemaling'
   },
   {
@@ -266,46 +266,74 @@ export const foundationDamageCauseOptions = [
   {
     value: 'FungusInfection',
     text: 'Bacterien en schimmels aantasting'
-  }
+  },
+  {
+    value: 'foundationFlaw',
+    text: 'Funderings fouten'
+  },
+  {
+    value: 'constructionHeave',
+    text: 'Afglijden fundering'
+  },
+  {
+    value: 'subsidence',
+    text: 'Bodemdaling'
+  },
+  {
+    value: 'vegetation',
+    text: 'Aantasting (planten)wortels'
+  },
+  {
+    value: 'gas',
+    text: 'Gaswinning'
+  },
+  {
+    value: 'vibrations',
+    text: 'Trillingen'
+  },
+  {
+    value: 'partial_foundation_recovery',
+    text: 'Funderingsherstel naastgelegen pand'
+  },
 ]
 
 export const enforcementTermOptions = [
   {
     text: '0-5 jaar',
     value: 'Term0_5'
-  }, 
+  },
   {
     text: '5-10 jaar',
     value: 'Term5_10'
-  }, 
+  },
   {
     text: '10-20 jaar',
     value: 'Term10_20'
-  }, 
+  },
   {
     text: '5 jaar',
     value: 'Term5'
-  }, 
+  },
   {
     text: '10 jaar',
     value: 'Term10'
-  }, 
+  },
   {
     text: '15 jaar',
     value: 'Term15'
-  }, 
+  },
   {
     text: '20 jaar',
     value: 'Term20'
-  }, 
+  },
   {
     text: '25 jaar',
     value: 'Term25'
-  }, 
+  },
   {
     text: '30 jaar',
     value: 'Term30'
-  }, 
+  },
   {
     text: '40 jaar',
     value: 'Term40'
@@ -316,7 +344,7 @@ export const BaseMeasurementLevelOptions = [
   {
     value: 'NAP',
     text: 'NAP (Nederland)'
-  }, 
+  },
   {
     value: 'TAW',
     text: 'TAW (België)'
