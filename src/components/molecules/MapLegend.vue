@@ -219,6 +219,11 @@ export default {
             label: '2020>',
             color: '#8F3C8D'
           }]
+        case 'Eigendomskaart':
+          return [{
+            label: 'Eigendom',
+            color: '#8F3C8D'
+          }]
       }
 
       return null
