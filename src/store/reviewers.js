@@ -16,9 +16,11 @@ const state = {
 }
 
 const getters = {
-  areReviewersAvailable: state => state.reviewers !== null,
+  areReviewersAvailable: state => state.reviewers !== null && state.reviewers !== undefined && state.reviewers.length > 0,
   reviewers: state => state.reviewers,
-  getUserById: state => ({ id }) => state.reviewers.find(reviewer => reviewer.id === id)
+  getUserById: state => ({ id }) => (state.reviewers) 
+    ? state.reviewers.find(reviewer => reviewer.id === id)
+    : null
 }
 const actions = {
   async getReviewers({ commit }) {

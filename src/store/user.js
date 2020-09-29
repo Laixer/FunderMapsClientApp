@@ -20,12 +20,13 @@ const getters = {
     return state.user;
   },
   isUserAvailable: state => {
-    return state.user !== null
+    return state.user !== null && state.user !== undefined
   }
 }
 const actions = {
   async getUser({ commit }) {
     let response = await userAPI.getUser();
+
     if (response.status === 200 && response.data) {
       commit('set_user', {
         user: response.data
@@ -47,6 +48,8 @@ const actions = {
 const mutations = {
   set_user(state, { user }) {
     state.user = new UserModel({
+      id: user.id,
+      email: user.email,
       givenName: user.givenName, 
       lastName: user.lastName, 
       avatar: user.avatar, 
