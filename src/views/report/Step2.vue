@@ -19,7 +19,6 @@
 
       <div>  
         <Feedback :feedback="feedback" />
-
         <div 
           v-if="samples.length !== 0" 
           class="Report__samples">  
@@ -129,7 +128,7 @@ export default {
       let report = this.activeReport ? this.activeReport : { id: 'id', documentId: 'document' }
       return { name: 'edit-report-1', params: { 
         id: report.id, 
-        document: report.documentId 
+        document: report.documentFile
       } }
     },
     nextStep() {
@@ -143,6 +142,9 @@ export default {
   async created() {
     try {
       if (!canWrite()) {
+
+        console.log('We !canWrite')
+
         await this.$router.push({
           name: 'view-report',
           params: this.$route.params
@@ -150,9 +152,8 @@ export default {
         return;
       }
 
-      await this.getReportByIds({
-        id: this.$route.params.id,
-        document: this.$route.params.document
+      await this.getReportById({
+        id: this.$route.params.id
       })
 
       if (
@@ -169,7 +170,8 @@ export default {
       
       EventBus.$on('save-report', this.handleSaveSamplesAndNextStep)
 
-      await this.getSamples({ reportId: this.activeReport.id })
+      await this.getSamples({ inquiryId: this.activeReport.id })
+
       if (this.samples.length === 0) {
         this.nosamples = true
       }
@@ -190,7 +192,7 @@ export default {
   methods: {
     icon,
     ...mapActions('report', [
-      'getReportByIds',
+      'getReportById',
       'clearActiveReport'
     ]),
     ...mapActions('samples', [
@@ -200,9 +202,14 @@ export default {
     ]),
     handleAddSample() {
       this.countdownToNewSample = this.samples.length
+
+      console.log('handleAddSample this.countdownToNewSample', this.countdownToNewSample)
+
       if (this.countdownToNewSample === 0) {
+        console.log('handleAddSample > this.addUnsavedSample()')
         this.addUnsavedSample()
       } else {
+        console.log('handleAddSample > this.saveAllSamples()')
         this.saveAllSamples() 
       }
     },
@@ -212,7 +219,12 @@ export default {
       }))
     },
     handleSaveSamplesAndNextStep() {
-      
+      // TODO Is this in the right place?
+      if (this.samples.length === 0) {
+        console.log('Blocking next step in Step2.handleSaveSamplesAndNextStep()')
+        return;
+      }
+
       // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
       this.countdownToNextPage = this.samples.length
 

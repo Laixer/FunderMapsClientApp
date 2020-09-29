@@ -291,7 +291,7 @@ export default {
   async created() {
     await this.getReviewers();
     await this.getContractors();
-    if (this.$route.name === "new-report") {
+    if (this.$route.name === "new-report2") { // TODO Beunfix, see router index.ts
       this.prepareEmptyForm();
     } else {
       this.prepareExistingReport();
@@ -315,7 +315,7 @@ export default {
   },
   methods: {
     ...mapActions("report", [
-      "getReportByIds",
+      "getReportById",
       "updateReport",
       "createReport",
       "clearActiveReport"
@@ -335,11 +335,14 @@ export default {
 
       // Make the documentName accessible as data
       if (this.$route.params.file) {
-        this.documentName = this.$route.params.file.fileName;
-        this.fields.documentId.value = this.$route.params.file.name
-          .split(".")
-          .slice(0, -1)
-          .join(".");
+        this.documentName = this.$route.params.file.name;
+
+        // Pre-assign document name
+        this.fields.documentId.value = this.documentName
+      }
+
+      if (this.$route.params.fileId) {
+        this.internalDocumentId = this.$route.params.fileId.name
       }
 
       // Set the contractor & reviewer user options (from Vuex)
@@ -369,9 +372,8 @@ export default {
       this.fields.reviewer.options = this.getReviewerOptions;
       this.fields.contractor.options = this.getContractorOptions;
 
-      await this.getReportByIds({
-        id: this.$route.params.id,
-        document: this.$route.params.document
+      await this.getReportById({
+        id: this.$route.params.id
       });
 
       let report = this.activeReport;
@@ -436,32 +438,26 @@ export default {
       let values = this.allFieldValues();
 
       let data = {
-        documentId: values.documentId,
+        documentName: values.documentId, // TODO Very confusing
         inspection: values.inspection,
         jointMeasurement: values.jointMeasurement,
         floorMeasurement: values.floorMeasurement,
         note: values.note,
-        status: values.status,
-
-        type: parseInt(values.type),
         documentDate: values.date.toISOString(),
-        attribution: {
-          reviewer: values.reviewer,
-          // {
-          //   nick_name: reviewer.getUserName(),
-          //   email: reviewer.user.email
-          // },
-          contractor: values.contractor
-        },
-        norm: [
-          {
-            conformF3o: values.conform_f3o
-          }
-        ]
+        documentFile: this.internalDocumentId, // TODO Very confusing
+        type: parseInt(values.type),
+        standardF3o: values.conform_f3o,
+        auditStatus: values.status,
+        reviewer: values.reviewer,
+        contractor: values.contractor,
+        // TODO Access policy?
       };
 
       if (this.activeReport) {
         data["id"] = this.$route.params.id;
+
+        console.log('updating report')
+
         await this.updateReport({
           id: this.$route.params.id,
           document: this.$route.params.document,
@@ -471,6 +467,7 @@ export default {
           .catch(this.errorHandler);
       } else {
         data["documentName"] = this.documentName;
+
         await this.createReport(data)
           .then(this.handleSuccess)
           .catch(this.errorHandler);
@@ -484,7 +481,7 @@ export default {
         name: "edit-report-2",
         params: {
           id: this.activeReport.id,
-          document: this.activeReport.documentId
+          document: this.activeReport.documentFile
         }
       });
     },

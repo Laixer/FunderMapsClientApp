@@ -91,6 +91,7 @@ export default {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
     previousStep() {
+      console.log('Step3.previousStep()')
       let report = this.activeReport
         ? this.activeReport
         : { id: "id", documentId: "document" };
@@ -104,7 +105,11 @@ export default {
     }
   },
   async created() {
+
+    console.log('Step3 this.activeReport', this.activeReport)
+
     if (!canWrite()) {
+      console.log('Step3.created() pushing to view-report')
       this.$router.push({
         name: "view-report",
         params: this.$route.params
@@ -113,16 +118,21 @@ export default {
     }
 
     try {
-      await this.getReportByIds({
-        id: this.$route.params.id,
-        document: this.$route.params.document
+      console.log('Awaiting getReportById')
+      await this.getReportById({
+        id: this.$route.params.id
       });
+      console.log('Finished getReportById', this.activeReport)
+
+      // TODO This is a fix for the change of format
+      
 
       if (
         (this.activeReport.isPendingReview() ||
           this.activeReport.isApproved()) &&
         !isSuperUser()
       ) {
+        console.log('Pushing to view-report')
         this.$router.push({
           name: "view-report",
           params: this.$route.params
@@ -130,9 +140,16 @@ export default {
         return;
       }
 
+      console.log('Arrived at eventbus part')
+
       EventBus.$on("save-report", this.handleToPendingReview);
 
-      await this.getSamples({ reportId: this.activeReport.id });
+      console.log('Awaiting getSamples')
+
+      await this.getSamples({ inquiryId: this.activeReport.id });
+
+      console.log('Finished getSamples', this.samples)
+
       if (this.samples.length === 0) {
         this.nosamples = true;
       }
@@ -151,7 +168,7 @@ export default {
   },
   methods: {
     ...mapActions("report", [
-      "getReportByIds",
+      "getReportById",
       "clearActiveReport",
       "submitForReview"
     ]),
