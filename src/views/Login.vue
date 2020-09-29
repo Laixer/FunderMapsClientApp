@@ -2,7 +2,7 @@
   <div class="LoginForm">
     <h1 class="mb-5">Inloggen</h1>
 
-    <Form @submit="handleSubmit">
+    <Form @submit="handleSubmit" id="myform">
       <Feedback :feedback="feedback" />
 
       <FormField v-model="fields.email.value" v-bind="fields.email" />
@@ -87,6 +87,10 @@ export default {
         await this.$router.push({ name: "dashboard" });
       } catch (err) {
         // FUTURE: BUG: Cannot throw empty exception.
+
+        // TODO Remove
+        console.log('err = ', err);
+
         if (typeof err == "undefined") {
           return;
         }
