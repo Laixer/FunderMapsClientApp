@@ -20,7 +20,7 @@ export default {
     },
 
     /**
-     * Set Field values
+     * Set collection of field values.
      */
     setFieldValues(fieldValues) {
       if (Array.isArray(fieldValues)) {
@@ -31,6 +31,10 @@ export default {
         })
       }
     },
+
+    /**
+     * Set single field value.
+     */
     setFieldValue({ name, value }) {
       this.fields[name].value = value;
     },
