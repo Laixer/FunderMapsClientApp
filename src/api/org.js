@@ -5,8 +5,17 @@ export default {
   getOrganization: () => {
     return axios.get('/api/organization')
   },
-  updateOrganization: ({ orgId, data }) => {
-    return axios.put(`/api/organization/${orgId}`, data)
+  getOrganizationById: ({ id }) => {
+    return axios.get(`/api/organization/${id}`)
+  },
+  getAllOrganizations: () => {
+    return axios.get('/api/admin/organization/')
+  },
+  updateOrganization: ({ data }) => {
+    return axios.put(`/api/organization/`, data)
+  },
+  updateOrganizationAsAdmin: ({ organizationId, data }) => {
+    return axios.put(`/api/admin/organization/${organizationId}`, data)
   },
   getProposals: () => {
     return axios.get('/api/organization_proposal')

@@ -2,23 +2,16 @@
 import axios from '@/utils/axios'
 
 export default { 
-  getOrganizationUsers: ({ orgId }) => {
-    return axios.get(`/api/organization/${orgId}/user`)
+  getOrganizationUsers: () => {
+    return axios.get(`/api/organization/user`)
   },
-  getOrganizationUserProfile: ({ orgId, id }) => {
-    return axios.get(`/api/organization/${orgId}/user/${id}/profile`)
+  updateOrganizationUser: ({ userId, data }) => {
+    return axios.put(`/api/organization/user/${userId}`, data)
   },
-  updateOrganizationUser: ({ orgId, user, role }) => {
-    return axios.put(`/api/organization/${orgId}/user/${user.id}/profile`, 
-      { profile: user, role: role }
-    )
+  createOrganizationUser: ({ data }) => {
+    return axios.post(`/api/organization/user/`, data)
   },
-  createOrganizationUser: ({ orgId, user, role }) => {
-    return axios.post(`/api/organization/${orgId}/user/`, 
-      { email: user.email, password: user.password, role: role }
-    )
-  },
-  removeOrganizationUser: ({ orgId, id }) => {
-    return axios.delete(`/api/organization/${orgId}/user/${id}`)
+  removeOrganizationUser: ({ userId }) => {
+    return axios.delete(`/api/organization/user/${userId}`)
   }
 }

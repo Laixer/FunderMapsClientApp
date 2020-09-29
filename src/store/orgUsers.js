@@ -49,45 +49,46 @@ const getters = {
   }
 }
 const actions = {
-  // FUTURE: We do not want to make 1+n remote calls.
-  async getUsers({ commit }, { orgId }) {
-    let response = await orgUserAPI.getOrganizationUsers({ orgId });
-    if (response.status === 200 && response.data.length > 0) {
-      await Promise.all(response.data.map(organizationUser => {
-        return orgUserAPI.getOrganizationUserProfile({ orgId, id: organizationUser.userId }).then(result => {
-          if (response.status === 200 && response.data) {
-            return Object.assign(organizationUser, result.data)
-          }
-        })
-      })).then(results => {
-        commit('set_users', {
-          users: results
-        })
+  /**
+   * Gets all current organization users.
+   */
+  async getUsers({ commit }) {
+    let response = await orgUserAPI.getOrganizationUsers();
+    if (response.status === 200) {
+      commit('set_users', {
+        users: response.data
       })
     } 
   },
-  async updateUser({ dispatch }, { orgId, userData, role }) {
-    let response = await orgUserAPI.updateOrganizationUser({ orgId, user: userData, role })
+  /**
+   * Updates an organization user, then triggers the getUsers
+   * action to fetch the updated user. The result is then returned.
+   */
+  async updateUser({ dispatch }, { userId, data }) {
+    let response = await orgUserAPI.updateOrganizationUser({ userId, data })
     if (response.status === 204) {
-      dispatch('getUsers', {
-        orgId
-      })
+      dispatch('getUsers');
     }
     return response;
   },
-  async createUser({ dispatch }, { orgId, userData, role }) {
-    let response = await orgUserAPI.createOrganizationUser({ orgId, user: userData, role })
+  /**
+   * Creates a new organization user, then triggers the getUsers
+   * action to fetch the created user. The result is then returned.
+   */
+  async createUser({ dispatch }, { data }) {
+    let response = await orgUserAPI.createOrganizationUser({ data })
     if (response.status === 204) {
-      dispatch('getUsers', {
-        orgId
-      })
+      dispatch('getUsers');
     }
     return response;
   },
-  async removeUser({ commit }, { orgId, id }) {
-    let response = await orgUserAPI.removeOrganizationUser({ orgId, id })
+  /**
+   * Removes an organization user.
+   */
+  async removeUser({ commit }, { userId }) {
+    let response = await orgUserAPI.removeOrganizationUser({ userId })
     if (response.status === 204) {
-      commit('remove_user', { id })
+      commit('remove_user', { userId })
     }
   },
   clearUsers({ commit }) {
@@ -100,16 +101,16 @@ const mutations = {
       return new OrgUserModel(user)
     })
   },
-  update_user(state, { userData, role }) {
+  // TODO This isn't used
+  // update_user(state, { user }) {
+  //   let index = state.users.findIndex(u => {
+  //     return u.id === user.id
+  //   })
+  //   state.users[index] = user;
+  // },
+  remove_user(state, { userId }) {
     let index = state.users.findIndex(user => {
-      return user.id === userData.id
-    })
-    state.users[index] = userData;
-    state.users[index].role = role
-  },
-  remove_user(state, { id }) {
-    let index = state.users.findIndex(user => {
-      return user.id === id
+      return user.id === userId
     })
     Vue.delete(state.users, index);
   },
