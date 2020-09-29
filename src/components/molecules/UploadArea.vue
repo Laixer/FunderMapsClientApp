@@ -3,7 +3,8 @@
     <Feedback :feedback="feedback" />
     <vue2Dropzone 
       id="dropzone"
-      v-if="canWrite()"
+      TODO Look into this
+      v-if="canUserWrite()" 
       ref="dropzone"
       :options="options"
       useCustomSlot
@@ -37,7 +38,7 @@ import vue2Dropzone from 'vue2-dropzone'
 import 'vue2-dropzone/dist/vue2Dropzone.min.css'
 import Feedback from 'atom/Feedback'
 
-import { authHeader, canWrite } from 'service/auth';
+import { authHeader, canWrite, canUserWrite } from 'service/auth';
 
 export default {
   components: {
@@ -50,16 +51,18 @@ export default {
         variant: ''
       },
       options: {
+        paramName: 'input',
+        addRemoveLinks: true,
         maxFiles: 1,
-        maxFileSize: 20,
-        // acceptedFiles: 'image/*,application/pdf',
-        url: (process.env.VUE_APP_API_BASE_URL + '/api/report/upload').replace(/([^:]\/)\/+/g, "$1") // TODO: Move to API
+        maxFilesize: 100,
+        acceptedFiles: 'application/pdf',
+        url: process.env.VUE_APP_API_BASE_URL + 'api/inquiry/upload-document'
       }
     }
   },
   methods: {
     image,
-    canWrite,
+    canUserWrite,
     /**
      * Add the Authorization header when the upload process starts
      */
@@ -78,14 +81,15 @@ export default {
      * Start the creation of a new report once the upload has finished with success
      */
     handleSuccess(file, response) {
-      if (file && this.$refs.dropzone) {
-        this.$refs.dropzone.removeFile(file)
-      }
+      //if (file && this.$refs.dropzone) {
+      //  this.$refs.dropzone.removeFile(file)
+      //}
       this.$router.push({
-        name: 'new-report',
+        name: 'new-report2',
         params: {
-          file: response
-        } 
+          file: file,
+          fileId: response // Internally generated id.pdf filename
+        }
       })
     },
     handleError(file) { // error

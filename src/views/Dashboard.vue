@@ -1,10 +1,15 @@
 <template>
   <div class="d-flex flex-column">
+    <div v-if="areReviewersAvailable">
     <UploadArea />
-
+    </div>
+    <div v-else>
+      <!-- TODO: Show an error page -->
+      Geen reviewer beschikbaar - upload wizard niet beschikbaar.
+    </div>
     <ReportTable
       title="Recente rapporten"
-      :reports="latestReports({ count: 5 })"
+      :reports="latestReports({ limit: 5 })"
       :synchronizing="loading"
       class="mt-4 pt-2 mb-5"
     />
@@ -34,7 +39,8 @@ export default {
     };
   },
   computed: {
-    ...mapGetters("reports", ["latestReports"])
+    ...mapGetters("reports", ["latestReports"]),
+    ...mapGetters("reviewers", ["areReviewersAvailable"])
   },
   async created() {
     try {
@@ -58,10 +64,12 @@ export default {
       if (timer !== null) {
         clearTimeout(timer);
       }
+
       await this.getReports({
         page: 1,
         limit: 25
       });
+
       this.loading = false;
 
       timer = setTimeout(this.syncReports, 60 * 1000); // every minute
