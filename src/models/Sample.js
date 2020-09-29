@@ -30,12 +30,7 @@ let structure = {
   builtYear: '',
   enforcementTerm: null,
   baseMeasurementLevel: null,
-  address: {
-    id: null,
-    streetName: null,
-    buildingNumber: null,
-    buildingNumberSuffix: null
-  },
+  address: null,
   policy: 0,
   createDate: '',
   updateDate: '',

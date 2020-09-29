@@ -7,78 +7,101 @@ import AttributedOrganisation from './AttributedOrganisation'
 /**
  * The Report model
  */
-class reportModel {
+class ReportModel {
   constructor({
-    id, documentId, documentDate, status, type,
-    attribution, documentName, floorMeasurement,
-    inspection, jointMeasurement, norm, note, accessPolicy,
-    updateDate, createDate, deleteDate }) {
-
+    id,
+    documentName,
+    inspection,
+    jointMeasurement,
+    floorMeasurement,
+    note,
+    documentDate,
+    documentFile,
+    type,
+    standardF3o,
+    auditStatus,
+    reviewer,
+    contractor,
+    creator,
+    owner,
+    accessPolicy,
+    createDate,
+    updateDate
+  }) {
     if (!id) {
       throw "Missing identifier";
     }
-    if (!documentId) {
-      throw "Missing documentId";
+    if (!documentName) {
+      throw "Missing documentName";
     }
     if (!documentDate) {
       throw "Missing documentDate";
     }
-
-    // The database id
+    
     this.id = id;
-    // The document reference provided by the user (the label)
-    this.documentId = documentId;
-    // Formatted as '2019-05-23T19:17:39.804Z', which parse accepts
+    this.documentName = documentName;
+    this.inspection = inspection;
+    this.jointMeasurement = jointMeasurement;
+    this.floorMeasurement = floorMeasurement;
+    this.note = note;
     this.documentDate = new Date(documentDate);
-    // Status of process
-    this.setStatus({ status });
-    // Type of report 
-    this.type = typeOptions[type] ? typeOptions[type] : null;
-    this.typeNumber = type;
-    // Is the report public or private?
+    this.documentFile = documentFile;
+    this.type = type;
+    this.standardF3o = standardF3o;
+
+    // Attribution
+    this.reviewerId = reviewer;
+    this.contractorId = contractor;
+    this.creatorId = creator;
+    this.ownerId = owner;
+
     this.accessPolicy = accessOptions[accessPolicy] ? accessOptions[accessPolicy] : 'Invalid';
+    this.createDate = createDate;
+    this.updateDate = updateDate;
+
+
     // Samples are set / added / removed 
     this.samples = [];
-    // attribution, 
-    let user = attribution && attribution.creator ? attribution.creator : null;
-    if (typeof user === 'string') {
-      user = {
-        id: user
-      };
-    }
-    this.creator = user
-      ? new AttributedUser({ user, role: 'Verwerker' })
-      : null;
-    user = attribution && attribution.reviewer ? attribution.reviewer : null;
-    if (typeof user === 'string') {
-      user = {
-        id: user
-      };
-    }
-    this.reviewer = user ? new AttributedUser({ user, role: 'Reviewer' }) : null;
 
-    let orgContractor = attribution && attribution.contractor ? attribution.contractor : null;
-    if (typeof orgContractor === 'string') {
-      this.contractor = new AttributedOrganisation(orgContractor, 'Uitvoerder');
-    }
+    // Status of process
+    this.setStatus({ auditStatus });
 
-    let orgOwner = attribution && attribution.owner ? attribution.owner : null;
-    if (typeof orgOwner === 'string') {
-      this.owner = new AttributedOrganisation(orgOwner, 'Eigenaar');
-    }
+    // TODO There is no attribution returned by the new API
+    // Attribution 
+    // let user = attribution && attribution.creator ? attribution.creator : null;
+    // if (typeof user === 'string') {
+    //   user = {
+    //     id: user
+    //   };
+    // }
+    // this.creator = user
+    //   ? new AttributedUser({ user, role: 'Verwerker' })
+    //   : null;
+    // user = attribution && attribution.reviewer ? attribution.reviewer : null;
+    // if (typeof user === 'string') {
+    //   user = {
+    //     id: user
+    //   };
+    // }
 
-    // Direct input
-    Object.assign(this, {
-      documentName, floorMeasurement,
-      inspection, jointMeasurement, norm, note,
-      updateDate, createDate, deleteDate
-    });
+    // TODO Made user null, this might break stuff
+    this.reviewer = new AttributedUser({ undefined, role: 'Reviewer' });
+
+    // let orgContractor = attribution && attribution.contractor ? attribution.contractor : null;
+    // if (typeof orgContractor === 'string') {
+    //   this.contractor = new AttributedOrganisation(orgContractor, 'Uitvoerder');
+    // }
+
+    // let orgOwner = attribution && attribution.owner ? attribution.owner : null;
+    // if (typeof orgOwner === 'string') {
+    //   this.owner = new AttributedOrganisation(orgOwner, 'Eigenaar');
+    // }
   }
   /**
    * Document ID / Label
    */
   label() {
-    return this.documentId;
+    return this.documentName;
   }
   /**
    * Formatted date
@@ -99,12 +122,13 @@ class reportModel {
   /**
    * Set or change status
    */
-  setStatus({ status }) {
-    this.status = statusOptions[status]
-      ? statusOptions[status]
+  setStatus({ auditStatus }) {
+    this.status = statusOptions[auditStatus]
+      ? statusOptions[auditStatus]
       : 'Invalid';
-    this.statusNumber = status;
+    this.statusNumber = auditStatus;
   }
+
   getApprovalState() {
     if ('Done' === this.status.text) {
       return true;
@@ -130,7 +154,7 @@ class reportModel {
    * Attribution
    */
   reviewerName() {
-    if (this.reviewer !== null) {
+    if (this.reviewer !== null && this.reviewer !== undefined) {
       return this.reviewer.getUserName();
     }
     return 'Onbekend';
@@ -139,10 +163,10 @@ class reportModel {
    * Type
    */
   hasType() {
-    return this.type !== null;
+    return this.type !== null && this.type !== undefined;
   }
   getType() {
-    return this.type;
+    return typeOptions[this.type];
   }
   /**
    * Samples
@@ -161,4 +185,4 @@ class reportModel {
   }
 }
 
-export default reportModel;
+export default ReportModel;
