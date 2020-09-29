@@ -4,11 +4,11 @@ import axios from '@/utils/axios'
 export default { 
   login: ({ email, password }) => {
     return axios.post(
-      '/api/authentication/signin', 
+      '/api/auth/signin/', 
       { email, password }
     )
   },
   refresh: () => {
-    return axios.get('/api/authentication/refresh')
+    return axios.get('/api/auth/token-refresh/')
   }
 }
