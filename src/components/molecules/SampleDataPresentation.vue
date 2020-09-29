@@ -38,7 +38,7 @@ export default {
           },
           {
             label: "Bouwjaar",
-            value: this.sample.builtYear
+            value: new Date(this.sample.builtYear).getFullYear()
           }
         ],
         [
@@ -93,6 +93,9 @@ export default {
         ]
       ];
     }
+  },
+  created() {
+    console.log('this.sample', this.sample)
   }
 };
 </script>

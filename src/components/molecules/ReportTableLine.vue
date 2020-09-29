@@ -40,6 +40,8 @@ import { isSuperUser, canWrite } from 'service/auth'
 
 import { mapGetters } from 'vuex'
 
+import ReportModel from 'model/Report'
+
 export default {
   name: 'ReportTableLine',
   components: {
@@ -47,7 +49,7 @@ export default {
   },
   props: {
     report: {
-      type: Object,
+      type: ReportModel,
       default: function() {
         return {}
       }
@@ -68,7 +70,7 @@ export default {
       ) || isSuperUser()
     },
     userObject() {
-      return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewer.id }) : null
+      return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewerId }) : null
     }
   },
   methods: {

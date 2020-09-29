@@ -3,7 +3,7 @@
     <header class="d-flex align-items-center justify-content-between">
       <div>
         <h3>
-          {{ activeReport.documentId }}
+          {{ activeReport.documentName }}
         </h3>
         <span v-if="showLastEdited && hasEditedDate">
           Laatst bewerkt: {{ lastEdited }}
@@ -16,8 +16,8 @@
     <div 
       v-if="showUsers"
       class="Report__users d-flex">
-      <ReportUserRole :user="activeReport.creator" />
-      <ReportUserRole :user="activeReport.reviewer" />
+      <ReportUserRoleExplicit :userId="activeReport.creatorId" userRoleOverride="Eigenaar"/>
+      <ReportUserRoleExplicit :userId="activeReport.reviewerId" />
     </div>
     <Divider v-if="showUsers" />
     <div class="Report__indicators d-flex flex-wrap">
@@ -49,7 +49,7 @@
 <script>
 
 import ReportDate from 'atom/review/ReportDate'
-import ReportUserRole from 'atom/review/ReportUserRole'
+import ReportUserRoleExplicit from 'atom/review/ReportUserRoleExplicit'
 import Note from 'atom/review/Note'
 import CheckboxIndicator from 'atom/review/CheckboxIndicator'
 import TypeTag from 'atom/TypeTag'
@@ -63,7 +63,7 @@ import {
 
 export default {
   components: {
-    TypeTag, Divider, ReportUserRole,
+    TypeTag, Divider, ReportUserRoleExplicit,
     ReportDate, CheckboxIndicator, Note
   },
   props: {

@@ -1,52 +1,46 @@
 <template>
-  <div>
-    <h3>This is the debug version of ReportUserRole.vue</h3>
   <div 
     v-if="userObject" 
     class="ReportUserRole d-flex align-items-center mt-4">
     <img :src="userObject.getAvatar()" width="32" height="32" class="rounded-circle" />
     <div class="ml-3">
       <div class="ReportUserRole__name">{{ userObject.getUserName() }}</div>
-      <div class="ReportUserRole__role">{{ userObject.getRole() }}</div>
+      <div class="ReportUserRole__role">{{ userRole }}</div>
     </div>
-  </div>
-  <div v-else>
-    We have no user object
-  </div>
   </div>
 </template>
 
 <script>
 
 import { mapGetters } from 'vuex'
+import map from '../../../store/map';
 
 export default {
   props: {
-    user: {
-      type: Object,
+    userId: {
+      type: String,
       required: true
+    },
+    userRoleOverride: {
+      type: String,
+      required: false
     }
   },
   computed: {
     ...mapGetters('reviewers', [
+      'reviewers',
       'getUserById',
       'areReviewersAvailable'
     ]),
     userObject() {
-
-      console.log('ReportUserRole this.user', this.user)
-
-      if (this.user.getUserName()) {
-        console.log('Returning this.user', this.user)
-        return this.user
+      return this.getUserById({id: this.userId});
+    },
+    userRole() {
+      if (this.userRoleOverride) {
+        return this.userRoleOverride
+      } else {
+        return this.userObject.getRole();
       }
-      if (this.user.getRole() === 'Reviewer' && this.areReviewersAvailable) {
-        console.log('Returning this.getUserById({ id: this.user.id })', this.getUserById({ id: this.user.id }))
-        return this.getUserById({ id: this.user.id })
-      }
-
-      console.log('Returning null')
-      return null
     }
   }
 }

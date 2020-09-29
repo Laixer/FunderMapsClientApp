@@ -87,6 +87,9 @@ export default {
       return false
     },
     isAvailableForReview() {
+      //console.log('isAvailableForReview forced to return true')
+      //return true;
+
       if (!canApprove()) {
         return false
       }
@@ -136,28 +139,27 @@ export default {
   },
   methods: {
     icon,
-    ...mapActions('report', [
-      'approveReport'
-    ]),
+    ...mapActions('report', ['approveReport']),
     // TODO: Update with call - Done ?
     async handleApprove() {
       if ( ! this.isPendingReview || this.processing) {
         return;
       }
       this.processing = true;
-      await this.approveReport()
-      // this.approved = true
+      await this.approveReport({ id: this.activeReport.id })
+      this.approved = true
       this.processing = false
     },
     handleDisapproveModal() {
       if ( ! this.isPendingReview || this.processing) {
         return;
       }
+
       this.processing = true;
       this.$bvModal.show('report-disapprove')
     },
     handleDisapprove() {
-      // this.approved = false
+      this.approved = false
       this.processing = false;
     },
     onHidden() {
