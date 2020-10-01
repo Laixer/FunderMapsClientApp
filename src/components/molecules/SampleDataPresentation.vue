@@ -93,9 +93,6 @@ export default {
         ]
       ];
     }
-  },
-  created() {
-    console.log('this.sample', this.sample)
   }
 };
 </script>
