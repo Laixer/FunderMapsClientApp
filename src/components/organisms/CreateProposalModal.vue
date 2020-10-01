@@ -112,7 +112,9 @@ export default {
             this.isDisabled = false
             this.enableAllFields()
             this.clearAllFieldValues()
-            this.$refs.form.resetValidation()
+
+            // TODO I belive we don't need this
+            //this.$refs.form.resetValidation() 
           }, 400)
 
         }, 500)
