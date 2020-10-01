@@ -53,7 +53,6 @@ export default {
       // Always perform a report count update when loading this page
       await Promise.all([
         this.getReviewers(),
-        this.getReportCount(),
         this.getReports({
           page: this.page, 
           limit: this.reportsPerPage
@@ -67,7 +66,6 @@ export default {
   },
   methods: {
     ...mapActions('reports', [
-      'getReportCount', 
       'getReports'
     ]),
     ...mapActions('reviewers', [

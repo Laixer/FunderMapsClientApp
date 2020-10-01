@@ -12,8 +12,7 @@ import reportAPI from 'api/reports';
  * Declare Variable
  */
 const state = {
-  reports : [],
-  reportCount: false
+  reports : []
 }
 
 
@@ -29,14 +28,6 @@ const getters = {
   }
 }
 const actions = {
-  async getReportCount({ commit }) {
-    let response = await reportAPI.getReportCount()
-    if (response.status === 200 && response.data) {
-      commit('set_report_count', {
-        count: response.data.count
-      })
-    } 
-  },
   async getReports({ commit }, { limit, page }) {
     let offset = limit * (page - 1);
     let response = await reportAPI.getReports({ limit, offset });
@@ -53,9 +44,6 @@ const actions = {
 const mutations = {
   set_reports(state, { reports }) {
     state.reports = reports.map(report => new ReportModel(report))
-  },
-  set_report_count(state, { count }) {
-    state.reportCount = count;
   },
   clear_reports(state) {
     state.reports = []

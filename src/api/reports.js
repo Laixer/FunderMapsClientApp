@@ -8,12 +8,6 @@ const getReports = ({ limit, offset }) => {
   });
 }
 
-// TODO Doesn't exist anymore
-const getReportCount = () => {
-  return 0;
-  // return axios.get('/api/inquiry/stats')
-}
-
 // Single
 const getReport = ({ id }) => {
   return axios.get(`/api/inquiry/${id}/`)
@@ -67,7 +61,6 @@ const getReviewers = () => {
 
 export default { 
   getReports, 
-  getReportCount,
 
   getReport,
   createReport,
