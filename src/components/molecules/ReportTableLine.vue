@@ -64,10 +64,10 @@ export default {
       if (!canWrite()) {
         return false
       }
-      return (
-        !this.report.isPendingReview() && 
-        !this.report.isApproved()
-      ) || isSuperUser()
+      return this.report.isEditable();
+
+      // TODO || isSuperUser() was removed. The state machine does not
+      // support this functionality.
     },
     userObject() {
       return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewerId }) : null

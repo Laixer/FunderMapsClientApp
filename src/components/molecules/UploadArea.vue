@@ -90,7 +90,7 @@ export default {
         name: 'new-report',
         params: {
           file: file,
-          documentName: response.name
+          documentFile: response.name
         }
       })
     },
