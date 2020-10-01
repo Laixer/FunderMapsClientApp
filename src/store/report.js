@@ -40,8 +40,8 @@ const actions = {
       })
     } 
   },
-  async updateReport({ commit }, { id, document, data }) {
-    let response = await reportAPI.updateReport({ id, document, data })
+  async updateReport({ commit }, { id, data }) {
+    let response = await reportAPI.updateReport({ id, data })
     if (response.status === 204) {
       commit('set_report', {
         report: data
