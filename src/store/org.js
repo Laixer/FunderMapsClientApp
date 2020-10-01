@@ -132,11 +132,12 @@ const actions = {
   /**
    * Update the users own organization.
    */
-  async updateOrganization({ commit }, { data }) {
+  async updateOrganization({ commit, getters }, { data }) {
     let response = await orgAPI.updateOrganization({ data })
     if (response.status === 204) {
       commit('update_organization', {
-        organizationId, data
+        organizationId: getters.currentOrganization.id,
+        data
       })
     }
     return response;
