@@ -40,11 +40,15 @@ export default {
   },
   computed: {
     ...mapGetters("reports", ["latestReports"]),
-    ...mapGetters("reviewers", ["areReviewersAvailable"])
+    ...mapGetters("reviewers", ["areReviewersAvailable"]),
   },
   async created() {
     try {
-      await Promise.all([this.syncReports(), this.getReviewers()]);
+      await Promise.all([
+        this.syncReports(),
+        this.getReviewers(),
+        this.getOrganization()
+      ]);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         await this.$router.push({ name: "login" });
@@ -57,6 +61,7 @@ export default {
   methods: {
     ...mapActions("reports", ["getReports"]),
     ...mapActions("reviewers", ["getReviewers"]),
+    ...mapActions('org', ['getOrganization']),
 
     // Update the report details on the dashboard every minute
     async syncReports() {
