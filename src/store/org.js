@@ -35,7 +35,7 @@ const state = {
 }
 
 const getters = {
-  organization: state => {
+  currentOrganization: state => {
     return state.organization;
   },
   /**
@@ -88,6 +88,7 @@ const actions = {
       return state.organization;
     } 
   },
+
   /**
    * Get an organization by its id. This will first look up
    * the organization in our state. If it's not found, the
@@ -99,18 +100,19 @@ const actions = {
     }
 
     // Only fetch the organization if our collection doesn't contain it.
-    if (!getters.getOrganizationCollection || !getters.getOrganizationCollection.find(x => { return x.id = id })) {
+    if (!getters.getOrganizationCollection || !getters.getOrganizationCollection.find(x => { return x.id === id })) {
       let response = await orgAPI.getOrganizationById({ id });
 
       if (response.status === 200) {
         commit('add_organization_to_collection', {
-          organization: response. data
+          organization: response.data
         })
       }
     }
 
-    return getters.getOrganizationCollection.find(x => { return x.id = id });
+    return getters.getOrganizationCollection.find(x => { return x.id === id });
   },
+  
   /**
    * Gets all organizations from the store.
    */
@@ -159,14 +161,18 @@ const actions = {
       })
     } 
   },
-  async removeProposal({ commit }, { token }) {
-    let response = await orgAPI.removeProposal({ token });
+  async removeProposal({ commit }, { id }) {
+    let response = await orgAPI.removeProposal({ id });
     if (response.status === 204) {
       commit('remove_proposal', {
-        token
+        id
       })
     } 
   },
+
+  /**
+   * Admin call that creates a new organization proposal.
+   */
   async createProposal({ commit }, { name, email }) {
     let response = await orgAPI.createProposal({ name, email });
     if (response.status === 200 && response.data) {
@@ -175,9 +181,13 @@ const actions = {
       })
     } 
   },
-  // New Organization
-  async registerOrganization(context, { email, password, token }) {
-    return await orgAPI.createOrganization({ email, password, token });
+  
+  /**
+   * Used to complete the organization registration process
+   * by creating the first user with email and password.
+   */
+  async registerOrganization(context, { email, password, id }) {
+    return await orgAPI.createOrganization({ email, password, id });
   }
 }
 const mutations = {
@@ -218,9 +228,9 @@ const mutations = {
       proposal => new OrganizationProposalModal(proposal)
     )
   },
-  remove_proposal(state, { token }) {
+  remove_proposal(state, { id }) {
     let index = state.proposals.findIndex(proposal => {
-      return proposal.token === token
+      return proposal.id === id
     })
     Vue.delete(state.proposals, index);
   },

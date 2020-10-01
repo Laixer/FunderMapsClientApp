@@ -48,6 +48,7 @@ const getters = {
     })
   }
 }
+
 const actions = {
   /**
    * Gets all current organization users.
@@ -60,6 +61,20 @@ const actions = {
       })
     } 
   },
+
+  /**
+   * Get all users for a given organization id. The logged in
+   * user must be admin to be able to call this function.
+   */
+  async adminGetUsers({ commit }, { organizationId }) {
+    let response = await orgUserAPI.adminGetOrganizationUsers({ organizationId });
+    if (response.status === 200) {
+      commit('set_users', {
+        users: response.data
+      })
+    } 
+  },
+
   /**
    * Updates an organization user, then triggers the getUsers
    * action to fetch the updated user. The result is then returned.
@@ -71,17 +86,41 @@ const actions = {
     }
     return response;
   },
+
+  /**
+   * Admin call which updates a given organization user.
+   */
+  async adminUpdateUser({ dispatch }, { organizationId, userId, data }) {
+    let response = await orgUserAPI.adminUpdateOrganizationUser({ organizationId, userId, data })
+    if (response.status === 204) {
+      dispatch('adminGetUsers', { organizationId });
+    }
+    return response;
+  },
+
   /**
    * Creates a new organization user, then triggers the getUsers
    * action to fetch the created user. The result is then returned.
    */
   async createUser({ dispatch }, { data }) {
     let response = await orgUserAPI.createOrganizationUser({ data })
-    if (response.status === 204) {
+    if (response.status === 200) {
       dispatch('getUsers');
     }
     return response;
   },
+
+  /**
+   * Admin call to create a user for any organization.
+   */
+  async adminCreateUser({ dispatch }, { organizationId, data }) {
+    let response = await orgUserAPI.adminCreateOrganizationUser({ organizationId, data })
+    if (response.status === 200) {
+      dispatch('adminGetUsers', { organizationId });
+    }
+    return response;
+  },
+
   /**
    * Removes an organization user.
    */
@@ -91,10 +130,25 @@ const actions = {
       commit('remove_user', { userId })
     }
   },
+
+  /**
+   * Admin call that removes any user from any organization.
+   */
+  async adminRemoveUser({ commit }, { organizationId, userId }) {
+    let response = await orgUserAPI.adminRemoveOrganizationUser({ organizationId, userId })
+    if (response.status === 204) {
+      commit('remove_user', { userId })
+    }
+  },
+
+  /**
+   * Clears all currently stored users from the state.
+   */
   clearUsers({ commit }) {
     commit('clear_users')
   }
 }
+
 const mutations = {
   set_users(state, { users }) {
     state.users = users.map(user => {

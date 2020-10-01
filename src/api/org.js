@@ -17,20 +17,29 @@ export default {
   updateOrganizationAsAdmin: ({ organizationId, data }) => {
     return axios.put(`/api/admin/organization/${organizationId}`, data)
   },
+
+  /**
+   * Gets all currently existing organization proposals.
+   */
   getProposals: () => {
-    return axios.get('/api/organization_proposal')
+    return axios.get('/api/organization/proposal')
   },
-  removeProposal: ({ token }) => {
-    return axios.delete(`/api/organization_proposal/${token}`)
+  removeProposal: ({ id }) => {
+    return axios.delete(`/api/organization/proposal/${id}`)
   },
   createProposal: ({ name, email }) => {
-    return axios.post(`/api/organization_proposal/`, {
+    return axios.post(`/api/organization/proposal/`, {
       name, email
     })
   },
-  createOrganization: ({ email, password, token }) => {
-    return axios.post(`/api/organization_registration/proposal/${token}`, {
-      email, password, role: 'superuser'
+
+  /**
+   * Used to complete the organization registration.
+   */
+  createOrganization: ({ email, password, id }) => {
+    return axios.post(`/api/organization/${id}/setup`, {
+      email, 
+      password
     })
   }
 }
