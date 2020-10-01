@@ -85,7 +85,7 @@ export default {
     },
     handleEdit() {
       this.$router.push({ 
-        name: 'edit-report-2', 
+        name: 'edit-report-1', 
         params: { 
           id: this.report.id, 
           document: this.report.documentId 
