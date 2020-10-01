@@ -107,12 +107,13 @@ export default {
       if (!canWrite()) {
         return false
       }
+      
       if (this.activeReport) {
-        return (
-          ! this.activeReport.isPendingReview() && 
-          ! this.activeReport.isApproved()
-        ) || isSuperUser()
-      } 
+        return this.activeReport.isEditable();
+      }
+        
+      // TODO This part was removed. Our API does not support this.
+      //|| isSuperUser()
       return false
     },
     approved() {
