@@ -19,19 +19,20 @@
         <span class="ml-3">{{ disapproveLabel }}</span>
       </span>
     </div>
+    <!-- TODO Cleanup this ugly if statement-->
     <div 
-      v-else-if="approved === true || approved === false"
+      v-else-if="approved === true || approved === false || approvedByUser === true || approvedByUser === false"
       class="d-flex align-items-center">
       Status: 
       <div 
-        v-if="approved === true"
+        v-if="approved === true || approvedByUser === true"
         :class="approvedClasslist"
         class="ViewHeader__choice ml-4 align-items-center">
         <img :src='approveIcon' width="30" height="30" />
         <div class="ml-3">Goedgekeurd</div>
       </div>
       <div 
-        v-else-if="approved === false"
+        v-else-if="approved === false || approvedByUser === false"
         :class="disapprovedClasslist"
         class="ViewHeader__choice ml-4 align-items-center">
         <img :src='disapproveIcon' width="30" height="30" />
@@ -134,27 +135,30 @@ export default {
       if (this.activeReport) {
         return this.activeReport.isPendingReview()
       }
-      return true
+      return false
     },
+
+    // TODO These if-statements are very ugly. Bind them in the future.
+
     disapprovedClasslist() {
       return { 
-        'ViewHeader__choice--active' : this.approved === false, 
-        'd-none': this.approved === true, 
-        'd-flex': this.approved !== true 
+        'ViewHeader__choice--active' : this.approved === false || this.approvedByUser === false, 
+        'd-none': this.approved === true || this.approvedByUser === true, 
+        'd-flex': this.approved !== true || this.approvedByUser !== true
       }
     },
     approvedClasslist() {
       return { 
-        'ViewHeader__choice--active' : this.approved === true, 
-        'd-none': this.approved === false, 
-        'd-flex': this.approved !== false 
+        'ViewHeader__choice--active' : this.approved === true || this.approvedByUser === true, 
+        'd-none': this.approved === false || this.approvedByUser === false, 
+        'd-flex': this.approved !== false || this.approvedByUser !== false
       }
     },
     approveIcon() {
-      return icon(this.approved === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg');
+      return icon(this.approved === true || this.approvedByUser === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg');
     },
     disapproveIcon() {
-      return icon(this.approved === false ? 'ActiveDisapprove-icon.svg' : 'NeutralDisapprove-icon.svg');
+      return icon(this.approved === false  || this.approvedByUser === false ? 'ActiveDisapprove-icon.svg' : 'NeutralDisapprove-icon.svg');
     },
     approveLabel() {
       return this.approved === true ? 'Goedgekeurd' : 'Goedkeuren'
