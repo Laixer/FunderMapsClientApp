@@ -12,13 +12,13 @@
     </div>
    
     <TeamMemberModal 
-      :id="editUserId" 
-      :orgId="orgId" />
+      :userId="editUserId" 
+      :organizationId="organizationId" />
 
     <RemoveTeamMemberModal 
-      :id="editUserId" 
-      :orgId="orgId" />
-  
+      :userId="editUserId" 
+      :organizationId="organizationId" />
+
     </div>
     <b-button 
       variant="primary" 
@@ -32,7 +32,7 @@
     </b-button>
     
     <NewTeamMemberModal 
-      :orgId="orgId" />
+      :organizationId="organizationId" />
   
   </div>
 </template>
@@ -50,11 +50,14 @@ import { getUserId } from 'service/auth'
 
 export default {
   components: {
-    TeamMember, TeamMemberModal, NewTeamMemberModal, RemoveTeamMemberModal
+    TeamMember, 
+    TeamMemberModal, 
+    NewTeamMemberModal, 
+    RemoveTeamMemberModal
   },
   data() {
     return {
-      editUserId: ''
+      editUserId: null
     }
   },
   computed: {
@@ -64,19 +67,25 @@ export default {
     ...mapGetters('orgUsers', [
       'orgUsers'
     ]),
-    orgId() {
+    organizationId() {
       if (isAdmin() && this.$route.params.id) {
         return this.$route.params.id
       } else if (this.isSuperUser()) {
         return this.getOrgId;
       }
       return false
-    }
+    },
   },
   async created() {
     if (isAdmin() || isSuperUser()) {
       this.clearUsers()
-      await this.getUsers({ orgId: this.orgId })
+
+      // Act according to user privileges
+      if (isAdmin()) {
+        await this.adminGetUsers({ organizationId: this.organizationId });
+      } else if (isSuperUser()) {
+        await this.getUsers();
+      }
     }
   },
   methods: {
@@ -84,6 +93,7 @@ export default {
     isSuperUser,
     ...mapActions('orgUsers', [
       'getUsers',
+      'adminGetUsers',
       'clearUsers'
     ]),
     handleEdit({ id }) {

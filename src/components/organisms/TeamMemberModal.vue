@@ -83,7 +83,9 @@ import timeout from 'mixin/timeout'
 
 import { userRoles } from 'config/roles'
 
-import { getUserId } from 'service/auth'
+import { getUserId, isAdmin } from 'service/auth'
+import { OrgUserModel } from '../../models/OrgUser'
+import { isSuperUser } from '@/services/auth';
 
 export default {
   components: {
@@ -91,13 +93,14 @@ export default {
   },
   mixins: [ fields, timeout ],
   props: {
-    id: {
+    userId: {
       type: String,
-      default: null
+      default: null,
+      required: false
     },
-    orgId: {
+    organizationId: {
       type: [String, Number],
-      default: ''
+      default: null
     }
   },
   data() {
@@ -157,33 +160,35 @@ export default {
     ...mapGetters('orgUsers', [
       'getUserById'
     ]),
-    orgUser() {
-      return this.getUserById({ id: this.id })
+    user() {
+      return this.getUserById({ id: this.userId })
     }
   },
   watch: {
-    orgUser(orgUser) {
-      if (orgUser){
+    user(user) {
+      // TODO This might not work
+      if (user){
         this.setFieldValues([
-          { name: 'role', value: orgUser.getRoleSlug() },
-          { name: 'givenName', value: orgUser.givenName },
-          { name: 'lastName', value: orgUser.lastName },
-          { name: 'jobTitle', value: orgUser.jobTitle },
-          { name: 'phoneNumber', value: orgUser.phoneNumber },
-          { name: 'email', value: orgUser.email },
+          { name: 'role', value: user.getRoleSlug() },
+          { name: 'givenName', value: user.givenName },
+          { name: 'lastName', value: user.lastName },
+          { name: 'jobTitle', value: user.jobTitle },
+          { name: 'phoneNumber', value: user.phoneNumber },
+          { name: 'email', value: user.email },
         ])
         
         // FUTURE: Hide the role form when editing self
         // If the active user is the same as the user being edited
-        this.fields.role.disabled = this.orgUser.id === getUserId();
+        this.fields.role.disabled = this.user.id === getUserId();
 
-        this.name = orgUser.getUserName()
+        this.name = user.getUserName()
       }
     }
   },
   methods: {
     ...mapActions('orgUsers', [
-      'updateUser'
+      'updateUser',
+      'adminUpdateUser'
     ]),
     image,
     onShow() {
@@ -204,15 +209,34 @@ export default {
       }
       
       try {
-        // Make a copy, and add form field data
-        let userData = Object.assign({}, this.orgUser, this.fieldValues([
-          'jobTitle', 'lastName', 'givenName', 'phoneNumber'
+        // Make a copy, and add form field data.
+        let userData = Object.assign({}, this.user, this.fieldValues([
+          'jobTitle', 
+          'lastName', 
+          'givenName', 
+          'phoneNumber'
         ]));
-        await this.updateUser({
-          orgId: this.orgId,
-          userData,
-          role: this.fieldValue('role')
-        })
+
+        // TODO This seems a bit messy but we have to explicitly assign this.
+        //      This might change in the future with the new org user controller
+        //      ability to set the organization role for org users.
+        userData.role = this.user.role;
+        userData.organizationRole = this.fields.role.value;
+
+        // Act according to user privileges
+        if (isAdmin()) {
+          await this.adminUpdateUser({
+            organizationId: this.organizationId,
+            userId: this.userId,
+            data: userData
+          })
+        } else {
+          await this.updateUser({
+            userId: this.userId,
+            data: userData
+          })
+        }
+        
         this.feedback = {
           variant: 'success',
           message: 'De wijzigingen zijn opgeslagen'

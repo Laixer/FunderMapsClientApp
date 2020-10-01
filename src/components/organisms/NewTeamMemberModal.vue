@@ -56,15 +56,17 @@ import timeout from 'mixin/timeout'
 
 import { userRoles } from 'config/roles'
 
+import { isAdmin } from 'service/auth'
+
 export default {
   components: {
     Divider, FormField, Form, Feedback
   },
   mixins: [ fields, timeout ],
   props: {
-    orgId: {
+    organizationId: {
       type: [ String, Number ],
-      default: ''
+      default: null
     }
   },
   data() {
@@ -105,7 +107,8 @@ export default {
   },
   methods: {
     ...mapActions('orgUsers', [
-      'createUser'
+      'createUser',
+      'adminCreateUser'
     ]),
     onShow() {
       this.feedback = { show: false }
@@ -125,14 +128,28 @@ export default {
       }
       
       try {
-        // Make a copy, and add form field data
-        await this.createUser({
-          orgId: this.orgId,
-          userData: this.fieldValues([
-            'email', 'password'
-          ]),
-          role: this.fieldValue('role')
-        })
+        // Extract the form data and create the user.
+        let userData = {
+          email: this.fields.email.value,
+            password: this.fields.password.value,
+            role: 2, // Guest -- TODO What to do with this?
+            organizationRole: this.fields.role.value
+        };
+
+        console.log('userData', userData);
+
+        // Act according to user privileges
+        if (isAdmin()) {
+          await this.adminCreateUser({ 
+            organizationId: this.organizationId,
+            data: userData
+          })
+        } else {
+          await this.createUser({
+            data: userData
+          });
+        }
+
         this.feedback = {
           variant: 'success',
           message: 'Het nieuwe teamlid is geregistreerd'
