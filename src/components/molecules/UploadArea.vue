@@ -81,14 +81,16 @@ export default {
      * Start the creation of a new report once the upload has finished with success
      */
     handleSuccess(file, response) {
+      // TODO Why do we need this?
       //if (file && this.$refs.dropzone) {
       //  this.$refs.dropzone.removeFile(file)
       //}
+
       this.$router.push({
-        name: 'new-report2',
+        name: 'new-report',
         params: {
           file: file,
-          fileId: response // Internally generated id.pdf filename
+          documentName: response.name
         }
       })
     },

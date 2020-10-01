@@ -80,7 +80,7 @@ const routes = [
   },
   // Registration
   {
-    path: '/register/:token',
+    path: '/register/:id',
     name: 'register',
     component: Register,
     meta: {
@@ -109,7 +109,7 @@ const routes = [
   // Report
   {
     path: '/report/create/',
-    name: 'new-report2', // TODO No idea why, but new-report didn't work
+    name: 'new-report', // TODO No idea why, but new-report didn't work
     component: Step1
   },
   {
