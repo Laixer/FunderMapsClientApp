@@ -211,21 +211,26 @@ export const foundationQualityOptions = [
   }
 ]
 
+// TODO Hardcoded
 export const substructureOptions = [
   {
-    value: 'Cellar',
+    //value: 'Cellar',
+    value: 0,
     text: 'Kelder'
   },
   {
-    value: 'Basement',
+    //value: 'Basement',
+    value: 1,
     text: 'Souterrain'
   },
   {
-    value: 'Crawlspace',
+    //value: 'Crawlspace',
+    value: 2,
     text: 'Kruipruimte'
   },
   {
-    value: 'None',
+    //value: 'None',
+    value: 3,
     text: 'Geen'
   }
 ]
@@ -300,43 +305,53 @@ export const foundationDamageCauseOptions = [
 export const enforcementTermOptions = [
   {
     text: '0-5 jaar',
-    value: 'Term0_5'
+    //value: 'Term0_5'
+    value: 0
   },
   {
     text: '5-10 jaar',
-    value: 'Term5_10'
+    //value: 'Term5_10'
+    value: 1
   },
   {
     text: '10-20 jaar',
-    value: 'Term10_20'
+    //value: 'Term10_20'
+    value: 2
   },
   {
     text: '5 jaar',
-    value: 'Term5'
+    //value: 'Term5'
+    value: 3 
   },
   {
     text: '10 jaar',
-    value: 'Term10'
+    //value: 'Term10'
+    value: 4
   },
   {
     text: '15 jaar',
-    value: 'Term15'
+    //value: 'Term15'
+    value: 5
   },
   {
     text: '20 jaar',
-    value: 'Term20'
+    //value: 'Term20'
+    value: 6
   },
   {
     text: '25 jaar',
-    value: 'Term25'
+    //value: 'Term25'
+    value: 7
   },
   {
     text: '30 jaar',
-    value: 'Term30'
+    //value: 'Term30'
+    value: 8
   },
   {
     text: '40 jaar',
-    value: 'Term40'
+    //value: 'Term40'
+    value: 9
   }
 ]
 
