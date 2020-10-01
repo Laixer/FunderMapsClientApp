@@ -10,11 +10,11 @@
         <FormField v-model="fields.documentName.value" v-bind="fields.documentName" />
         <div class="form-row">
           <FormField v-model="fields.type.value" v-bind="fields.type" class="col-md-6" />
-          <FormField v-model="fields.date.value" v-bind="fields.date" class="col-md-6" />
+          <FormField v-model="fields.documentDate.value" v-bind="fields.documentDate" class="col-md-6" />
         </div>
         <div class="form-row">
-          <FormField v-model="fields.contractor.value" v-bind="fields.contractor" class="col-md-6" />
-          <FormField v-model="fields.reviewer.value" v-bind="fields.reviewer" class="col-md-6" />
+          <FormField v-model="fields.contractorId.value" v-bind="fields.contractorId" class="col-md-6" />
+          <FormField v-model="fields.reviewerId.value" v-bind="fields.reviewerId" class="col-md-6" />
         </div>
         <Divider />
         <div class="form-row">
@@ -110,7 +110,7 @@ export default {
           },
           disabled: false
         },
-        date: {
+        documentDate: {
           label: "Datum document",
           value: "",
           type: "datepicker",
@@ -120,7 +120,7 @@ export default {
           },
           disabled: false
         },
-        contractor: {
+        contractorId: {
           label: "Uitvoerder",
           value: null,
           type: "select",
@@ -129,7 +129,7 @@ export default {
           },
           disabled: false
         },
-        reviewer: {
+        reviewerId: {
           label: "Reviewer",
           value: null,
           type: "select",
@@ -243,7 +243,6 @@ export default {
   computed: {
     ...mapGetters("reviewers", ["reviewers", "areReviewersAvailable"]),
     ...mapGetters("report", ["activeReport"]),
-    ...mapGetters("org", ["organization"]),
     ...mapGetters("contractors", ["contractors"]),
     nextStep() {
       // TODO When will this.activeReport go to null ever?
@@ -294,7 +293,7 @@ export default {
   },
   async created() {
 
-    console.log('this.activeReport', this.activeReport)
+    console.log('Step1.activeReport', this.activeReport)
 
     await this.getReviewers();
     await this.getContractors();
@@ -309,13 +308,31 @@ export default {
     EventBus.$off("save-report", this.saveReport);
   },
   /**
-   * If we're leaving and heading towards step 2, save the document!
+   * If we're leaving and heading towards step 2, save the document.
+   * If nothing was modified in the form, just go to the next step.
    */
   async beforeRouteLeave(to, from, next) {
+    let values = this.allFieldValues();
+
     if (to.name !== "edit-report-2" || this.stored === true) {
       next();
+      // TODO Clean up this monstrosity.
+    } else if (to.name === 'edit-report-2'
+      && this.activeReport
+      && values.documentName === this.activeReport.documentName 
+      && values.type === this.activeReport.type
+      && values.documentDate === this.activeReport.documentDate
+      && values.contractorId === this.activeReport.contractorId
+      && values.reviewerId === this.activeReport.reviewerId
+      && values.standardF3o === this.activeReport.standardF3o
+      && values.inspection === this.activeReport.inspection
+      && values.jointMeasurement === this.activeReport.jointMeasurement
+      && values.floorMeasurement === this.activeReport.floorMeasurement
+      && values.note === this.activeReport.note) {
+      // Skip form submit.
+      next();
     } else {
-      // trigger submit
+      // Trigger form submit.
       await this.$refs.form.submit();
       next(false);
     }
@@ -340,25 +357,25 @@ export default {
 
       this.clearActiveReport();
 
-      // Make the documentName accessible as data
       if (this.$route.params.file) {
-
-        // TODO Remove
-        console.log('this.$route.params', this.$route.params)
-
+        // Exlicitly extract the uploaded document file name from
+        // the route params.
         this.fields.documentName.value = this.$route.params.file.name;
+
+        // The internally stored document file is required but is not
+        // present in the field values. We store it explicitly.
         this.documentFile = this.$route.params.documentFile;
       }
 
       // Set the contractor & reviewer user options (from Vuex)
-      this.fields.reviewer.options = this.getReviewerOptions;
-      this.fields.contractor.options = this.getContractorOptions;
-      this.fields.reviewer.permaDisabled = false;
-      this.fields.contractor.permaDisabled = false;
+      this.fields.reviewerId.options = this.getReviewerOptions;
+      this.fields.contractorId.options = this.getContractorOptions;
+      this.fields.reviewerId.permaDisabled = false;
+      this.fields.contractorId.permaDisabled = false;
 
       // If there is only one reviewer option, select it.
-      if (this.fields.reviewer.options.length === 2) {
-        this.fields.reviewer.value = this.fields.reviewer.options[1].value;
+      if (this.fields.reviewerId.options.length === 2) {
+        this.fields.reviewerId.value = this.fields.reviewerId.options[1].value;
       }
     },
 
@@ -375,8 +392,8 @@ export default {
       }
 
       // Set the contractor & reviewer user options (from Vuex)
-      this.fields.reviewer.options = this.getReviewerOptions;
-      this.fields.contractor.options = this.getContractorOptions;
+      this.fields.reviewerId.options = this.getReviewerOptions;
+      this.fields.contractorId.options = this.getContractorOptions;
 
       await this.getReportById({
         id: this.$route.params.id
@@ -399,9 +416,9 @@ export default {
       this.setFieldValues({
         type: report.type,
         documentName: report.documentName,
-        date: report.documentDate,
-        contractor: report.contractorId ? report.contractorId : null,
-        reviewer: report.reviewerId ? report.reviewerId : null,
+        documentDate: report.documentDate,
+        contractorId: report.contractorId ? report.contractorId : null,
+        reviewerId: report.reviewerId ? report.reviewerId : null,
         standardF3o: report.standardF3o,
         inspection: report.inspection,
         jointMeasurement: report.jointMeasurement,
@@ -430,13 +447,12 @@ export default {
     },
 
     /**
-     * Handle the creation of the report
+     * Handle the creation or updating of the report. This does not
+     * check for any modifications in the form, this will always
+     * submit the form to the API. This check is done in the 
+     * beforeRouteLeave() method.
      */
     async handleSubmit() {
-
-      // TODO Remove
-      console.log('handleSubmit()')
-
       this.disableAllFields();
       this.isDisabled = true;
       this.feedback = {
@@ -444,21 +460,22 @@ export default {
         message: "Bezig met opslaan van rapport..."
       };
 
-      let values = this.allFieldValues();
+      console.log('this.documentFile', this.documentFile)
 
+      let values = this.allFieldValues();
       let data = {
         documentName: values.documentName,
         inspection: values.inspection,
         jointMeasurement: values.jointMeasurement,
         floorMeasurement: values.floorMeasurement,
         note: values.note,
-        documentDate: values.date.toISOString(),
+        documentDate: values.documentDate.toISOString(),
         documentFile: this.documentFile,
         type: parseInt(values.type),
         standardF3o: values.standardF3o,
         auditStatus: values.status,
-        reviewer: values.reviewer,
-        contractor: values.contractor,
+        reviewer: values.reviewerId,
+        contractor: values.contractorId,
         // TODO Access policy?
       };
 
@@ -467,7 +484,6 @@ export default {
 
         await this.updateReport({
           id: this.$route.params.id,
-          document: this.$route.params.document,
           data
         })
           .then(this.handleSuccess)
@@ -480,8 +496,6 @@ export default {
     },
     handleSuccess() {
       this.stored = true;
-
-      // next();
       this.$router.push({
         name: "edit-report-2",
         params: {
@@ -491,6 +505,10 @@ export default {
       });
     },
     errorHandler(err) {
+
+      // TODO Remove
+      console.log('err', err)
+
       this.enableAllFields();
       this.isDisabled = false;
 
