@@ -22,8 +22,7 @@
     <Divider v-if="showUsers" />
     <div class="Report__indicators d-flex flex-wrap">
       <CheckboxIndicator 
-        v-if="conform_f3o"
-        :value="conform_f3o"
+        :value="activeReport.standardF3o"
         class="mb-1" 
         label="Conform F3O" />
       <CheckboxIndicator 
@@ -96,24 +95,6 @@ export default {
     hasEditedDate() {
       return this.activeReport.updateDate !== null
     },
-    conform_f3o: {
-      get() {
-        let conform_f3o = this.activeReport.norm 
-          ? this.activeReport.norm.find(
-              norm => norm.hasOwnProperty('conform_f3o')
-            ) 
-          : null
-        return conform_f3o 
-          ? conform_f3o.conform_f3o 
-          : null
-      },
-      set(value) {
-        // TODO: works, so long as this is the only norm...
-        this.activeReport.norm = [{
-          conform_f3o: value
-        }]
-      } 
-    }
   }
 }
 </script>
