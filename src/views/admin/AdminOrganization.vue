@@ -1,9 +1,9 @@
 <template>
   <div>
     <h1 class="ml-2 mb-3 pb-1">
-      Organisatie Profiel<span v-if="organisatie">: {{ organisatie.name }}</span>
+      Organisatie Profiel<span v-if="organization">: {{ organization.name }}</span>
     </h1>
-    <div class="d-flex">
+    <div v-if="organization" class="d-flex">
       <form 
         class="mr-4"
         style="width: 570px"
@@ -18,30 +18,30 @@
             label="Naam"
             :editMode="editMode"
             :disabled="true"
-            v-model="organisatie.name" />
+            v-model="organization.name" />
           <ProfileSetting 
             label="Email" 
             :editMode="editMode" 
-            v-model="organisatie.email" />
+            v-model="organization.email" />
           <ProfileSetting 
             label="Telefoonnummer" 
             :editMode="editMode"
-            v-model="organisatie.phoneNumber" />
+            v-model="organization.phoneNumber" />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Factuur informatie</h2>
           <ProfileSetting 
             label="Naam" 
             :editMode="editMode"
-            v-model="organisatie.invoiceName" />
+            v-model="organization.invoiceName" />
           <ProfileSetting 
             label="PO nummer" 
             :editMode="editMode"
-            v-model="organisatie.invoicePONumber" />
+            v-model="organization.invoicePoBox" />
           <ProfileSetting 
             label="E-mail adres" 
             :editMode="editMode"
-            v-model="organisatie.invoiceEmail" />
+            v-model="organization.invoiceEmail" />
         </div>
 
         <div class="panel px-4 py-3 mb-2">
@@ -49,70 +49,70 @@
           <ProfileSetting 
             label="Straat" 
             :editMode="editMode"
-            v-model="organisatie.homeStreet" />
+            v-model="organization.homeStreet" />
           <ProfileSetting 
             label="Huisnummer" 
             :editMode="editMode"
-            v-model="organisatie.homeAddressNumber" />
+            v-model="organization.homeAddressNumber" />
           <ProfileSetting 
             label="Toevoeging" 
             :editMode="editMode"
-            v-model="organisatie.homeAddressNumberPostfix" />
+            v-model="organization.homeAddressNumberPostfix" />
           <ProfileSetting 
             label="Postbus" 
             :editMode="editMode"
-            v-model="organisatie.homePostbox" />
+            v-model="organization.homePostbox" />
           <ProfileSetting 
             label="Stad" 
             :editMode="editMode"
-            v-model="organisatie.homeCity" />
+            v-model="organization.homeCity" />
           <ProfileSetting 
             label="Postcode" 
             :editMode="editMode"
-            v-model="organisatie.homeZipcode" />
+            v-model="organization.homeZipcode" />
           <ProfileSetting 
             label="Provincie" 
             :editMode="editMode"
-            v-model="organisatie.homeState" />
+            v-model="organization.homeState" />
           <ProfileSetting 
             label="Land" 
             :editMode="editMode"
-            v-model="organisatie.homeCountry" />
+            v-model="organization.homeCountry" />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Post adres</h2>
           <ProfileSetting 
             label="Straat" 
             :editMode="editMode"
-            v-model="organisatie.postalStreet" />
+            v-model="organization.postalStreet" />
           <ProfileSetting 
             label="Huisnummer" 
             :editMode="editMode"
-            v-model="organisatie.postalAddressNumber" />
+            v-model="organization.postalAddressNumber" />
           <ProfileSetting 
             label="Toevoeging" 
             :editMode="editMode"
-            v-model="organisatie.postalAddressNumberPostfix" />
+            v-model="organization.postalAddressNumberPostfix" />
           <ProfileSetting 
             label="Postbus" 
             :editMode="editMode"
-            v-model="organisatie.postalPostbox" />
+            v-model="organization.postalPostbox" />
           <ProfileSetting 
             label="Stad" 
             :editMode="editMode"
-            v-model="organisatie.postalCity" />
+            v-model="organization.postalCity" />
           <ProfileSetting 
             label="Postcode" 
             :editMode="editMode"
-            v-model="organisatie.postalZipcode" />
+            v-model="organization.postalZipcode" />
           <ProfileSetting 
             label="Provincie" 
             :editMode="editMode"
-            v-model="organisatie.postalState" />
+            v-model="organization.postalState" />
           <ProfileSetting 
             label="Land" 
             :editMode="editMode"
-            v-model="organisatie.postalCountry" />
+            v-model="organization.postalCountry" />
         </div>
 
         <b-button 
@@ -155,24 +155,22 @@ export default {
   data() {
     return {
       editMode: true,
-      feedback: {}
+      feedback: {},
+      organization: null
     }
   },
-  computed: {
-    ...mapGetters('org', [
-      'organization',
-      'getOrgById'
-    ]),
-    organisatie() {
-      return isAdmin() 
-        ? this.getOrgById({ id : this.$route.params.id })
-        : this.organization
-    }
+  async created() {
+    this.organization = isAdmin() 
+     ? await this.getOrganizationById({ id: this.$route.params.id })
+     : await this.getOrganization()
   },
   methods: {
     image,
     ...mapActions('org', [
-      'updateOrg'
+      'updateOrganization',
+      'updateOrganizationAsAdmin',
+      'getOrganizationById',
+      'getOrganization'
     ]),
     async handleUpdateOrg() {
       try {
@@ -180,10 +178,19 @@ export default {
           variant: 'info', 
           message: 'Bezig met opslaan...'
         }
-        await this.updateOrg({
-          orgId: this.organisatie.getId(),
-          data: this.organisatie
-        });
+
+        // Act according to user privileges.
+        if (isAdmin()) {
+          await this.updateOrganizationAsAdmin({
+            organizationId: this.organization.id,
+            data: this.organization
+          });
+        } else {
+          await this.updateOrganization({
+            data: this.organization
+          });
+        }
+
         this.feedback = {
           variant: 'success', 
           message: 'Wijzigingen zijn opgeslagen'
