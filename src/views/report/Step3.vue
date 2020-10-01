@@ -92,14 +92,15 @@ export default {
     ...mapGetters("samples", ["samples"]),
     previousStep() {
       console.log('Step3.previousStep()')
+      // TODO When is this ever useful?
       let report = this.activeReport
         ? this.activeReport
-        : { id: "id", documentId: "document" };
+        : { id: "id", documentName: "documentName" };
       return {
         name: "edit-report-2",
         params: {
           id: report.id,
-          document: report.documentId
+          fileName: report.fileName
         }
       };
     }

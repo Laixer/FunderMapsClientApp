@@ -7,7 +7,7 @@
 
       <ReportStepHeader 
         :step="2"
-        :label="activeReport.documentId">
+        :label="activeReport.documentName">
         <b-button 
           variant="light" 
           class="font-weight-bold d-flex align-items-center"
@@ -125,18 +125,24 @@ export default {
       'samples'
     ]),
     previousStep() {
-      let report = this.activeReport ? this.activeReport : { id: 'id', documentId: 'document' }
-      return { name: 'edit-report-1', params: { 
-        id: report.id, 
-        document: report.documentFile
-      } }
+      // TODO When will activereport be null ever?
+      let report = this.activeReport ? this.activeReport : { id: 'id', documentName: 'documentName' }
+      return { 
+        name: 'edit-report-1', params: { 
+          id: report.id, 
+          documentName: report.documentName
+        } 
+      }
     },
     nextStep() {
-      let report = this.activeReport ? this.activeReport : { id: 'id', documentId: 'document' }
-      return { name: 'edit-report-3', params: { 
-        id: report.id, 
-        document: report.documentId 
-      } }
+      // TODO When will activereport be null ever?
+      let report = this.activeReport ? this.activeReport : { id: 'id', documentName: 'documentName' }
+      return { 
+        name: 'edit-report-3', params: { 
+          id: report.id, 
+          documentName: report.documentName
+        } 
+      }
     }
   },
   async created() {

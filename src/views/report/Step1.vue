@@ -7,7 +7,7 @@
       <div class="ReportForm__pane p-5">
         <Feedback :feedback="feedback" />
 
-        <FormField v-model="fields.documentId.value" v-bind="fields.documentId" />
+        <FormField v-model="fields.documentName.value" v-bind="fields.documentName" />
         <div class="form-row">
           <FormField v-model="fields.type.value" v-bind="fields.type" class="col-md-6" />
           <FormField v-model="fields.date.value" v-bind="fields.date" class="col-md-6" />
@@ -18,7 +18,7 @@
         </div>
         <Divider />
         <div class="form-row">
-          <FormField v-model="fields.conformF3o.value" v-bind="fields.conformF3o" class="col-md-3" />
+          <FormField v-model="fields.standardF3o.value" v-bind="fields.standardF3o" class="col-md-3" />
           <FormField v-model="fields.inspection.value" v-bind="fields.inspection" class="col-md-3" />
           <FormField
             v-model="fields.jointMeasurement.value"
@@ -79,7 +79,7 @@ export default {
       documentName: null,
       stored: false, // navigation blocker
       fields: {
-        documentId: {
+        documentName: {
           label: "Document naam",
           value: "",
           validationRules: {
@@ -139,7 +139,7 @@ export default {
           },
           disabled: false
         },
-        conformF3o: {
+        standardF3o: {
           label: "Conform F3O",
           value: false,
           type: "radio",
@@ -246,14 +246,18 @@ export default {
     ...mapGetters("org", ["organization"]),
     ...mapGetters("contractors", ["contractors"]),
     nextStep() {
-      let report = this.activeReport || { id: "id", documentId: "documentId" };
+      // TODO When will this.activeReport go to null ever?
+      let report = this.activeReport || { id: "id", documentName: "documentName" };
       return {
         name: "edit-report-2",
-        params: { id: report.id, document: report.documentId }
+        params: { 
+          id: report.id, 
+          documentName: report.documentName 
+        }
       };
     },
     headerLabel() {
-      return this.activeReport ? this.activeReport.documentId : null;
+      return this.activeReport ? this.activeReport.documentName : null;
     },
     getReviewerOptions() {
       if (this.reviewers) {
@@ -289,9 +293,12 @@ export default {
     }
   },
   async created() {
+
+    console.log('this.activeReport', this.activeReport)
+
     await this.getReviewers();
     await this.getContractors();
-    if (this.$route.name === "new-report2") { // TODO Beunfix, see router index.ts
+    if (this.$route.name === "new-report") {
       this.prepareEmptyForm();
     } else {
       this.prepareExistingReport();
@@ -335,14 +342,12 @@ export default {
 
       // Make the documentName accessible as data
       if (this.$route.params.file) {
-        this.documentName = this.$route.params.file.name;
 
-        // Pre-assign document name
-        this.fields.documentId.value = this.documentName
-      }
+        // TODO Remove
+        console.log('this.$route.params', this.$route.params)
 
-      if (this.$route.params.fileId) {
-        this.internalDocumentId = this.$route.params.fileId.name
+        this.fields.documentName.value = this.$route.params.file.name;
+        this.documentFile = this.$route.params.documentFile;
       }
 
       // Set the contractor & reviewer user options (from Vuex)
@@ -351,13 +356,14 @@ export default {
       this.fields.reviewer.permaDisabled = false;
       this.fields.contractor.permaDisabled = false;
 
-      // If there is only one actual option, select it
+      // If there is only one reviewer option, select it.
       if (this.fields.reviewer.options.length === 2) {
         this.fields.reviewer.value = this.fields.reviewer.options[1].value;
       }
     },
+
     /**
-     * Prepare the fields with data from the active report
+     * Prepare the fields with data from the active report.
      */
     async prepareExistingReport() {
       if (!canWrite()) {
@@ -386,18 +392,17 @@ export default {
         return;
       }
 
-      let conform_f3oValue = report.norm
-        ? report.norm.find(norm => norm.hasOwnProperty("conformF3o"))
-        : null;
-      conform_f3oValue = conform_f3oValue ? conform_f3oValue.conform_f3o : null;
+      // The internally stored document file is required but is not
+      // present in the field values. We store it explicitly.
+      this.documentFile = report.documentFile;
 
       this.setFieldValues({
-        documentId: report.documentId,
-        type: report.typeNumber,
+        type: report.type,
+        documentName: report.documentName,
         date: report.documentDate,
-        contractor: report.contractor ? report.contractor.id : null,
-        reviewer: report.reviewer ? report.reviewer.id : null,
-        conformF3o: conform_f3oValue || false,
+        contractor: report.contractorId ? report.contractorId : null,
+        reviewer: report.reviewerId ? report.reviewerId : null,
+        standardF3o: report.standardF3o,
         inspection: report.inspection,
         jointMeasurement: report.jointMeasurement,
         floorMeasurement: report.floorMeasurement,
@@ -428,6 +433,10 @@ export default {
      * Handle the creation of the report
      */
     async handleSubmit() {
+
+      // TODO Remove
+      console.log('handleSubmit()')
+
       this.disableAllFields();
       this.isDisabled = true;
       this.feedback = {
@@ -438,15 +447,15 @@ export default {
       let values = this.allFieldValues();
 
       let data = {
-        documentName: values.documentId, // TODO Very confusing
+        documentName: values.documentName,
         inspection: values.inspection,
         jointMeasurement: values.jointMeasurement,
         floorMeasurement: values.floorMeasurement,
         note: values.note,
         documentDate: values.date.toISOString(),
-        documentFile: this.internalDocumentId, // TODO Very confusing
+        documentFile: this.documentFile,
         type: parseInt(values.type),
-        standardF3o: values.conform_f3o,
+        standardF3o: values.standardF3o,
         auditStatus: values.status,
         reviewer: values.reviewer,
         contractor: values.contractor,
@@ -456,8 +465,6 @@ export default {
       if (this.activeReport) {
         data["id"] = this.$route.params.id;
 
-        console.log('updating report')
-
         await this.updateReport({
           id: this.$route.params.id,
           document: this.$route.params.document,
@@ -466,8 +473,6 @@ export default {
           .then(this.handleSuccess)
           .catch(this.errorHandler);
       } else {
-        data["documentName"] = this.documentName;
-
         await this.createReport(data)
           .then(this.handleSuccess)
           .catch(this.errorHandler);
