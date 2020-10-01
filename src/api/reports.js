@@ -15,7 +15,7 @@ const getReport = ({ id }) => {
 const createReport = (data) => {
   return axios.post('/api/inquiry/', data)
 }
-const updateReport = ({ id, document, data }) => {
+const updateReport = ({ id, data }) => {
   return axios.put(`/api/inquiry/${id}/`, data)
 }
 /**
