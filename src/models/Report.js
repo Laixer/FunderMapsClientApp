@@ -144,12 +144,25 @@ class ReportModel {
   isApproved() {
     return 'Done' === this.status.text;
   }
+  isPending() {
+    return 'Pending' === this.status.text;
+  }
   isPendingReview() {
     return 'PendingReview' === this.status.text;
   }
   isAvailableForReview() {
     return ['PendingReview'].includes(this.status.text);
   }
+
+  /**
+   * This function can be used to determine if a user is allowed
+   * to edit this report. This function safeguards the audit
+   * status state machine.
+   */
+  isEditable() {
+    return ['Todo', 'Pending', 'Rejected'].includes(this.status.text);
+  }
+
   /**
    * Attribution
    */
