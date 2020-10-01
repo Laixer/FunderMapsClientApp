@@ -19,6 +19,25 @@
         <span class="ml-3">{{ disapproveLabel }}</span>
       </span>
     </div>
+    <div 
+      v-else-if="approved === true || approved === false"
+      class="d-flex align-items-center">
+      Status: 
+      <div 
+        v-if="approved === true"
+        :class="approvedClasslist"
+        class="ViewHeader__choice ml-4 align-items-center">
+        <img :src='approveIcon' width="30" height="30" />
+        <div class="ml-3">Goedgekeurd</div>
+      </div>
+      <div 
+        v-else-if="approved === false"
+        :class="disapprovedClasslist"
+        class="ViewHeader__choice ml-4 align-items-center">
+        <img :src='disapproveIcon' width="30" height="30" />
+        <span class="ml-3">Afgekeurd</span>
+      </div>
+    </div>
     <div class="flex-grow-1"></div>
 
     <b-button 
@@ -58,7 +77,13 @@ export default {
   data() {
     return {
       processing: false,
-      // approved: null,
+      /**
+       * This can be true, false or null.
+       * True indicates we have been approved by the user.
+       * False indicates we have been rejected by the user.
+       * Null indicates anything else.
+      */
+      approvedByUser: null,
     }
   },
   computed: {
@@ -70,8 +95,11 @@ export default {
         ? this.activeReport 
         : { id: 'id', documentId: 'document' }
       return { 
-        name: 'edit-report-2', 
-        params: { id: report.id, document: report.documentId }
+        name: 'edit-report-1', 
+        params: { 
+          id: report.id, 
+          documentName: report.documentName
+        }
       }
     },
     editable() {
@@ -86,15 +114,19 @@ export default {
       } 
       return false
     },
-    isAvailableForReview() {
-      //console.log('isAvailableForReview forced to return true')
-      //return true;
+    approved() {
+      if (this.activeReport) {
+        return this.activeReport.getApprovalState()
+      }
 
+      return null;
+    },
+    isAvailableForReview() {
       if (!canApprove()) {
         return false
       }
       if (this.activeReport) {
-        return this.activeReport.isAvailableForReview()
+        return this.activeReport.isPendingReview()
       }
       return false;
     },
@@ -117,12 +149,6 @@ export default {
         'd-none': this.approved === false, 
         'd-flex': this.approved !== false 
       }
-    },
-    approved() {
-      if (this.activeReport) {
-        return this.activeReport.getApprovalState()
-      }
-      return null
     },
     approveIcon() {
       return icon(this.approved === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg');
@@ -147,10 +173,13 @@ export default {
       }
       this.processing = true;
       await this.approveReport({ id: this.activeReport.id })
-      this.approved = true
+      this.approvedByUser = true
       this.processing = false
     },
     handleDisapproveModal() {
+
+      console.log('handleDisapproveModal')
+
       if ( ! this.isPendingReview || this.processing) {
         return;
       }
@@ -159,7 +188,7 @@ export default {
       this.$bvModal.show('report-disapprove')
     },
     handleDisapprove() {
-      this.approved = false
+      this.approvedByUser = false
       this.processing = false;
     },
     onHidden() {

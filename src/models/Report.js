@@ -148,7 +148,7 @@ class ReportModel {
     return 'PendingReview' === this.status.text;
   }
   isAvailableForReview() {
-    return ['PendingReview', 'Done', 'Rejected'].includes(this.status.text);
+    return ['PendingReview'].includes(this.status.text);
   }
   /**
    * Attribution
