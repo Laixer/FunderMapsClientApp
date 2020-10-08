@@ -8,6 +8,13 @@ const getReports = ({ limit, offset }) => {
   });
 }
 
+/**
+ * Gets the total amount of reports in our data store.
+ */
+const getReportCount = () => {
+  return axios.get('/api/inquiry/count')
+}
+
 // Single
 const getReport = ({ id }) => {
   return axios.get(`/api/inquiry/${id}/`)
@@ -63,8 +70,11 @@ export default {
   getReports, 
 
   getReport,
+  getReportCount,
+
   createReport,
   updateReport,
+
   approveInquiry,
   rejectInquiry,
   submitForReview,
