@@ -12,17 +12,17 @@ export default {
     return axios.get('/api/admin/organization/')
   },
   updateOrganization: ({ data }) => {
-    // TODO This is a massive beunfix, see FunderMapsClientApp issue #80
+    // TODO This is a quickfix, see FunderMapsClientApp issue #80
     data.homeAddressNumber = data.homeAddressNumber ? Number(data.homeAddressNumber) : null;
     data.postalAddressNumber = data.postalAddressNumber ? Number(data.postalAddressNumber) : null;
 
     return axios.put(`/api/organization/`, data)
   },
   updateOrganizationAsAdmin: ({ organizationId, data }) => {
-      // TODO This is a massive beunfix, see FunderMapsClientApp issue #80
-      data.homeAddressNumber = data.homeAddressNumber ? Number(data.homeAddressNumber) : null;
-      data.postalAddressNumber = data.postalAddressNumber ? Number(data.postalAddressNumber) : null;
-    
+    // TODO This is a quickfix, see FunderMapsClientApp issue #80
+    data.homeAddressNumber = data.homeAddressNumber ? Number(data.homeAddressNumber) : null;
+    data.postalAddressNumber = data.postalAddressNumber ? Number(data.postalAddressNumber) : null;
+
     return axios.put(`/api/admin/organization/${organizationId}`, data)
   },
 

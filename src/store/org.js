@@ -146,7 +146,7 @@ const actions = {
    * Update any organization as an admin.
    */
   async updateOrganizationAsAdmin({ commit }, { organizationId, data }) {
-    let response = await orgAPI.updateOrganization({ organizationId, data })
+    let response = await orgAPI.updateOrganizationAsAdmin({ organizationId, data })
     if (response.status === 204) {
       commit('update_organization', {
         organizationId, data
