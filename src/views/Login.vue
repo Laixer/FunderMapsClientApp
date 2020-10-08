@@ -87,10 +87,6 @@ export default {
         await this.$router.push({ name: "dashboard" });
       } catch (err) {
         // FUTURE: BUG: Cannot throw empty exception.
-
-        // TODO Remove
-        console.log('err = ', err);
-
         if (typeof err == "undefined") {
           return;
         }

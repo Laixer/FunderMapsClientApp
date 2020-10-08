@@ -119,8 +119,6 @@ export default {
         message: 'Het opgevraagde rapport kan niet gevonden worden'
       }
     }
-
-    console.log('View.vue this.activeReport', this.activeReport)
   },
   beforeDestroy() {
     this.clearActiveReport()

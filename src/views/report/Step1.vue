@@ -505,10 +505,6 @@ export default {
       });
     },
     errorHandler(err) {
-
-      // TODO Remove
-      console.log('err', err)
-
       this.enableAllFields();
       this.isDisabled = false;
 
