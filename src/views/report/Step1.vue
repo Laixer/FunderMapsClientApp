@@ -241,7 +241,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters("reviewers", ["reviewers", "areReviewersAvailable"]),
+    ...mapGetters("reviewers", ["validReviewers", "areReviewersAvailable"]),
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("contractors", ["contractors"]),
     nextStep() {
@@ -259,13 +259,13 @@ export default {
       return this.activeReport ? this.activeReport.documentName : null;
     },
     getReviewerOptions() {
-      if (this.reviewers) {
+      if (this.validReviewers) {
         return [
           {
             value: null,
             text: "Selecteer een reviewer"
           }
-        ].concat(this.reviewers.map(this.mapToUserOption));
+        ].concat(this.validReviewers.map(this.mapToUserOption));
       }
       return [
         {

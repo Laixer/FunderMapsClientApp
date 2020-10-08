@@ -49,7 +49,7 @@
         <ReportOrgRoleExplicit :organizationId="activeReport.ownerId" organizationRoleOverride="Eigenaar"/>
         <ReportOrgRoleExplicit :organizationId="activeReport.contractorId" organizationRoleOverride="Uitvoerder"/>
       </div>
-      <div class="side p-3 mt-3">
+      <div v-if="isAdmin() || isSuperUser()" class="side p-3 mt-3">
         <h3>Betrokken personen</h3>
         <ReportUserRoleExplicit :userId="activeReport.creatorId" userRoleOverride="Eigenaar"/>
         <ReportUserRoleExplicit :userId="activeReport.reviewerId" userRoleOverride="Reviewer" />
@@ -79,6 +79,7 @@ import Sample from 'organism/Sample'
 
 import { icon } from 'helper/assets'
 import reportsAPI from 'api/reports'
+import { isSuperUser, isAdmin } from 'service/auth';
 
 export default {
   components: {
@@ -97,6 +98,9 @@ export default {
     ]),
     ...mapGetters('samples', [
       'samples'
+    ]),
+    ...mapGetters('user', [
+      'user'
     ])
   },
   async created() {
@@ -108,12 +112,15 @@ export default {
       if (this.samples.length === 0) {
         this.nosamples = true
       }
+
     } catch(err) {
       this.feedback = {
         variant: 'danger',
         message: 'Het opgevraagde rapport kan niet gevonden worden'
       }
     }
+
+    console.log('View.vue this.activeReport', this.activeReport)
   },
   beforeDestroy() {
     this.clearActiveReport()
@@ -128,6 +135,8 @@ export default {
       'getSamples',
       'clearSamples'
     ]),
+    isAdmin,
+    isSuperUser,
     icon,
     getReportDownloadLink() {
       try {
