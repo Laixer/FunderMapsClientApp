@@ -87,6 +87,9 @@ export function getLastUserEmail(): string {
 
 export function isAdmin(): boolean {
   //return true;
+
+  //console.log('getUserRole', getUserRole())
+
   return getUserRole() === 'administrator';
 }
 export function isSuperUser(): boolean {
@@ -110,13 +113,14 @@ export function canApprove(): boolean {
 export function canWrite(): boolean {
   return canApprove() || isWriter()
 }
+
 /**
  * Checks if a user can write. Being a superuser implies that you can.
- * TODO Look into this.
  */
 export function canUserWrite(): boolean {
-  return getUserRole() === 'superuser';
+  return getOrganizationRole() === 'superuser';
 }
+
 export function canRead(): boolean {
   // Everyone can read
   return true;
@@ -169,7 +173,7 @@ function getAccessTokenDecoded(): JwtToken {
   if (!token) {
     throw new Error('Could not get access token when requesting user');
   }
-  
+
   return jwt_decode(token);
 }
 
@@ -180,24 +184,33 @@ function getAccessTokenDecoded(): JwtToken {
  */
 function getUser(): any {
   let tokenDecoded = getAccessTokenDecoded();
+
+  //throw new Error("auth.ts .getUser() should retrieve from the store.")
+
   return null;
 }
 
 /**
- * TODO This is broken since our organization info 
- * is not sent with the access token anymore.
+ * Gets the organization role from the jwt access token.
  */
 function getOrganizationRole() {
-  return getUserRole();
+  try {
+    let tokenDecoded = getAccessTokenDecoded();
+
+    return tokenDecoded.cfor.toLowerCase();
+  } catch (err) {
+    return ''
+  }
 }
 
 /**
- * Gets the role from the jwt access token.
+ * Gets the user role from the jwt access token.
  */
 function getUserRole() {
   try {
-    let tokenDecoded = getAccessTokenDecoded();
-    return tokenDecoded.cfor.toLowerCase();
+    let tokenDecoded : any = getAccessTokenDecoded();
+
+    return tokenDecoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'].toLowerCase();
   } catch (err) {
     return ''
   }
