@@ -97,7 +97,7 @@ export const statusOptions = [
   {
     text: 'PendingReview',
     label: 'Gecontroleerd',
-    bgColor: '#3D5372'
+    bgColor: '#7a56e8' //'#3D5372'
   },
   {
     text: 'Rejected',

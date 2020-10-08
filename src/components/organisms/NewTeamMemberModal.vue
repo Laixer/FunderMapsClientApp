@@ -136,8 +136,6 @@ export default {
             organizationRole: this.fields.role.value
         };
 
-        console.log('userData', userData);
-
         // Act according to user privileges
         if (isAdmin()) {
           await this.adminCreateUser({ 

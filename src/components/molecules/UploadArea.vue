@@ -3,7 +3,6 @@
     <Feedback :feedback="feedback" />
     <vue2Dropzone 
       id="dropzone"
-      TODO Look into this
       v-if="canUserWrite()" 
       ref="dropzone"
       :options="options"

@@ -1,11 +1,11 @@
 <template>
   <div class="d-flex flex-column">
     <div v-if="areReviewersAvailable">
-    <UploadArea />
+      <UploadArea />
     </div>
     <div v-else>
       <!-- TODO: Show an error page -->
-      Geen reviewer beschikbaar - upload wizard niet beschikbaar.
+      Geen reviewers beschikbaar - upload wizard niet beschikbaar.
     </div>
     <ReportTable
       title="Recente rapporten"
