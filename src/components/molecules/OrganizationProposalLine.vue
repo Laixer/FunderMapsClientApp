@@ -40,6 +40,9 @@ export default {
     tokenLink() {
       // TODO Is this the way to go?
       let host = window.location.origin || ''
+      
+      // Quick fix for http --> https
+      host = host.replace(/^http:\/\//i, 'https://');
 
       // TODO: Build wrapper
 
