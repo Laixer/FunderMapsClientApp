@@ -91,6 +91,9 @@ export default {
     ...mapGetters('report', [
       'activeReport'
     ]),
+    ...mapGetters('user', [
+      'user'
+    ]),
     editRoute() {
       let report = this.activeReport 
         ? this.activeReport 
@@ -129,6 +132,7 @@ export default {
       }
       if (this.activeReport) {
         return this.activeReport.isPendingReview()
+        && this.activeReport.reviewerId === this.user.id
       }
       return false;
     },
@@ -198,7 +202,7 @@ export default {
     },
     onHidden() {
       this.processing = false;
-    }
+    },
   }
 }
 </script>
