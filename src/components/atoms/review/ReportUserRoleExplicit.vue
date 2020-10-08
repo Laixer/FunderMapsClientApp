@@ -12,7 +12,7 @@
 
 <script>
 
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import map from '../../../store/map';
 
 export default {
@@ -30,7 +30,6 @@ export default {
     ...mapGetters('reviewers', [
       'reviewers',
       'getUserById',
-      'areReviewersAvailable'
     ]),
     userObject() {
       return this.getUserById({id: this.userId});
@@ -41,7 +40,19 @@ export default {
       } else {
         return this.userObject.getRole();
       }
-    }
+    },
+  },
+
+  methods: {
+    ...mapActions('reviewers', ['getReviewersIfNotStored']),
+  },
+  
+  /**
+   * Calls getReviewersIfNotStored to guarantee that we have
+   * the involved users in our store.
+   */
+  async created() {
+    await this.getReviewersIfNotStored({ id: this.userId })
   }
 }
 </script>
