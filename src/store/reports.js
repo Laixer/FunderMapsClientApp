@@ -49,7 +49,7 @@ const actions = {
     let response = await reportAPI.getReportCount();
     if (response.status === 200) {
       commit('set_report_count', {
-        reportCount: response.data
+        reportCount: response.data.count
       });
     }
   },
