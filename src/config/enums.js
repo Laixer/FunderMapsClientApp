@@ -117,101 +117,125 @@ export const accessOptions = [
   }
 ]
 
+// TODO Hardcoded, enums didn't map
 export const foundationTypeOptions = [
   {
-    value: 'Wood',
+    //value: 'Wood',
+    value: 0,
     text: 'Hout'
   },
   {
-    value: 'WoodAmsterdam',
+    //value: 'WoodAmsterdam',
+    value: 1,
     text: 'Hout: Amsterdam fundering'
   },
   {
-    value: 'WoodRotterdam',
+    //value: 'WoodRotterdam',
+    value: 2,
     text: 'Hout: Rotterdam fundering'
   },
   {
-    value: 'Concrete',
+    //value: 'Concrete',
+    value: 3,
     text: 'Beton'
   },
   {
-    value: 'NoPile',
+    //value: 'NoPile',
+    value: 4,
     text: 'Niet onderheid'
   },
   {
-    value: 'NoPileMasonry',
+    //value: 'NoPileMasonry',
+    value: 5,
     text: 'Niet onderheid: gemetseld'
   },
   {
-    value: 'NoPileStrips',
+    //value: 'NoPileStrips',
+    value: 6,
     text: 'Niet onderheid: stroken fundering'
   },
   {
-    value: 'NoPileBearingFloor',
+    //value: 'NoPileBearingFloor',
+    value: 7,
     text: 'Niet onderheid: fundering met dragen vloer'
   },
   {
-    value: 'NoPileConcreteFloor',
+    //value: 'NoPileConcreteFloor',
+    value: 8,
     text: 'Niet onderheid: dragende betonvloer'
   },
   {
-    value: 'NoPileSlit',
+    //value: 'NoPileSlit',
+    value: 9,
     text: 'Niet onderheid: slieten'
   },
   {
-    value: 'WoodCharger',
+    //value: 'WoodCharger',
+    value: 10,
     text: 'Hout met oplanger'
   },
   {
-    value: 'WeightedPile',
+    //value: 'WeightedPile',
+    value: 11,
     text: 'Verzwaardepuntpaal'
   },
   {
-    value: 'Combined',
+    //value: 'Combined',
+    value: 12,
     text: 'Gecombineerd'
   },
   {
-    value: 'SteelPile',
+    //value: 'SteelPile',
+    value: 13,
     text: 'Stalen buispalen'
   },
   {
-    value: 'Other',
+    //value: 'Other',
+    value: 14,
     text: 'Overig'
   },
   {
-    value: 'Unknown',
+    //value: 'Unknown',
+    value: 15,
     text: 'Onbekend'
   }
 ]
 
+// TODO Hardcoded, enums didn't map
 export const foundationQualityOptions = [
   {
-    value: 'Bad',
+    //value: 'Bad',
+    value: 0,
     text: 'Slecht'
   },
   {
-    value: 'Mediocre',
+    //value: 'Mediocre',
+    value: 1,
     text: 'Matig'
   },
   {
-    value: 'Tolerable',
+    //value: 'Tolerable',
+    value: 2,
     text: 'Redelijk'
   },
   {
-    value: 'Good',
+    //value: 'Good',
+    value: 3,
     text: 'Goed'
   },
   {
-    value: 'MediocreGood',
+    //value: 'MediocreGood',
+    value: 4,
     text: 'Matig tot goed'
   },
   {
-    value: 'MediocreBad',
+    //value: 'MediocreBad',
+    value: 5,
     text: 'Matig tot slecht'
   }
 ]
 
-// TODO Hardcoded
+// TODO Hardcoded, enums didn't map
 export const substructureOptions = [
   {
     //value: 'Cellar',
@@ -235,73 +259,91 @@ export const substructureOptions = [
   }
 ]
 
+// TODO Hardcoded, enums didn't map
 export const foundationDamageCauseOptions = [
   {
-    value: 'Drainage',
+    //value: 'Drainage',
+    value: 0,
     text: 'Bemaling'
   },
   {
-    value: 'ConstructionFlaw',
+    //value: 'ConstructionFlaw',
+    value: 1,
     text: 'Constructieve fouten'
   },
   {
-    value: 'Drystand',
+    //value: 'Drystand',
+    value: 2,
     text: 'Droogstand (schimmels)'
   },
   {
-    value: 'Overcharge',
+    //value: 'Overcharge',
+    value: 3,
     text: 'Overbelasting'
   },
   {
-    value: 'OverchargeNegativeCling',
+    //value: 'OverchargeNegativeCling',
+    value: 4,
     text: 'Overbelasting (negatieve kleef)'
   },
   {
-    value: 'NegativeCling',
+    //value: 'NegativeCling',
+    value: 5,
     text: 'Negatieve kleef'
   },
   {
-    value: 'BioInfection',
+    //value: 'BioInfection',
+    value: 6,
     text: 'Bacteriele aantasting'
   },
   {
-    value: 'Unknown',
+    //value: 'Unknown',
+    value: 7,
     text: 'Niet vermeld'
   },
   {
-    value: 'FungusInfection',
+    //value: 'FungusInfection',
+    value: 8,
     text: 'Bacterien en schimmels aantasting'
   },
   {
-    value: 'foundationFlaw',
+    //value: 'foundationFlaw',
+    value: 9,
     text: 'Funderings fouten'
   },
   {
-    value: 'constructionHeave',
+    //value: 'constructionHeave',
+    value: 10,
     text: 'Afglijden fundering'
   },
   {
-    value: 'subsidence',
+    //value: 'subsidence',
+    value: 11,
     text: 'Bodemdaling'
   },
   {
-    value: 'vegetation',
+    //value: 'vegetation',
+    value: 12,
     text: 'Aantasting (planten)wortels'
   },
   {
-    value: 'gas',
+    //value: 'gas',
+    value: 13,
     text: 'Gaswinning'
   },
   {
-    value: 'vibrations',
+    //value: 'vibrations',
+    value: 14,
     text: 'Trillingen'
   },
   {
-    value: 'partial_foundation_recovery',
+    //value: 'partial_foundation_recovery',
+    value: 15,
     text: 'Funderingsherstel naastgelegen pand'
   },
 ]
 
+// TODO Hardcoded, enums didn't map
 export const enforcementTermOptions = [
   {
     text: '0-5 jaar',
