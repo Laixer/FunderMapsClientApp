@@ -176,7 +176,7 @@ const actions = {
    */
   async createProposal({ commit }, { name, email }) {
     let response = await orgAPI.createProposal({ name, email });
-    if (response.status === 200 && response.data) {
+    if (response.status === 204 && response.data) {
       commit('create_proposal', {
         proposal: response.data
       })
