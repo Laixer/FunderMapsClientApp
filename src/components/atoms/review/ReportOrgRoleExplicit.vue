@@ -23,12 +23,8 @@ export default {
       required: false
     }
   },
-  data: function () {
-    return {
-      organization: null,
-    };
-  },
   computed: {
+    ...mapGetters('contractors', ['getContractorById']),
     organizationRole() {
       if (this.organizationRoleOverride) {
         return this.organizationRoleOverride; 
@@ -38,14 +34,11 @@ export default {
     },
     hasOrganization() {
       return this.organization;
+    },
+    organization() {
+      return this.getContractorById({ id: this.organizationId });
     }
   },
-  methods: {
-    ...mapActions('org', ['getOrganizationById'])
-  },
-  async created() {
-    this.organization = await this.getOrganizationById({ id: this.organizationId });
-  }
 };
 </script>
 

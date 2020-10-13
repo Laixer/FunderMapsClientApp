@@ -62,12 +62,6 @@ const getters = {
   organisations: state => {
     return state.organizations
   },
-  getOrgById: state => ({ id }) => {
-    let result = state.organizations.find(org => {
-      return org.id === id
-    })
-    return result;
-  },
   proposals: state => {
     return state.proposals
   },

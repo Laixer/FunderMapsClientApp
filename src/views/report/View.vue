@@ -101,17 +101,21 @@ export default {
     ]),
     ...mapGetters('user', [
       'user'
-    ])
+    ]),
   },
   async created() {
     try {
+      // TODO Promise.whenall
       await this.getReportById({
         id: this.$route.params.id
       })
+
       await this.getSamples({ inquiryId: this.activeReport.id })
       if (this.samples.length === 0) {
         this.nosamples = true
       }
+
+      await this.getContractors();
 
     } catch(err) {
       this.feedback = {
@@ -132,6 +136,9 @@ export default {
     ...mapActions('samples', [
       'getSamples',
       'clearSamples'
+    ]),
+    ...mapActions('contractors', [
+      'getContractors'
     ]),
     isAdmin,
     isSuperUser,
