@@ -61,21 +61,22 @@ export default class SampleModel {
   getFoundationType() {
     return foundationTypeOptions[this.foundationType] || null;
   }
-  getFoundationQuality() {
-    return foundationQualityOptions[this.foundationQuality] || null;
+  getOverallQuality() {
+    return foundationQualityOptions[this.overallQuality] || null;
   }
   getSubstructure() {
     return substructureOptions[this.substructure] || null;
   }
   getFoundationDamageCause() {
-    return foundationDamageCauseOptions[this.foundationDamageCause] || null;
+    return foundationDamageCauseOptions[this.damageCause] || null;
   }
   // Note: returns an object {text, value}
   getEnforcementTerm() {
     return enforcementTermOptions[this.enforcementTerm] || null;
   }
   getBaseMeasurementLevel() {
-    return BaseMeasurementLevelOptions[this.baseMeasurementLevel] || null;
+    // TODO This is a fix
+    return BaseMeasurementLevelOptions[0] || null;
   }
   getAccess() {
     return accessOptions[this.policy] || null;

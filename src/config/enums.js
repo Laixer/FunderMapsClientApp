@@ -397,17 +397,21 @@ export const enforcementTermOptions = [
   }
 ]
 
+// TODO Hardcoded, enums didn't map
 export const BaseMeasurementLevelOptions = [
   {
-    value: 'NAP',
+    // value: 'NAP',
+    value: 0,
     text: 'NAP (Nederland)'
   },
   {
-    value: 'TAW',
+    // value: 'TAW',
+    value: 1,
     text: 'TAW (België)'
   },
   {
-    value: 'NN',
+    // value: 'NN',
+    value: 2,
     text: 'NN (Duitsland)'
   }
 ]
