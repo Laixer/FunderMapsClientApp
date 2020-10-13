@@ -219,8 +219,7 @@ export default {
           'phoneNumber'
         ]));
 
-        // TODO This is a tempfix because strings 
-        // aren't mapped  to enums in our backend.
+        // TODO This is a tempfix because strings aren't mapped  to enums in our backend.
         var roleInt = userRoleToInteger({ roleAsEnumText: this.fields.role.value });
 
         // Act according to user privileges

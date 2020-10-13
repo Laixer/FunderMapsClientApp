@@ -36,21 +36,21 @@
 
     <div class="form-row mb-3">
       <FormField
-        v-model="fields.foundationQuality.value"
-        v-bind="fields.foundationQuality"
+        v-model="fields.overallQuality.value"
+        v-bind="fields.overallQuality"
         class="col-md-6"
       />
       <FormField
-        v-model="fields.foundationRecoveryAdviced.value"
-        v-bind="fields.foundationRecoveryAdviced"
+        v-model="fields.recoveryAdvised.value"
+        v-bind="fields.recoveryAdvised"
         class="col-md-6"
       />
     </div>
 
     <div class="form-row mb-3">
       <FormField
-        v-model="fields.foundationDamageCause.value"
-        v-bind="fields.foundationDamageCause"
+        v-model="fields.damageCause.value"
+        v-bind="fields.damageCause"
         class="col-md-6"
       />
       <FormField
@@ -68,8 +68,8 @@
       />
       <FormField v-model="fields.woodLevel.value" v-bind="fields.woodLevel" class="col-md-3" />
       <FormField
-        v-model="fields.groundwaterLevel.value"
-        v-bind="fields.groundwaterLevel"
+        v-model="fields.groundwaterLevelTemp.value"
+        v-bind="fields.groundwaterLevelTemp"
         class="col-md-3"
       />
       <FormField v-model="fields.groundLevel.value" v-bind="fields.groundLevel" class="col-md-3" />
@@ -200,7 +200,7 @@ export default {
         },
         // DIVIDER
         // LINE 4
-        foundationQuality: {
+        overallQuality: {
           label: "Funderingskwaliteit",
           type: "select",
           value: null,
@@ -213,7 +213,7 @@ export default {
           validationRules: {
           }
         },
-        foundationRecoveryAdviced: {
+        recoveryAdvised: {
           label: "Funderingsherstel advies",
           type: "radio",
           value: null,
@@ -231,7 +231,7 @@ export default {
           }
         },
         // LINE 5
-        foundationDamageCause: {
+        damageCause: {
           label: "Oorzaak funderingsschade",
           type: "select",
           value: null,
@@ -281,7 +281,7 @@ export default {
             decimal,
           }
         },
-        groundwaterLevel: {
+        groundwaterLevelTemp: {
           label: "Grondwaterstand",
           type: "text",
           value: "",
@@ -324,8 +324,8 @@ export default {
     if (!this.sample.baseMeasurementLevel) {
       this.sample.baseMeasurementLevel = 0; // NAP
     }
-    if (!this.sample.foundationDamageCause) {
-      this.sample.foundationDamageCause = 7; // Unknown
+    if (!this.sample.damageCause) {
+      this.sample.damageCause = 7; // Unknown
     }
 
     // Explicitly set the address field.
@@ -350,16 +350,16 @@ export default {
         : null,
       monitoringWell: this.sample.monitoringWell,
       cpt: this.sample.cpt,
-      foundationQuality: this.optionValue({
+      overallQuality: this.optionValue({
         options: foundationQualityOptions,
-        name: "foundationQuality"
+        name: "overallQuality"
       }),
-      foundationRecoveryAdviced: this.booleanValue({
-        name: "foundationRecoveryAdviced"
+      recoveryAdvised: this.booleanValue({
+        name: "recoveryAdvised"
       }),
-      foundationDamageCause: this.optionValue({
+      damageCause: this.optionValue({
         options: foundationDamageCauseOptions,
-        name: "foundationDamageCause"
+        name: "damageCause"
       }),
       enforcementTerm: this.optionValue({
         options: enforcementTermOptions,
@@ -370,9 +370,12 @@ export default {
         name: "baseMeasurementLevel"
       }),
       woodLevel: this.sample.woodLevel,
-      groundwaterLevel: this.sample.groundwaterLevel,
+      groundwaterLevelTemp: this.sample.groundwaterLevelTemp,
       groundLevel: this.sample.groundLevel
     });
+
+    // TODO Remove
+    console.log('this.sample', this.sample)
 
     // After setting the field values, set the DB storage status
     this.$nextTick(() => {
@@ -467,8 +470,8 @@ export default {
       if (data.baseMeasurementLevel === null) {
         data.baseMeasurementLevel = 0; // NAP
       }
-      if (data.foundationDamageCause === null) {
-        data.foundationDamageCause = 7; // Unknown
+      if (data.damageCause === null) {
+        data.damageCause = 7; // Unknown
       }
 
       // Assign address geocoder id from selected field
@@ -478,15 +481,18 @@ export default {
       // TODO These fields should be mapped automatically
       data.builtYear = new Date(data.builtYear, 1, 1, 0, 0, 0, 0);
       if (data.groundLevel) { data.groundLevel = Number(data.groundLevel); }
-      if (data.groundwaterLevel) { data.groundwaterLevel = Number(data.groundwaterLevel); }
+      if (data.groundwaterLevelTemp) { data.groundwaterLevelTemp = Number(data.groundwaterLevelTemp); }
       if (data.woodLevel) { data.woodLevel = Number(data.woodLevel); }
       
       // TODO These fields don't work with null values
       if (!data.substructure) { data.substructure = 3; }
       if (!data.enforcementTerm) { data.enforcementTerm = 0; }
-      if (!data.woodlevel) { data.woodLevel = 0; }
+      if (!data.woodLevel) { data.woodLevel = 0; }
       if (!data.groundLevel) { data.groundLevel = 0; }
-      if (!data.groundwaterLevel) { data.groundwaterLevel = 0; }
+      if (!data.groundwaterLevelTemp) { data.groundwaterLevelTemp = 0; }
+
+      // TODO Remove
+      console.log('Sending sample', data)
 
       if (data.id) {
         await this.updateSample({
