@@ -54,7 +54,7 @@ import { mapActions } from 'vuex'
 import fields from 'mixin/fields'
 import timeout from 'mixin/timeout'
 
-import { userRoles } from 'config/roles'
+import { userRoles, userRoleToInteger } from 'config/roles'
 
 import { isAdmin } from 'service/auth'
 
@@ -128,12 +128,14 @@ export default {
       }
       
       try {
+        // TODO This is a tempfix because strings aren't mapped  to enums in our backend.
+        var roleInt = userRoleToInteger({ roleAsEnumText: this.fields.role.value });
+
         // Extract the form data and create the user.
         let userData = {
           email: this.fields.email.value,
             password: this.fields.password.value,
-            role: 2, // Guest -- TODO What to do with this?
-            organizationRole: this.fields.role.value
+            organizationRole: roleInt
         };
 
         // Act according to user privileges

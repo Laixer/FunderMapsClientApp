@@ -34,6 +34,21 @@ export default {
   },
 
   /**
+   * Updates a user role in the organization that the current user
+   * belongs to.
+   */
+  updateOrganizationUserRole: ({ userId, role }) => {
+    return axios.post(`/api/organization/user/${userId}/change-organization-role`, { role: role })
+  },
+
+  /**
+   * Admin call that updates any user role in any organization.
+   */
+  adminUpdateOrganizationUserRole: ({ organizationId, userId, role }) => {
+    return axios.post(`/api/admin/organization/${organizationId}/user/${userId}/change-organization-role`, { role: role })
+  },
+
+  /**
    * Creates a new user in the organization that the current
    * user belongs to.
    */

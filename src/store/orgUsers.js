@@ -98,6 +98,29 @@ const actions = {
     return response;
   },
 
+    /**
+   * Updates an organization user role, then triggers the getUsers
+   * action to fetch the updated user. The result is then returned.
+   */
+  async updateUserRole({ dispatch }, { userId, role }) {
+    let response = await orgUserAPI.updateOrganizationUserRole({ userId, role })
+    if (response.status === 204) {
+      dispatch('getUsers');
+    }
+    return response;
+  },
+
+  /**
+   * Admin call which updates a given organization user role.
+   */
+  async adminUpdateUserRole({ dispatch }, { organizationId, userId, role }) {
+    let response = await orgUserAPI.adminUpdateOrganizationUserRole({ organizationId, userId, role })
+    if (response.status === 204) {
+      dispatch('adminGetUsers', { organizationId });
+    }
+    return response;
+  },
+
   /**
    * Creates a new organization user, then triggers the getUsers
    * action to fetch the created user. The result is then returned.

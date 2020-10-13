@@ -81,7 +81,7 @@ import { mapGetters, mapActions } from 'vuex'
 import fields from 'mixin/fields'
 import timeout from 'mixin/timeout'
 
-import { userRoles } from 'config/roles'
+import { userRoles, userRoleToInteger } from 'config/roles'
 
 import { getUserId, isAdmin } from 'service/auth'
 import { OrgUserModel } from '../../models/OrgUser'
@@ -188,7 +188,9 @@ export default {
   methods: {
     ...mapActions('orgUsers', [
       'updateUser',
-      'adminUpdateUser'
+      'updateUserRole',
+      'adminUpdateUser',
+      'adminuUpdateUserRole'
     ]),
     image,
     onShow() {
@@ -217,24 +219,33 @@ export default {
           'phoneNumber'
         ]));
 
-        // TODO This seems a bit messy but we have to explicitly assign this.
-        //      This might change in the future with the new org user controller
-        //      ability to set the organization role for org users.
-        userData.role = this.user.role;
-        userData.organizationRole = this.fields.role.value;
+        // TODO This is a tempfix because strings 
+        // aren't mapped  to enums in our backend.
+        var roleInt = userRoleToInteger({ roleAsEnumText: this.fields.role.value });
 
         // Act according to user privileges
+        // Role update is a separate call.
         if (isAdmin()) {
           await this.adminUpdateUser({
             organizationId: this.organizationId,
             userId: this.userId,
             data: userData
-          })
+          });
+          await this.adminUpdateUserRole({
+            organizationId: this.organizationId,
+            userId: this.userId,
+            role: roleInt
+          });
         } else {
           await this.updateUser({
             userId: this.userId,
             data: userData
-          })
+          });
+          await this.updateUserRole({
+            organizationId: this.organizationId,
+            userId: this.userId,
+            role: roleInt
+          });
         }
         
         this.feedback = {
@@ -249,6 +260,10 @@ export default {
         }, 500)
         
       } catch (err) {
+
+        // TODO Remove
+        console.log('err', err)
+
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'
