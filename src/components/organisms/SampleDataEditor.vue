@@ -374,9 +374,6 @@ export default {
       groundLevel: this.sample.groundLevel
     });
 
-    // TODO Remove
-    console.log('this.sample', this.sample)
-
     // After setting the field values, set the DB storage status
     this.$nextTick(() => {
       this.stored = this.sample.stored !== false;
@@ -490,9 +487,6 @@ export default {
       if (!data.woodLevel) { data.woodLevel = 0; }
       if (!data.groundLevel) { data.groundLevel = 0; }
       if (!data.groundwaterLevelTemp) { data.groundwaterLevelTemp = 0; }
-
-      // TODO Remove
-      console.log('Sending sample', data)
 
       if (data.id) {
         await this.updateSample({

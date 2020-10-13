@@ -259,10 +259,6 @@ export default {
         }, 500)
         
       } catch (err) {
-
-        // TODO Remove
-        console.log('err', err)
-
         this.feedback = {
           variant: 'danger', 
           message: 'Wijzigingen zijn niet opgeslagen'
