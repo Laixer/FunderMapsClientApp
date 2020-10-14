@@ -91,7 +91,7 @@ export default {
       this.registerOrganization({
         email:    this.fieldValue('email'), 
         password: this.fieldValue('password'),
-        token:    this.$route.params.token
+        id:    this.$route.params.id
       })
         .then(() => {
           this.$router.push({ name: 'login' })

@@ -36,21 +36,21 @@
 
     <div class="form-row mb-3">
       <FormField
-        v-model="fields.foundationQuality.value"
-        v-bind="fields.foundationQuality"
+        v-model="fields.overallQuality.value"
+        v-bind="fields.overallQuality"
         class="col-md-6"
       />
       <FormField
-        v-model="fields.foundationRecoveryAdviced.value"
-        v-bind="fields.foundationRecoveryAdviced"
+        v-model="fields.recoveryAdvised.value"
+        v-bind="fields.recoveryAdvised"
         class="col-md-6"
       />
     </div>
 
     <div class="form-row mb-3">
       <FormField
-        v-model="fields.foundationDamageCause.value"
-        v-bind="fields.foundationDamageCause"
+        v-model="fields.damageCause.value"
+        v-bind="fields.damageCause"
         class="col-md-6"
       />
       <FormField
@@ -68,8 +68,8 @@
       />
       <FormField v-model="fields.woodLevel.value" v-bind="fields.woodLevel" class="col-md-3" />
       <FormField
-        v-model="fields.groundwaterLevel.value"
-        v-bind="fields.groundwaterLevel"
+        v-model="fields.groundwaterLevelTemp.value"
+        v-bind="fields.groundwaterLevelTemp"
         class="col-md-3"
       />
       <FormField v-model="fields.groundLevel.value" v-bind="fields.groundLevel" class="col-md-3" />
@@ -105,6 +105,11 @@ import fields from "mixin/fields";
 
 import { mapGetters, mapActions } from "vuex";
 import SampleModel from "../../models/Sample";
+
+/**
+ * Import API for address from geocoder.
+ */
+import addressAPI from "api/address";
 
 export default {
   components: {
@@ -149,7 +154,8 @@ export default {
               text: "Selecteer een optie"
             }
           ].concat(foundationTypeOptions),
-          validationRules: {}
+          validationRules: {
+          }
         },
         substructure: {
           label: "Onderbouw",
@@ -161,7 +167,8 @@ export default {
               text: "Selecteer een optie"
             }
           ].concat(substructureOptions),
-          validationRules: {}
+          validationRules: {
+          }
         },
         builtYear: {
           label: "Bouwjaar",
@@ -170,7 +177,8 @@ export default {
           validationRules: {
             numeric,
             minValue: minValue(1000),
-            maxValue: maxValue(2100)
+            maxValue: maxValue(2100),
+            required
           }
         },
         // LINE 3
@@ -192,7 +200,7 @@ export default {
         },
         // DIVIDER
         // LINE 4
-        foundationQuality: {
+        overallQuality: {
           label: "Funderingskwaliteit",
           type: "select",
           value: null,
@@ -202,9 +210,10 @@ export default {
               text: "Selecteer een optie"
             }
           ].concat(foundationQualityOptions),
-          validationRules: {}
+          validationRules: {
+          }
         },
-        foundationRecoveryAdviced: {
+        recoveryAdvised: {
           label: "Funderingsherstel advies",
           type: "radio",
           value: null,
@@ -218,10 +227,11 @@ export default {
               text: "Nee"
             }
           ],
-          validationRules: {}
+          validationRules: {
+          }
         },
         // LINE 5
-        foundationDamageCause: {
+        damageCause: {
           label: "Oorzaak funderingsschade",
           type: "select",
           value: null,
@@ -245,7 +255,8 @@ export default {
               text: "Selecteer een optie"
             }
           ].concat(enforcementTermOptions),
-          validationRules: {}
+          validationRules: {
+          }
         },
         // LINE 6
         baseMeasurementLevel: {
@@ -267,15 +278,15 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            decimal
+            decimal,
           }
         },
-        groundwaterLevel: {
+        groundwaterLevelTemp: {
           label: "Grondwaterstand",
           type: "text",
           value: "",
           validationRules: {
-            decimal
+            decimal,
           }
         },
         groundLevel: {
@@ -283,7 +294,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            decimal
+            decimal,
           }
         }
       }
@@ -299,7 +310,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("report", ["activeReport"])
+    ...mapGetters("report", ["activeReport"]),
   },
   async created() {
     if (this.sample.stored === false) {
@@ -313,14 +324,19 @@ export default {
     if (!this.sample.baseMeasurementLevel) {
       this.sample.baseMeasurementLevel = 0; // NAP
     }
-    if (this.sample.foundationDamageCause === null) {
-      this.sample.foundationDamageCause = 7; // Unknown
+    if (!this.sample.damageCause) {
+      this.sample.damageCause = 7; // Unknown
+    }
+
+    // Explicitly set the address field.
+    if (this.sample.address) {
+      let addressFetched = await this.getAddressById({ id: this.sample.address });
+      this.fields.address.value = addressFetched.format();
+      this.fields.address.data = [ addressFetched ];
+      this.fields.address.selected = addressFetched;
     }
 
     this.setFieldValues({
-      address: this.sample.address.streetName
-        ? this.sample.address.streetName
-        : "",
       foundationType: this.optionValue({
         options: foundationTypeOptions,
         name: "foundationType"
@@ -329,19 +345,21 @@ export default {
         options: substructureOptions,
         name: "substructure"
       }),
-      builtYear: this.sample.builtYear,
+      builtYear: this.sample.builtYear 
+        ? new Date(this.sample.builtYear).getFullYear()
+        : null,
       monitoringWell: this.sample.monitoringWell,
       cpt: this.sample.cpt,
-      foundationQuality: this.optionValue({
+      overallQuality: this.optionValue({
         options: foundationQualityOptions,
-        name: "foundationQuality"
+        name: "overallQuality"
       }),
-      foundationRecoveryAdviced: this.booleanValue({
-        name: "foundationRecoveryAdviced"
+      recoveryAdvised: this.booleanValue({
+        name: "recoveryAdvised"
       }),
-      foundationDamageCause: this.optionValue({
+      damageCause: this.optionValue({
         options: foundationDamageCauseOptions,
-        name: "foundationDamageCause"
+        name: "damageCause"
       }),
       enforcementTerm: this.optionValue({
         options: enforcementTermOptions,
@@ -352,15 +370,9 @@ export default {
         name: "baseMeasurementLevel"
       }),
       woodLevel: this.sample.woodLevel,
-      groundwaterLevel: this.sample.groundwaterLevel,
+      groundwaterLevelTemp: this.sample.groundwaterLevelTemp,
       groundLevel: this.sample.groundLevel
     });
-
-    // Set existing bag as selected item.
-    if (this.sample.address.bag) {
-      let record = await this.getGeocoderByBag(this.sample.address.bag);
-      await this.handleHit(record);
-    }
 
     // After setting the field values, set the DB storage status
     this.$nextTick(() => {
@@ -369,6 +381,7 @@ export default {
   },
   methods: {
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
+    ...mapActions('address', ['getAddressById', 'getAddressSuggestions']),
     optionValue({ options, name }) {
       let key = this.sample[name];
       return options[key] ? options[key].value : null;
@@ -379,42 +392,27 @@ export default {
         : null;
     },
     addressSerializer(address) {
-      return address.weergavenaam;
+      return this.formatAddressDisplayName(address);
     },
-    async handleHit(a) {
-      // TODO: This should be handled via a store
-      let response = await axios(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?id=${a.id}`
-      );
-      if (response.status === 200 && response.data) {
-        if (response.data.response.numFound == 1) {
-          let address = response.data.response.docs[0];
-          this.fields.address.value = address.weergavenaam;
-          this.fields.address.selected = address;
-        }
-      }
+    handleHit(address) {
+      this.fields.address.value = this.formatAddressDisplayName(address);
+      this.fields.address.selected = address;
+
+      this.$emit('addressSelected', { addressId: address.id });
+    },
+    formatAddressDisplayName(address) {
+      return address.format();
     },
     async getAddresses(query) {
-      // TODO: This should be handled via a store
-      let response = await axios(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/suggest?q=${query}&fq=type:adres`
-      );
-      if (response.status === 200 && response.data) {
-        if (response.data.response.numFound > 0) {
-          this.fields.address.data = response.data.response.docs;
-        }
+      // Only process if we have a substantial amount of characters to go by.
+      if (query.length < 4) {
+        return;
       }
-    },
-    async getGeocoderByBag(id) {
-      // TODO: This should be handled via a store
-      let response = await axios(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/free?fq=nummeraanduiding_id:${id}`
-      );
-      if (response.status === 200 && response.data) {
-        if (response.data.response.numFound > 0) {
-          return response.data.response.docs[0];
-        }
-      }
+
+      // TODO Race condition when we keep on typing.
+
+      let addresses = await this.getAddressSuggestions({ query: query });
+      this.fields.address.data = addresses;
     },
     // Called by parent
     async save() {
@@ -440,10 +438,12 @@ export default {
         message: "Het adres wordt verwijderd..."
       };
       this.deleteSample({
-        id: this.sample.id,
+        inquiryId: this.activeReport.id,
+        sampleId: this.sample.id,
         creationstamp: this.sample.creationstamp
       });
     },
+    // Called when we submit our sample.
     async handleSubmit() {
       if (this.isDisabled) {
         return;
@@ -467,28 +467,39 @@ export default {
       if (data.baseMeasurementLevel === null) {
         data.baseMeasurementLevel = 0; // NAP
       }
-      if (data.foundationDamageCause === null) {
-        data.foundationDamageCause = 7; // Unknown
+      if (data.damageCause === null) {
+        data.damageCause = 7; // Unknown
       }
 
-      data.address = {
-        streetName: this.fields.address.selected.weergavenaam, // NOTE: For now, just so we get back the entire name
-        building_number: this.fields.address.selected.huisnummer,
-        bag: this.fields.address.selected.nummeraanduiding_id,
-        additional: this.fields.address.selected
-      };
+      // Assign address geocoder id from selected field
+      data.address = this.fields.address.selected.id;
       data.report = this.activeReport.id;
+
+      // TODO These fields should be mapped automatically
+      data.builtYear = new Date(data.builtYear, 1, 1, 0, 0, 0, 0);
+      if (data.groundLevel) { data.groundLevel = Number(data.groundLevel); }
+      if (data.groundwaterLevelTemp) { data.groundwaterLevelTemp = Number(data.groundwaterLevelTemp); }
+      if (data.woodLevel) { data.woodLevel = Number(data.woodLevel); }
+      
+      // TODO These fields don't work with null values
+      if (!data.substructure) { data.substructure = 3; }
+      if (!data.enforcementTerm) { data.enforcementTerm = 0; }
+      if (!data.woodLevel) { data.woodLevel = 0; }
+      if (!data.groundLevel) { data.groundLevel = 0; }
+      if (!data.groundwaterLevelTemp) { data.groundwaterLevelTemp = 0; }
 
       if (data.id) {
         await this.updateSample({
-          id: data.id,
-          data
+          inquiryId: this.activeReport.id,
+          sampleId: data.id,
+          data: data
         })
           .then(this.handleSuccess)
           .catch(this.handleError);
       } else {
         await this.createSample({
-          data
+          inquiryId: this.activeReport.id,
+          data: data
         })
           .then(this.handleSuccess)
           .catch(this.handleError);
@@ -510,7 +521,7 @@ export default {
         this.$emit("stored", { success: false, message: err });
       }
     },
-    handleError() {
+    handleError(err) {
       this.feedback = {
         variant: "danger",
         message: "De wijzigingen zijn niet opgeslagen"

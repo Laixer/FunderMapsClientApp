@@ -40,6 +40,8 @@ import { isSuperUser, canWrite } from 'service/auth'
 
 import { mapGetters } from 'vuex'
 
+import ReportModel from 'model/Report'
+
 export default {
   name: 'ReportTableLine',
   components: {
@@ -47,7 +49,7 @@ export default {
   },
   props: {
     report: {
-      type: Object,
+      type: ReportModel,
       default: function() {
         return {}
       }
@@ -62,13 +64,13 @@ export default {
       if (!canWrite()) {
         return false
       }
-      return (
-        !this.report.isPendingReview() && 
-        !this.report.isApproved()
-      ) || isSuperUser()
+      return this.report.isEditable();
+
+      // TODO || isSuperUser() was removed. The state machine does not
+      // support this functionality.
     },
     userObject() {
-      return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewer.id }) : null
+      return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewerId }) : null
     }
   },
   methods: {
@@ -83,7 +85,7 @@ export default {
     },
     handleEdit() {
       this.$router.push({ 
-        name: 'edit-report-2', 
+        name: 'edit-report-1', 
         params: { 
           id: this.report.id, 
           document: this.report.documentId 

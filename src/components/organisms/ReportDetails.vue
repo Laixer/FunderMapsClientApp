@@ -3,7 +3,7 @@
     <header class="d-flex align-items-center justify-content-between">
       <div>
         <h3>
-          {{ activeReport.documentId }}
+          {{ activeReport.documentName }}
         </h3>
         <span v-if="showLastEdited && hasEditedDate">
           Laatst bewerkt: {{ lastEdited }}
@@ -16,14 +16,13 @@
     <div 
       v-if="showUsers"
       class="Report__users d-flex">
-      <ReportUserRole :user="activeReport.creator" />
-      <ReportUserRole :user="activeReport.reviewer" />
+      <ReportUserRoleExplicit :userId="activeReport.creatorId" userRoleOverride="Eigenaar"/>
+      <ReportUserRoleExplicit :userId="activeReport.reviewerId" />
     </div>
     <Divider v-if="showUsers" />
     <div class="Report__indicators d-flex flex-wrap">
       <CheckboxIndicator 
-        v-if="conform_f3o"
-        :value="conform_f3o"
+        :value="activeReport.standardF3o"
         class="mb-1" 
         label="Conform F3O" />
       <CheckboxIndicator 
@@ -49,7 +48,7 @@
 <script>
 
 import ReportDate from 'atom/review/ReportDate'
-import ReportUserRole from 'atom/review/ReportUserRole'
+import ReportUserRoleExplicit from 'atom/review/ReportUserRoleExplicit'
 import Note from 'atom/review/Note'
 import CheckboxIndicator from 'atom/review/CheckboxIndicator'
 import TypeTag from 'atom/TypeTag'
@@ -63,7 +62,7 @@ import {
 
 export default {
   components: {
-    TypeTag, Divider, ReportUserRole,
+    TypeTag, Divider, ReportUserRoleExplicit,
     ReportDate, CheckboxIndicator, Note
   },
   props: {
@@ -96,24 +95,6 @@ export default {
     hasEditedDate() {
       return this.activeReport.updateDate !== null
     },
-    conform_f3o: {
-      get() {
-        let conform_f3o = this.activeReport.norm 
-          ? this.activeReport.norm.find(
-              norm => norm.hasOwnProperty('conform_f3o')
-            ) 
-          : null
-        return conform_f3o 
-          ? conform_f3o.conform_f3o 
-          : null
-      },
-      set(value) {
-        // TODO: works, so long as this is the only norm...
-        this.activeReport.norm = [{
-          conform_f3o: value
-        }]
-      } 
-    }
   }
 }
 </script>

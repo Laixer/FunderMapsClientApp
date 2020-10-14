@@ -2,19 +2,20 @@
 import axios from '@/utils/axios'
 
 // Collection
-const getSamples = ({ reportId }) => {
-  return axios.get(`/api/sample/report/${reportId}`)
+const getSamples = ({ inquiryId }) => {
+
+  return axios.get(`/api/inquiry/${inquiryId}/sample`)
 }
 
 // Single
-const updateSample = ({ id, data }) => {
-  return axios.put(`/api/sample/${id}`, data)
+const updateSample = ({ inquiryId, sampleId, data }) => {
+  return axios.put(`/api/inquiry/${inquiryId}/sample/${sampleId}`, data)
 }
-const createSample = ({ data }) => {
-  return axios.post(`/api/sample/`, data)
+const createSample = ({ inquiryId, data }) => {
+  return axios.post(`/api/inquiry/${inquiryId}/sample`, data)
 }
-const deleteSample = ({ id }) => {
-  return axios.delete(`/api/sample/${id}`)
+const deleteSample = ({ inquiryId, sampleId }) => {
+  return axios.delete(`/api/inquiry/${inquiryId}/sample/${sampleId}`)
 }
 
 export default { 

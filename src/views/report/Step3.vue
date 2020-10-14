@@ -29,7 +29,7 @@
     <div class="d-flex align-items-center justify-content-center mt-4">
       <BackButton :disabled="isDisabled" :to="previousStep" class="mr-3" label="Vorige" />
       <PrimaryArrowButton
-        :disabled="isDisabled"
+        :disabled="isDisabled || activeReport.isPending() === false"
         label="Aanbieden ter review"
         @click="handleToPendingReview"
       />
@@ -91,14 +91,15 @@ export default {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
     previousStep() {
+      // TODO When is this ever useful?
       let report = this.activeReport
         ? this.activeReport
-        : { id: "id", documentId: "document" };
+        : { id: "id", documentName: "documentName" };
       return {
         name: "edit-report-2",
         params: {
           id: report.id,
-          document: report.documentId
+          fileName: report.fileName
         }
       };
     }
@@ -113,11 +114,11 @@ export default {
     }
 
     try {
-      await this.getReportByIds({
-        id: this.$route.params.id,
-        document: this.$route.params.document
+      await this.getReportById({
+        id: this.$route.params.id
       });
 
+      // TODO This is a fix for the change of format
       if (
         (this.activeReport.isPendingReview() ||
           this.activeReport.isApproved()) &&
@@ -132,7 +133,8 @@ export default {
 
       EventBus.$on("save-report", this.handleToPendingReview);
 
-      await this.getSamples({ reportId: this.activeReport.id });
+      await this.getSamples({ inquiryId: this.activeReport.id });
+
       if (this.samples.length === 0) {
         this.nosamples = true;
       }
@@ -151,12 +153,20 @@ export default {
   },
   methods: {
     ...mapActions("report", [
-      "getReportByIds",
+      "getReportById",
       "clearActiveReport",
       "submitForReview"
     ]),
     ...mapActions("samples", ["getSamples", "clearSamples"]),
     async handleToPendingReview() {
+      if (this.activeReport.isPending() === false) {
+        this.feedback = {
+          variant: "danger",
+          message:
+            "Er is niets aangepast. Pas eerst uw data aan voordat een review mogelijk is."
+        };
+      }
+
       this.isDisabled = true;
       await this.submitForReview().catch(() => {
         this.feedback = {

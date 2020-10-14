@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import Vuex, { StoreOptions } from 'vuex'
 
-import org from './org';
+import address from './address'
+import org from './org'
 import reports from './reports'
 import report from './report'
 import user from './user'
@@ -27,7 +28,8 @@ const store: StoreOptions<{}> = {
     version,
     map,
     contractors,
-    reviewers
+    reviewers,
+    address,
   },
   state: {
   },

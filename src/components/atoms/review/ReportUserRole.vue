@@ -33,6 +33,7 @@ export default {
       if (this.user.getRole() === 'Reviewer' && this.areReviewersAvailable) {
         return this.getUserById({ id: this.user.id })
       }
+
       return null
     }
   }

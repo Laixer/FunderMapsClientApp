@@ -118,7 +118,7 @@
     ></b-form-file>
 
     <!-- TODO: Hide the listview if no items exist -->
-    <vue-bootstrap-typeahead
+    <vue-typeahead-bootstrap
       v-else-if="type === 'typeahead'"
       ref="typeahead"
       v-model="fieldValue"
@@ -133,7 +133,7 @@
       @blur="handleBlur"
       @hit="handleHit"
       trim
-      ></vue-bootstrap-typeahead>
+      ></vue-typeahead-bootstrap>
 
     <b-input-group
       v-else

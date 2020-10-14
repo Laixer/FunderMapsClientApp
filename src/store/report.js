@@ -21,8 +21,8 @@ const getters = {
   reviewers: state => state.reviewers
 }
 const actions = {
-  async getReportByIds({ commit }, { id, document }) {
-    let response = await reportAPI.getReport({ id, document });
+  async getReportById({ commit }, { id }) {
+    let response = await reportAPI.getReport({ id });
     if (response.status === 200 && response.data) {
       commit('set_report', {
         report: response.data
@@ -40,39 +40,40 @@ const actions = {
       })
     } 
   },
-  async updateReport({ commit }, { id, document, data }) {
-    let response = await reportAPI.updateReport({ id, document, data })
+  async updateReport({ commit }, { id, data }) {
+    let response = await reportAPI.updateReport({ id, data })
     if (response.status === 204) {
       commit('set_report', {
         report: data
       })
     } 
   },
-  async approveReport({ commit, state }) {
-    let response = await reportAPI.validateReport({
+  async approveReport({ commit, state }, { message }) {
+    if (!message) { message = 'Approving'; }
+
+    let response = await reportAPI.approveInquiry({
       id: state.report.id, 
-      document: state.report.documentId,
-      verify: 'Verified'
+      message: message
     })
     if (response.status === 204) {
       commit('set_report_approved')
     }
   },
   async rejectReport({ commit, state }, { message }) {
-    let response = await reportAPI.validateReport({
+    let response = await reportAPI.rejectInquiry({
       id: state.report.id, 
-      document: state.report.documentId,
-      verify: 'Rejected',
-      message
+      message: message
     })
     if (response.status === 204) {
       commit('set_report_rejected')
     }
   },
-  async submitForReview({ commit, state }) {
+  async submitForReview({ commit, state }, message) {
+    if (!message) { message = 'Submitting for review'; }
+
     let response = await reportAPI.submitForReview({
       id: state.report.id, 
-      document: state.report.documentId,
+      message: message,
     })
     if (response.status === 204) {
       commit('set_report_pending_review')

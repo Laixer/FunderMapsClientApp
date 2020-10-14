@@ -1,13 +1,22 @@
 
 import authAPI from '../api/auth'
 import { organizationUserRoleClaimType, userClaimType } from '../config/claimTypes'
+import jwt_decode from "jwt-decode"
 
 /**
  * Check whether the user has credentials stored
  * Note: the credentials may be invalid
+ * TODO This should be checked
  */
 export function isLoggedIn(): boolean {
-  return !!(getUser() && getAccessToken());
+  let token = getAccessToken();
+  if (token == null) {
+    return false;
+  }
+
+  var parsed = getAccessTokenDecoded();
+  var time = Math.round((new Date()).getTime() / 1000);
+  return parsed.exp > time;
 }
 
 /**
@@ -45,8 +54,7 @@ export function refreshLogin(): void {
  * return authorization header with jwt token
  */
 export function authHeader(): object {
-  let user = getUser()
-  return (user)
+  return (isLoggedIn())
     ? { 'Authorization': 'Bearer ' + getAccessToken() }
     : {}
 }
@@ -78,7 +86,7 @@ export function getLastUserEmail(): string {
 // ****************************************************************************
 
 export function isAdmin(): boolean {
-  return getRole() === 'administrator';
+  return getUserRole() === 'administrator';
 }
 export function isSuperUser(): boolean {
   return getOrganizationRole() === 'superuser';
@@ -101,6 +109,14 @@ export function canApprove(): boolean {
 export function canWrite(): boolean {
   return canApprove() || isWriter()
 }
+
+/**
+ * Checks if a user can write. Being a superuser implies that you can.
+ */
+export function canUserWrite(): boolean {
+  return getOrganizationRole() === 'superuser';
+}
+
 export function canRead(): boolean {
   // Everyone can read
   return true;
@@ -120,24 +136,15 @@ const access_token_key = 'access_token';
  */
 function handleAuthResponse(response: any) {
   localStorage.setItem(access_token_key, response.data.token)
-  localStorage.setItem(user_key, JSON.stringify(response.data.principal))
-  sessionStorage.setItem(last_user, response.data.principal.email)
+
+  // TODO We don't get a principal or email back anymore.
+  //localStorage.setItem(user_key, JSON.stringify(response.data.principal))
+  //sessionStorage.setItem(last_user, response.data.principal.email)
 }
 
 function removeUserInformation() {
   localStorage.removeItem(access_token_key)
   localStorage.removeItem(user_key)
-}
-
-/**
- * Get the user from storage
- */
-function getUser(): any {
-  let userObject = localStorage.getItem(user_key);
-  if (!userObject) {
-    return false;
-  }
-  return JSON.parse(userObject) || false
 }
 
 /**
@@ -148,37 +155,58 @@ function getLastUserEmailFromStorage() {
 }
 
 /**
- * Get the access token from storage
+ * Gets the stored access token.
  */
-function getAccessToken(): string | null {
-  return localStorage.getItem(access_token_key)
+function getAccessToken() : string | null {
+  return localStorage.getItem(access_token_key);
 }
 
 /**
- * 
+ * Get the access token from storage and decode it.
+ */
+function getAccessTokenDecoded(): JwtToken {
+  let token = getAccessToken();
+  if (!token) {
+    throw new Error('Could not get access token when requesting user');
+  }
+
+  return jwt_decode(token);
+}
+
+
+/**
+ * Get the user from storage.
+ * TODO This is broken because our user isn't returned by the token anymore.
+ */
+function getUser(): any {
+  let tokenDecoded = getAccessTokenDecoded();
+
+  //throw new Error("auth.ts .getUser() should retrieve from the store.")
+
+  return null;
+}
+
+/**
+ * Gets the organization role from the jwt access token.
  */
 function getOrganizationRole() {
   try {
-    let user = getUser()
-    let role = user.claims.find((claim: any) => {
-      return organizationUserRoleClaimType == claim.type
-    })
-    return role.value.toLowerCase();
+    let tokenDecoded = getAccessTokenDecoded();
+
+    return tokenDecoded.cfor.toLowerCase();
   } catch (err) {
     return ''
   }
 }
 
 /**
- * 
+ * Gets the user role from the jwt access token.
  */
-function getRole() {
+function getUserRole() {
   try {
-    let user = getUser()
-    let role = user.claims.find((claim: any) => {
-      return userClaimType == claim.type
-    })
-    return role.value.toLowerCase();
+    let tokenDecoded : any = getAccessTokenDecoded();
+
+    return tokenDecoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'].toLowerCase();
   } catch (err) {
     return ''
   }

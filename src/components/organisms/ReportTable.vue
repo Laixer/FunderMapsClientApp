@@ -17,7 +17,7 @@
             Status
           </th>
           <th scope="col">
-            Document ID
+            Documentnaam
           </th>
           <th scope="col">
             Reviewer

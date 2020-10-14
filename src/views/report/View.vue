@@ -46,13 +46,13 @@
       </b-button>
       <div class="side p-3 mt-3">
         <h3>Organisaties</h3>
-        <ReportOrgRole :org="activeReport.contractor" />
-        <ReportOrgRole :org="activeReport.owner" />
+        <ReportOrgRoleExplicit :organizationId="activeReport.ownerId" organizationRoleOverride="Eigenaar"/>
+        <ReportOrgRoleExplicit :organizationId="activeReport.contractorId" organizationRoleOverride="Uitvoerder"/>
       </div>
-      <div class="side p-3 mt-3">
+      <div v-if="isAdmin() || isSuperUser()" class="side p-3 mt-3">
         <h3>Betrokken personen</h3>
-        <ReportUserRole :user="activeReport.reviewer" />
-        <ReportUserRole :user="activeReport.creator" />
+        <ReportUserRoleExplicit :userId="activeReport.creatorId" userRoleOverride="Eigenaar"/>
+        <ReportUserRoleExplicit :userId="activeReport.reviewerId" userRoleOverride="Reviewer" />
       </div>
     </div>
 
@@ -72,18 +72,19 @@
 import { mapGetters, mapActions } from 'vuex'
 
 import ReportDetails from 'organism/ReportDetails'
-import ReportUserRole from 'atom/review/ReportUserRole'
-import ReportOrgRole from 'atom/review/ReportOrgRole'
+import ReportUserRoleExplicit from 'atom/review/ReportUserRoleExplicit'
+import ReportOrgRoleExplicit from 'atom/review/ReportOrgRoleExplicit'
 import Feedback from 'atom/Feedback'
 import Sample from 'organism/Sample'
 
 import { icon } from 'helper/assets'
 import reportsAPI from 'api/reports'
+import { isSuperUser, isAdmin } from 'service/auth';
 
 export default {
   components: {
-    ReportUserRole, ReportDetails,
-    ReportOrgRole, Sample, Feedback
+    ReportUserRoleExplicit, ReportDetails,
+    ReportOrgRoleExplicit, Sample, Feedback
   },
   data() {
     return {
@@ -97,18 +98,25 @@ export default {
     ]),
     ...mapGetters('samples', [
       'samples'
-    ])
+    ]),
+    ...mapGetters('user', [
+      'user'
+    ]),
   },
   async created() {
     try {
-      await this.getReportByIds({
-        id: this.$route.params.id,
-        document: this.$route.params.document
+      // TODO Promise.whenall
+      await this.getReportById({
+        id: this.$route.params.id
       })
-      await this.getSamples({ reportId: this.activeReport.id })
+
+      await this.getSamples({ inquiryId: this.activeReport.id })
       if (this.samples.length === 0) {
         this.nosamples = true
       }
+
+      await this.getContractors();
+
     } catch(err) {
       this.feedback = {
         variant: 'danger',
@@ -122,23 +130,27 @@ export default {
   },
   methods: {
     ...mapActions('report', [
-      'getReportByIds',
+      'getReportById',
       'clearActiveReport'
     ]),
     ...mapActions('samples', [
       'getSamples',
       'clearSamples'
     ]),
+    ...mapActions('contractors', [
+      'getContractors'
+    ]),
+    isAdmin,
+    isSuperUser,
     icon,
     getReportDownloadLink() {
       try {
         reportsAPI.getDownloadLink({ 
-          id: this.activeReport.id, 
-          document: this.activeReport.documentId 
+          id: this.activeReport.id
         })
         .then((response) => {
-          if (response.data && response.data.url) {
-            window.open(response.data.url)
+          if (response.data && response.data.downloadUri) {
+            window.open(response.data.downloadUri)
           } else {
             this.feedback = {
               variant: 'danger',

@@ -38,7 +38,7 @@ export default {
           },
           {
             label: "Bouwjaar",
-            value: this.sample.builtYear
+            value: new Date(this.sample.builtYear).getFullYear()
           }
         ],
         [
@@ -54,11 +54,11 @@ export default {
         [
           {
             label: "Funderingskwaliteit",
-            value: this.sample.getFoundationQuality()
+            value: this.sample.getOverallQuality()
           },
           {
             label: "Funderingsherstel advies",
-            value: this.sample.foundationRecoveryAdviced
+            value: this.sample.recoveryAdvised
           }
         ],
         [
@@ -84,7 +84,7 @@ export default {
         [
           {
             label: "Grondwaterstand",
-            value: this.sample.groundwaterLevel
+            value: this.sample.groundwaterLevelTemp
           },
           {
             label: "Maaiveldhoogte",

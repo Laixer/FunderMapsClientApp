@@ -21,7 +21,7 @@
 <script>
 
 import Feedback from 'atom/Feedback'
-
+import { isAdmin } from 'service/auth'
 import { mapGetters, mapActions } from 'vuex'
 import timeout from 'mixin/timeout'
 
@@ -31,13 +31,13 @@ export default {
   },
   mixins: [ timeout ],
   props: {
-    id: {
+    userId: {
       type: String,
       default: null
     },
-    orgId: {
-      type: [ String, Number ],
-      default: ''
+    organizationId: {
+      type: String,
+      default: null
     }
   },
   data() {
@@ -48,9 +48,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('orgUsers', [
-      'getUserById'
-    ]),
+    ...mapGetters('orgUsers', ['getUserById']),
     orgUser() {
       return this.getUserById({ id: this.id })
     }
@@ -63,9 +61,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('orgUsers', [
-      'removeUser'
-    ]),
+    ...mapActions('orgUsers', ['removeUser', 'adminRemoveUser']),
     onShow() {
       this.feedback = { show: false }
     },
@@ -85,10 +81,18 @@ export default {
       }
       
       try {
-        await this.removeUser({
-          orgId: this.orgId,
-          id: this.id
-        })
+        // Act according to privileges.
+        if (isAdmin()) {
+          await this.adminRemoveUser({
+            organizationId: this.organizationId,
+            userId: this.userId
+          });
+        } else {
+          await this.removeUser({
+            userId: this.userId
+          });
+        }
+
         this.feedback = {
           variant: 'success',
           message: 'Het teamlid is verwijderd'

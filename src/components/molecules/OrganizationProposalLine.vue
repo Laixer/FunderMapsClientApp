@@ -38,9 +38,12 @@ export default {
   },
   computed: {
     tokenLink() {
-      let host = process.env.VUE_APP_API_BASE_URL || ''
+      // TODO Is this the way to go?
+      let host = window.location.origin || ''
+      
       // TODO: Build wrapper
-      return new URL(`register/${this.proposal.token}`, host).toString()
+
+      return new URL(`register/${this.proposal.id}`, host).toString()
     }
   },
   methods: {
@@ -61,7 +64,7 @@ export default {
         })
           .then((confirmation) => {
             if (confirmation) {
-              this.removeProposal({ token: this.proposal.token })
+              this.removeProposal({ id: this.proposal.id })
             }
           })
     }

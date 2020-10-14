@@ -7,7 +7,7 @@
 
       <ReportStepHeader 
         :step="2"
-        :label="activeReport.documentId">
+        :label="activeReport.documentName">
         <b-button 
           variant="light" 
           class="font-weight-bold d-flex align-items-center"
@@ -19,7 +19,6 @@
 
       <div>  
         <Feedback :feedback="feedback" />
-
         <div 
           v-if="samples.length !== 0" 
           class="Report__samples">  
@@ -126,18 +125,24 @@ export default {
       'samples'
     ]),
     previousStep() {
-      let report = this.activeReport ? this.activeReport : { id: 'id', documentId: 'document' }
-      return { name: 'edit-report-1', params: { 
-        id: report.id, 
-        document: report.documentId 
-      } }
+      // TODO When will activereport be null ever?
+      let report = this.activeReport ? this.activeReport : { id: 'id', documentName: 'documentName' }
+      return { 
+        name: 'edit-report-1', params: { 
+          id: report.id, 
+          documentName: report.documentName
+        } 
+      }
     },
     nextStep() {
-      let report = this.activeReport ? this.activeReport : { id: 'id', documentId: 'document' }
-      return { name: 'edit-report-3', params: { 
-        id: report.id, 
-        document: report.documentId 
-      } }
+      // TODO When will activereport be null ever?
+      let report = this.activeReport ? this.activeReport : { id: 'id', documentName: 'documentName' }
+      return { 
+        name: 'edit-report-3', params: { 
+          id: report.id, 
+          documentName: report.documentName
+        } 
+      }
     }
   },
   async created() {
@@ -150,9 +155,8 @@ export default {
         return;
       }
 
-      await this.getReportByIds({
-        id: this.$route.params.id,
-        document: this.$route.params.document
+      await this.getReportById({
+        id: this.$route.params.id
       })
 
       if (
@@ -169,7 +173,8 @@ export default {
       
       EventBus.$on('save-report', this.handleSaveSamplesAndNextStep)
 
-      await this.getSamples({ reportId: this.activeReport.id })
+      await this.getSamples({ inquiryId: this.activeReport.id })
+
       if (this.samples.length === 0) {
         this.nosamples = true
       }
@@ -190,7 +195,7 @@ export default {
   methods: {
     icon,
     ...mapActions('report', [
-      'getReportByIds',
+      'getReportById',
       'clearActiveReport'
     ]),
     ...mapActions('samples', [
@@ -212,7 +217,11 @@ export default {
       }))
     },
     handleSaveSamplesAndNextStep() {
-      
+      // TODO Is this in the right place?
+      if (this.samples.length === 0) {
+        return;
+      }
+
       // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
       this.countdownToNextPage = this.samples.length
 

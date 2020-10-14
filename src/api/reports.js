@@ -3,58 +3,77 @@ import axios from '@/utils/axios'
 
 // Collection
 const getReports = ({ limit, offset }) => {
-  return axios.get('/api/report', { 
+  return axios.get('/api/inquiry', { 
     params: { limit, offset }
-  })
+  });
 }
+
+/**
+ * Gets the total amount of reports in our data store.
+ */
 const getReportCount = () => {
-  return axios.get('/api/report/stats')
+  return axios.get('/api/inquiry/stats')
 }
 
 // Single
-const getReport = ({ id, document }) => {
-  return axios.get(`/api/report/${id}/${document}`)
+const getReport = ({ id }) => {
+  return axios.get(`/api/inquiry/${id}/`)
 }
 const createReport = (data) => {
-  return axios.post(`/api/report/`, data)
+  return axios.post('/api/inquiry/', data)
 }
-const updateReport = ({ id, document, data }) => {
-  return axios.put(`/api/report/${id}/${document}`, data)
+const updateReport = ({ id, data }) => {
+  return axios.put(`/api/inquiry/${id}/`, data)
 }
-const validateReport = ({ id, document, verify, message }) => {
-  return axios.put(`/api/report/${id}/${document}/validate`, {
-    result: verify,
-    message
-  })
+/**
+ * Approve an inquiry.
+ */
+const approveInquiry = ({ id,  message }) => {
+  return axios.post(`/api/inquiry/${id}/status_approved`, { message });
 }
-const submitForReview = ({id, document }) => {
-  return axios.put(`/api/report/${id}/${document}/review`)
+/**
+ * Reject an inquiry.
+ */
+const rejectInquiry = ({ id,  message }) => {
+  return axios.post(`/api/inquiry/${id}/status_rejected`, { message });
+}
+/**
+ * Submit an inquiry for review.
+ */
+const submitForReview = ({id, message }) => {
+  return axios.post(`/api/inquiry/${id}/status_review`, { message });
 }
 const setStatusToTodo = ({ id, document }) => {
-  return axios.put(`/api/report/${id}/${document}`, {
+  return axios.put(`/api/inquiry/${id}/${document}`, {
     id,
     documentId: document,
     status: 0
   })
 }
-const getDownloadLink = ({ id, document }) => {
-  return axios.get(`/api/report/${id}/${document}/download`)
+const getDownloadLink = ({ id }) => {
+  return axios.get(`/api/inquiry/${id}/download_uri`)
 }
 
 // Input options
 
 const getReviewers = () => {
-  return axios.get('/api/report/reviewers')
+  // TODO Endpoint doesn't exist.
+  console.log('Calling getReviewers(), endpoint doesnt exist');
+  
+  return axios.get('/api/inquiry/reviewers')
 }
 
 export default { 
   getReports, 
-  getReportCount,
 
   getReport,
+  getReportCount,
+
   createReport,
   updateReport,
-  validateReport,
+
+  approveInquiry,
+  rejectInquiry,
   submitForReview,
   setStatusToTodo,
   getDownloadLink,

@@ -26,8 +26,9 @@ const getters = {
   }
 }
 const actions = {
-  async getSamples({ commit }, { reportId }) {
-    let response = await samplesAPI.getSamples({ reportId });
+  async getSamples({ commit }, { inquiryId }) {
+    let response = await samplesAPI.getSamples({ inquiryId });
+
     if (response.status === 200 && response.data.length > 0) {
       commit('set_samples', {
         samples: response.data
@@ -40,18 +41,18 @@ const actions = {
   async addUnsavedSample({ commit }) {
     commit('add_unsaved_sample')
   },
-  async updateSample({ commit }, { id, data }) {
-    let response = await samplesAPI.updateSample({ id, data });
+  async updateSample({ commit }, { inquiryId, sampleId, data }) {
+    let response = await samplesAPI.updateSample({ inquiryId, sampleId, data });
     if (response.status === 204) {
       commit('update_sample', {
-        id,
+        sampleId,
         data
       })
     }
   },
   // TODO: where does creationstamp come from?
-  async createSample({ commit }, { data }) {
-    let response = await samplesAPI.createSample({ data });
+  async createSample({ commit }, { inquiryId, data }) {
+    let response = await samplesAPI.createSample({ inquiryId, data });
     if (response.status === 200 && response.data) {
       commit('update_sample', {
         id: response.data.id,
@@ -61,14 +62,14 @@ const actions = {
       })
     }
   },
-  async deleteSample({ commit }, { id, creationstamp }) {
-    if (id === '') {
+  async deleteSample({ commit }, { inquiryId, sampleId, creationstamp }) {
+    if (sampleId === '') {
       // not stored in API yet
-      commit('delete_sample', { id, creationstamp })
+      commit('delete_sample', { sampleId, creationstamp })
     } else {
-      let response = await samplesAPI.deleteSample({ id });
+      let response = await samplesAPI.deleteSample({ inquiryId, sampleId });
       if (response.status === 204) {
-        commit('delete_sample', { id, creationstamp })
+        commit('delete_sample', { sampleId, creationstamp })
       }
     }
   }
@@ -93,9 +94,10 @@ const mutations = {
     } else {
       let sample = clonedeep(state.samples[0])
       sample.id = ''
+
       // sample.address = address;
-      sample.address.buildingNumber = ''
-      sample.address.buildingNumberSuffix = ''
+      //sample.address.buildingNumber = ''
+      //sample.address.buildingNumberSuffix = ''
 
       // used as alternative to 'id' reference for newly created items
       sample.creationstamp = Date.now() 

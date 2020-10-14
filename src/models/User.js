@@ -9,7 +9,9 @@
 import { generateAvatar } from 'utils/namedavatar'
 
 class UserModel {
-  constructor({ givenName, lastName, avatar, jobTitle, phoneNumber }) {
+  constructor({ id, email, givenName, lastName, avatar, jobTitle, phoneNumber }) {
+    this.id = id;
+    this.email = email;
     this.givenName = givenName || ''
     this.lastName = lastName || ''
     this.avatar = avatar || ''
@@ -57,6 +59,7 @@ class UserModel {
     if (this.hasAvatar()) {
       return this.avatar
     }
+
     return this.generateAvatar()
   }
   /**

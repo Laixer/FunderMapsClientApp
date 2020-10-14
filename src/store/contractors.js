@@ -12,13 +12,13 @@ import contractorsAPI from 'api/contractors';
  * Declare Variable
  */
 const state = {
-  contractors : null
+  contractors : []
 }
 
 const getters = {
-  areContractorsAvailable: state => state.contractors !== null,
+  areContractorsAvailable: state => state.contractors.length > 0,
   contractors: state => state.contractors,
-  getOrgById: state => ({ id }) => state.contractors.find(contractor => contractor.id === id)
+  getContractorById: state => ({ id }) => state.contractors.find(contractor => contractor.id === id)
 }
 const actions = {
   async getContractors({ commit }) {

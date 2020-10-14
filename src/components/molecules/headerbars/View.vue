@@ -19,6 +19,26 @@
         <span class="ml-3">{{ disapproveLabel }}</span>
       </span>
     </div>
+    <!-- TODO Cleanup this ugly if statement-->
+    <div 
+      v-else-if="approved === true || approved === false || approvedByUser === true || approvedByUser === false"
+      class="d-flex align-items-center">
+      Status: 
+      <div 
+        v-if="approved === true || approvedByUser === true"
+        :class="approvedClasslist"
+        class="ViewHeader__choice ml-4 align-items-center">
+        <img :src='approveIcon' width="30" height="30" />
+        <div class="ml-3">Goedgekeurd</div>
+      </div>
+      <div 
+        v-else-if="approved === false || approvedByUser === false"
+        :class="disapprovedClasslist"
+        class="ViewHeader__choice ml-4 align-items-center">
+        <img :src='disapproveIcon' width="30" height="30" />
+        <span class="ml-3">Afgekeurd</span>
+      </div>
+    </div>
     <div class="flex-grow-1"></div>
 
     <b-button 
@@ -58,40 +78,61 @@ export default {
   data() {
     return {
       processing: false,
-      // approved: null,
+      /**
+       * This can be true, false or null.
+       * True indicates we have been approved by the user.
+       * False indicates we have been rejected by the user.
+       * Null indicates anything else.
+      */
+      approvedByUser: null,
     }
   },
   computed: {
     ...mapGetters('report', [
       'activeReport'
     ]),
+    ...mapGetters('user', [
+      'user'
+    ]),
     editRoute() {
       let report = this.activeReport 
         ? this.activeReport 
         : { id: 'id', documentId: 'document' }
       return { 
-        name: 'edit-report-2', 
-        params: { id: report.id, document: report.documentId }
+        name: 'edit-report-1', 
+        params: { 
+          id: report.id, 
+          documentName: report.documentName
+        }
       }
     },
     editable() {
       if (!canWrite()) {
         return false
       }
+      
       if (this.activeReport) {
-        return (
-          ! this.activeReport.isPendingReview() && 
-          ! this.activeReport.isApproved()
-        ) || isSuperUser()
-      } 
+        return this.activeReport.isEditable();
+      }
+        
+      // TODO This part was removed. Our API does not support this.
+      //|| isSuperUser()
       return false
+    },
+    approved() {
+      if (this.activeReport) {
+        return this.activeReport.getApprovalState()
+      }
+
+      return null;
     },
     isAvailableForReview() {
       if (!canApprove()) {
         return false
       }
       if (this.activeReport) {
-        return this.activeReport.isAvailableForReview()
+        return this.activeReport.isPendingReview()
+        && this.activeReport.reviewerId === this.user.id
       }
       return false;
     },
@@ -99,33 +140,30 @@ export default {
       if (this.activeReport) {
         return this.activeReport.isPendingReview()
       }
-      return true
+      return false
     },
+
+    // TODO These if-statements are very ugly. Bind them in the future.
+
     disapprovedClasslist() {
       return { 
-        'ViewHeader__choice--active' : this.approved === false, 
-        'd-none': this.approved === true, 
-        'd-flex': this.approved !== true 
+        'ViewHeader__choice--active' : this.approved === false || this.approvedByUser === false, 
+        'd-none': this.approved === true || this.approvedByUser === true, 
+        'd-flex': this.approved !== true || this.approvedByUser !== true
       }
     },
     approvedClasslist() {
       return { 
-        'ViewHeader__choice--active' : this.approved === true, 
-        'd-none': this.approved === false, 
-        'd-flex': this.approved !== false 
+        'ViewHeader__choice--active' : this.approved === true || this.approvedByUser === true, 
+        'd-none': this.approved === false || this.approvedByUser === false, 
+        'd-flex': this.approved !== false || this.approvedByUser !== false
       }
-    },
-    approved() {
-      if (this.activeReport) {
-        return this.activeReport.getApprovalState()
-      }
-      return null
     },
     approveIcon() {
-      return icon(this.approved === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg');
+      return icon(this.approved === true || this.approvedByUser === true ? 'ActiveApprove-icon.svg' : 'NeutralApprove-icon.svg');
     },
     disapproveIcon() {
-      return icon(this.approved === false ? 'ActiveDisapprove-icon.svg' : 'NeutralDisapprove-icon.svg');
+      return icon(this.approved === false  || this.approvedByUser === false ? 'ActiveDisapprove-icon.svg' : 'NeutralDisapprove-icon.svg');
     },
     approveLabel() {
       return this.approved === true ? 'Goedgekeurd' : 'Goedkeuren'
@@ -136,33 +174,32 @@ export default {
   },
   methods: {
     icon,
-    ...mapActions('report', [
-      'approveReport'
-    ]),
+    ...mapActions('report', ['approveReport']),
     // TODO: Update with call - Done ?
     async handleApprove() {
       if ( ! this.isPendingReview || this.processing) {
         return;
       }
       this.processing = true;
-      await this.approveReport()
-      // this.approved = true
+      await this.approveReport({ id: this.activeReport.id })
+      this.approvedByUser = true
       this.processing = false
     },
     handleDisapproveModal() {
       if ( ! this.isPendingReview || this.processing) {
         return;
       }
+
       this.processing = true;
       this.$bvModal.show('report-disapprove')
     },
     handleDisapprove() {
-      // this.approved = false
+      this.approvedByUser = false
       this.processing = false;
     },
     onHidden() {
       this.processing = false;
-    }
+    },
   }
 }
 </script>

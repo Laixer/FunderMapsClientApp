@@ -26,7 +26,7 @@
             label="E-mail" 
             :editMode="editMode"
             :disabled="true"
-            :value="email" />
+            :value="user.email" />
           <ProfileSetting 
             label="Functie" 
             :editMode="editMode" 
@@ -80,6 +80,7 @@ export default {
     ...mapGetters('user', [
       'user'
     ]),
+    // TODO This is not used
     email() {
       return getUserEmail();
     }

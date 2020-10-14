@@ -5,7 +5,7 @@
     @click="togglePanel">
 
     <span class="SampleLine__address flex-grow-1">
-      {{ address || 'Nieuw adres' }}
+      {{ addressFormatted }}
     </span>
 
     <div 
@@ -34,12 +34,13 @@
 <script>
 
 import { icon } from 'helper/assets'
+import { mapActions } from 'vuex'
 
 export default {
   props: {
-    address: {
+    addressId: {
       type: String,
-      required: true
+      required: false
     },
     open: {
       type: Boolean,
@@ -48,6 +49,11 @@ export default {
     editMode: {
       type: Boolean,
       default: false
+    }
+  },
+  data: function() {
+    return {
+      address: null
     }
   },
   computed: {
@@ -65,12 +71,28 @@ export default {
     },
     delIcon() {
       return icon('Delete-icon.svg');
+    },
+    addressFormatted: function() {
+      return this.address ? this.address.format() : 'Nieuw adres'
     }
   },
   methods: {
+    ...mapActions('address', ['getAddressById']),
     icon,
     togglePanel() {
       this.$emit('toggle');
+    }
+  },
+  watch: {
+    async addressId() {
+      if (this.addressId) {
+        this.address = await this.getAddressById({ id: this.addressId })
+      }
+    }
+  },
+  async created() {
+    if (this.addressId) {
+      this.address = await this.getAddressById({ id: this.addressId })
     }
   }
 }

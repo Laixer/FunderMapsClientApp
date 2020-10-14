@@ -22,7 +22,7 @@
           <th scope="col"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-if="organizations">
         <OrganizationTableLine 
           v-for="(organization, index) in organizations" 
           :key="index" 
@@ -34,6 +34,7 @@
 
 <script>
 import OrganizationTableLine from 'molecule/OrganizationTableLine';
+import { mapActions } from "vuex";
 
 export default {
   name: 'OrganizationTable',
@@ -48,18 +49,23 @@ export default {
     synchronizing: {
       type: Boolean,
       default: false
-    },
-    organizations: {
-      type: Array,
-      default: function() {
-        return []
-      }
     }
   },
   computed: {
     hasTitle() {
       return this.title !== ''
     }
+  },
+  data: function() {
+    return {
+      organizations: null
+    }
+  },
+  methods: {
+    ...mapActions('org', ['getAllOrganizations'])
+  },
+  async created() {
+    this.organizations = await this.getAllOrganizations();
   }
 }
 </script>

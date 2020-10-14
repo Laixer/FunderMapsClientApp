@@ -6,7 +6,7 @@ import { generateAvatar } from 'utils/namedavatar'
  */
 class OrgUserModel {
   constructor(user) {
-    Object.assign(this, user.profile, { role: user.role });
+    Object.assign(this, user);
   }
   // ****************************************************************************
   //  User Name

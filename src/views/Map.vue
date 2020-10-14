@@ -42,7 +42,7 @@ export default {
     ]),
     ...mapGetters("org", ["organization"]),
     readyToLoadLayers() {
-      return this.isMapboxReady && this.hasMapLayers;
+      return this.isMapboxReady;// && this.hasMapLayers;
     }
   },
   watch: {
@@ -58,7 +58,7 @@ export default {
   async created() {
     if (!this.hasMapLayers) {
       try {
-        await this.getMapLayers();
+        // await this.getMapLayers();
       } catch (err) {
         if (err.response && err.response.status === 401) {
           this.$router.push({ name: "login" });
@@ -77,14 +77,14 @@ export default {
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.map;
       // TODO: this.organization.getCenter()
-      if (this.organization.centerX != 0 && this.organization.centerY != 0) {
-        // TODO: We should initialize the map straight away here.
-        this.$store.map.flyTo({
-          center: [this.organization.centerX, this.organization.centerY],
-          zoom: 13,
-          speed: 2.5
-        });
-      }
+      // if (this.organization.centerX != 0 && this.organization.centerY != 0) {
+      //   // TODO: We should initialize the map straight away here.
+      //   this.$store.map.flyTo({
+      //     center: [this.organization.centerX, this.organization.centerY],
+      //     zoom: 13,
+      //     speed: 2.5
+      //   });
+      // }
       this.mapboxIsReady({ status: true });
     },
     transformRequest(url, resourceType) {
@@ -115,24 +115,49 @@ export default {
       }
     },
     addLayersToMapbox() {
-      this.mapLayers.forEach(layer => {
-        this.$store.map.addSource(layer.id, {
-          type: "geojson",
-          data: `${process.env.VUE_APP_API_BASE_URL}${layer.source}`
-        });
-        this.$store.map.addLayer({
-          id: layer.id,
-          type: "fill",
-          source: layer.id,
-          layout: {
-            visibility: this.getLayerVisibility({ layer })
-          },
-          paint: {
-            "fill-color": ["get", "color"],
-            "fill-opacity": 0.8
-          }
-        });
-      });
+      // this.mapLayers.forEach(layer => {
+      //   this.$store.map.addSource(layer.id, {
+      //     type: "geojson",
+      //     data: `${process.env.VUE_APP_API_BASE_URL}${layer.source}`
+      //   });
+      //   this.$store.map.addLayer({
+      //     id: layer.id,
+      //     type: "fill",
+      //     source: layer.id,
+      //     layout: {
+      //       visibility: this.getLayerVisibility({ layer })
+      //     },
+      //     paint: {
+      //       "fill-color": ["get", "color"],
+      //       "fill-opacity": 0.8
+      //     }
+      //   });
+      // });
+      // this.$store.map.addSource('mapillary', {
+      //   'type': 'vector',
+      //   'tiles': [
+      //     'https://ams3.digitaloceanspaces.com/fundermaps-development/mvt/{z}/{x}/{y}.pbf'
+      //   ]
+      // });
+      // this.$store.map.addLayer(
+      //   {
+      //   'id': 'mapillary',
+      //   'type': 'fill',
+      //   'source': 'mapillary',
+      //   'source-layer': 'geocoder.dev_building_active_schiedam_centrum',
+      //   'layout': {
+      //   // 'line-cap': 'round',
+      //   // 'line-join': 'round'
+      //   },
+      //   // 'paint': {
+      //   // 'line-opacity': 0.6,
+      //   // 'line-color': 'rgb(53, 175, 109)',
+      //   // 'line-width': 2
+      //   // }
+      //   },
+      //   //'waterway-label'
+      //   );
+
     },
     getLayerVisibility({ layer }) {
       return this.activeLayer && this.activeLayer.id === layer.id

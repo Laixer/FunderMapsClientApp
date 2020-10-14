@@ -25,7 +25,7 @@ export default {
   data() {
     return {
       page: 1, 
-      reportsPerPage: 25 // TODO: set to higher number...
+      reportsPerPage: 25, // TODO: set to higher number...
     }
   },
   computed: {
@@ -34,9 +34,9 @@ export default {
       'reports'
     ]),
     pageCount() {
-      return (this.reportCount) 
+      return (this.reportCount > 0) 
         ? Math.ceil(this.reportCount / this.reportsPerPage) 
-        : 0
+        : 1
     }
   },
   beforeRouteUpdate(to, from, next) {
@@ -53,11 +53,11 @@ export default {
       // Always perform a report count update when loading this page
       await Promise.all([
         this.getReviewers(),
-        this.getReportCount(),
         this.getReports({
           page: this.page, 
           limit: this.reportsPerPage
         }),
+        this.getReportCount(),
       ])
     } catch (err) {
       if (err.response && err.response.status === 401) {
@@ -67,8 +67,8 @@ export default {
   },
   methods: {
     ...mapActions('reports', [
-      'getReportCount', 
-      'getReports'
+      'getReports',
+      'getReportCount'
     ]),
     ...mapActions('reviewers', [
       'getReviewers'

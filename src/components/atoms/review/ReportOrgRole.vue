@@ -20,13 +20,13 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("contractors", ["getOrgById"]),
+    ...mapGetters("contractors", ["getContractorById"]),
     orgObject() {
       if (this.org.name) {
         return this.org;
       }
 
-      return this.getOrgById({ id: this.org.id });
+      return this.getContractorById({ id: this.org.id });
     }
   }
 };
