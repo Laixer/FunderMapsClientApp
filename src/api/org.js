@@ -31,7 +31,7 @@ export default {
     data.homeAddressNumber = data.homeAddressNumber ? Number(data.homeAddressNumber) : null;
     data.postalAddressNumber = data.postalAddressNumber ? Number(data.postalAddressNumber) : null;
 
-    return axios.put(`/api/organization/`, data)
+    return axios.put(`/api/organization`, data)
   },
 
   /**
@@ -55,7 +55,7 @@ export default {
     return axios.delete(`/api/organization/proposal/${id}`)
   },
   createProposal: ({ name, email }) => {
-    return axios.post(`/api/organization/proposal/`, {
+    return axios.post(`/api/organization/proposal`, {
       name, email
     })
   },

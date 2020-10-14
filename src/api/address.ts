@@ -6,7 +6,7 @@ export default {
      * @param query The query string.
      */
     getAddressSuggestions(query: string) {
-        return axios.get(`/api/address/suggest?query=${query}`); // TODO Limit?
+        return axios.get(`/api/address/suggest?query=${query}&limit=10`);
     },
 
     /**
