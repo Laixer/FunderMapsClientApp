@@ -133,30 +133,30 @@ export default {
       //     }
       //   });
       // });
-      this.$store.map.addSource('mapillary', {
-        'type': 'vector',
-        'tiles': [
-          'https://ams3.digitaloceanspaces.com/fundermaps-development/mvt/{z}/{x}/{y}.pbf'
-        ]
-      });
-      this.$store.map.addLayer(
-        {
-        'id': 'mapillary',
-        'type': 'fill',
-        'source': 'mapillary',
-        'source-layer': 'geocoder.dev_building_active_schiedam_centrum',
-        'layout': {
-        // 'line-cap': 'round',
-        // 'line-join': 'round'
-        },
-        // 'paint': {
-        // 'line-opacity': 0.6,
-        // 'line-color': 'rgb(53, 175, 109)',
-        // 'line-width': 2
-        // }
-        },
-        //'waterway-label'
-        );
+      // this.$store.map.addSource('mapillary', {
+      //   'type': 'vector',
+      //   'tiles': [
+      //     'https://ams3.digitaloceanspaces.com/fundermaps-development/mvt/{z}/{x}/{y}.pbf'
+      //   ]
+      // });
+      // this.$store.map.addLayer(
+      //   {
+      //   'id': 'mapillary',
+      //   'type': 'fill',
+      //   'source': 'mapillary',
+      //   'source-layer': 'geocoder.dev_building_active_schiedam_centrum',
+      //   'layout': {
+      //   // 'line-cap': 'round',
+      //   // 'line-join': 'round'
+      //   },
+      //   // 'paint': {
+      //   // 'line-opacity': 0.6,
+      //   // 'line-color': 'rgb(53, 175, 109)',
+      //   // 'line-width': 2
+      //   // }
+      //   },
+      //   //'waterway-label'
+      //   );
 
     },
     getLayerVisibility({ layer }) {
