@@ -29,9 +29,6 @@ class AddressModel {
   }
 
   buildingNumberCleaned() : string {
-
-    console
-
     return this.buildingNumber.trim();
   }
 }
