@@ -522,7 +522,6 @@ export default {
       }
     },
     handleError(err) {
-      console.log('err', err)
       this.feedback = {
         variant: "danger",
         message: "De wijzigingen zijn niet opgeslagen"

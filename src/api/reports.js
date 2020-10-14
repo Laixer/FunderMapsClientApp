@@ -35,9 +35,6 @@ const approveInquiry = ({ id,  message }) => {
  * Reject an inquiry.
  */
 const rejectInquiry = ({ id,  message }) => {
-
-  console.log('rejectInquiry', id, message)
-
   return axios.post(`/api/inquiry/${id}/status_rejected`, { message });
 }
 /**

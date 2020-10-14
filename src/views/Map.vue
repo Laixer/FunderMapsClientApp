@@ -115,9 +115,6 @@ export default {
       }
     },
     addLayersToMapbox() {
-
-      console.log('Arrived at AddLayersToMapbox')
-
       // this.mapLayers.forEach(layer => {
       //   this.$store.map.addSource(layer.id, {
       //     type: "geojson",

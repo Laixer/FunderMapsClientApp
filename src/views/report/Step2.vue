@@ -148,9 +148,6 @@ export default {
   async created() {
     try {
       if (!canWrite()) {
-
-        console.log('We !canWrite')
-
         await this.$router.push({
           name: 'view-report',
           params: this.$route.params
@@ -208,14 +205,9 @@ export default {
     ]),
     handleAddSample() {
       this.countdownToNewSample = this.samples.length
-
-      console.log('handleAddSample this.countdownToNewSample', this.countdownToNewSample)
-
       if (this.countdownToNewSample === 0) {
-        console.log('handleAddSample > this.addUnsavedSample()')
         this.addUnsavedSample()
       } else {
-        console.log('handleAddSample > this.saveAllSamples()')
         this.saveAllSamples() 
       }
     },
@@ -227,7 +219,6 @@ export default {
     handleSaveSamplesAndNextStep() {
       // TODO Is this in the right place?
       if (this.samples.length === 0) {
-        console.log('Blocking next step in Step2.handleSaveSamplesAndNextStep()')
         return;
       }
 

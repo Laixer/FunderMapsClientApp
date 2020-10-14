@@ -186,9 +186,6 @@ export default {
       this.processing = false
     },
     handleDisapproveModal() {
-
-      console.log('handleDisapproveModal')
-
       if ( ! this.isPendingReview || this.processing) {
         return;
       }

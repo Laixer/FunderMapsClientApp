@@ -105,9 +105,6 @@ export default {
     }
   },
   async created() {
-
-    console.log('Step3 this.activeReport', this.activeReport)
-
     if (!canWrite()) {
       this.$router.push({
         name: "view-report",

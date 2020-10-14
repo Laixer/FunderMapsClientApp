@@ -86,10 +86,6 @@ export function getLastUserEmail(): string {
 // ****************************************************************************
 
 export function isAdmin(): boolean {
-  //return true;
-
-  //console.log('getUserRole', getUserRole())
-
   return getUserRole() === 'administrator';
 }
 export function isSuperUser(): boolean {

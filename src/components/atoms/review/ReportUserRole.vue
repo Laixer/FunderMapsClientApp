@@ -1,6 +1,4 @@
 <template>
-  <div>
-    <h3>This is the debug version of ReportUserRole.vue</h3>
   <div 
     v-if="userObject" 
     class="ReportUserRole d-flex align-items-center mt-4">
@@ -9,10 +7,6 @@
       <div class="ReportUserRole__name">{{ userObject.getUserName() }}</div>
       <div class="ReportUserRole__role">{{ userObject.getRole() }}</div>
     </div>
-  </div>
-  <div v-else>
-    We have no user object
-  </div>
   </div>
 </template>
 
@@ -33,19 +27,13 @@ export default {
       'areReviewersAvailable'
     ]),
     userObject() {
-
-      console.log('ReportUserRole this.user', this.user)
-
       if (this.user.getUserName()) {
-        console.log('Returning this.user', this.user)
         return this.user
       }
       if (this.user.getRole() === 'Reviewer' && this.areReviewersAvailable) {
-        console.log('Returning this.getUserById({ id: this.user.id })', this.getUserById({ id: this.user.id }))
         return this.getUserById({ id: this.user.id })
       }
 
-      console.log('Returning null')
       return null
     }
   }

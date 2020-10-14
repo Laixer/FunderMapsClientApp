@@ -292,9 +292,6 @@ export default {
     }
   },
   async created() {
-
-    console.log('Step1.activeReport', this.activeReport)
-
     await this.getReviewers();
     await this.getContractors();
     if (this.$route.name === "new-report") {
@@ -459,8 +456,6 @@ export default {
         variant: "info",
         message: "Bezig met opslaan van rapport..."
       };
-
-      console.log('this.documentFile', this.documentFile)
 
       let values = this.allFieldValues();
       let data = {
