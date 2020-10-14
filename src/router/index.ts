@@ -106,35 +106,35 @@ const routes = [
     component: Organization
   },
 
-  // Report
+  // Inquiry
   {
-    path: '/report/create/',
+    path: '/inquiry/create/',
     name: 'new-report', // TODO No idea why, but new-report didn't work
     component: Step1
   },
   {
-    path: '/report/:id/edit/1',
+    path: '/inquiry/:id/edit/1',
     name: 'edit-report-1',
     component: Step1
   },
   {
-    path: '/report/:id/edit/2',
+    path: '/inquiry/:id/edit/2',
     name: 'edit-report-2',
     component: Step2
   },
   {
-    path: '/report/:id/edit/3',
+    path: '/inquiry/:id/edit/3',
     name: 'edit-report-3',
     component: Step3
   },
   {
-    path: '/report/:id/',
+    path: '/inquiry/:id/',
     name: 'view-report',
     component: ReportView
   },
   // Reports
   {
-    path: '/reports/:page?',
+    path: '/inquiries/:page?',
     name: 'reports',
     component: Reports
   },
