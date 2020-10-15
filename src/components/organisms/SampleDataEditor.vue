@@ -470,6 +470,9 @@ export default {
       if (data.damageCause === null) {
         data.damageCause = 7; // Unknown
       }
+      if (data.foundationType === null) {
+        data.foundationType = 15; // Unknown
+      }
 
       // Assign address geocoder id from selected field
       data.address = this.fields.address.selected.id;

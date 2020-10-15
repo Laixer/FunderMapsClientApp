@@ -42,7 +42,7 @@
           alt="arrow" 
           :src="icon('Download-icon.svg')"
           width="17" />
-        <span class="ml-2">Download report</span>
+        <span class="ml-2">Download rapport</span>
       </b-button>
       <div class="side p-3 mt-3">
         <h3>Organisaties</h3>
@@ -149,8 +149,8 @@ export default {
           id: this.activeReport.id
         })
         .then((response) => {
-          if (response.data && response.data.downloadUri) {
-            window.open(response.data.downloadUri)
+          if (response.data && response.data.accessLink) {
+            window.open(response.data.accessLink)
           } else {
             this.feedback = {
               variant: 'danger',

@@ -67,7 +67,8 @@ const actions = {
     let response = await addressAPI.getAddressSuggestions(query);
     if (response.status === 200) {
       return response.data.map(address => new AddressModel(
-        address.id, 
+        // TODO: There is more that is returned
+        address.addressId, 
         address.buildingNumber, 
         address.postalCode, 
         address.street, 
@@ -82,7 +83,8 @@ const mutations = {
    */
   add_address_to_collection(state, { address }) {
     state.addressCollection.push(new AddressModel(
-      address.id, 
+      // TODO: There is more that is returned
+      address.addressId, 
       address.buildingNumber, 
       address.postalCode, 
       address.street, 

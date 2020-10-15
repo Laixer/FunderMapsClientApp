@@ -51,7 +51,7 @@ const setStatusToTodo = ({ id, document }) => {
   })
 }
 const getDownloadLink = ({ id }) => {
-  return axios.get(`/api/inquiry/${id}/download_uri`)
+  return axios.get(`/api/inquiry/${id}/download`)
 }
 
 // Input options
