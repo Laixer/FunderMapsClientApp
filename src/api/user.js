@@ -16,7 +16,7 @@ export default {
   updateUserPassword: ({ 
     newPassword, oldPassword
   }) => {
-    return axios.put('/api/user/change-password', {
+    return axios.post('/api/user/change-password', {
       newPassword, oldPassword
     })
   }
