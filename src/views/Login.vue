@@ -16,7 +16,7 @@
     </Form>
 
     <div class="d-flex justify-content-center mt-5">
-      <PasswordResetLink mailto="info@zanhos.com" />
+      <PasswordResetLink mailto="info@fundermaps.com" />
     </div>
   </div>
 </template>
