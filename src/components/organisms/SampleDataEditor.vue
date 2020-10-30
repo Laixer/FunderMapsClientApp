@@ -321,15 +321,15 @@ export default {
     }
 
     // Required fields by API
-    if (!this.sample.baseMeasurementLevel) {
+    if (this.sample.baseMeasurementLevel === null) {
       this.sample.baseMeasurementLevel = 0; // NAP
     }
-    if (!this.sample.damageCause) {
+    if (this.sample.damageCause === null) {
       this.sample.damageCause = 7; // Unknown
     }
 
     // Explicitly set the address field.
-    if (this.sample.address) {
+    if (this.sample.address !== null) {
       let addressFetched = await this.getAddressById({ id: this.sample.address });
       this.fields.address.value = addressFetched.format();
       this.fields.address.data = [ addressFetched ];
@@ -485,8 +485,8 @@ export default {
       if (data.woodLevel) { data.woodLevel = Number(data.woodLevel); }
       
       // TODO These fields don't work with null values
-      if (!data.substructure) { data.substructure = 3; }
-      if (!data.enforcementTerm) { data.enforcementTerm = 0; }
+      if (data.substructure === null) { data.substructure = 3; }
+      if (data.enforcementTerm === null) { data.enforcementTerm = 0; }
       if (!data.woodLevel) { data.woodLevel = 0; }
       if (!data.groundLevel) { data.groundLevel = 0; }
       if (!data.groundwaterLevelTemp) { data.groundwaterLevelTemp = 0; }
