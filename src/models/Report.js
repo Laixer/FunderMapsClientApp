@@ -56,8 +56,8 @@ class ReportModel {
     this.ownerId = owner;
 
     this.accessPolicy = accessOptions[accessPolicy] ? accessOptions[accessPolicy] : 'Invalid';
-    this.createDate = createDate;
-    this.updateDate = updateDate;
+    this.createDate = new Date(createDate);
+    this.updateDate = updateDate ? new Date(updateDate) : null;
 
 
     // Samples are set / added / removed 

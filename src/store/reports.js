@@ -60,7 +60,13 @@ const actions = {
 }
 const mutations = {
   set_reports(state, { reports }) {
-    state.reports = reports.map(report => new ReportModel(report))
+    state.reports = reports
+      .map(report => new ReportModel(report))
+      .sort(function (a, b) {
+        if (a.createDate > b.createDate) return -1;
+        if (a.createDate < b.createDate) return 1;
+        return 0;
+      });
   },
   set_report_count(state, { reportCount }) {
     state.reportCount = reportCount;
