@@ -81,16 +81,14 @@ export default {
   },
   computed: {
     // IN: "2019-04-28T21:55:02.09066+00:00"
-    // OUT: zondag 21:55 uur
+    // OUT: vrijdag 30 oktober 2020 - 10:31
     lastEdited() {
-      let date = convertDateStringToDate(
-        this.activeReport.updateDate.substr(0, 10)
-      )
+      const date = this.activeReport.updateDate
       return weekDayFromDate({ date }) + ' ' 
         + date.getDate() + ' ' 
         + monthYearStringFromDate({ date }) + ' - '
-        + this.activeReport.updateDate.substr(11, 5) 
-        + ' uur'
+        + date.getHours() + ':'
+        + date.getMinutes()
     },
     hasEditedDate() {
       return this.activeReport.updateDate !== null
