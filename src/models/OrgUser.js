@@ -33,7 +33,7 @@ class OrgUserModel {
   //  Role
   // ****************************************************************************
   getRoleSlug() {
-    switch (this.role) {
+    switch (this.organizationRole) {
       case 0:
         return 'Superuser';
       case 1:
