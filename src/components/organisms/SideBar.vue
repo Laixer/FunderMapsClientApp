@@ -1,24 +1,11 @@
 <template>
-  <div 
-    :class="{ 'SideBar--slim': slim }"
-    class="SideBar d-flex flex-column">
-    <div 
-      v-if="!slim"
-      class="SideBar__title d-flex pl-3 ml-3">
-      <span class="align-self-center">
-        MENU
-      </span>
+  <div :class="{ 'SideBar--slim': slim }" class="SideBar d-flex flex-column">
+    <div v-if="!slim" class="SideBar__title d-flex pl-3 ml-3">
+      <span class="align-self-center"> MENU </span>
     </div>
-    <SideMenu 
-      class="SideBar__sidemenu"
-      :items="menuItems" 
-      :slim="slim" />
-    <MapLegend  
-      class="SideBar__legend"
-      v-if="hasLegend && !slim" />
-    <div
-      v-if="version && !slim"
-      class="SideBar__version">
+    <SideMenu class="SideBar__sidemenu" :items="menuItems" :slim="slim" />
+    <MapLegend class="SideBar__legend" v-if="hasLegend && !slim" />
+    <div v-if="version && !slim" class="SideBar__version">
       Versie: {{ version }}
     </div>
   </div>
@@ -36,7 +23,7 @@ export default {
   props: {
     menuItems: {
       type: Array,
-      default: function() {
+      default: function () {
         return []
       }
     },
@@ -61,9 +48,9 @@ export default {
   position: relative;
   width: 250px;
   background: white;
-  box-shadow: -1px 0px 0px 0px rgba(223,226,229,1) inset;
+  box-shadow: -1px 0px 0px 0px rgba(223, 226, 229, 1) inset;
   user-select: none;
-  color: #7F8FA4;
+  color: #7f8fa4;
   max-height: 100%;
   overflow-x: hidden;
   z-index: 1;
@@ -78,7 +65,7 @@ export default {
     height: 60px;
   }
   &__sidemenu {
-    flex-grow: 1
+    flex-grow: 1;
   }
   &__version {
     // position: absolute;

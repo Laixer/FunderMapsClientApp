@@ -1,15 +1,12 @@
 <template>
-  <div 
-    v-if="mapLayers"
-    class="align-self-center mr-3">
-    <Form 
-      class="d-flex"
-      @submit="() => null">
-      <FormField 
+  <div v-if="mapBundles" class="align-self-center mr-3">
+    <Form class="d-flex" @submit="() => null">
+      <FormField
         class="mr-3"
         v-model="mapModel"
         v-bind="mapModelField"
-        :options="mapLayerOptions" />
+        :options="mapBundleOptions"
+      />
     </Form>
   </div>
 </template>
@@ -35,42 +32,42 @@ export default {
   },
   computed: {
     ...mapGetters('map', [
-      'mapLayers',
-      'activeLayer'
+      'mapBundles',
+      'activeBundle'
     ]),
-    mapLayerOptions() {
-      return this.mapLayers.map(layer => {
+    mapBundleOptions() {
+      return [...this.mapBundles].map(bundle => {
         return {
-          value: layer.id,
-          text: layer.name
+          value: bundle.id,
+          text: bundle.name
         }
       })
     },
     mapModel: {
       get() {
-        return this.activeLayer ? this.activeLayer.id : null
+        return this.activeBundle ? this.activeBundle.id : null
       },
-      set (value) {
-        this.setActiveLayer({ id: value })
+      set(value) {
+        this.setActiveBundle({ id: value })
       }
     }
   },
   watch: {
-    mapLayers(value) {
-      if (value && !this.activeLayer) {
-        this.setActiveLayer({ id: value[0].id })  
+    mapBundles(value) {
+      if (value.length && !this.activeBundle) {
+        this.setActiveBundle({ id: value.values().next().value.id })
       }
     }
   },
   created() {
     // If layers are available, yet none is selected, select the first
-    if (this.mapLayers && !this.activeLayer) {
-      this.setActiveLayer({ id: this.mapLayers[0].id })
+    if (this.mapBundles.size && !this.activeBundle) {
+      this.setActiveLayer({ id: this.mapBundles.values().next().value.id })
     }
   },
   methods: {
     ...mapMutations('map', [
-      'setActiveLayer'
+      'setActiveBundle'
     ])
   }
 }

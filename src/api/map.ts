@@ -2,7 +2,10 @@
 import axios from '../utils/axios'
 
 export default {
-  getLayers() {
-    return axios.get('/api/map/layer');
+  getBundles() {
+    return axios.get('/api/bundle');
+  },
+  getLayer(id: string) {
+    return axios.get(`/api/layer/${id}`);
   }
 }

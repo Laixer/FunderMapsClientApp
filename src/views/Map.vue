@@ -10,12 +10,24 @@
     >
       <MglFullscreenControl />
       <MglGeolocateControl position="top-right" />
+      <MglPopup
+        v-if="popupFeature"
+        :showed="true"
+        :coordinates="popupFeature.geometry.coordinates[0][0]"
+        anchor="top"
+      >
+        <div>
+          <h1 :v-text="popupFeature.properties.toString()" />
+        </div>
+      </MglPopup>
     </MglMap>
   </div>
 </template>
 
 <script>
-import { MglMap, MglGeolocateControl, MglFullscreenControl } from "vue-mapbox";
+import { MglMap, MglGeolocateControl, MglFullscreenControl, MglPopup } from "vue-mapbox";
+
+import { generatePaintStyleFromJSON } from 'helper/paint';
 
 import { authHeader } from "service/auth";
 
@@ -25,40 +37,45 @@ export default {
   components: {
     MglMap,
     MglGeolocateControl,
-    MglFullscreenControl
+    MglFullscreenControl,
+    MglPopup
   },
   data() {
     return {
+      mvt_base_url: process.env.VUE_APP_MVT_BASE_URL,
       accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
-      mapStyle: process.env.VUE_APP_MAPBOX_STYLE
+      mapStyle: process.env.VUE_APP_MAPBOX_STYLE,
+      popupFeature: null
     };
   },
   computed: {
     ...mapGetters("map", [
+      "mapBundles",
       "mapLayers",
-      "activeLayer",
-      "hasMapLayers",
+      "activeBundle",
+      "activeLayers",
+      "hasMapBundles",
       "isMapboxReady"
     ]),
     ...mapGetters("org", ["organization"]),
-    readyToLoadLayers() {
-      return this.isMapboxReady;// && this.hasMapLayers;
+    readyToLoadBundles() {
+      return this.isMapboxReady && this.hasMapBundles;
     }
   },
   watch: {
-    readyToLoadLayers(value) {
+    readyToLoadBundles(value) {
       if (value) {
-        this.addLayersToMapbox();
+        this.addBundlesToMapbox();
       }
     },
-    activeLayer() {
-      this.switchLayer();
+    activeBundle() {
+      this.switchBundle();
     }
   },
   async created() {
-    if (!this.hasMapLayers) {
+    if (!this.hasMapBundles) {
       try {
-        // await this.getMapLayers();
+        await this.getMapBundles();
       } catch (err) {
         if (err.response && err.response.status === 401) {
           this.$router.push({ name: "login" });
@@ -71,7 +88,7 @@ export default {
     this.mapboxIsReady({ status: false });
   },
   methods: {
-    ...mapActions("map", ["getMapLayers"]),
+    ...mapActions("map", ["getMapBundles"]),
     ...mapMutations("map", ["mapboxIsReady"]),
     onMapLoaded(event) {
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
@@ -99,70 +116,80 @@ export default {
         };
       }
     },
-    switchLayer() {
+    setPopupFeature(feature) {
+      this.popupFeature = feature
+    },
+    switchBundle() {
       if (this.isMapboxReady) {
-        // TODO: Test whether we first need to hide all
-        this.mapLayers.forEach(layer => {
-          let source = this.$store.map.getSource(layer.id);
-          if (source) {
-            this.$store.map.setLayoutProperty(
-              layer.id,
-              "visibility",
-              this.getLayerVisibility({ layer })
-            );
-          }
-        });
+        this.mapBundles.forEach(bundle => {
+          this.mapLayers.filter(v => bundle.layerConfiguration.layers.find(a => a.layerId === v.id)).forEach(layer => {
+            const uniqueId = `${bundle.id}_${layer.id}`
+            let source = this.$store.map.getLayer(uniqueId);
+            if (source) {
+              this.$store.map.setLayoutProperty(
+                uniqueId,
+                "visibility",
+                this.getLayerVisibility({ layer })
+              );
+            }
+          });
+        })
+
       }
     },
-    addLayersToMapbox() {
-      // this.mapLayers.forEach(layer => {
-      //   this.$store.map.addSource(layer.id, {
-      //     type: "geojson",
-      //     data: `${process.env.VUE_APP_API_BASE_URL}${layer.source}`
-      //   });
-      //   this.$store.map.addLayer({
-      //     id: layer.id,
-      //     type: "fill",
-      //     source: layer.id,
-      //     layout: {
-      //       visibility: this.getLayerVisibility({ layer })
-      //     },
-      //     paint: {
-      //       "fill-color": ["get", "color"],
-      //       "fill-opacity": 0.8
-      //     }
-      //   });
-      // });
-      // this.$store.map.addSource('mapillary', {
-      //   'type': 'vector',
-      //   'tiles': [
-      //     'https://ams3.digitaloceanspaces.com/fundermaps-development/mvt/{z}/{x}/{y}.pbf'
-      //   ]
-      // });
-      // this.$store.map.addLayer(
-      //   {
-      //   'id': 'mapillary',
-      //   'type': 'fill',
-      //   'source': 'mapillary',
-      //   'source-layer': 'geocoder.dev_building_active_schiedam_centrum',
-      //   'layout': {
-      //   // 'line-cap': 'round',
-      //   // 'line-join': 'round'
-      //   },
-      //   // 'paint': {
-      //   // 'line-opacity': 0.6,
-      //   // 'line-color': 'rgb(53, 175, 109)',
-      //   // 'line-width': 2
-      //   // }
-      //   },
-      //   //'waterway-label'
-      //   );
+    addBundlesToMapbox() {
+      this.mapBundles.forEach(bundle => {
+        this.$store.map.addSource(bundle.id, {
+          type: "vector",
+          tiles: [`${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}/{z}/{x}/{y}.pbf`],
+        });
 
+        bundle.layerConfiguration.layers.forEach(layerConfig => {
+          const layer = this.mapLayers.find(layer => layer.id === layerConfig.layerId)
+          if (layer) {
+            const uniqueId = `${bundle.id}_${layer.id}`
+            this.$store.map.addLayer({
+              id: uniqueId,
+              type: "fill",
+              source: bundle.id,
+              'source-layer': layer.slug,
+              layout: {
+                visibility: this.getLayerVisibility({ layer })
+              },
+              paint: generatePaintStyleFromJSON(JSON.parse(layer.markup)[0])
+            });
+
+            var that = this
+            this.$store.map.on('click', uniqueId, function (e) {
+              that.setPopupFeature(e.features[0])
+              console.log(that.popupFeature)
+              that.$store.map.flyTo({
+                center: that.popupFeature.geometry.coordinates[0][0]
+              })
+            });
+
+            this.$store.map.on('mouseenter', uniqueId, () => {
+              that.$store.map.getCanvas().style.cursor = 'pointer';
+            });
+
+            this.$store.map.on('mouseleave', uniqueId, () => {
+              that.$store.map.getCanvas().style.cursor = '';
+              // that.setPopupFeature(null)
+            });
+          }
+        });
+      });
     },
-    getLayerVisibility({ layer }) {
-      return this.activeLayer && this.activeLayer.id === layer.id
+    getBundleVisibility({ bundle }) {
+      return this.activeBundle && this.activeBundle.id === bundle.id
         ? "visible"
         : "none";
+    },
+    getLayerVisibility({ layer }) {
+      if (this.activeBundle && this.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id) && layer.isVisible !== false ) {
+        return "visible"
+      }
+      return "none";
     }
   }
 };
