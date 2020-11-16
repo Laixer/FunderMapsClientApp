@@ -45,6 +45,7 @@ export default {
 
 <style lang="scss">
 .SideBar {
+  overflow: hidden;
   position: relative;
   width: 250px;
   background: white;
@@ -52,7 +53,6 @@ export default {
   user-select: none;
   color: #7f8fa4;
   max-height: 100%;
-  overflow-x: hidden;
   z-index: 1;
   left: 0;
 

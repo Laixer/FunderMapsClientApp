@@ -93,7 +93,7 @@ function _case_multimatch(data: Case_Multimatch[], column: string) {
   const cases: any[] = ['case']
   data.forEach(x => {
     x.match.forEach(m => {
-      cases.push(['==', ['get', column], m.match])
+      cases.push(['==', ['get', column], m])
       cases.push(x.color)
     })
   });

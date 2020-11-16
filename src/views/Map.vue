@@ -144,8 +144,6 @@ export default {
       this.popupFeature = feature
     },
     addBundlesToMapbox() {
-      console.log(this.mapBundles)
-      console.log(this.mapLayers)
       this.mapBundles.forEach(bundle => {
         const url = `${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}`
         this.$store.map.addSource(bundle.id, {

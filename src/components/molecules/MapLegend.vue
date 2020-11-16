@@ -1,39 +1,43 @@
 <template>
-  <div v-if="hasActiveBundle" class="Legend mb-3">
+  <div>
     <div class="Legend__title d-flex pl-3 ml-3">
       <span class="align-self-center"> LEGENDA </span>
     </div>
-    <div v-for="layer in activeLayers" :key="layer.id">
-      <div class="Legend__subtitle d-flex pl-3 ml-3 mt-2">
-        <span class="px-2" @click="toggleVisibility(layer)">
-          <img
-            :src="
-              getLayerVisibility(layer)
-                ? icon('Eye-regular-icon.svg')
-                : icon('Eye-slash-regular-icon.svg')
-            "
-            width="14"
-            height="14"
-          />
-        </span>
-        <span class="align-self-center">
-          {{ layer.name }}
-        </span>
-      </div>
-      <div v-if="getLayerVisibility(layer)">
-        <ul class="m-0 p-0 pl-3 ml-3 mb-3 list-unstyled">
-          <li
-            v-for="(item, index) in generateLegendForLayer(layer)"
-            :key="index"
-            class="d-flex my-2 mr-3 align-items-center"
-          >
-            <span
-              class="Legend__point"
-              :style="{ backgroundColor: item.color }"
-            ></span>
-            <span class="mx-2 flex-grow-1">{{ item.label }}</span>
-          </li>
-        </ul>
+    <div v-if="hasActiveBundle" class="Legend mb-3">
+      <div v-for="layer in activeLayers" :key="layer.id">
+        <div class="Legend__subtitle d-flex pl-3 ml-3 mt-2">
+          <span class="px-2" @click="toggleVisibility(layer)">
+            <img
+              :src="
+                getLayerVisibility(layer)
+                  ? icon('Eye-regular-icon.svg')
+                  : icon('Eye-slash-regular-icon.svg')
+              "
+              width="14"
+              height="14"
+            />
+          </span>
+          <span class="align-self-center">
+            {{ layer.name }}
+          </span>
+        </div>
+        <div v-if="getLayerVisibility(layer)">
+          <ul class="m-0 p-0 pl-3 ml-3 mb-3 list-unstyled">
+            <li
+              v-for="(item, index) in generateLegendForLayer(layer)"
+              :key="index"
+              class="d-flex my-2 mr-3 align-items-center"
+            >
+              <span
+                class="Legend__point"
+                :style="{ backgroundColor: item.color }"
+              ></span>
+              <span class="Legend__point__label mx-2 flex-grow-1">{{
+                item.label
+              }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -76,6 +80,9 @@ export default {
 <style lang="scss">
 .Legend {
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+  height: 100%;
+  max-height: 60vh;
+  overflow: auto;
 
   &__title {
     height: 60px;
@@ -96,7 +103,15 @@ export default {
     margin-left: 20px;
     border-radius: 6px;
   }
+
+  &__point__label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   ul li span:first-child {
+    min-width: 20px;
     width: 20px;
   }
   ul li {
