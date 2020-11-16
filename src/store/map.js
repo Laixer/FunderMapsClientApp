@@ -14,7 +14,9 @@ const state = {
   mapboxIsReady: false,
   bundles: [],
   layers: [],
-  activeBundle: null
+  activeBundle: null,
+  hasMapBundles: false,
+  hasMapLayers: false
 };
 
 const getters = {
@@ -23,8 +25,11 @@ const getters = {
   mapLayers: state => state.layers,
   activeBundle: state => state.activeBundle,
   hasActiveBundle: state => state.activeBundle !== null,
-  activeLayers: state =>  state.layers.filter(layer => state.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id) ? true : false),
-  hasMapBundles: state => state.bundles.length > 0
+  activeLayers: state => state.layers
+    .filter(layer => state.activeBundle.layerConfiguration.layers
+      .find(x => x.layerId === layer.id) ? true : false)
+    .sort((a, b) => a.name > b.name ? 1 : -1),
+  hasMapData: state => state.hasMapBundles && state.hasMapLayers
 };
 
 const actions = {
@@ -33,15 +38,21 @@ const actions = {
     const bundles = response.data;
     if (response.status === 200 && bundles && Array.isArray(bundles)) {
       commit("set_bundles", { bundles: bundles });
-      await Promise.all(
+      let layers = await Promise.all(
         bundles.map(async bundle => {
-          await dispatch("getMapLayer", bundle);
+          return await dispatch("getMapLayers", bundle);
         })
       );
+      commit("set_layers", { layers: layers.flat().reduce((p, c) => {
+        if (!p.some(el => el.id === c.id)) {
+          p.push(c)
+        }
+        return p
+      }, []) })
     }
   },
-  async getMapLayer({ commit }, bundle) {
-    const layers = await Promise.all(
+  async getMapLayers({ commit }, bundle) {
+    return await Promise.all(
       bundle.layerConfiguration.layers.map(async layerConfig => {
         const response = await mapAPI.getLayer(layerConfig.layerId);
         const layer = response.data;
@@ -50,7 +61,6 @@ const actions = {
         }
       })
     );
-    commit("set_layers", { layers: layers });
   },
   clearMapState({ commit }) {
     commit("clear_state");
@@ -61,32 +71,15 @@ const mutations = {
     state.mapboxIsReady = status;
   },
   setActiveBundle(state, { id }) {
-    console.log("setting active bundle", id);
     state.activeBundle = state.bundles.find(bundle => bundle.id === id) || null;
   },
   set_bundles(state, { bundles }) {
-    const tmp = state.bundles;
-
-    bundles.forEach(newBundle => {
-      const found = tmp.find(oldBundle => oldBundle.id === newBundle.id);
-      if (found) {
-        tmp.remove(found);
-      }
-      tmp.push(newBundle);
-    });
-    state.bundles = tmp;
+    state.bundles = bundles;
+    state.hasMapBundles = true
   },
   set_layers(state, { layers }) {
-    const tmp = state.layers;
-
-    layers.forEach(newLayer => {
-      const found = tmp.find(oldLayer => oldLayer.id === newLayer.id);
-      if (found) {
-        tmp.remove(found);
-      }
-      tmp.push(newLayer);
-    });
-    state.layers = tmp;
+    state.layers = layers;
+    state.hasMapLayers = true
   },
   clear_state(state) {
     state.bundles = null;

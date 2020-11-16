@@ -26,7 +26,7 @@ interface Case_Multimatch {
 }
 
 class LegendEntry {
-  constructor(public color: string, public label: string) {}
+  constructor(public color: string, public label: string) { }
 }
 
 export function generatePaintStyleFromJSON(markup: JSONMarkup) {
@@ -45,9 +45,9 @@ function _generateFillOpacity(markup: JSONMarkup) {
 
   return [
     'case',
-    ['==', ['get', 'is_active'], true],
-    0.8,
-    0.2
+    ['==', ['get', 'is_active'], false],
+    0.2,
+    0.8
   ]
 }
 
@@ -105,7 +105,7 @@ export function generateLegend(markup: JSONMarkup): LegendEntry[] {
   const data = markup.values
   const arr = new Array<LegendEntry>();
 
-  switch(markup.type) {
+  switch (markup.type) {
     case 'ranges': return (data as Range[]).map(entry => new LegendEntry(entry.color, entry.label))
     case 'case': return (data as Case[]).map(entry => new LegendEntry(entry.color, entry.label))
     case 'hash_color': return [new LegendEntry(StringToColor(markup.column), "")]

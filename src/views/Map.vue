@@ -33,6 +33,8 @@ import { authHeader } from "service/auth";
 
 import { mapGetters, mapMutations, mapActions } from "vuex";
 
+import mapAPI from "api/map";
+
 export default {
   components: {
     MglMap,
@@ -54,12 +56,12 @@ export default {
       "mapLayers",
       "activeBundle",
       "activeLayers",
-      "hasMapBundles",
+      "hasMapData",
       "isMapboxReady"
     ]),
     ...mapGetters("org", ["organization"]),
     readyToLoadBundles() {
-      return this.isMapboxReady && this.hasMapBundles;
+      return this.isMapboxReady && this.hasMapData;
     }
   },
   watch: {
@@ -68,12 +70,34 @@ export default {
         this.addBundlesToMapbox();
       }
     },
-    activeBundle() {
-      this.switchBundle();
-    }
+    activeLayers(value) {
+      if (value.length && this.$store.map) {
+        value.forEach(layer => {
+          this.$store.map.setLayoutProperty(
+            `${this.activeBundle.id}_${layer.id}`,
+            "visibility",
+            this.getLayerVisibility({ layer })
+          );
+        })
+      }
+    },
+    activeBundle(value) {
+      if (this.isMapboxReady) {
+        this.mapBundles.forEach(bundle => {
+          this.mapLayers.filter(v => bundle.layerConfiguration.layers.find(a => a.layerId === v.id)).forEach(layer => {
+            this.$store.map.setLayoutProperty(
+              `${bundle.id}_${layer.id}`,
+              "visibility",
+              this.getLayerVisibility({ layer, bundle })
+            );
+          });
+        })
+
+      }
+    },
   },
   async created() {
-    if (!this.hasMapBundles) {
+    if (!this.hasMapData) {
       try {
         await this.getMapBundles();
       } catch (err) {
@@ -119,30 +143,18 @@ export default {
     setPopupFeature(feature) {
       this.popupFeature = feature
     },
-    switchBundle() {
-      if (this.isMapboxReady) {
-        this.mapBundles.forEach(bundle => {
-          this.mapLayers.filter(v => bundle.layerConfiguration.layers.find(a => a.layerId === v.id)).forEach(layer => {
-            const uniqueId = `${bundle.id}_${layer.id}`
-            let source = this.$store.map.getLayer(uniqueId);
-            if (source) {
-              this.$store.map.setLayoutProperty(
-                uniqueId,
-                "visibility",
-                this.getLayerVisibility({ layer })
-              );
-            }
-          });
-        })
-
-      }
-    },
     addBundlesToMapbox() {
+      console.log(this.mapBundles)
+      console.log(this.mapLayers)
       this.mapBundles.forEach(bundle => {
+        const url = `${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}`
         this.$store.map.addSource(bundle.id, {
           type: "vector",
-          tiles: [`${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}/{z}/{x}/{y}.pbf`],
+          tiles: [`${url}/{z}/{x}/{y}.pbf`],
         });
+
+        // const metadata = mapAPI.getMetadata(bundle);
+        // console.log(metadata)
 
         bundle.layerConfiguration.layers.forEach(layerConfig => {
           const layer = this.mapLayers.find(layer => layer.id === layerConfig.layerId)
@@ -154,8 +166,10 @@ export default {
               source: bundle.id,
               'source-layer': layer.slug,
               layout: {
-                visibility: this.getLayerVisibility({ layer })
+                visibility: this.getLayerVisibility({ layer, bundle })
               },
+              minzoom: layerConfig.minzoom || 1,
+              maxzoom: layerConfig.maxzoom || 24,
               paint: generatePaintStyleFromJSON(JSON.parse(layer.markup)[0])
             });
 
@@ -185,8 +199,9 @@ export default {
         ? "visible"
         : "none";
     },
-    getLayerVisibility({ layer }) {
-      if (this.activeBundle && this.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id) && layer.isVisible !== false ) {
+    getLayerVisibility({ layer, bundle }) {
+      if (bundle === undefined) { bundle = this.activeBundle }
+      if (this.activeBundle.id === bundle.id && this.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id) && layer.isVisible !== false) {
         return "visible"
       }
       return "none";

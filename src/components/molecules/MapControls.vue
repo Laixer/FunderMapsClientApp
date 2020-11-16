@@ -1,5 +1,5 @@
 <template>
-  <div v-if="mapBundles.size > 1" class="align-self-center mr-3">
+  <div v-if="mapBundles.length > 1" class="align-self-center mr-3">
     <Form class="d-flex" @submit="() => null">
       <FormField
         class="mr-3"
@@ -55,7 +55,7 @@ export default {
   watch: {
     mapBundles(value) {
       if (value.length && !this.activeBundle) {
-        this.setActiveBundle({ id: value.values().next().value.id })
+        this.setActiveBundle({ id: value[0].id })
       }
     }
   },
