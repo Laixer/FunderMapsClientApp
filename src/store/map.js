@@ -43,12 +43,14 @@ const actions = {
           return await dispatch("getMapLayers", bundle);
         })
       );
-      commit("set_layers", { layers: layers.flat().reduce((p, c) => {
-        if (!p.some(el => el.id === c.id)) {
-          p.push(c)
-        }
-        return p
-      }, []) })
+      commit("set_layers", {
+        layers: layers.flat().reduce((p, c) => {
+          if (!p.some(el => el.id === c.id)) {
+            p.push(c)
+          }
+          return p
+        }, [])
+      })
     }
   },
   async getMapLayers({ commit }, bundle) {
