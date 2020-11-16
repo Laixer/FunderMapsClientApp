@@ -44,7 +44,6 @@ import { mapGetters } from "vuex";
 import { icon } from "helper/assets";
 import { generateLegend } from "helper/paint";
 
-
 export default {
   methods: {
     icon,
