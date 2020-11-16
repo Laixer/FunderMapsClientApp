@@ -26,9 +26,8 @@ const getters = {
   activeBundle: state => state.activeBundle,
   hasActiveBundle: state => state.activeBundle !== null,
   activeLayers: state => state.layers
-    .filter(layer => state.activeBundle.layerConfiguration.layers
-      .find(x => x.layerId === layer.id) ? true : false)
-    .sort((a, b) => a.name > b.name ? 1 : -1),
+    .filter(layer => state.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id))
+    .sort((a, b) => a.name == b.name ? 0 : a.name > b.name ? 1 : -1),
   hasMapData: state => state.hasMapBundles && state.hasMapLayers
 };
 
