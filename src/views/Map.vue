@@ -74,6 +74,7 @@ export default {
             );
           }
         }
+        this.$store.map.triggerRepaint();
       }
     },
   },
@@ -98,17 +99,6 @@ export default {
     onMapLoaded(event) {
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.map;
-      // TODO: this.organization.getCenter()
-      // if (this.organization.centerX != 0 && this.organization.centerY != 0) {
-      //   // TODO: We should initialize the map straight away here.
-      //   this.$store.map.flyTo({
-      //     center: [this.organization.centerX, this.organization.centerY],
-      //     zoom: 13,
-      //     speed: 2.5
-      //   });
-      // }
-
-
       this.panToActiveBundle()
       this.mapboxIsReady({ status: true });
     },
