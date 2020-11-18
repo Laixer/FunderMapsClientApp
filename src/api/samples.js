@@ -3,8 +3,7 @@ import axios from '@/utils/axios'
 
 // Collection
 const getSamples = ({ inquiryId }) => {
-
-  return axios.get(`/api/inquiry/${inquiryId}/sample`)
+  return axios.get(`/api/inquiry/${inquiryId}/sample?limit=1000`)
 }
 
 // Single
@@ -18,7 +17,7 @@ const deleteSample = ({ inquiryId, sampleId }) => {
   return axios.delete(`/api/inquiry/${inquiryId}/sample/${sampleId}`)
 }
 
-export default { 
+export default {
   getSamples,
 
   updateSample,
