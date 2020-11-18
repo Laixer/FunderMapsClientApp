@@ -17,9 +17,15 @@
 <script>
 import { MglMap, MglGeolocateControl, MglFullscreenControl } from "vue-mapbox";
 
+import { Popup } from 'mapbox-gl';
+
+import { generatePaintStyleFromJSON } from 'helper/paint';
+
 import { authHeader } from "service/auth";
 
 import { mapGetters, mapMutations, mapActions } from "vuex";
+
+import mapAPI from "api/map";
 
 export default {
   components: {
@@ -29,36 +35,52 @@ export default {
   },
   data() {
     return {
+      mvt_base_url: process.env.VUE_APP_MVT_BASE_URL,
       accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
-      mapStyle: process.env.VUE_APP_MAPBOX_STYLE
+      mapStyle: process.env.VUE_APP_MAPBOX_STYLE,
+      popupFeature: null
     };
   },
   computed: {
     ...mapGetters("map", [
+      "mapBundles",
       "mapLayers",
-      "activeLayer",
-      "hasMapLayers",
+      "activeBundle",
+      "activeLayers",
+      "hasMapData",
       "isMapboxReady"
     ]),
     ...mapGetters("org", ["organization"]),
-    readyToLoadLayers() {
-      return this.isMapboxReady;// && this.hasMapLayers;
+    readyToLoadBundles() {
+      return this.isMapboxReady && this.hasMapData;
     }
   },
   watch: {
-    readyToLoadLayers(value) {
+    async readyToLoadBundles(value) {
       if (value) {
-        this.addLayersToMapbox();
+        await this.addBundlesToMapbox();
       }
     },
-    activeLayer() {
-      this.switchLayer();
-    }
+    activeBundle(value) {
+      if (this.isMapboxReady) {
+        this.panToActiveBundle()
+
+        for (const bundle of this.mapBundles) {
+          for (const layer of this.mapLayers.filter(v => bundle.layerConfiguration.layers.find(a => a.layerId === v.id))) {
+            this.$store.map.setLayoutProperty(
+              `${bundle.id}_${layer.id}`,
+              "visibility",
+              (bundle.id === this.activeBundle.id) ? layer.visibility : 'none'
+            );
+          }
+        }
+      }
+    },
   },
   async created() {
-    if (!this.hasMapLayers) {
+    if (!this.hasMapData) {
       try {
-        // await this.getMapLayers();
+        await this.getMapBundles();
       } catch (err) {
         if (err.response && err.response.status === 401) {
           this.$router.push({ name: "login" });
@@ -71,7 +93,7 @@ export default {
     this.mapboxIsReady({ status: false });
   },
   methods: {
-    ...mapActions("map", ["getMapLayers"]),
+    ...mapActions("map", ["getMapBundles"]),
     ...mapMutations("map", ["mapboxIsReady"]),
     onMapLoaded(event) {
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
@@ -85,6 +107,9 @@ export default {
       //     speed: 2.5
       //   });
       // }
+
+
+      this.panToActiveBundle()
       this.mapboxIsReady({ status: true });
     },
     transformRequest(url, resourceType) {
@@ -99,70 +124,91 @@ export default {
         };
       }
     },
-    switchLayer() {
-      if (this.isMapboxReady) {
-        // TODO: Test whether we first need to hide all
-        this.mapLayers.forEach(layer => {
-          let source = this.$store.map.getSource(layer.id);
-          if (source) {
-            this.$store.map.setLayoutProperty(
-              layer.id,
-              "visibility",
-              this.getLayerVisibility({ layer })
-            );
-          }
+    setPopupFeature(feature) {
+      this.popupFeature = feature
+    },
+    async addBundlesToMapbox() {
+      for (const bundle of this.mapBundles) {
+        const url = `${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}/{z}/{x}/{y}.pbf`
+        this.$store.map.addSource(bundle.id, {
+          type: "vector",
+          tiles: [url],
         });
+
+        const layers = this.$store.map.getStyle().layers
+        let firstSymbolLayerId = null
+        for (var i = 0; i < layers.length; i++) {
+          if (layers[i].type === 'symbol') {
+            firstSymbolLayerId = layers[i].id;
+            break;
+          }
+        }
+
+        for (const [index, layer] of this.mapLayers.filter(layer => bundle.layerConfiguration.layers.find(layerConfig => layer.id === layerConfig.layerId)).entries()) {
+          layer.visibility = index == 0 ? 'visible' : 'none'
+
+          const uniqueId = `${bundle.id}_${layer.id}`
+          this.$store.map.addLayer({
+            id: uniqueId,
+            type: "fill",
+            source: bundle.id,
+            'source-layer': layer.slug,
+            layout: {
+              visibility: layer.visibility
+            },
+            minzoom: bundle.metadata.minzoom || 1,
+            // maxzoom: bundle.metadata.maxzoom || 24,
+            paint: generatePaintStyleFromJSON(JSON.parse(layer.markup))
+          }, firstSymbolLayerId);
+
+          this.$store.map.on('click', uniqueId, (e) => {
+            this.setPopupFeature(e.features[0])
+            this.$store.map.flyTo({
+              center: this.popupFeature.geometry.coordinates[0][0],
+              speed: 1
+            })
+
+            let html = ""
+            for (const [key, value] of Object.entries(this.popupFeature.properties)) {
+              if (key == 'external_id' || key == 'id') continue
+              html += `<span><b>${key}:</b> ${value}</span><br>`
+            }
+
+            new Popup()
+              .setLngLat(this.popupFeature.geometry.coordinates[0][0])
+              .setHTML(html)
+              .addTo(this.$store.map)
+
+          });
+
+          this.$store.map.on('mouseenter', uniqueId, () => {
+            this.$store.map.getCanvas().style.cursor = 'pointer';
+          });
+
+          this.$store.map.on('mouseleave', uniqueId, () => {
+            this.$store.map.getCanvas().style.cursor = '';
+            this.setPopupFeature(null)
+          });
+
+        }
       }
     },
-    addLayersToMapbox() {
-      // this.mapLayers.forEach(layer => {
-      //   this.$store.map.addSource(layer.id, {
-      //     type: "geojson",
-      //     data: `${process.env.VUE_APP_API_BASE_URL}${layer.source}`
-      //   });
-      //   this.$store.map.addLayer({
-      //     id: layer.id,
-      //     type: "fill",
-      //     source: layer.id,
-      //     layout: {
-      //       visibility: this.getLayerVisibility({ layer })
-      //     },
-      //     paint: {
-      //       "fill-color": ["get", "color"],
-      //       "fill-opacity": 0.8
-      //     }
-      //   });
-      // });
-      // this.$store.map.addSource('mapillary', {
-      //   'type': 'vector',
-      //   'tiles': [
-      //     'https://ams3.digitaloceanspaces.com/fundermaps-development/mvt/{z}/{x}/{y}.pbf'
-      //   ]
-      // });
-      // this.$store.map.addLayer(
-      //   {
-      //   'id': 'mapillary',
-      //   'type': 'fill',
-      //   'source': 'mapillary',
-      //   'source-layer': 'geocoder.dev_building_active_schiedam_centrum',
-      //   'layout': {
-      //   // 'line-cap': 'round',
-      //   // 'line-join': 'round'
-      //   },
-      //   // 'paint': {
-      //   // 'line-opacity': 0.6,
-      //   // 'line-color': 'rgb(53, 175, 109)',
-      //   // 'line-width': 2
-      //   // }
-      //   },
-      //   //'waterway-label'
-      //   );
-
-    },
-    getLayerVisibility({ layer }) {
-      return this.activeLayer && this.activeLayer.id === layer.id
+    getBundleVisibility({ bundle }) {
+      return this.activeBundle && this.activeBundle.id === bundle.id
         ? "visible"
         : "none";
+    },
+    panToActiveBundle() {
+      if (this.activeBundle) {
+        const split = this.activeBundle.metadata.center.split(',')
+        const center = [split[0], split[1]]
+        const zoom = split[2]
+        this.$store.map.flyTo({
+          center: center,
+          zoom: zoom,
+          speed: 1
+        })
+      }
     }
   }
 };

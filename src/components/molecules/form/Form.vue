@@ -3,7 +3,7 @@
     <slot />
 
     <!-- Required to allow the form to be submitted programmatically -->
-    <button ref="btn" style="display:none" type="submit" />
+    <button ref="btn" style="display: none" type="submit" />
   </form>
 </template>
 
@@ -16,7 +16,7 @@
  */
 export default {
   // Provide a mechanism for field components to register themselves to the form
-  provide: function() {
+  provide: function () {
     return {
       registerFormField: this.registerFormField
     };
@@ -40,7 +40,9 @@ export default {
      * Run the validation on every registered field
      */
     validate() {
-      this.fields.forEach(field => field.validate());
+      for (const field of this.fields) {
+        field.validate()
+      }
     },
     /**
      * Are all registered fields valid?
@@ -52,7 +54,10 @@ export default {
      * Reset the validation mechanism
      */
     resetValidation() {
-      this.fields.forEach(field => field.resetValidation());
+      for (const field of this.fields) {
+        field.resetValidation();
+      }
+
     },
     /**
      * Allow the form to be submitted programmatically

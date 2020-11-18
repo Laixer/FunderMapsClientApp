@@ -19,7 +19,7 @@ import Step2 from '@/views/report/Step2.vue'
 import Step3 from '@/views/report/Step3.vue'
 import ReportView from '@/views/report/View.vue'
 
-// Reports 
+// Reports
 import Reports from '@/views/Reports.vue'
 
 // Organization
