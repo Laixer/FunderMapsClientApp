@@ -65,34 +65,24 @@ export default {
     }
   },
   watch: {
-    readyToLoadBundles(value) {
+    async readyToLoadBundles(value) {
       if (value) {
-        this.addBundlesToMapbox();
-      }
-    },
-    activeLayers(value) {
-      if (value.length && this.$store.map) {
-        value.forEach(layer => {
-          this.$store.map.setLayoutProperty(
-            `${this.activeBundle.id}_${layer.id}`,
-            "visibility",
-            this.getLayerVisibility({ layer })
-          );
-        })
+        await this.addBundlesToMapbox();
       }
     },
     activeBundle(value) {
       if (this.isMapboxReady) {
-        this.mapBundles.forEach(bundle => {
-          this.mapLayers.filter(v => bundle.layerConfiguration.layers.find(a => a.layerId === v.id)).forEach(layer => {
+        this.panToActiveBundle()
+
+        for (const bundle of this.mapBundles) {
+          for (const layer of this.mapLayers.filter(v => bundle.layerConfiguration.layers.find(a => a.layerId === v.id))) {
             this.$store.map.setLayoutProperty(
               `${bundle.id}_${layer.id}`,
               "visibility",
-              this.getLayerVisibility({ layer, bundle })
+              (bundle.id === this.activeBundle.id) ? layer.visibility : 'none'
             );
-          });
-        })
-
+          }
+        }
       }
     },
   },
@@ -126,6 +116,9 @@ export default {
       //     speed: 2.5
       //   });
       // }
+
+
+      this.panToActiveBundle()
       this.mapboxIsReady({ status: true });
     },
     transformRequest(url, resourceType) {
@@ -143,66 +136,78 @@ export default {
     setPopupFeature(feature) {
       this.popupFeature = feature
     },
-    addBundlesToMapbox() {
-      this.mapBundles.forEach(bundle => {
-        const url = `${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}`
+    async addBundlesToMapbox() {
+      for (const bundle of this.mapBundles) {
+        const url = `${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}/{z}/{x}/{y}.pbf`
         this.$store.map.addSource(bundle.id, {
           type: "vector",
-          tiles: [`${url}/{z}/{x}/{y}.pbf`],
+          tiles: [url],
         });
 
-        // const metadata = mapAPI.getMetadata(bundle);
-        // console.log(metadata)
-
-        bundle.layerConfiguration.layers.forEach(layerConfig => {
-          const layer = this.mapLayers.find(layer => layer.id === layerConfig.layerId)
-          if (layer) {
-            const uniqueId = `${bundle.id}_${layer.id}`
-            this.$store.map.addLayer({
-              id: uniqueId,
-              type: "fill",
-              source: bundle.id,
-              'source-layer': layer.slug,
-              layout: {
-                visibility: this.getLayerVisibility({ layer, bundle })
-              },
-              minzoom: layerConfig.minzoom || 1,
-              maxzoom: layerConfig.maxzoom || 24,
-              paint: generatePaintStyleFromJSON(JSON.parse(layer.markup)[0])
-            });
-
-            var that = this
-            this.$store.map.on('click', uniqueId, function (e) {
-              that.setPopupFeature(e.features[0])
-              console.log(that.popupFeature)
-              that.$store.map.flyTo({
-                center: that.popupFeature.geometry.coordinates[0][0]
-              })
-            });
-
-            this.$store.map.on('mouseenter', uniqueId, () => {
-              that.$store.map.getCanvas().style.cursor = 'pointer';
-            });
-
-            this.$store.map.on('mouseleave', uniqueId, () => {
-              that.$store.map.getCanvas().style.cursor = '';
-              // that.setPopupFeature(null)
-            });
+        const layers = this.$store.map.getStyle().layers
+        let firstSymbolLayerId = null
+        for (var i = 0; i < layers.length; i++) {
+          if (layers[i].type === 'symbol') {
+            firstSymbolLayerId = layers[i].id;
+            break;
           }
-        });
-      });
+        }
+
+        for (const [index, layer] of this.mapLayers.filter(layer => bundle.layerConfiguration.layers.find(layerConfig => layer.id === layerConfig.layerId)).entries()) {
+          layer.visibility = index == 0 ? 'visible' : 'none'
+
+          console.log(layer)
+          const uniqueId = `${bundle.id}_${layer.id}`
+          this.$store.map.addLayer({
+            id: uniqueId,
+            type: "fill",
+            source: bundle.id,
+            'source-layer': layer.slug,
+            layout: {
+              visibility: layer.visibility
+            },
+            minzoom: bundle.metadata.minzoom || 1,
+            // maxzoom: bundle.metadata.maxzoom || 24,
+            paint: generatePaintStyleFromJSON(JSON.parse(layer.markup))
+          }, firstSymbolLayerId);
+
+          this.$store.map.on('click', uniqueId, (e) => {
+            this.setPopupFeature(e.features[0])
+            console.log(this.popupFeature)
+            this.$store.map.flyTo({
+              center: this.popupFeature.geometry.coordinates[0][0],
+              speed: 1
+            })
+          });
+
+          this.$store.map.on('mouseenter', uniqueId, () => {
+            this.$store.map.getCanvas().style.cursor = 'pointer';
+          });
+
+          this.$store.map.on('mouseleave', uniqueId, () => {
+            this.$store.map.getCanvas().style.cursor = '';
+            this.setPopupFeature(null)
+          });
+
+        }
+      }
     },
     getBundleVisibility({ bundle }) {
       return this.activeBundle && this.activeBundle.id === bundle.id
         ? "visible"
         : "none";
     },
-    getLayerVisibility({ layer, bundle }) {
-      if (bundle === undefined) { bundle = this.activeBundle }
-      if (this.activeBundle.id === bundle.id && this.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id) && layer.isVisible !== false) {
-        return "visible"
+    panToActiveBundle() {
+      if (this.activeBundle) {
+        const split = this.activeBundle.metadata.center.split(',')
+        const center = [split[0], split[1]]
+        const zoom = split[2]
+        this.$store.map.flyTo({
+          center: center,
+          zoom: zoom,
+          speed: 1
+        })
       }
-      return "none";
     }
   }
 };

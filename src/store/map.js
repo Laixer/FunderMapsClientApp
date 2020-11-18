@@ -22,12 +22,10 @@ const state = {
 const getters = {
   isMapboxReady: state => state.mapboxIsReady,
   mapBundles: state => state.bundles,
-  mapLayers: state => state.layers,
+  mapLayers: state => state.layers.sort((a, b) => a.name == b.name ? 0 : a.name > b.name ? 1 : -1),
   activeBundle: state => state.activeBundle,
   hasActiveBundle: state => state.activeBundle !== null,
-  activeLayers: state => state.layers
-    .filter(layer => state.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id))
-    .sort((a, b) => a.name == b.name ? 0 : a.name > b.name ? 1 : -1),
+  activeLayers: state => state.layers.filter(layer => state.activeBundle.layerConfiguration.layers.find(x => x.layerId === layer.id)),
   hasMapData: state => state.hasMapBundles && state.hasMapLayers
 };
 
@@ -36,20 +34,26 @@ const actions = {
     const response = await mapAPI.getBundles();
     const bundles = response.data;
     if (response.status === 200 && bundles && Array.isArray(bundles)) {
-      commit("set_bundles", { bundles: bundles });
-      let layers = await Promise.all(
+
+      for (const bundle of bundles) {
+        bundle.metadata = await mapAPI.getMetadata(bundle).then(response => response.json())
+      }
+
+      let layerData = await Promise.all(
         bundles.map(async bundle => {
           return await dispatch("getMapLayers", bundle);
         })
       );
-      commit("set_layers", {
-        layers: layers.flat().reduce((p, c) => {
-          if (!p.some(el => el.id === c.id)) {
-            p.push(c)
-          }
-          return p
-        }, [])
-      })
+
+      const layers = layerData.flat().reduce((p, c) => {
+        if (!p.some(el => el.id === c.id)) {
+          p.push(c)
+        }
+        return p
+      }, [])
+
+      commit("set_layers", { layers: layers })
+      commit("set_bundles", { bundles: bundles });
     }
   },
   async getMapLayers({ commit }, bundle) {

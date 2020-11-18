@@ -26,9 +26,9 @@ export default {
       if (Array.isArray(fieldValues)) {
         fieldValues.forEach(this.setFieldValue);
       } else {
-        Object.keys(fieldValues).forEach(key => {
+        for (const key of  Object.keys(fieldValues)) {
           this.setFieldValue({ name: key, value: fieldValues[key] })
-        })
+        }
       }
     },
 
@@ -47,7 +47,9 @@ export default {
       this.setFieldValue({ name, value: '' })
     },
     clearFieldValues(names) {
-      names.forEach(name => this.clearFieldValue({ name }))
+      for (const name in names) {
+        this.clearFieldValueValue({ name })
+      }
     },
     clearAllFieldValues() {
       this.clearFieldValues(Object.keys(this.fields))
@@ -63,10 +65,14 @@ export default {
       this.fields[name].disabled = false
     },
     disableFields(names) {
-      names.forEach(name => this.disableField(name))
+      for (const name of names) {
+        this.disableField(name)
+      }
     },
     enableFields(names) {
-      names.forEach(name => this.enableField(name))
+      for (const name of names) {
+        this.enableField(name)
+      }
     },
     disableAllFields() {
       this.disableFields(Object.keys(this.fields))

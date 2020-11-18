@@ -60,9 +60,9 @@ export default {
     }
   },
   created() {
-    // If layers are available, yet none is selected, select the first
+    // If bundles are available, yet none is selected, select the first
     if (this.mapBundles.size && !this.activeBundle) {
-      this.setActiveLayer({ id: this.mapBundles.values().next().value.id })
+      this.setActiveBundle({ id: this.mapBundles.values().next().value.id })
     }
   },
   methods: {

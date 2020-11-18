@@ -9,7 +9,7 @@
           <span class="px-2" @click="toggleVisibility(layer)">
             <img
               :src="
-                getLayerVisibility(layer)
+                layer.visibility === 'visible'
                   ? icon('Eye-regular-icon.svg')
                   : icon('Eye-slash-regular-icon.svg')
               "
@@ -21,7 +21,7 @@
             {{ layer.name }}
           </span>
         </div>
-        <div v-if="getLayerVisibility(layer)">
+        <div v-if="layer.visibility === 'visible'">
           <ul class="m-0 p-0 pl-3 ml-3 mb-3 list-unstyled">
             <li
               v-for="(item, index) in generateLegendForLayer(layer)"
@@ -52,23 +52,17 @@ export default {
   methods: {
     icon,
     toggleVisibility(layer) {
-      if (layer.isVisible !== undefined) {
-        layer.isVisible = !layer.isVisible;
-      } else {
-        layer.isVisible = false;
-      }
+      layer.visibility = layer.visibility == 'visible' ? 'none' : 'visible'
+
       this.$store.map.setLayoutProperty(
         `${this.activeBundle.id}_${layer.id}`,
         "visibility",
-        layer.isVisible ? "visible" : "none"
+        layer.visibility
       );
       this.$forceUpdate();
     },
-    getLayerVisibility(layer) {
-      return layer.isVisible !== false;
-    },
     generateLegendForLayer(layer) {
-      return generateLegend(JSON.parse(layer.markup)[0])
+      return generateLegend(JSON.parse(layer.markup))
     }
   },
   computed: {
@@ -81,7 +75,7 @@ export default {
 .Legend {
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
   height: 100%;
-  max-height: 60vh;
+  max-height: 55vh;
   overflow: auto;
 
   &__title {
