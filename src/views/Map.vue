@@ -147,7 +147,6 @@ export default {
         for (const [index, layer] of this.mapLayers.filter(layer => bundle.layerConfiguration.layers.find(layerConfig => layer.id === layerConfig.layerId)).entries()) {
           layer.visibility = index == 0 ? 'visible' : 'none'
 
-          console.log(layer)
           const uniqueId = `${bundle.id}_${layer.id}`
           this.$store.map.addLayer({
             id: uniqueId,
@@ -169,7 +168,6 @@ export default {
               speed: 1
             })
 
-            console.log(this.popupFeature.properties)
             let html = ""
             for (const [key, value] of Object.entries(this.popupFeature.properties)) {
               if (key == 'external_id' || key == 'id') continue

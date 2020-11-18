@@ -8,9 +8,6 @@ export default {
   getMetadata(bundle: any) {
     return fetch(`${process.env.VUE_APP_MVT_BASE_URL}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}/metadata.json`);
   },
-  getGPKG(bundle: any) {
-    return fetch(`${process.env.VUE_APP_MVT_BASE_URL}ORG${bundle.organizationId}/BND${bundle.id}/GPKG/${bundle.id}.gpkg`);
-  },
   getLayer(id: string) {
     return axios.get(`/api/layer/${id}`);
   }
