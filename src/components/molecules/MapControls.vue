@@ -1,5 +1,15 @@
 <template>
-  <div v-if="mapBundles.length > 1" class="align-self-center mr-3">
+  <li v-if="mapBundles.length" class="Bundles align-self-center mr-3">
+    <a :href="downloadUrl">
+      <b-button
+        variant="primary"
+        class="side__btn p-2 font-weight-bold"
+        target="_blank"
+      >
+        <img alt="arrow" :src="icon('Download-icon.svg')" width="14" />
+      </b-button>
+    </a>
+
     <Form class="d-flex" @submit="() => null">
       <FormField
         class="mr-3"
@@ -8,11 +18,12 @@
         :options="mapBundleOptions"
       />
     </Form>
-  </div>
+  </li>
 </template>
 
 <script>
 
+import { icon } from 'helper/assets'
 import Form from 'molecule/form/Form'
 import FormField from 'molecule/form/FormField'
 import { mapGetters, mapMutations } from 'vuex'
@@ -35,6 +46,9 @@ export default {
       'mapBundles',
       'activeBundle'
     ]),
+    downloadUrl() {
+      return `${process.env.VUE_APP_MVT_BASE_URL}ORG${this.activeBundle.organizationId}/BND${this.activeBundle.id}/GPKG/${this.activeBundle.id}.gpkg`
+    },
     mapBundleOptions() {
       return [...this.mapBundles].map(bundle => {
         return {
@@ -66,9 +80,23 @@ export default {
     }
   },
   methods: {
+    icon,
     ...mapMutations('map', [
       'setActiveBundle'
     ])
   }
 }
 </script>
+
+<style lang="scss">
+.Bundles {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  .side__btn {
+    margin: 5px;
+  }
+}
+</style>

@@ -10,22 +10,14 @@
     >
       <MglFullscreenControl />
       <MglGeolocateControl position="top-right" />
-      <MglPopup
-        v-if="popupFeature"
-        :showed="true"
-        :coordinates="popupFeature.geometry.coordinates[0][0]"
-        anchor="top"
-      >
-        <div>
-          <h1 :v-text="popupFeature.properties.toString()" />
-        </div>
-      </MglPopup>
     </MglMap>
   </div>
 </template>
 
 <script>
-import { MglMap, MglGeolocateControl, MglFullscreenControl, MglPopup } from "vue-mapbox";
+import { MglMap, MglGeolocateControl, MglFullscreenControl } from "vue-mapbox";
+
+import { Popup } from 'mapbox-gl';
 
 import { generatePaintStyleFromJSON } from 'helper/paint';
 
@@ -39,8 +31,7 @@ export default {
   components: {
     MglMap,
     MglGeolocateControl,
-    MglFullscreenControl,
-    MglPopup
+    MglFullscreenControl
   },
   data() {
     return {
@@ -173,11 +164,23 @@ export default {
 
           this.$store.map.on('click', uniqueId, (e) => {
             this.setPopupFeature(e.features[0])
-            console.log(this.popupFeature)
             this.$store.map.flyTo({
               center: this.popupFeature.geometry.coordinates[0][0],
               speed: 1
             })
+
+            console.log(this.popupFeature.properties)
+            let html = ""
+            for (const [key, value] of Object.entries(this.popupFeature.properties)) {
+              if (key == 'external_id' || key == 'id') continue
+              html += `<span><b>${key}:</b> ${value}</span><br>`
+            }
+
+            new Popup()
+              .setLngLat(this.popupFeature.geometry.coordinates[0][0])
+              .setHTML(html)
+              .addTo(this.$store.map)
+
           });
 
           this.$store.map.on('mouseenter', uniqueId, () => {
