@@ -153,10 +153,6 @@ export default {
 
           this.$store.map.on('click', uniqueId, (e) => {
             this.setPopupFeature(e.features[0])
-            this.$store.map.flyTo({
-              center: this.popupFeature.geometry.coordinates[0][0],
-              speed: 1
-            })
 
             let html = ""
             for (const [key, value] of Object.entries(this.popupFeature.properties)) {
