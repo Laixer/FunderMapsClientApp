@@ -144,7 +144,7 @@ export default {
             source: bundle.id,
             'source-layer': layer.slug,
             layout: {
-              visibility: layer.visibility
+              visibility: (bundle.id == this.activeBundle.id) ? layer.visibility : 'none'
             },
             minzoom: bundle.metadata.minzoom || 1,
             // maxzoom: bundle.metadata.maxzoom || 24,
