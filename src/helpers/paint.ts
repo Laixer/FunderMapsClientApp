@@ -1,10 +1,18 @@
-import { SlowBuffer } from 'buffer'
 import { StringToColor } from './string'
+
+enum ValueType {
+  Range = "range",
+  Range_Num = "range_num",
+  Case = "case",
+  Case_Multimatch = "case_multimatch",
+  Color = "color",
+  Color_Hash = "hash_color"
+}
 
 interface JSONMarkup {
   column: string;
-  type: string;
-  values: Range[] | Case[] | Case_Multimatch[] | null;
+  type: ValueType;
+  values: Range[] | Case[] | Case_Multimatch[] | Color | null;
 }
 
 interface Range {
@@ -21,9 +29,13 @@ interface Case {
 }
 
 interface Case_Multimatch {
-  match: String[],
+  match: string[],
   color: string,
   label: string
+}
+
+interface Color {
+  color: string
 }
 
 class LegendEntry {
@@ -41,11 +53,12 @@ export function generatePaintStyleFromJSON(markup: JSONMarkup) {
 function _generateFillOutlineColor(markup: JSONMarkup) {
   const data = markup.values
   switch (markup.type) {
-    case 'range_num': return _range_num(<Range[]>data, markup.column, true)
-    case 'range': return _range(<Range[]>data, markup.column, true)
-    case 'case': return _case(<Case[]>data, markup.column, true)
-    case 'hash_color': return _hash_color(markup, true)
-    case 'case_multimatch': return _case_multimatch(<Case_Multimatch[]>data, markup.column, true)
+    case ValueType.Range_Num: return _range_num(<Range[]>data, markup.column, true)
+    case ValueType.Range: return _range(<Range[]>data, markup.column, true)
+    case ValueType.Case: return _case(<Case[]>data, markup.column, true)
+    case ValueType.Case_Multimatch: return _case_multimatch(<Case_Multimatch[]>data, markup.column, true)
+    case ValueType.Color: return _color(markup, true)
+    case ValueType.Color_Hash: return _hash_color(markup, true)
     default: return 'gray'
   }
 }
@@ -63,11 +76,12 @@ function _generateFillOpacity(markup: JSONMarkup) {
 function _generateFillColor(markup: JSONMarkup) {
   const data = markup.values
   switch (markup.type) {
-    case 'range_num': return _range_num(<Range[]>data, markup.column)
-    case 'range': return _range(<Range[]>data, markup.column)
-    case 'case': return _case(<Case[]>data, markup.column)
-    case 'hash_color': return _hash_color(markup)
-    case 'case_multimatch': return _case_multimatch(<Case_Multimatch[]>data, markup.column)
+    case ValueType.Range_Num: return _range_num(<Range[]>data, markup.column)
+    case ValueType.Range: return _range(<Range[]>data, markup.column)
+    case ValueType.Case: return _case(<Case[]>data, markup.column)
+    case ValueType.Case_Multimatch: return _case_multimatch(<Case_Multimatch[]>data, markup.column)
+    case ValueType.Color: return _color(markup)
+    case ValueType.Color_Hash: return _hash_color(markup)
     default: return 'gray'
   }
 }
@@ -80,12 +94,20 @@ function _hash_color(json: JSONMarkup, darken: boolean = false) {
   return color
 }
 
+function _color(json: JSONMarkup, darken: boolean = false) {
+  const color = (json.values as Color).color
+  if (darken) {
+    return changeColor(color)
+  }
+  return color
+}
+
 function _range(data: Range[], column: string, darken: boolean = false) {
   const cases: any[] = ['case']
   for (const range of data) {
     cases.push(['all',
       [">", ['upcase', ['get', column]], range.min.toUpperCase()],
-      ["<=", ['upcase', ['get', column]], range.max.toUpperCase()]
+      ["<", ['upcase', ['get', column]], range.max.toUpperCase()]
     ])
     if (darken) {
       cases.push(changeColor(range.color))
@@ -150,11 +172,12 @@ export function generateLegend(markup: JSONMarkup): LegendEntry[] {
   const arr = new Array<LegendEntry>();
 
   switch (markup.type) {
-    case 'range_num': return (data as Range[]).map(entry => new LegendEntry(entry.color, entry.label))
-    case 'range': return (data as Range[]).map(entry => new LegendEntry(entry.color, entry.label))
-    case 'case': return (data as Case[]).map(entry => new LegendEntry(entry.color, entry.label))
-    case 'hash_color': return [new LegendEntry(StringToColor(markup.column), "")]
-    case 'case_multimatch': return (data as Case_Multimatch[]).map(entry => new LegendEntry(entry.color, entry.label))
+    case ValueType.Range_Num: return (data as Range[]).map(entry => new LegendEntry(entry.color, entry.label))
+    case ValueType.Range: return (data as Range[]).map(entry => new LegendEntry(entry.color, entry.label))
+    case ValueType.Case: return (data as Case[]).map(entry => new LegendEntry(entry.color, entry.label))
+    case ValueType.Case_Multimatch: return (data as Case_Multimatch[]).map(entry => new LegendEntry(entry.color, entry.label))
+    case ValueType.Color: return [new LegendEntry((markup.values as Color).color, "")]
+    case ValueType.Color_Hash: return [new LegendEntry(StringToColor(markup.column), "")]
     default: return arr
   }
 }
