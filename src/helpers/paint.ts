@@ -85,7 +85,7 @@ function _range(data: Range[], column: string, darken: boolean = false) {
   for (const range of data) {
     cases.push(['all',
       [">", ['upcase', ['get', column]], range.min.toUpperCase()],
-      ["<", ['upcase', ['get', column]], range.max.toUpperCase()]
+      ["<=", ['upcase', ['get', column]], range.max.toUpperCase()]
     ])
     if (darken) {
       cases.push(changeColor(range.color))
@@ -103,7 +103,7 @@ function _range_num(data: Range[], column: string, darken: boolean = false) {
   for (const range of data) {
     cases.push(['all',
       [">", ['to-number', ['get', column]], ['to-number', range.min]],
-      ["<", ['to-number', ['get', column]], ['to-number', range.max]]
+      ["<=", ['to-number', ['get', column]], ['to-number', range.max]]
     ])
     if (darken) {
       cases.push(changeColor(range.color))
