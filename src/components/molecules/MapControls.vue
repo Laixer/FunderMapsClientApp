@@ -7,6 +7,7 @@
         target="_blank"
       >
         <img alt="arrow" :src="icon('Download-icon.svg')" width="14" />
+        <span>GeoPackage</span>
       </b-button>
     </a>
 
@@ -97,6 +98,15 @@ export default {
 
   .side__btn {
     margin: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    span {
+      margin-left: 5px;
+      line-height: 12px;
+    }
   }
 }
 </style>
