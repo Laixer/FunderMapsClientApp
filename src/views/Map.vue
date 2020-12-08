@@ -160,6 +160,10 @@ export default {
               html += `<span><b>${key}:</b> ${value}</span><br>`
             }
 
+            if (html == "") {
+              html = "No properties available."
+            }
+
             new Popup()
               .setLngLat(this.popupFeature.geometry.coordinates[0][0])
               .setHTML(html)

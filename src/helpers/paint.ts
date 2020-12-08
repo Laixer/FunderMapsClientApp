@@ -84,8 +84,8 @@ function _range(data: Range[], column: string, darken: boolean = false) {
   const cases: any[] = ['case']
   for (const range of data) {
     cases.push(['all',
-      [">", ['get', column], range.min],
-      ["<", ['get', column], range.max]
+      [">", ['upcase', ['get', column]], range.min.toUpperCase()],
+      ["<", ['upcase', ['get', column]], range.max.toUpperCase()]
     ])
     if (darken) {
       cases.push(changeColor(range.color))
@@ -118,7 +118,7 @@ function _range_num(data: Range[], column: string, darken: boolean = false) {
 function _case(data: Case[], column: string, darken: boolean = false) {
   const cases: any[] = ['case']
   for (const x of data) {
-    cases.push(['==', ['get', column], x.match])
+    cases.push(['==', ['upcase', ['get', column]], x.match.toUpperCase()])
     if (darken) {
       cases.push(changeColor(x.color))
     } else {
@@ -133,7 +133,7 @@ function _case_multimatch(data: Case_Multimatch[], column: string, darken: boole
   const cases: any[] = ['case']
   for (const x of data) {
     for (const m of x.match) {
-      cases.push(['==', ['get', column], m])
+      cases.push(['==', ['upcase', ['get', column]], m.toUpperCase()])
       if (darken) {
         cases.push(changeColor(x.color))
       } else {

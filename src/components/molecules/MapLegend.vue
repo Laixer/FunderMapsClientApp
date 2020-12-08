@@ -5,8 +5,8 @@
     </div>
     <div v-if="hasActiveBundle" class="Legend mb-3">
       <div v-for="layer in activeLayers" :key="layer.id">
-        <div class="Legend__subtitle d-flex pl-3 ml-3 mt-2">
-          <span class="px-2" @click="toggleVisibility(layer)">
+        <div class="Legend__subtitle d-flex pl-3 ml-3 mt-2" @click="toggleVisibility(layer)">
+          <span class="px-2">
             <img
               :src="
                 layer.visibility === 'visible'
@@ -83,6 +83,7 @@ export default {
   }
   &__subtitle {
     height: 30px;
+    cursor: pointer;
 
     span > img {
       margin-top: 8px;
