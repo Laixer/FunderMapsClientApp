@@ -5,8 +5,6 @@
 </template>
 
 <script>
-import { MglGeolocateControl } from "vue-mapbox";
-
 import mapboxgl from 'mapbox-gl';
 
 import { generatePaintStyleFromJSON } from 'helper/paint';
@@ -99,7 +97,6 @@ export default {
     ...mapActions("map", ["getMapBundles"]),
     ...mapMutations("map", ["mapboxIsReady"]),
     onMapLoaded(event) {
-      console.log('onmaploaded', event)
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.target;
       this.panToActiveBundle()
@@ -107,7 +104,6 @@ export default {
     },
     transformRequest(url, resourceType) {
       // TODO: This url matching trick is dangerous and should be replaced
-      console.log('transformrequest')
       if (
         resourceType == "Source" &&
         url.startsWith(process.env.VUE_APP_API_BASE_URL)
