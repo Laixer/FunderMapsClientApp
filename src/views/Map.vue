@@ -1,23 +1,11 @@
 <template>
   <div class="MapBox">
-    <MglMap
-      class="MapBox__wrapper"
-      :accessToken="accessToken"
-      :mapStyle.sync="mapStyle"
-      :transformRequest="transformRequest"
-      :attributionControl="false"
-      @load="onMapLoaded"
-    >
-      <MglFullscreenControl />
-      <MglGeolocateControl position="top-right" />
-    </MglMap>
+    <div id='mapContainer' class="MapBox__wrapper"/>
   </div>
 </template>
 
 <script>
-import { MglMap, MglGeolocateControl, MglFullscreenControl } from "vue-mapbox";
-
-import { Popup } from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 
 import { generatePaintStyleFromJSON } from 'helper/paint';
 
@@ -28,17 +16,13 @@ import { mapGetters, mapMutations, mapActions } from "vuex";
 import mapAPI from "api/map";
 
 export default {
-  components: {
-    MglMap,
-    MglGeolocateControl,
-    MglFullscreenControl
-  },
   data() {
     return {
       mvt_base_url: process.env.VUE_APP_MVT_BASE_URL,
       accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
       mapStyle: process.env.VUE_APP_MAPBOX_STYLE,
-      popupFeature: null
+      popupFeature: null,
+      map: null
     };
   },
   computed: {
@@ -78,6 +62,22 @@ export default {
       }
     },
   },
+  async mounted() {
+    mapboxgl.accessToken = this.accessToken
+
+    this.map = new mapboxgl.Map({
+      container: 'mapContainer',
+      style: this.mapStyle,
+      attributionControl: false,
+      transformRequest: this.transformRequest
+    })
+
+    this.map.addControl(new mapboxgl.GeolocateControl())
+    this.map.addControl(new mapboxgl.FullscreenControl())
+
+    this.map.on('load', this.onMapLoaded)
+
+  },
   async created() {
     if (!this.hasMapData) {
       try {
@@ -98,7 +98,7 @@ export default {
     ...mapMutations("map", ["mapboxIsReady"]),
     onMapLoaded(event) {
       // NOTE: a reference to the map has to be stored in a non-reactive manner.
-      this.$store.map = event.map;
+      this.$store.map = event.target;
       this.panToActiveBundle()
       this.mapboxIsReady({ status: true });
     },
@@ -164,7 +164,7 @@ export default {
               html = "No properties available."
             }
 
-            new Popup()
+            new mapboxgl.Popup()
               .setLngLat(this.popupFeature.geometry.coordinates[0][0])
               .setHTML(html)
               .addTo(this.$store.map)
