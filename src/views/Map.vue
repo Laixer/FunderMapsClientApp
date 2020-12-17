@@ -1,7 +1,5 @@
 <template>
-  <div class="MapBox">
-    <div id='mapContainer' class="MapBox__wrapper"/>
-  </div>
+    <div id='mapContainer' />
 </template>
 
 <script>
@@ -223,19 +221,6 @@ export default {
 .mapboxgl-map {
   width: 100% !important;
   height: 100% !important;
-}
-
-.MapBox,
-.MapBox__wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  user-select: none;
 }
 
 a.mapboxgl-ctrl-logo {
