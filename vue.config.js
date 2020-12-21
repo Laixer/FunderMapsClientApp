@@ -3,20 +3,17 @@ const path = require('path');
 //     .BundleAnalyzerPlugin;
 
 module.exports = {
-  transpileDependencies: [
-    'vue-mapbox'
-  ],
-  pwa: {
-    workboxPluginMode: 'InjectManifest',
-    workboxOptions: {
-      swSrc: 'src/service-worker.js',
-      exclude: [
-        /\.map$/,
-        /manifest\.json$/
-      ],
-    },
-    themeColor: '#1da025'
-  },
+  // pwa: {
+  //   workboxPluginMode: 'InjectManifest',
+  //   workboxOptions: {
+  //     swSrc: 'src/service-worker.js',
+  //     exclude: [
+  //       /\.map$/,
+  //       /manifest\.json$/
+  //     ],
+  //   },
+  //   themeColor: '#1da025'
+  // },
   configureWebpack: {
     resolve: {
       alias: {
