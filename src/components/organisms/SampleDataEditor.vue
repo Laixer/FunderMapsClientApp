@@ -345,7 +345,7 @@ export default {
         options: substructureOptions,
         name: "substructure"
       }),
-      builtYear: this.sample.builtYear 
+      builtYear: this.sample.builtYear
         ? new Date(this.sample.builtYear).getFullYear()
         : null,
       monitoringWell: this.sample.monitoringWell,
@@ -483,13 +483,6 @@ export default {
       if (data.groundLevel) { data.groundLevel = Number(data.groundLevel); }
       if (data.groundwaterLevelTemp) { data.groundwaterLevelTemp = Number(data.groundwaterLevelTemp); }
       if (data.woodLevel) { data.woodLevel = Number(data.woodLevel); }
-      
-      // TODO These fields don't work with null values
-      if (data.substructure === null) { data.substructure = 3; }
-      if (data.enforcementTerm === null) { data.enforcementTerm = 0; }
-      if (!data.woodLevel) { data.woodLevel = 0; }
-      if (!data.groundLevel) { data.groundLevel = 0; }
-      if (!data.groundwaterLevelTemp) { data.groundwaterLevelTemp = 0; }
 
       if (data.id) {
         await this.updateSample({
