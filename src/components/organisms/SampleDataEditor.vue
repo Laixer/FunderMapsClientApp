@@ -480,9 +480,9 @@ export default {
 
       // TODO These fields should be mapped automatically
       data.builtYear = new Date(data.builtYear, 1, 1, 0, 0, 0, 0);
-      if (data.groundLevel) { data.groundLevel = Number(data.groundLevel); }
-      if (data.groundwaterLevelTemp) { data.groundwaterLevelTemp = Number(data.groundwaterLevelTemp); }
-      if (data.woodLevel) { data.woodLevel = Number(data.woodLevel); }
+      data.groundLevel = data.groundLevel ? Number(data.groundLevel) : null
+      data.groundwaterLevelTemp = data.groundwaterLevelTemp ? Number(data.groundwaterLevelTemp) : null
+      data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null
 
       if (data.id) {
         await this.updateSample({
