@@ -178,7 +178,6 @@ export default {
             numeric,
             minValue: minValue(1000),
             maxValue: maxValue(2100),
-            required
           }
         },
         // LINE 3
