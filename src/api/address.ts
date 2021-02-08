@@ -6,7 +6,7 @@ export default {
      * @param query The query string.
      */
     getAddressSuggestions(query: string) {
-        return axios.get(`/api/address/suggest?query=${query}&limit=10`);
+        return axios.get(`https://geodata.nationaalgeoregister.nl/locatieserver/v3/suggest?fq=type:adres&q=${query}&rows=10`);
     },
 
     /**

@@ -391,16 +391,26 @@ export default {
         : null;
     },
     addressSerializer(address) {
-      return this.formatAddressDisplayName(address);
+      return address.weergavenaam;
     },
-    handleHit(address) {
-      this.fields.address.value = this.formatAddressDisplayName(address);
-      this.fields.address.selected = address;
+    async handleHit(address) {
+      const { response } = await fetch(
+        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?fl=nummeraanduiding_id&id=${address.id}`
+      ).then(res => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res.json();
+      });
 
-      this.$emit('addressSelected', { addressId: address.id });
+      const _id = `NL.IMBAG.NUMMERAANDUIDING.${response.docs[0].nummeraanduiding_id}`;
+      let _address = await this.getAddressById({ id: _id });
+
+      this.fields.address.value = address.weergavenaam;
+      this.fields.address.selected = _address;
+
+      this.$emit('addressSelected', { addressId: _address.id });
     },
     formatAddressDisplayName(address) {
-      return address.format();
+      return address.displayName;
     },
     async getAddresses(query) {
       // Only process if we have a substantial amount of characters to go by.
@@ -409,7 +419,6 @@ export default {
       }
 
       // TODO Race condition when we keep on typing.
-
       let addresses = await this.getAddressSuggestions({ query: query });
       this.fields.address.data = addresses;
     },
