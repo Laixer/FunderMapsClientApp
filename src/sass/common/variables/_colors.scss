@@ -1,0 +1,55 @@
+//
+// Common: variables: colors
+//
+// @author: lemone.com
+//
+
+$white: #fff;
+$catskill-white: #f8fafc;
+
+$athens-gray: #e8eaf1;
+$regent-gray: #7f8fa4;
+$gull-gray: #9ea9b8;
+$raven: #77808d;
+
+$mischka: #ced0da;
+
+$shamrock: #29cc8b;
+
+$aqua-haze: #eff3f6;
+
+$curious-blue: #1991eb; //#17A4EA
+$picton-blue: #17a4ea; //#2EA2F8
+$oxford-blue: #354052; //#3C495C
+
+$sunset-orange: #ff4e4e;
+$burnt-sienna: #ef5350;
+
+$buttercup: #f5a623;
+
+$ebony-clay: #273142;
+$east-bay: #3d5372;
+$turqoise: #39c9c9;
+$cruise: #ace8d2;
+$purple: #610cab;
+$olive: #9d9400;
+
+$body-bg: $aqua-haze;
+
+$theme-colors: (
+  "primary": $picton-blue,
+  "secondary": $oxford-blue,
+  "light": $athens-gray,
+  "danger": $sunset-orange,
+  "success": $shamrock,
+  "green": $shamrock
+);
+
+$primary: $picton-blue;
+$secondary: $oxford-blue;
+
+$headings-color: $east-bay;
+$body-color: $regent-gray; // #354052
+
+$link-color: $curious-blue;
+$link-hover-color: $secondary;

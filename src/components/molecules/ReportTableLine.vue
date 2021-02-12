@@ -1,9 +1,9 @@
 <template>
-  <tr 
+  <tr
     class="ReportTableLine d-flex align-items-center p-2 mb-2"
     @click="openReport">
     <td scope="row" class="py-1">
-      <div 
+      <div
         :style="{ 'backgroundColor': report.statusColor() }"
         class="ReportTableLine__status mx-auto"></div>
     </td>
@@ -13,22 +13,24 @@
     <td>{{ userObject ? userObject.getUserName() : 'Unknown' }}</td>
     <td>{{ report.date() }}</td>
     <td>
-      <TypeTag 
-        v-if="report.hasType()" 
+      <TypeTag
+        v-if="report.hasType()"
         :type="report.getType()" />
     </td>
     <td class="d-flex justify-content-end">
-      <b-button
+      <button
+        type="button"
+        class="btn btn-default"
         v-if="editable"
-        variant="light"
         @click.stop="handleEdit">
         Bewerk
-      </b-button>
-      <b-button
+      </button>
+      <button
         v-else
-        variant="light">
+        type="button"
+        class="btn btn-default">
         Bekijk
-      </b-button>
+      </button>
     </td>
   </tr>
 </template>
@@ -75,21 +77,21 @@ export default {
   },
   methods: {
     openReport() {
-      this.$router.push({ 
-        name: 'view-report', 
-        params: { 
-          id: this.report.id, 
-          document: this.report.documentId 
-        } 
+      this.$router.push({
+        name: 'view-report',
+        params: {
+          id: this.report.id,
+          document: this.report.documentId
+        }
       })
     },
     handleEdit() {
-      this.$router.push({ 
-        name: 'edit-report-1', 
-        params: { 
-          id: this.report.id, 
-          document: this.report.documentId 
-        } 
+      this.$router.push({
+        name: 'edit-report-1',
+        params: {
+          id: this.report.id,
+          document: this.report.documentId
+        }
       })
     }
   }

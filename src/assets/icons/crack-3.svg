@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="98" viewBox="0 0 80 98">
+  <g fill="none" fill-rule="evenodd" transform="translate(1 2)">
+    <path fill="#ced0da" d="m36.4503 50.0495-35.45 20.779v-29.109l35.45-20.797z"/>
+    <g stroke="#7f8fa4" stroke-linejoin="round">
+      <path stroke-width="2" d="m36.4503 48.0495v2l-1.726 1.012"/>
+      <path stroke-dasharray="4.121 4.121" stroke-width="2" d="m31.1691 53.1452-26.666 15.631"/>
+      <g stroke-width="2" transform="translate(0 40)">
+        <path d="m2.7257 29.819-1.726 1.011v-2"/>
+        <path stroke-dasharray="3.587 3.587" d="m1.0001 25.2428v-19.729"/>
+        <path d="m1.0001 3.7204v-2l1.725-1.012"/>
+      </g>
+      <path stroke-dasharray="4.122 4.122" stroke-width="2" d="m6.2804 38.6213 26.667-15.645"/>
+      <path stroke-width="2" d="m34.7257 21.9338 1.725-1.012v2"/>
+      <path stroke-dasharray="3.59 3.59" stroke-width="2" d="m36.4503 26.5119v19.743"/>
+      <path stroke-linecap="round" stroke-width="4" d="M20.0656 20.7799l-20.065 20.94v29.11l40.13 23.17v-29.11zM75.3302 73.2213v-29.11l-20.066-44.11M20.0656 20.7799l35.198-20.779M40.131 65.0758l35.199-20.778M40.131 93.9996l35.199-20.372" transform="translate(1)"/>
+    </g>
+  </g>
+</svg>

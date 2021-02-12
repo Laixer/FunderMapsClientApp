@@ -8,68 +8,55 @@
 export const typeOptions = [
   {
     text: 'Aanvullend onderzoek',
-    color: 'white',
-    bgColor: '#3D5372'
+    type: 'warning',
   },
   {
     text: 'Monitoring',
     color: 'white',
-    bgColor: '#3D5372'
   },
   {
     text: 'Notitie',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'light',
   },
   {
     text: 'Quickscan',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'light',
   },
   {
     text: 'Onbekend',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'dark',
   },
   {
     text: 'Sloopgrens onderzoek',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'primary',
   },
   {
     text: 'Second opinion',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'secondary',
   },
   {
     text: 'Archief onderzoek',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'primary',
   },
   {
     text: 'Bouwkundig onderzoek',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'primary',
   },
   {
     text: 'Funderingsadvies',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'secondary',
   },
   {
     text: 'Inspectieput',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'secondary',
   },
   {
     text: 'Funderings onderzoek',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'primary',
   },
   {
     text: 'Grondwater onderzoek',
-    color: 'white',
-    bgColor: '#3D5372'
+    color: 'primary',
   }
 ]
 
@@ -363,7 +350,7 @@ export const enforcementTermOptions = [
   {
     text: '5 jaar',
     //value: 'Term5'
-    value: 3 
+    value: 3
   },
   {
     text: '10 jaar',

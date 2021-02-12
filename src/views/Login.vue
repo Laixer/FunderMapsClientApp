@@ -110,3 +110,24 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.btn-success {
+  font-size: 18px;
+  color: white;
+  font-size: 18px;
+  line-height: 1;
+
+  &:hover, &:active, &:focus {
+    color: white;
+  }
+}
+
+a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+</style>

@@ -1,20 +1,12 @@
 <template>
-  <b-button 
-    variant="outline-primary" 
+  <router-link
     :to="to"
-    :disabled="disabled" 
-    class="BackButton font-weight-bold d-inline-flex align-items-center" 
-    size="lg" 
-    pill>
-    <img 
-      alt="arrow" 
-      :src="icon('ArrowLeft-icon.svg')" />
-      
-    <span class="mx-4 my-2">
-      {{ label }}
-    </span>
-    
-  </b-button>
+    type="button"
+    :disabled="disabled"
+    :class="`btn btn-outline-primary btn-lg rounded-pill font-weight-bold d-inline-flex align-items-center${disabled ? ' disabled' : ''}`">
+    <img alt="arrow" :src="icon('ArrowLeft-icon.svg')" />
+    <span class="mx-4 my-2">{{ label }}</span>
+  </router-link>
 </template>
 
 <script>
@@ -43,14 +35,14 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.BackButton.btn {
+<style lang="scss" scoped>
+.btn-outline-primary {
+  font-size: 18px;
   font-size: 18px;
   line-height: 1;
-  
 
-  &:hover, &:active {
-    background: transparent !important;  
+  &:hover, &:active, &:focus {
+    background: transparent;
     color: darken(#17A4EA, 20%);
     border-color: darken(#17A4EA, 20%);
   }

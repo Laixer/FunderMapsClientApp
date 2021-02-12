@@ -1,0 +1,17 @@
+.login-aside {
+  padding: 20px;
+  background: url("~@/assets/image/login/focus.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 480px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+
+  .copyright {
+    color: $white;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+  }
+}

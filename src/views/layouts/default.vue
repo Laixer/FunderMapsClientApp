@@ -5,9 +5,10 @@
       <SideBar :menu-items="menuItems" />
       <div class="flex-grow-1 d-flex flex-column">
         <HeaderBar />
-        <div :class="[isFullScreen ? 'flex-grow h-100 position-relative' : 'flex-grow p-3 m-3']">
+        <div :class="[isFullScreen ? 'flex-grow-1 h-100 position-relative' : 'flex-grow-1 p-3 m-3']">
           <slot />
         </div>
+        <NavigationBar />
       </div>
     </div>
   </div>
@@ -35,6 +36,7 @@
 import SideBar from "organism/SideBar";
 import NavBar from "organism/NavBar";
 import HeaderBar from "organism/HeaderBar";
+import NavigationBar from "organism/NavigationBar";
 
 import MenuItem from "model/MenuItem";
 
@@ -54,7 +56,8 @@ export default {
   components: {
     SideBar,
     NavBar,
-    HeaderBar
+    HeaderBar,
+    NavigationBar
   },
   data() {
     return {

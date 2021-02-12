@@ -1,12 +1,12 @@
 <template>
-  <div v-if="component" class="HeaderBar d-flex align-items-center">
+  <div v-if="component" class="d-flex align-items-center">
     <component :is="component" />
   </div>
 </template>
 
 <script>
 import ViewHeader from "molecule/headerbars/View";
-import EditHeader from "molecule/headerbars/Edit";
+import EditReportHeader from "molecule/headerbars/EditReportHeader";
 
 import { mapGetters } from "vuex";
 
@@ -14,7 +14,8 @@ export default {
   name: "HeaderBar",
   components: {
     ViewHeader,
-    EditHeader
+    EditReportHeader,
+
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
@@ -30,16 +31,10 @@ export default {
           "edit-report-3"
         ].includes(this.$route.name)
       ) {
-        return "EditHeader";
+        return "EditReportHeader";
       }
       return false;
     }
   }
 };
 </script>
-
-<style>
-.HeaderBar {
-  width: 100%;
-}
-</style>

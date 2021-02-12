@@ -1,27 +1,27 @@
 <template>
   <div class="list-group list-group-flush">
-    <router-link 
+    <router-link
       v-for="(item, index) in menuItems"
       :to="item.to"
       :key="index"
       :class="{ 'active' : item.isActive() }"
-      class="list-group-item list-group-item-action d-flex 
+      class="list-group-item list-group-item-action d-flex
              justify-content-between align-items-center pl-3 py-3">
-      <span 
+      <span
         :class="{ 'px-3': !slim }">
-        <img 
+        <img
           v-if="item.hasIcon()"
-          :src="item.getIcon()" 
-          width="17" 
+          :src="item.getIcon()"
+          width="17"
           height="17" />
       </span>
-      <span 
+      <span
         v-if="!slim"
         class="flex-grow-1">
         {{ item.label }}
       </span>
-      <span 
-        v-if="item.notifications && !slim" 
+      <span
+        v-if="item.notifications && !slim"
         class="badge badge-danger badge-pill ml-1">
         {{ item.notifications }}
       </span>
@@ -61,6 +61,7 @@ export default {
 <style lang="scss">
 // Double class to override default style
 .list-group {
+
   &.list-group {
     margin-right: 1px;
     // border-bottom: 1px solid rgba(0, 0, 0, 0.125);

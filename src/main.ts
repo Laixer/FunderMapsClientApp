@@ -5,16 +5,15 @@ import store from './store'
 
 Vue.config.productionTip = false
 
+
+
 // Services
 import { refreshLogin } from './services/auth'
 
-// Fonts (Gibson)
-import "@/assets/sass/fonts.scss";
-
-// Bootstrap config
-import "@/assets/sass/bootstrap.scss";
-
 // Bootstrap
+import "@/sass/main.scss";
+
+// Bootstrap Vue
 import BootstrapVue from 'bootstrap-vue'
 Vue.use(BootstrapVue)
 

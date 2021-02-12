@@ -1,6 +1,5 @@
 <template>
   <div class="ReportForm">
-    <ProgressSteps :steps="steps" />
     <div v-if="activeReport" class="Report mt-5 mr-0">
       <ReportStepHeader :step="3" label="Controle overzicht" />
 
@@ -26,29 +25,16 @@
       <Feedback :feedback="feedback" />
     </div>
 
-    <div class="d-flex align-items-center justify-content-center mt-4">
-      <BackButton :disabled="isDisabled" :to="previousStep" class="mr-3" label="Vorige" />
-      <PrimaryArrowButton
-        :disabled="isDisabled || activeReport.isPending() === false"
-        label="Aanbieden ter review"
-        @click="handleToPendingReview"
-      />
-    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
 
-import ProgressStep from "model/ProgressStep";
-import ProgressSteps from "molecule/ProgressSteps";
 import ReportStepHeader from "atom/ReportStepHeader";
 import ReportDetails from "organism/ReportDetails";
 import Feedback from "atom/Feedback";
 import Sample from "organism/Sample";
-
-import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
-import BackButton from "atom/navigation/BackButton";
 
 import { canWrite, isSuperUser } from "service/auth";
 import { EventBus } from "utils/eventBus.js";
@@ -58,33 +44,13 @@ export default {
     ReportDetails,
     Sample,
     Feedback,
-    ProgressSteps,
-    ReportStepHeader,
-    PrimaryArrowButton,
-    BackButton
+    ReportStepHeader
   },
   data() {
     return {
       feedback: {},
       nosamples: false,
-      isDisabled: false,
-      steps: [
-        new ProgressStep({
-          status: "passed",
-          step: 1,
-          icon: "Step-create-icon.svg"
-        }),
-        new ProgressStep({
-          status: "passed",
-          step: 2,
-          icon: "Step-samples-icon.svg"
-        }),
-        new ProgressStep({
-          status: "active",
-          step: 3,
-          icon: "Step-verify-icon.svg"
-        })
-      ]
+      isDisabled: false
     };
   },
   computed: {

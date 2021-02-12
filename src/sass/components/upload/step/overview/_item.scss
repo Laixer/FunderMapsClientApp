@@ -1,0 +1,60 @@
+.upload-step-overview-item {
+  padding: 20px 40px;
+
+  & + & {
+    border-top: 1px solid $athens-gray;
+  }
+
+  input,
+  label {
+    cursor: pointer;
+    pointer-events: none;
+  }
+
+  .btn {
+    margin-top: 45px;
+  }
+
+  .upload-form {
+    .form-row {
+      margin-bottom: 0;
+    }
+
+    .form-control-tile {
+      margin-bottom: 0;
+    }
+  }
+
+  &__text {
+    margin-bottom: 5px;
+
+    svg {
+      margin-right: 10px;
+    }
+
+    &-label {
+      color: $ebony-clay;
+    }
+  }
+
+  &__label {
+    margin-right: 30px;
+  }
+
+  &__info {
+    color: $secondary;
+  }
+
+  &__input {
+    margin-left: 15px;
+
+    &--correct {
+      color: $shamrock;
+      font-family: $headings-font-family;
+    }
+    &--false {
+      color: $secondary;
+      font-family: $headings-font-family;
+    }
+  }
+}

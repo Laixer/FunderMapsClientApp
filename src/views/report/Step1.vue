@@ -1,6 +1,5 @@
 <template>
   <div v-if="areReviewersAvailable" class="ReportForm">
-    <ProgressSteps :steps="steps" />
     <Form ref="form" @submit="handleSubmit" class="ReportForm__form mt-5">
       <ReportStepHeader :step="1" :label="headerLabel" />
 
@@ -34,9 +33,6 @@
         <FormField v-model="fields.note.value" v-bind="fields.note" />
       </div>
     </Form>
-    <div class="d-flex justify-content-center mt-4">
-      <PrimaryArrowButton :disabled="isDisabled" :to="nextStep" label="Volgende" />
-    </div>
   </div>
   <div v-else>
     <!-- TODO: Show an error page -->
@@ -47,12 +43,9 @@
 <script>
 import Form from "molecule/form/Form";
 import FormField from "molecule/form/FormField";
-import ProgressSteps from "molecule/ProgressSteps";
-import ProgressStep from "model/ProgressStep";
 import Divider from "atom/Divider";
 import Feedback from "atom/Feedback";
 import ReportStepHeader from "atom/ReportStepHeader";
-import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
 
 import { required, maxLength } from "vuelidate/lib/validators";
 import { typeOptions } from "config/enums";
@@ -66,9 +59,7 @@ export default {
     Form,
     FormField,
     Feedback,
-    ProgressSteps,
     Divider,
-    PrimaryArrowButton,
     ReportStepHeader
   },
   mixins: [fields],
@@ -222,39 +213,13 @@ export default {
           validationRules: {},
           disabled: false
         }
-      },
-      steps: [
-        new ProgressStep({
-          status: "active",
-          step: 1,
-          icon: "Step-create-icon.svg"
-        }),
-        new ProgressStep({
-          step: 2,
-          icon: "Step-samples-icon.svg"
-        }),
-        new ProgressStep({
-          step: 3,
-          icon: "Step-verify-icon.svg"
-        })
-      ]
+      }
     };
   },
   computed: {
     ...mapGetters("reviewers", ["validReviewers", "areReviewersAvailable"]),
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("contractors", ["contractors"]),
-    nextStep() {
-      // TODO When will this.activeReport go to null ever?
-      let report = this.activeReport || { id: "id", documentName: "documentName" };
-      return {
-        name: "edit-report-2",
-        params: { 
-          id: report.id, 
-          documentName: report.documentName 
-        }
-      };
-    },
     headerLabel() {
       return this.activeReport ? this.activeReport.documentName : null;
     },
@@ -316,7 +281,7 @@ export default {
       // TODO Clean up this monstrosity.
     } else if (to.name === 'edit-report-2'
       && this.activeReport
-      && values.documentName === this.activeReport.documentName 
+      && values.documentName === this.activeReport.documentName
       && values.type === this.activeReport.type
       && values.documentDate === this.activeReport.documentDate
       && values.contractorId === this.activeReport.contractorId
@@ -446,7 +411,7 @@ export default {
     /**
      * Handle the creation or updating of the report. This does not
      * check for any modifications in the form, this will always
-     * submit the form to the API. This check is done in the 
+     * submit the form to the API. This check is done in the
      * beforeRouteLeave() method.
      */
     async handleSubmit() {

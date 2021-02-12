@@ -1,0 +1,17 @@
+.custom-switch {
+  padding-left: 0 !important;
+}
+.custom-control-label {
+  padding-top: calc( (1.25rem - 14px) / 2);
+  width: 100%;
+  font-size: 14px;
+  user-select: none;
+}
+.custom-switch .custom-control-label::after {
+  left: auto !important;
+  right: calc(0.75rem + 2px) !important;
+}
+.custom-switch .custom-control-label::before {
+  left: auto !important;
+  right: 0 !important;
+}

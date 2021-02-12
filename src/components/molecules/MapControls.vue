@@ -1,14 +1,13 @@
 <template>
   <li v-if="mapBundles.length" class="Bundles align-self-center mr-3">
     <a :href="downloadUrl">
-      <b-button
-        variant="primary"
-        class="side__btn p-2 font-weight-bold"
+      <button
+        class="btn btn-primary side__btn p-2 font-weight-bold"
         target="_blank"
       >
         <img alt="arrow" :src="icon('Download-icon.svg')" width="14" />
         <span>GeoPackage</span>
-      </b-button>
+      </button>
     </a>
 
     <Form class="d-flex" @submit="() => null">
