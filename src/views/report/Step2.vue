@@ -35,7 +35,7 @@
           </div>
         </div>
         <div class="upload-col-8">
-          <InquirySampleDetailsEditor :sample="activeSample" v-if="activeSample !== null" />
+          <InquirySampleDetailsEditor v-model="activeSample" v-if="activeSample !== null" />
         </div>
       </div>
     </div>
@@ -72,13 +72,13 @@ export default {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
     selectedSampleAddressFormatted() {
-      return this.selectedSample ? this.selectedSampleAddress.format() : ""
+      return this.selectedSampleAddress ? this.selectedSampleAddress.format() : "Selecteer een"
     }
   },
   watch: {
-    // async activeSample(value) {
-    //   this.selectedSampleAddress = await this.getAddressById({ id: value.address });
-    // }
+    async activeSample(value) {
+      this.selectedSampleAddress = await this.getAddressById({ id: value.address });
+    }
   },
   async created() {
     try {
@@ -106,14 +106,6 @@ export default {
         return;
       }
       EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
-      EventBus.$on("select-inquiry-sample", async (sample) => {
-
-        console.log("selected", sample);
-        this.selectedSampleAddress =
-        console.log(this.selectedSampleAddress)
-
-        // this.selectedSample = sample;
-      });
       EventBus.$on("remove-inquiry-sample", (sample) => {
         console.log("remove", sample);
       });

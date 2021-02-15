@@ -1,5 +1,5 @@
 <template>
-    <InquirySampleStep title="Algemeen" :is-active="isActive"  >
+    <InquirySampleStep title="Algemeen" :is-active="isActive" :is-completed="isCompleted"  >
       <div class="form-row">
         <div class="col-9">
           <FormField
@@ -12,70 +12,19 @@
           />
         </div>
         <div class="col-3">
-          <div class="form-group">
-            <label for="buildingYear">Bouwjaar</label>
-            <input
-              type="text"
-              required
-              class="form-control"
-              id="buildingYear"
-              aria-describedby="bouwjaar"
-              placeholder="1999"
-            />
-          </div>
+            <FormField v-model="fields.builtYear.value" v-bind="fields.builtYear"/>
         </div>
       </div>
 
       <div class="form-row">
         <div class="col">
-          <div class="form-group">
-            <label for="foundationType">Onderbouw</label>
-            <select class="custom-select" id="foundationType">
-              <option disabled selected>Selecteer type</option>
-              <option value="1">docx</option>
-              <option value="2">pdf</option>
-              <option value="3">word98</option>
-            </select>
-          </div>
+          <FormField v-model="fields.substructure.value" v-bind="fields.substructure" />
         </div>
         <div class="col">
-          <div class="form-group">
-            <label>Funderingsherstel advies</label>
-            <fieldset
-              id="foundationRepairSuggestion"
-              class="custom-control-panel"
-            >
-              <div class="custom-control custom-control-inline custom-radio">
-                <input
-                  type="radio"
-                  id="foundationRepairSuggestion--true"
-                  name="foundationRepairSuggestion"
-                  class="custom-control-input"
-                />
-                <label
-                  class="custom-control-label"
-                  for="foundationRepairSuggestion--true"
-                >
-                  Ja
-                </label>
-              </div>
-              <div class="custom-control custom-control-inline custom-radio">
-                <input
-                  checked="true"
-                  type="radio"
-                  id="foundationRepairSuggestion--false"
-                  name="foundationRepairSuggestion"
-                  class="custom-control-input"
-                />
-                <label
-                  class="custom-control-label"
-                  for="foundationRepairSuggestion--false"
-                >
-                  Nee
-                </label>
-              </div>
-            </fieldset>
-          </div>
+          <FormField
+        v-model="fields.recoveryAdvised.value"
+        v-bind="fields.recoveryAdvised"
+      />
         </div>
       </div>
     </InquirySampleStep>
@@ -85,23 +34,16 @@
 import {
   required,
   numeric,
-  decimal,
   maxLength,
   minValue,
   maxValue,
 } from "vuelidate/lib/validators";
 import {
-  substr,
-  foundationQualityOptions,
-  enforcementTermOptions,
   substructureOptions,
-  foundationDamageCauseOptions,
-  BaseMeasurementLevelOptions,
 } from "config/enums";
 
 import InquirySampleStep from "molecule/inquiry/InquirySampleStep";
 import Divider from "atom/Divider";
-import Form from "molecule/form/Form";
 import FormField from "molecule/form/FormField";
 import Feedback from "atom/Feedback";
 
@@ -119,14 +61,23 @@ export default {
   components: {
     InquirySampleStep,
     FormField,
-    Divider,
-    Feedback
+    // Divider,
+    // Feedback
   },
   mixins: [fields],
   props: {
     isActive: {
       type: Boolean,
       default: false
+    },
+    isCompleted: {
+      type: Boolean,
+      default: false
+    },
+    value: {
+      type: Object,
+      required: true
+    }
   },
   data() {
     return {
@@ -157,7 +108,7 @@ export default {
           },
         },
         substructure: {
-          label: "Funderingskwaliteit",
+          label: "Onderbouw",
           type: "select",
           value: null,
           options: [
@@ -200,84 +151,49 @@ export default {
     ...mapGetters("report", ["activeReport"]),
   },
   async created() {
-    if (this.sample.stored === false) {
+    if (this.value.stored === false) {
       this.feedback = {
         variant: "info",
         message: "Let op: Dit adres is nog niet opgeslagen",
       };
     }
 
-    // Required fields by API
-    if (this.sample.baseMeasurementLevel === null) {
-      this.sample.baseMeasurementLevel = 0; // NAP
-    }
-    if (this.sample.damageCause === null) {
-      this.sample.damageCause = 7; // Unknown
-    }
-
-    // Explicitly set the address field.
-    if (this.sample.address !== null) {
-      let addressFetched = await this.getAddressById({
-        id: this.sample.address,
-      });
+     // Explicitly set the address field.
+    if (this.value.address !== null) {
+      let addressFetched = await this.getAddressById({ id: this.value.address });
       this.fields.address.value = addressFetched.format();
-      this.fields.address.data = [addressFetched];
+      this.fields.address.data = [ addressFetched ];
       this.fields.address.selected = addressFetched;
     }
 
     this.setFieldValues({
-      foundationType: this.optionValue({
-        options: foundationTypeOptions,
-        name: "foundationType",
-      }),
       substructure: this.optionValue({
         options: substructureOptions,
-        name: "substructure",
+        name: "substructure"
       }),
-      builtYear: this.sample.builtYear
-        ? new Date(this.sample.builtYear).getFullYear()
+      builtYear: this.value.builtYear
+        ? new Date(this.value.builtYear).getFullYear()
         : null,
-      monitoringWell: this.sample.monitoringWell,
-      cpt: this.sample.cpt,
-      overallQuality: this.optionValue({
-        options: foundationQualityOptions,
-        name: "overallQuality",
-      }),
       recoveryAdvised: this.booleanValue({
-        name: "recoveryAdvised",
-      }),
-      damageCause: this.optionValue({
-        options: foundationDamageCauseOptions,
-        name: "damageCause",
-      }),
-      enforcementTerm: this.optionValue({
-        options: enforcementTermOptions,
-        name: "enforcementTerm",
-      }),
-      baseMeasurementLevel: this.optionValue({
-        options: BaseMeasurementLevelOptions,
-        name: "baseMeasurementLevel",
-      }),
-      woodLevel: this.sample.woodLevel,
-      groundwaterLevelTemp: this.sample.groundwaterLevelTemp,
-      groundLevel: this.sample.groundLevel,
-    });
+        name: "recoveryAdvised"
+      })
+      });
 
     // After setting the field values, set the DB storage status
     this.$nextTick(() => {
-      this.stored = this.sample.stored !== false;
+      this.stored = this.value.stored !== false;
     });
   },
   methods: {
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
     ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     optionValue({ options, name }) {
-      let key = this.sample[name];
+      let key = this.value[name];
       return options[key] ? options[key].value : null;
     },
     booleanValue({ name }) {
-      return this.sample[name] === true || this.sample[name] === false
-        ? this.sample[name]
+      return this.value[name] === true || this.value[name] === false
+        ? this.value[name]
         : null;
     },
     addressSerializer(address) {
@@ -311,128 +227,7 @@ export default {
       // TODO Race condition when we keep on typing.
       let addresses = await this.getAddressSuggestions({ query: query });
       this.fields.address.data = addresses;
-    },
-    // Called by parent
-    async save() {
-      if (!this.stored) {
-        return await this.$refs.form.submit();
-      } else {
-        this.$emit("stored", { success: true });
-      }
-    },
-    // Called by parent
-    isStored() {
-      return this.stored;
-    },
-    // Called by parent
-    delete() {
-      if (this.isDisabled) {
-        return;
-      }
-      this.isDisabled = true;
-      this.disableAllFields();
-      this.feedback = {
-        variant: "info",
-        message: "Het adres wordt verwijderd...",
-      };
-      this.deleteSample({
-        inquiryId: this.activeReport.id,
-        sampleId: this.sample.id,
-        creationstamp: this.sample.creationstamp,
-      });
-    },
-    // Called when we submit our sample.
-    async handleSubmit() {
-      if (this.isDisabled) {
-        return;
-      }
-      this.isDisabled = true;
-      this.disableAllFields();
-      this.feedback = {
-        variant: "info",
-        message: "Het adres wordt opgeslagen...",
-      };
-
-      let data = this.allFieldValues();
-      if (this.sample.id) {
-        data.id = this.sample.id;
-      } else {
-        // Used internally, not by the API
-        data.creationstamp = this.sample.creationstamp;
-      }
-
-      // required by API
-      if (data.baseMeasurementLevel === null) {
-        data.baseMeasurementLevel = 0; // NAP
-      }
-      if (data.damageCause === null) {
-        data.damageCause = 7; // Unknown
-      }
-      if (data.foundationType === null) {
-        data.foundationType = 15; // Unknown
-      }
-
-      // Assign address geocoder id from selected field
-      data.address = this.fields.address.selected.id;
-      data.report = this.activeReport.id;
-
-      // TODO These fields should be mapped automatically
-      data.builtYear = new Date(data.builtYear, 1, 1, 0, 0, 0, 0);
-      data.groundLevel = data.groundLevel ? Number(data.groundLevel) : null;
-      data.groundwaterLevelTemp = data.groundwaterLevelTemp
-        ? Number(data.groundwaterLevelTemp)
-        : null;
-      data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
-
-      if (data.id) {
-        await this.updateSample({
-          inquiryId: this.activeReport.id,
-          sampleId: data.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      } else {
-        await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      }
-    },
-    handleSuccess() {
-      try {
-        this.feedback = {
-          variant: "success",
-          message: "De wijzigingen zijn opgeslagen",
-        };
-        this.enableAllFields();
-        this.isDisabled = false;
-        this.$refs.form.resetValidation();
-        this.stored = true;
-
-        this.$emit("stored", { success: true });
-      } catch (err) {
-        this.$emit("stored", { success: false, message: err });
-      }
-    },
-    handleError(err) {
-      this.feedback = {
-        variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen",
-      };
-      this.enableAllFields();
-      this.isDisabled = false;
-      this.$emit("stored", { success: false, message: "Unable to save" });
-    },
-    handleFormError() {
-      this.feedback = {
-        variant: "danger",
-        message: "Controleer a.u.b. de invoer",
-      };
-      this.$emit("stored", { success: false, message: "Invalid input" });
-    },
-  },
-};
+    }
+  }
+}
 </script>

@@ -138,7 +138,6 @@
     }
 
     &-select {
-      background-position: calc(100% - 15px);
       color: transparentize($color: $secondary, $amount: 0.5);
 
       &:focus {

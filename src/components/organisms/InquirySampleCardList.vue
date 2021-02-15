@@ -2,7 +2,6 @@
   <div>
     <Feedback :feedback="feedback" />
     <div class="address-bar">
-      {{ activeSample }}
       <InquirySampleCard
         v-for="(sample, index) in samples"
         :ref="'sample_' + index"

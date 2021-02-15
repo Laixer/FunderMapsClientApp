@@ -42,6 +42,12 @@ const actions = {
     if (!id) {
       throw new Error('Address id cannot be null');
     }
+
+    const prefetch = getters.getAddressByIdFromCollection({ id });
+    if (prefetch) {
+      return prefetch;
+    }
+
     let _id = null;
     let response = await addressAPI.getAddressById(id);
     if (response.status === 200) {
