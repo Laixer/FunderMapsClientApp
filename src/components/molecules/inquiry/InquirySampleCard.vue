@@ -2,8 +2,11 @@
   <div
     :class="`address-card${isActive ? ' address-card--active' : ''}`"
   >
-    <span class="address-card__title" :title="address.format()">
+    <span class="address-card__title" v-if="address" :title="address.format()">
       {{ address.format() }}
+    </span>
+    <span class="address-card__title" v-else title="Laden...">
+      Gegevens ophalen...
     </span>
     <span class="address-card__actions">
       <a class="address-card__open" @click.prevent.stop="copy">
@@ -57,10 +60,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    address: {
-      type: Object,
-      required: true
-    },
     sample: {
       type: Object,
       required: true,
@@ -85,7 +84,17 @@ export default {
     },
     remove() {
       EventBus.$emit("remove-inquiry-sample", this.sample);
-    },
+    }
+  },
+  async created() {
+    this.address = await this.getAddressById({ id: this.sample.address });
+    this.loading = false;
+  },
+  data() {
+    return {
+      loading: true,
+      address: null
+    }
   }
 };
 </script>

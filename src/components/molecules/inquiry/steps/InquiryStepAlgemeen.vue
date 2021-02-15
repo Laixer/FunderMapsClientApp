@@ -1,7 +1,84 @@
 <template>
-  <div class="upload-steps">
-    <InquiryStepAlgemeen :is-active="currenStep === 0"  />
-  </div>
+    <InquirySampleStep title="Algemeen" :is-active="isActive"  >
+      <div class="form-row">
+        <div class="col-9">
+          <FormField
+            v-model="fields.address.value"
+            v-bind="fields.address"
+            :serializer="addressSerializer"
+            @input="getAddresses"
+            @hit="handleHit"
+            class="form-group--long"
+          />
+        </div>
+        <div class="col-3">
+          <div class="form-group">
+            <label for="buildingYear">Bouwjaar</label>
+            <input
+              type="text"
+              required
+              class="form-control"
+              id="buildingYear"
+              aria-describedby="bouwjaar"
+              placeholder="1999"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="col">
+          <div class="form-group">
+            <label for="foundationType">Onderbouw</label>
+            <select class="custom-select" id="foundationType">
+              <option disabled selected>Selecteer type</option>
+              <option value="1">docx</option>
+              <option value="2">pdf</option>
+              <option value="3">word98</option>
+            </select>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label>Funderingsherstel advies</label>
+            <fieldset
+              id="foundationRepairSuggestion"
+              class="custom-control-panel"
+            >
+              <div class="custom-control custom-control-inline custom-radio">
+                <input
+                  type="radio"
+                  id="foundationRepairSuggestion--true"
+                  name="foundationRepairSuggestion"
+                  class="custom-control-input"
+                />
+                <label
+                  class="custom-control-label"
+                  for="foundationRepairSuggestion--true"
+                >
+                  Ja
+                </label>
+              </div>
+              <div class="custom-control custom-control-inline custom-radio">
+                <input
+                  checked="true"
+                  type="radio"
+                  id="foundationRepairSuggestion--false"
+                  name="foundationRepairSuggestion"
+                  class="custom-control-input"
+                />
+                <label
+                  class="custom-control-label"
+                  for="foundationRepairSuggestion--false"
+                >
+                  Nee
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </InquirySampleStep>
 </template>
 
 <script>
@@ -14,7 +91,7 @@ import {
   maxValue,
 } from "vuelidate/lib/validators";
 import {
-  foundationTypeOptions,
+  substr,
   foundationQualityOptions,
   enforcementTermOptions,
   substructureOptions,
@@ -22,6 +99,8 @@ import {
   BaseMeasurementLevelOptions,
 } from "config/enums";
 
+import InquirySampleStep from "molecule/inquiry/InquirySampleStep";
+import Divider from "atom/Divider";
 import Form from "molecule/form/Form";
 import FormField from "molecule/form/FormField";
 import Feedback from "atom/Feedback";
@@ -29,7 +108,6 @@ import Feedback from "atom/Feedback";
 import fields from "mixin/fields";
 
 import { mapGetters, mapActions } from "vuex";
-import SampleModel from "../../models/Sample";
 
 /**
  * Import API for address from geocoder.
@@ -39,18 +117,19 @@ import addressAPI from "api/address";
 export default {
   name: "InquirySampleDetailsEditor",
   components: {
-    // Divider,
-    // Feedback
+    InquirySampleStep,
+    FormField,
+    Divider,
+    Feedback
   },
   mixins: [fields],
   props: {
-    sample: {
-      default: null,
-    },
+    isActive: {
+      type: Boolean,
+      default: false
   },
   data() {
     return {
-      currentStep: 0,
       isDisabled: false,
       stored: false,
       feedback: {},
@@ -67,61 +146,17 @@ export default {
             maxLength: maxLength(128),
           },
         },
-        // LINE 2
-        foundationType: {
-          label: "Funderingstype",
-          type: "select",
-          value: null,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(foundationTypeOptions),
-          validationRules: {},
-        },
-        substructure: {
-          label: "Onderbouw",
-          type: "select",
-          value: null,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(substructureOptions),
-          validationRules: {},
-        },
         builtYear: {
           label: "Bouwjaar",
           type: "text", // TODO: int
-          value: "",
+          value: null,
           validationRules: {
             numeric,
             minValue: minValue(1000),
             maxValue: maxValue(2100),
           },
         },
-        // LINE 3
-        monitoringWell: {
-          label: "Peilbuis",
-          type: "text",
-          value: "",
-          validationRules: {
-            maxLength: maxLength(32),
-          },
-        },
-        cpt: {
-          label: "Sondering",
-          type: "text",
-          value: "",
-          validationRules: {
-            maxLength: maxLength(32),
-          },
-        },
-        // DIVIDER
-        // LINE 4
-        overallQuality: {
+        substructure: {
           label: "Funderingskwaliteit",
           type: "select",
           value: null,
@@ -130,7 +165,7 @@ export default {
               value: null,
               text: "Selecteer een optie",
             },
-          ].concat(foundationQualityOptions),
+          ].concat(substructureOptions),
           validationRules: {},
         },
         recoveryAdvised: {
@@ -148,74 +183,8 @@ export default {
             },
           ],
           validationRules: {},
-        },
-        // LINE 5
-        damageCause: {
-          label: "Oorzaak funderingsschade",
-          type: "select",
-          value: null,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(foundationDamageCauseOptions),
-          validationRules: {
-            required,
-          },
-        },
-        enforcementTerm: {
-          label: "Handhavingstermijn",
-          type: "select",
-          value: null,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(enforcementTermOptions),
-          validationRules: {},
-        },
-        // LINE 6
-        baseMeasurementLevel: {
-          label: "Referentiestelsel",
-          type: "select",
-          value: "NAP",
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(BaseMeasurementLevelOptions),
-          validationRules: {
-            required,
-          },
-        },
-        woodLevel: {
-          label: "Hoogte langshout",
-          type: "text",
-          value: "",
-          validationRules: {
-            decimal,
-          },
-        },
-        groundwaterLevelTemp: {
-          label: "Grondwaterstand",
-          type: "text",
-          value: "",
-          validationRules: {
-            decimal,
-          },
-        },
-        groundLevel: {
-          label: "Maaiveldhoogte",
-          type: "text",
-          value: "",
-          validationRules: {
-            decimal,
-          },
-        },
-      },
+        }
+      }
     };
   },
   watch: {

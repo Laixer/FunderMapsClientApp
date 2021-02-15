@@ -18,7 +18,7 @@
 <script>
 import SampleModel from "model/Sample";
 import Feedback from "atom/Feedback";
-import InquirySampleCard from "molecule/InquirySampleCard";
+import InquirySampleCard from "molecule/inquiry/InquirySampleCard";
 
 export default {
   name: "InquirySampleCardList",

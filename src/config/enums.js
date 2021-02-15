@@ -237,7 +237,7 @@ export const substructureOptions = [
   {
     //value: 'Crawlspace',
     value: 2,
-    text: 'Kruipruimte'
+    text: 'Kruipkelder'
   },
   {
     //value: 'None',
