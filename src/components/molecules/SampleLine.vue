@@ -3,9 +3,11 @@
     class="address-card"
     @click="togglePanel">
 
-    <span class="address-card__title">
-      {{ addressFormatted }}
+    <span class="address-card__title" v-if="address" :title="address.format()">
+      {{ address.format() }}
     </span>
+
+    <span class="address-card__title" v-else title="Nieuw adres">Nieuw adres</span>
 
     <span
       v-if="editMode"
@@ -71,9 +73,6 @@ export default {
     },
     delIcon() {
       return icon('Delete-icon.svg');
-    },
-    addressFormatted: function() {
-      return this.address ? this.address.format() : 'Nieuw adres'
     }
   },
   methods: {

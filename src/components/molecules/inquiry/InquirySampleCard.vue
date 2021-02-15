@@ -6,7 +6,7 @@
       {{ address.format() }}
     </span>
     <span class="address-card__title" v-else title="Laden...">
-      Gegevens ophalen...
+      <img :src="icon('loading.svg')" />
     </span>
     <span class="address-card__actions">
       <a class="address-card__open" @click.prevent.stop="copy">
@@ -50,6 +50,7 @@
 </template>
 
 <script>
+import { icon } from "helper/assets";
 import { mapActions } from "vuex";
 import { EventBus } from "utils/eventBus.js";
 
@@ -70,14 +71,12 @@ export default {
     },
   },
   computed: {
-    formattedAddress() {
-      return this.address ? this.address.format() : "...";
-    },
     progress() {
       return 2;
     },
   },
   methods: {
+    icon,
     ...mapActions("address", ["getAddressById"]),
     copy() {
       EventBus.$emit("copy-inquiry-sample", this.sample);
@@ -88,11 +87,9 @@ export default {
   },
   async created() {
     this.address = await this.getAddressById({ id: this.sample.address });
-    this.loading = false;
   },
   data() {
     return {
-      loading: true,
       address: null
     }
   }
@@ -111,6 +108,7 @@ $progress: (
   6: $shamrock,
   7: $shamrock,
 );
+
 .address-card {
   position: relative;
   display: flex;
