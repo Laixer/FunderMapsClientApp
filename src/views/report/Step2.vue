@@ -107,10 +107,11 @@ export default {
       }
       EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
       EventBus.$on("remove-inquiry-sample", (sample) => {
-        console.log("remove", sample);
+        this.removeSample(sample);
       });
+
       EventBus.$on("copy-inquiry-sample", (sample) => {
-        console.log("copy", sample);
+        this.copySample(sample);
       });
 
       await this.getSamples({ inquiryId: this.activeReport.id });
@@ -141,7 +142,30 @@ export default {
       "getSamples",
       "clearSamples",
       "addUnsavedSample",
+      "updateSample", "createSample", "deleteSample"
     ]),
+    async removeSample(sample) {
+      console.log("remove");
+      await this.deleteSample({
+          inquiryId: this.activeReport.id,
+          sampleId: sample.id,
+          creationstamp: sample.creationstamp
+        })
+          .then(async () => await this.getSamples({ inquiryId: this.activeReport.id }))
+          // TODO: Error
+          .catch(() => console.log("error"));
+                console.log("remove2");
+
+    },
+    async copySample(sample) {
+      await this.createSample({
+          inquiryId: this.activeReport.id,
+          data: sample
+        })
+          .then(async () => await this.getSamples({ inquiryId: this.activeReport.id }))
+          // TODO: Error
+          .catch(() => console.log("error"));
+    },
     handleAddSample() {
       this.countdownToNewSample = this.samples.length;
       if (this.countdownToNewSample === 0) {

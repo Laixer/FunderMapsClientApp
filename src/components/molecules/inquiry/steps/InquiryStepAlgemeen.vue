@@ -57,7 +57,6 @@ import { mapGetters, mapActions } from "vuex";
 import addressAPI from "api/address";
 
 export default {
-  name: "InquirySampleDetailsEditor",
   components: {
     InquirySampleStep,
     FormField,
@@ -146,6 +145,9 @@ export default {
       },
       deep: true,
     },
+    async value(newValue) {
+      this.initialize(newValue);
+    }
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
@@ -158,26 +160,8 @@ export default {
       };
     }
 
-     // Explicitly set the address field.
-    if (this.value.address !== null) {
-      let addressFetched = await this.getAddressById({ id: this.value.address });
-      this.fields.address.value = addressFetched.format();
-      this.fields.address.data = [ addressFetched ];
-      this.fields.address.selected = addressFetched;
-    }
+    this.initialize(this.value);
 
-    this.setFieldValues({
-      substructure: this.optionValue({
-        options: substructureOptions,
-        name: "substructure"
-      }),
-      builtYear: this.value.builtYear
-        ? new Date(this.value.builtYear).getFullYear()
-        : null,
-      recoveryAdvised: this.booleanValue({
-        name: "recoveryAdvised"
-      })
-      });
 
     // After setting the field values, set the DB storage status
     this.$nextTick(() => {
@@ -190,6 +174,28 @@ export default {
     optionValue({ options, name }) {
       let key = this.value[name];
       return options[key] ? options[key].value : null;
+    },
+    async initialize(sample) {
+      // Explicitly set the address field.
+      if (sample.address !== null) {
+        let addressFetched = await this.getAddressById({ id: sample.address });
+        this.fields.address.value = addressFetched.format();
+        this.fields.address.data = [ addressFetched ];
+        this.fields.address.selected = addressFetched;
+      }
+
+      this.setFieldValues({
+        substructure: this.optionValue({
+          options: substructureOptions,
+          name: "substructure"
+        }),
+        builtYear: sample.builtYear
+          ? new Date(sample.builtYear).getFullYear()
+          : null,
+        recoveryAdvised: this.booleanValue({
+          name: "recoveryAdvised"
+        })
+      });
     },
     booleanValue({ name }) {
       return this.value[name] === true || this.value[name] === false

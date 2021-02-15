@@ -21,7 +21,7 @@
       </span>
     </a>
 
-    <Form ref="form" class="upload-form" v-if="isActive">
+    <Form ref="form" class="upload-form" v-if="isActive" >
       <Feedback :feedback="feedback" />
       <slot />
       <a @click.prevent.stop="next" class="btn btn-continue">Verder</a>

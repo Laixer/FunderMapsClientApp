@@ -76,7 +76,7 @@ const actions = {
 }
 const mutations = {
   set_samples(state, { samples }) {
-    state.samples = samples.map( sample => {
+    state.samples = samples.sort((a, b) => (a.id < b.id) ? 1 : -1).map( sample => {
       return new SampleModel({ sample, stored: true })
     })
   },
@@ -100,8 +100,8 @@ const mutations = {
       //sample.address.buildingNumberSuffix = ''
 
       // used as alternative to 'id' reference for newly created items
-      sample.creationstamp = Date.now() 
-      
+      sample.creationstamp = Date.now()
+
       state.samples.unshift(
         new SampleModel({
           sample,
@@ -115,7 +115,7 @@ const mutations = {
    * Update sample data in store (after positive API response)
    */
   update_sample(state, { id, data }) {
-    let index = -1 
+    let index = -1
     if (id) {
       index = state.samples.findIndex(
         (sample) => sample.id === id
