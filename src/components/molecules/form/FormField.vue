@@ -129,6 +129,7 @@
       :placeholder="placeholder"
       :disabled="isDisabled"
       :data="data"
+      :showAllResults="true"
       @input="handleInput"
       @blur="handleBlur"
       @hit="handleHit"

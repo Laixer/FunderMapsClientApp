@@ -26,7 +26,7 @@ const getters = {
     return state.addressCollection;
   },
   getAddressByIdFromCollection: state => ({ id }) => {
-    return state.addressCollection.find(x => { return x.id === id; })
+    return state.addressCollection[id];
   }
 }
 
@@ -43,17 +43,14 @@ const actions = {
       throw new Error('Address id cannot be null');
     }
     let _id = null;
-    // Only fetch the address if our collection doesn't contain it.
-    if (!getters.getAddressByIdFromCollection({ id })) {
-      let response = await addressAPI.getAddressById(id);
-      if (response.status === 200) {
-        _id = response.data.addressId
-        commit('add_address_to_collection', {
-          address: response.data
-        });
-      } else {
-        throw new Error($`Could not find address with id ${id}`);
-      }
+    let response = await addressAPI.getAddressById(id);
+    if (response.status === 200) {
+      _id = response.data.addressId
+      commit('add_address_to_collection', {
+        address: response.data
+      });
+    } else {
+      throw new Error($`Could not find address with id ${id}`);
     }
 
     return getters.getAddressByIdFromCollection({ id: _id });
@@ -83,16 +80,16 @@ const actions = {
 const mutations = {
   /**
    * Adds an address to the state address collection.
-   * TODO Duplicate check.
+   * If address already exists, overwrite its entry with new data.
    */
   add_address_to_collection(state, { address }) {
-    state.addressCollection.push(new AddressModel(
+    state.addressCollection[address.addressId] = new AddressModel(
       // TODO: There is more that is returned
       address.addressId,
       address.buildingNumber,
       address.postalCode,
       address.street,
-      address.city));
+      address.city);
   },
 }
 
