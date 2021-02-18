@@ -1,9 +1,9 @@
 <template>
-  <b-alert 
-    v-model="show" 
+  <b-alert
+    v-model="show"
     class="Feedback"
-    :variant="variant" 
-    dismissible 
+    :variant="variant"
+    dismissible
     fade>
     {{ message }}
   </b-alert>
@@ -28,7 +28,7 @@ export default {
   },
   watch: {
     /**
-     * When the feedback prop is updated, the input object is evaluated 
+     * When the feedback prop is updated, the input object is evaluated
      * and the bound data updated accordingly.
      */
     feedback(feedback) {
@@ -43,6 +43,9 @@ export default {
      * Set the bound values based on the feedback input
      */
     processFeedback(feedback) {
+      if (feedback) {
+        this.show = false;
+      }
       if (feedback.variant) {
         this.variant = feedback.variant
       }

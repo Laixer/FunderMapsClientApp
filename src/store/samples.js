@@ -42,16 +42,25 @@ const actions = {
     commit('add_unsaved_sample')
   },
   async updateSample({ commit }, { inquiryId, sampleId, data }) {
+    delete data.createDate;
+    delete data.updateDate;
+    delete data.deleteDate;
+
     let response = await samplesAPI.updateSample({ inquiryId, sampleId, data });
     if (response.status === 204) {
       commit('update_sample', {
-        sampleId,
-        data
+        id: sampleId,
+        data: data
       })
     }
   },
   // TODO: where does creationstamp come from?
   async createSample({ commit }, { inquiryId, data }) {
+    delete data.id;
+    delete data.createDate;
+    delete data.updateDate;
+    delete data.deleteDate;
+
     let response = await samplesAPI.createSample({ inquiryId, data });
     if (response.status === 200 && response.data) {
       commit('update_sample', {
@@ -61,6 +70,7 @@ const actions = {
         })
       })
     }
+    return response.data.id;
   },
   async deleteSample({ commit }, { inquiryId, sampleId, creationstamp }) {
     if (sampleId === '') {
@@ -76,7 +86,7 @@ const actions = {
 }
 const mutations = {
   set_samples(state, { samples }) {
-    state.samples = samples.sort((a, b) => (a.id < b.id) ? 1 : -1).map( sample => {
+    state.samples = samples.sort((a, b) => (a.createDate > b.createDate) ? 1 : -1).map( sample => {
       return new SampleModel({ sample, stored: true })
     })
   },
@@ -84,32 +94,12 @@ const mutations = {
     state.samples = [];
   },
   /**
-   * Copy new sample from top most sample
+   * Create a new, empty sample
    */
   add_unsaved_sample(state) {
-    if (state.samples.length === 0) {
-      state.samples = [
-        new SampleModel({ sample: {}, stored: false, editorState: 'open' })
-      ]
-    } else {
-      let sample = clonedeep(state.samples[0])
-      sample.id = ''
-
-      // sample.address = address;
-      //sample.address.buildingNumber = ''
-      //sample.address.buildingNumberSuffix = ''
-
-      // used as alternative to 'id' reference for newly created items
-      sample.creationstamp = Date.now()
-
-      state.samples.unshift(
-        new SampleModel({
-          sample,
-          stored: false,
-          editorState: 'open'
-        })
-      )
-    }
+    const sample = new SampleModel({ sample: {}, stored: false, editorState: 'open' });
+    sample.creationstamp = Date.now();
+    state.samples.push(sample)
   },
   /**
    * Update sample data in store (after positive API response)
@@ -117,15 +107,11 @@ const mutations = {
   update_sample(state, { id, data }) {
     let index = -1
     if (id) {
-      index = state.samples.findIndex(
-        (sample) => sample.id === id
-      )
+      index = state.samples.findIndex(sample => sample.id === id)
     }
     // For new samples we depend on an internal timestamp
     if (index === -1) {
-      index = state.samples.findIndex(
-        (sample) => sample.creationstamp === data.creationstamp
-      )
+      index = state.samples.findIndex(sample => sample.creationstamp === data.creationstamp)
     }
     if (index !== -1) {
       state.samples[index].updateValues({ data })

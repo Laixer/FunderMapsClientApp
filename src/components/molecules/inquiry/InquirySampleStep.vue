@@ -1,6 +1,6 @@
 <template>
   <div :class="`upload-step${ isActive ? ' upload-step--active' : ''}${ isCompleted ? ' upload-step--completed' : ''}`">
-    <a class="upload-step-dropdown">
+    <a class="upload-step-dropdown" @click="$emit('select')">
       <h5 class="upload-step__title">{{ title }}</h5>
 
       <span class="upload-step-dropdown__indicator">
@@ -21,7 +21,7 @@
       </span>
     </a>
 
-    <Form ref="form" class="upload-form" v-if="isActive" >
+    <Form ref="form" class="upload-form" v-if="isActive" @submit="handleSubmit" @error="handleError">
       <Feedback :feedback="feedback" />
       <slot />
       <a @click.prevent.stop="next" class="btn btn-continue">Verder</a>
@@ -54,18 +54,26 @@ export default {
     isCompleted: {
       type: Boolean,
       default: false
+    },
+    feedback: {
+      type: Object,
+      default: () => {}
     }
   },
   methods: {
     next() {
-        EventBus.$emit("next-inquiry-step");
+      this.$refs.form.submit();
+    },
+    handleSubmit() {
+      this.$emit("save", true);
+    },
+    handleError() {
     }
   },
   data() {
     return {
       isDisabled: false,
-      stored: false,
-      feedback: {},
+      stored: false
     };
   }
 };

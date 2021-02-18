@@ -27,12 +27,12 @@
     }
   }
 
-  input[type="text"].form-control:valid {
-    border-color: $shamrock;
-    background-image: url("data:image/svg+xml,%3Csvg height='9' viewBox='0 0 12 9' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m676.922 47.707-2.751-2.652-1.171 1.137 3.922 3.808 8.078-7.844-1.171-1.156z' fill='%2329cc8b' fill-rule='evenodd' transform='translate(-673 -41)'/%3E%3C/svg%3E");
-    background-position: calc(100% - 15px);
-    background-repeat: no-repeat;
-  }
+  // input[type="text"].form-control:valid {
+  //   border-color: $shamrock;
+  //   background-image: url("data:image/svg+xml,%3Csvg height='9' viewBox='0 0 12 9' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m676.922 47.707-2.751-2.652-1.171 1.137 3.922 3.808 8.078-7.844-1.171-1.156z' fill='%2329cc8b' fill-rule='evenodd' transform='translate(-673 -41)'/%3E%3C/svg%3E");
+  //   background-position: calc(100% - 15px);
+  //   background-repeat: no-repeat;
+  // }
 
   .input-group-text {
     border-left: none;

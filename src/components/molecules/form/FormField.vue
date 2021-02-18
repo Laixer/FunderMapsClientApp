@@ -403,6 +403,7 @@ export default {
       if (this.blurred || this.type === "select") {
         this.validate();
       }
+      this.$v.$touch();
       this.$emit("input", value);
     },
     handleHit(value) {
@@ -429,13 +430,13 @@ export default {
   padding-bottom: 0 !important;
 }
 
-.custom-select:valid {
-    border-color: #29cc8b;
-    background-image: url("data:image/svg+xml,%3Csvg height='12' viewBox='0 0 8 12' width='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m8 8.07927724-4 3.92072276-4-3.92072276zm-4-8.07927724 4 3.92072276h-8z' fill='%233d5372' fill-rule='evenodd'/%3E%3C/svg%3E") 8px 12px no-repeat, linear-gradient(0deg, #f2f4f7 0%, #ffffff 100%) center;
-    background-position: calc(100% - 15px);
-    background-repeat: no-repeat;
+// .custom-select:valid {
+//     border-color: #29cc8b;
+//     background-image: url("data:image/svg+xml,%3Csvg height='12' viewBox='0 0 8 12' width='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m8 8.07927724-4 3.92072276-4-3.92072276zm-4-8.07927724 4 3.92072276h-8z' fill='%233d5372' fill-rule='evenodd'/%3E%3C/svg%3E") 8px 12px no-repeat, linear-gradient(0deg, #f2f4f7 0%, #ffffff 100%) center;
+//     background-position: calc(100% - 15px);
+//     background-repeat: no-repeat;
 
-}
+// }
 // .FormField {
 //   font-size: 16px;
 //   position: relative;

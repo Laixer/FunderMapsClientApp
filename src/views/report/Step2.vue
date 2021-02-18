@@ -6,7 +6,9 @@
           <a @click="handleAddSample" class="btn btn-add">Adres toevoegen</a>
         </div>
         <div class="upload-col-8">
-          <h1 class="h3 address__title">{{ selectedSampleAddressFormatted }}</h1>
+          <h1 class="h3 address__title">
+            {{ selectedSampleAddressFormatted }}
+          </h1>
         </div>
       </div>
       <div class="upload-row">
@@ -35,7 +37,10 @@
           </div>
         </div>
         <div class="upload-col-8">
-          <InquirySampleDetailsEditor v-model="activeSample" v-if="activeSample !== null" />
+          <InquirySampleDetailsEditor
+            v-model="activeSample"
+            :activeReport="activeReport"
+          />
         </div>
       </div>
     </div>
@@ -72,13 +77,26 @@ export default {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
     selectedSampleAddressFormatted() {
-      return this.selectedSampleAddress ? this.selectedSampleAddress.format() : "Selecteer een"
-    }
+      return this.selectedSampleAddress
+        ? this.selectedSampleAddress.format()
+        : this.activeSample
+        ? "Nieuw adres"
+        : "Selecteer een adres";
+    },
   },
   watch: {
-    async activeSample(value) {
-      this.selectedSampleAddress = await this.getAddressById({ id: value.address });
-    }
+    activeSample: {
+      async handler(value) {
+        if (value && value.address) {
+          this.selectedSampleAddress = await this.getAddressById({
+            id: value.address,
+          });
+          return;
+        }
+        this.selectedSampleAddress = null;
+      },
+      deep: true,
+    },
   },
   async created() {
     try {
@@ -106,6 +124,9 @@ export default {
         return;
       }
       EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
+      EventBus.$on("add-sample", () => {
+        this.addUnsavedSample();
+      });
       EventBus.$on("remove-inquiry-sample", (sample) => {
         this.removeSample(sample);
       });
@@ -142,37 +163,45 @@ export default {
       "getSamples",
       "clearSamples",
       "addUnsavedSample",
-      "updateSample", "createSample", "deleteSample"
+      "updateSample",
+      "createSample",
+      "deleteSample",
     ]),
     async removeSample(sample) {
-      console.log("remove");
+      const _id = sample.id;
       await this.deleteSample({
-          inquiryId: this.activeReport.id,
-          sampleId: sample.id,
-          creationstamp: sample.creationstamp
+        inquiryId: this.activeReport.id,
+        sampleId: sample.id,
+        creationstamp: sample.creationstamp,
+      })
+        .then(async () => {
+          await this.getSamples({ inquiryId: this.activeReport.id });
+          if (this.activeSample) {
+            if (this.activeSample.id === _id) {
+              this.activeSample = null;
+            }
+          }
         })
-          .then(async () => await this.getSamples({ inquiryId: this.activeReport.id }))
-          // TODO: Error
-          .catch(() => console.log("error"));
-                console.log("remove2");
-
+        // TODO: Error
+        .catch((err) => console.error(err));
     },
     async copySample(sample) {
       await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: sample
-        })
-          .then(async () => await this.getSamples({ inquiryId: this.activeReport.id }))
-          // TODO: Error
-          .catch(() => console.log("error"));
+        inquiryId: this.activeReport.id,
+        data: sample,
+      })
+        .then(
+          async (_id) => {
+            await this.getSamples({ inquiryId: this.activeReport.id })
+            console.log(this.samples.find(x => x.id === _id | null));
+            this.activeSample = this.samples.find(x => x.id === _id);
+          }
+        )
+        // TODO: Error
+        .catch(() => console.log("error"));
     },
     handleAddSample() {
-      this.countdownToNewSample = this.samples.length;
-      if (this.countdownToNewSample === 0) {
-        this.addUnsavedSample();
-      } else {
-        this.saveAllSamples();
-      }
+      this.addUnsavedSample();
     },
     async saveAllSamples() {
       return await Promise.all(
@@ -222,7 +251,7 @@ export default {
         this.countdownToNewSample = false;
       }
     },
-  }
+  },
 };
 </script>
 

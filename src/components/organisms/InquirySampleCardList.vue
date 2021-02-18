@@ -7,8 +7,8 @@
         :ref="'sample_' + index"
         :key="index + '-' + Date.now()"
         :sample="sample"
-        :is-active="value ? value.id === sample.id : false"
-        @click.native="$emit('input', sample)"
+        :is-active="isActive(sample)"
+        @click.native="select(sample)"
       />
     </div>
   </div>
@@ -28,17 +28,36 @@ export default {
   props: {
     value: {
       type: Object,
-      default: null
+      default: null,
     },
     samples: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     feedback: {
       type: Object,
-      default: () => {}
+      default: () => {},
     },
-  }
+  },
+  methods: {
+    select(sample) {
+      if (sample === this.value) {
+        this.$emit("input", null);
+      } else {
+        this.$emit("input", sample);
+      }
+    },
+    isActive(sample) {
+      if (this.value) {
+        if (this.value.id) {
+          return this.value.id === sample.id;
+        } else if (this.value.creationstamp) {
+          return this.value.creationstamp === sample.creationstamp;
+        }
+      }
+      return false;
+    },
+  },
 };
 </script>
 
@@ -46,6 +65,9 @@ export default {
 @import "@/sass/common/common";
 
 .address-bar {
+  display: flex;
+  flex-direction: column-reverse;
+
   &::-webkit-scrollbar-track {
     background: none;
     border-radius: 4px;

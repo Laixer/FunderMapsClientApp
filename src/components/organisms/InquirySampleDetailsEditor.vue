@@ -1,68 +1,88 @@
 <template>
   <div class="upload-steps">
-    <InquiryStepAlgemeen v-model="value" :is-active="currentStep === 0" :is-completed="currentStep > 0" @click.native="select(0)"/>
-    <InquiryStepAlgemeen v-model="value" :is-active="currentStep === 1" :is-completed="currentStep > 1" @click.native="select(1)"/>
-    <InquiryStepAlgemeen v-model="value" :is-active="currentStep === 2" :is-completed="currentStep > 2" @click.native="select(2)"/>
-    <InquiryStepAlgemeen v-model="value" :is-active="currentStep === 3" :is-completed="currentStep > 3" @click.native="select(3)"/>
-    <InquiryStepAlgemeen v-model="value" :is-active="currentStep === 4" :is-completed="currentStep > 4" @click.native="select(4)"/>
+    <InquiryStepAlgemeen
+      v-model="value"
+      :is-active="currentStep === 0"
+      :is-completed="currentStep > 0"
+      :feedback="feedback"
+      @save="save"
+      @select="select(0)"
+    />
+    <InquiryStepAlgemeen
+      v-model="value"
+      :is-active="currentStep === 1"
+      :is-completed="currentStep > 1"
+      :feedback="feedback"
+      @save="save"
+      @select="select(1)"
+    />
+    <InquiryStepAlgemeen
+      v-model="value"
+      :is-active="currentStep === 2"
+      :is-completed="currentStep > 2"
+      :feedback="feedback"
+      @save="save"
+      @select="select(2)"
+    />
+    <InquiryStepAlgemeen
+      v-model="value"
+      :is-active="currentStep === 3"
+      :is-completed="currentStep > 3"
+      :feedback="feedback"
+      @save="save"
+      @select="select(3)"
+    />
+    <InquiryStepAlgemeen
+      v-model="value"
+      :is-active="currentStep === 4"
+      :is-completed="currentStep > 4"
+      :feedback="feedback"
+      @save="save"
+      @select="select(4)"
+    />
   </div>
 </template>
 
 <script>
-import {
-  required,
-  numeric,
-  decimal,
-  maxLength,
-  minValue,
-  maxValue,
-} from "vuelidate/lib/validators";
-import {
-  foundationTypeOptions,
-  foundationQualityOptions,
-  enforcementTermOptions,
-  substructureOptions,
-  foundationDamageCauseOptions,
-  BaseMeasurementLevelOptions,
-} from "config/enums";
-
 import InquiryStepAlgemeen from "molecule/inquiry/steps/InquiryStepAlgemeen";
 import { EventBus } from "utils/eventBus.js";
 
 import { mapGetters, mapActions } from "vuex";
 import SampleModel from "../../models/Sample";
 
-/**
- * Import API for address from geocoder.
- */
-import addressAPI from "api/address";
-
 export default {
   name: "InquirySampleDetailsEditor",
   components: {
-    InquiryStepAlgemeen
+    InquiryStepAlgemeen,
     // Divider,
     // Feedback
   },
   props: {
     value: {
       type: Object,
-      required: true
-    }
+    },
   },
   data() {
     return {
-      currentStep: 0,
+      currentStep: -1,
       isDisabled: false,
-      stored: false,
       feedback: {},
     };
   },
   watch: {
-    // If any field changes, mark the stored status as false
-    fields: {
-      handler() {
-        this.stored = false;
+    currentStep(newV, oldV) {
+      console.log(newV, oldV);
+    },
+    value: {
+      handler(newVal, oldVal) {
+        if (newVal && oldVal && newVal.id !== oldVal.id) {
+          this.currentStep = 0;
+        } else if (!oldVal && newVal) {
+          this.currentStep = 0;
+        } else if (!newVal && oldVal) {
+          this.currentStep = -1;
+        }
+        this.feedback = {};
       },
       deep: true,
     },
@@ -70,67 +90,47 @@ export default {
   computed: {
     ...mapGetters("report", ["activeReport"]),
   },
-  async created() {
-    EventBus.$on("next-inquiry-step", () => {this.currentStep++});
-
-    if (this.value.stored === false) {
-      this.feedback = {
-        variant: "info",
-        message: "Let op: Dit adres is nog niet opgeslagen",
-      };
-    }
-
-    // After setting the field values, set the DB storage status
-    this.$nextTick(() => {
-      this.stored = this.value.stored !== false;
-    });
-  },
   methods: {
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
     ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     select(step) {
+      console.log("select")
       if (this.currentStep > step) {
         this.currentStep = step;
       }
     },
-    optionValue({ options, name }) {
-      let key = this.value[name];
-      return options[key] ? options[key].value : null;
-    },
-    booleanValue({ name }) {
-      return this.value[name] === true || this.value[name] === false
-        ? this.value[name]
-        : null;
-    },
-    // Called by parent
-    async save() {
-      if (!this.stored) {
-        return await this.$refs.form.submit();
+    async save({ sample, next }) {
+      console.log(sample, next);
+      // If any field changes, mark the stored status as false
+      if (sample.id) {
+        await this.updateSample({
+          inquiryId: this.activeReport.id,
+          sampleId: sample.id,
+          data: sample,
+        })
+          .then(this.handleSuccess(next))
+          .catch(this.handleError);
       } else {
-        this.$emit("stored", { success: true });
+        await this.createSample({
+          inquiryId: this.activeReport.id,
+          data: sample,
+        })
+          .then(this.handleSuccess(next))
+          .catch(this.handleError);
       }
     },
-    // Called by parent
-    isStored() {
-      return this.stored;
-    },
-    // Called by parent
-    delete() {
-      if (this.isDisabled) {
-        return;
+    handleSuccess(next) {
+      this.feedback = {};
+      if (next) {
+        this.currentStep += 1;
       }
-      this.isDisabled = true;
-      this.disableAllFields();
+    },
+    handleError() {
       this.feedback = {
-        variant: "info",
-        message: "Het adres wordt verwijderd...",
+        variant: "danger",
+        message: "Let op: Het adres is niet opgeslagen. Controleer uw invoer.",
       };
-      this.deleteSample({
-        inquiryId: this.activeReport.id,
-        sampleId: this.value.id,
-        creationstamp: this.value.creationstamp,
-      });
-    }
-  }
+    },
+  },
 };
 </script>

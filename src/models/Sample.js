@@ -39,12 +39,14 @@ let structure = {
 
 export default class SampleModel {
   constructor({ sample, stored, editorState }) {
-    Object.assign(this, structure, sample);
+    Object.assign(this, structure);
+    Object.assign(this, sample);
+
     this.stored = stored;
     this.editorState = editorState || 'close';
   }
   updateValues({ data }) {
-    Object.assign(this, structure, data);
+    Object.assign(this, data);
   }
   // ****************************************************************************
   //  Editor states
