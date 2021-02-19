@@ -8,7 +8,7 @@
       @save="save"
       @select="select(0)"
     />
-    <InquiryStepAlgemeen
+    <InquiryStepOmgeving
       v-model="value"
       :is-active="currentStep === 1"
       :is-completed="currentStep > 1"
@@ -45,6 +45,8 @@
 
 <script>
 import InquiryStepAlgemeen from "molecule/inquiry/steps/InquiryStepAlgemeen";
+import InquiryStepOmgeving from "molecule/inquiry/steps/InquiryStepOmgeving";
+
 import { EventBus } from "utils/eventBus.js";
 
 import { mapGetters, mapActions } from "vuex";
@@ -54,6 +56,7 @@ export default {
   name: "InquirySampleDetailsEditor",
   components: {
     InquiryStepAlgemeen,
+    InquiryStepOmgeving
     // Divider,
     // Feedback
   },
