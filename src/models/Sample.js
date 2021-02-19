@@ -3,7 +3,7 @@ import {
   foundationTypeOptions,
   foundationQualityOptions,
   substructureOptions,
-  foundationDamageCauseOptions,
+  damageCauseOptions,
   enforcementTermOptions,
   BaseMeasurementLevelOptions,
   accessOptions
@@ -26,7 +26,7 @@ let structure = {
   groundwaterLeveTemp: null,
   groundLevel: null,
   recoveryAdvised: false,
-  foundationDamageCause: null,
+  damageCause: null,
   builtYear: '',
   enforcementTerm: null,
   baseMeasurementLevel: null,
@@ -70,7 +70,7 @@ export default class SampleModel {
     return substructureOptions[this.substructure] || null;
   }
   getFoundationDamageCause() {
-    return foundationDamageCauseOptions[this.damageCause] || null;
+    return damageCauseOptions[this.damageCause] || null;
   }
   // Note: returns an object {text, value}
   getEnforcementTerm() {

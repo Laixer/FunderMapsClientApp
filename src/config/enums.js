@@ -188,6 +188,21 @@ export const foundationTypeOptions = [
   }
 ]
 
+// If foundationType is a type of no-pile
+export function isNoPile(value) {
+  return [4,5,6,7,8,9].includes(value);
+}
+
+// if foundationType is a type of wood
+export function isWood(value) {
+  return [0,1,2,3,10].includes(value);
+}
+
+// if foundationType is a type of wood
+export function isWoodCharger(value) {
+  return value === 10;
+}
+
 // TODO Hardcoded, enums didn't map
 export const foundationQualityOptions = [
   {
@@ -284,6 +299,68 @@ export const damageCharacteristicsOptions = [
   },
 ]
 
+export const woodEncroachment = [
+  {
+    //value: 'Fungusinfection',
+    value: 0,
+    text: 'Schimmel'
+  },
+  {
+    //value: 'BioInfection',
+    value: 2,
+    text: 'Bacterie'
+  },
+  {
+    //value: 'BioFungusInfection',
+    value: 1,
+    text: 'Bacterie en schimmel'
+  }
+]
+
+export const quality = [
+  {
+    //value: 'Nil',
+    value: 0,
+    text: 'Nil'
+  },
+  {
+    //value: 'Small',
+    value: 1,
+    text: 'Laag'
+  },
+  {
+    //value: 'Mediocre',
+    value: 2,
+    text: 'Middel'
+  },
+  {
+    //value: 'Large',
+    value: 3,
+    text: 'Hoog'
+  }
+]
+export const carryingCapacityQuality = [
+  {
+    //value: 'Area 1',
+    value: 0,
+    text: '1'
+  },
+  {
+    //value: 'Area 2',
+    value: 1,
+    text: '2'
+  },
+  {
+    //value: 'Area 3',
+    value: 2,
+    text: '3'
+  },
+  {
+    //value: 'Area 4',
+    value: 3,
+    text: '4'
+  }
+]
 
 // TODO Hardcoded, enums didn't map
 export const damageCauseOptions = [

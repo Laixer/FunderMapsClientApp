@@ -278,7 +278,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+            maxValue: maxValue(999),
+            minValue: minValue(-999)          }
         },
         groundwaterLevelTemp: {
           label: "Grondwaterstand",
@@ -286,7 +287,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+            maxValue: maxValue(999),
+            minValue: minValue(-999)          }
         },
         groundLevel: {
           label: "Maaiveldhoogte",
@@ -294,7 +296,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+            maxValue: maxValue(999),
+            minValue: minValue(-999)          }
         }
       }
     };

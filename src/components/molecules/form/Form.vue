@@ -74,6 +74,7 @@ export default {
      */
     handleSubmit(e) {
       this.validate();
+      console.log(this.isValid());
       if (this.isValid()) {
         this.$emit("submit", e);
       } else {

@@ -26,7 +26,7 @@
 <script>
 import {
   decimal,
-  maxLength
+  maxLength, maxValue, minValue
 } from "vuelidate/lib/validators";
 import { BaseMeasurementLevelOptions } from "config/enums";
 import Feedback from "atom/Feedback";
@@ -87,7 +87,9 @@ export default {
           type: "text", // TODO: int
           value: null,
           validationRules: {
-            decimal
+            decimal,
+            maxValue: maxValue(999),
+            minValue: minValue(-999)
           },
         },
         monitoringWell: {
@@ -103,7 +105,9 @@ export default {
           type: "text", // TODO: int
           value: null,
           validationRules: {
-            decimal
+            decimal,
+            maxValue: maxValue(999),
+            minValue: minValue(-999)
           }
         },
         groundwaterLevelTemp: {
@@ -111,7 +115,9 @@ export default {
           type: "text", // TODO: int
           value: null,
           validationRules: {
-            decimal
+            decimal,
+            maxValue: maxValue(999),
+            minValue: minValue(-999)
           }
         }
       },
@@ -149,12 +155,12 @@ export default {
     async initialize(sample) {
       if (sample) {
         this.setFieldValues({
-          cpt: sample.cpt ? sample.cpt : null,
-          baseMeasurementLevel: sample.baseMeasurementLevel ? sample.baseMeasurementLevel : 0,
-          groundLevel: sample.groundLevel ? sample.groundLevel : null,
-          monitoringWell: sample.monitoringWell ? sample.monitoringWell : null,
-          groundwaterLevelNet: sample.groundwaterLevelNet ? sample.groundwaterLevelNet : null,
-          groundwaterLevelTemp: sample.groundwaterLevelTemp ? sample.groundwaterLevelTemp : null
+          cpt: sample.cpt,
+          baseMeasurementLevel: sample.baseMeasurementLevel,
+          groundLevel: sample.groundLevel,
+          monitoringWell: sample.monitoringWell,
+          groundwaterLevelNet: sample.groundwaterLevelNet,
+          groundwaterLevelTemp: sample.groundwaterLevelTemp
         });
       }
     }

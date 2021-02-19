@@ -9,10 +9,13 @@
   >
     <Feedback :feedback="internalFeedback" />
     <div class="form-row">
-      <FormField
-        v-model="fields.foundationType.value"
-        v-bind="fields.foundationType"
-      />
+      <div class="col">
+        <FormField
+          v-model="fields.foundationType.value"
+          v-bind="fields.foundationType"
+          class="form-group--long"
+        />
+      </div>
     </div>
     <hr />
     <div class="form-row">
@@ -32,13 +35,13 @@
           v-bind="fields.damageCharacteristics"
         />
         <FormField
-          v-if="fields.damageCharacteristics.value"
+          v-if="fields.damageCharacteristics.value !== null"
           v-model="fields.damageCause.value"
           v-bind="fields.damageCause"
         />
       </div>
     </div>
-    <div class="form-row" v-if="fields.foundationType.value === 4">
+    <div class="form-row" v-if="isNoPile(fields.foundationType.value)">
       <div class="col">
         <FormField
           v-model="fields.foundationDepth.value"
@@ -50,12 +53,14 @@
 </template>
 
 <script>
-import { decimal, maxLength, required } from "vuelidate/lib/validators";
+import { decimal, numeric, maxLength, required } from "vuelidate/lib/validators";
 import {
   enforcementTermOptions,
   damageCharacteristicsOptions,
   foundationQualityOptions,
-  damageCauseOptions
+  damageCauseOptions,
+  foundationTypeOptions,
+  isNoPile
 } from "config/enums";
 import Feedback from "atom/Feedback";
 
@@ -97,27 +102,16 @@ export default {
       fields: {
         foundationType: {
           label: "Funderingstype",
-          type: "radio-image",
+          type: "select",
           value: null,
           options: [
             {
-              value: 0,
-              text: "Houten palen"
-            },
-            {
-              value: 10,
-              text: "Houten palen oplanger"
-            },
-            {
-              value: 3,
-              text: "Betonnen palen"
-            },
-            {
-              value: 4,
-              text: "Niet onderheid"
+              value: null,
+              text: "Selecteer een optie"
             }
-          ],
+          ].concat(foundationTypeOptions),
           validationRules: {
+            numeric,
             required
           }
         },
@@ -160,7 +154,8 @@ export default {
             }
           ].concat(foundationQualityOptions),
           validationRules: {
-            decimal
+            decimal,
+            maxLength: maxLength(10)
           }
         },
         damageCause: {
@@ -182,7 +177,8 @@ export default {
           type: "text", // TODO: int
           value: null,
           validationRules: {
-            decimal
+            decimal,
+            maxLength: maxLength(10)
           }
         }
       }
@@ -200,12 +196,9 @@ export default {
     await this.initialize(this.value);
   },
   methods: {
+    isNoPile,
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
     ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
-    optionValue({ options, name }) {
-      let key = this.value[name];
-      return options[key] ? options[key].value : null;
-    },
     save(next) {
       const val = this.value;
       val.foundationType = this.fields.foundationType.value;
@@ -216,7 +209,7 @@ export default {
         ? this.fields.damageCause.value
         : null;
       val.foundationDepth =
-        this.value.foundationType === 4
+        isNoPile(this.value.foundationType)
           ? this.fields.foundationDepth.value
           : null;
       this.$emit("input", val);
@@ -225,20 +218,12 @@ export default {
     async initialize(sample) {
       if (sample) {
         this.setFieldValues({
-          foundationType: sample.foundationType ? sample.foundationType : null,
-          enforcementTerm: sample.enforcementTerm
-            ? sample.enforcementTerm
-            : null,
-          damageCharacteristics: sample.damageCharacteristics
-            ? sample.damageCharacteristics
-            : null,
-          overallQuality: sample.overallQuality
-            ? sample.overallQuality
-            : null,
-          damageCause: sample.damageCause ? sample.damageCause : null,
+          foundationType: sample.foundationType,
+          enforcementTerm: sample.enforcementTerm,
+          damageCharacteristics: sample.damageCharacteristics,
+          overallQuality: sample.overallQuality,
+          damageCause: sample.damageCause,
           foundationDepth: sample.foundationDepth
-            ? sample.foundationDepth
-            : null
         });
       }
     }

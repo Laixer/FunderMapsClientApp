@@ -21,7 +21,7 @@
       </span>
     </a>
 
-    <Form ref="form" class="upload-form" v-if="isActive" @submit="handleSubmit" @error="handleError">
+    <Form ref="form" class="upload-form" v-if="isActive" @submit="handleSubmit">
       <Feedback :feedback="feedback" />
       <slot />
       <a @click.prevent.stop="next" class="btn btn-continue">Verder</a>
@@ -62,12 +62,12 @@ export default {
   },
   methods: {
     next() {
+      console.log("submit")
       this.$refs.form.submit();
     },
     handleSubmit() {
+      console.log("save")
       this.$emit("save", true);
-    },
-    handleError() {
     }
   },
   data() {

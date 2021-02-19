@@ -24,7 +24,7 @@
       @save="save"
       @select="select(2)"
     />
-    <InquiryStepAlgemeen
+    <InquiryStepPalenHout
       v-model="value"
       :is-active="currentStep === 3"
       :is-completed="currentStep > 3"
@@ -47,8 +47,10 @@
 import InquiryStepAlgemeen from "molecule/inquiry/steps/InquiryStepAlgemeen";
 import InquiryStepOmgeving from "molecule/inquiry/steps/InquiryStepOmgeving";
 import InquiryStepFundering from "molecule/inquiry/steps/InquiryStepFundering";
+import InquiryStepPalenHout from "molecule/inquiry/steps/InquiryStepPalenHout";
 
 import { EventBus } from "utils/eventBus.js";
+import { isWood } from "config/enums";
 
 import { mapGetters, mapActions } from "vuex";
 import SampleModel from "../../models/Sample";
@@ -59,24 +61,27 @@ export default {
     InquiryStepAlgemeen,
     InquiryStepOmgeving,
     InquiryStepFundering,
+    InquiryStepPalenHout
     // Divider,
     // Feedback
   },
   props: {
     value: {
-      type: Object,
-    },
+      type: Object
+    }
   },
   data() {
     return {
       currentStep: -1,
       isDisabled: false,
-      feedback: {},
+      feedback: {}
     };
   },
   watch: {
-    currentStep(newV, oldV) {
-      console.log(newV, oldV);
+    currentStep(newV) {
+      if (newV === 3 && !isWood(this.value.foundationType)) {
+        this.currentStep = 4;
+      }
     },
     value: {
       handler(newVal, oldVal) {
@@ -89,36 +94,35 @@ export default {
         }
         this.feedback = {};
       },
-      deep: true,
-    },
+      deep: true
+    }
   },
   computed: {
-    ...mapGetters("report", ["activeReport"]),
+    ...mapGetters("report", ["activeReport"])
   },
   methods: {
+    isWood,
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
     ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     select(step) {
-      console.log("select")
       if (this.currentStep > step) {
         this.currentStep = step;
       }
     },
     async save({ sample, next }) {
-      console.log(sample, next);
-      // If any field changes, mark the stored status as false
       if (sample.id) {
+        console.log(sample);
         await this.updateSample({
           inquiryId: this.activeReport.id,
           sampleId: sample.id,
-          data: sample,
+          data: sample
         })
           .then(this.handleSuccess(next))
           .catch(this.handleError);
       } else {
         await this.createSample({
           inquiryId: this.activeReport.id,
-          data: sample,
+          data: sample
         })
           .then(this.handleSuccess(next))
           .catch(this.handleError);
@@ -130,12 +134,13 @@ export default {
         this.currentStep += 1;
       }
     },
-    handleError() {
+    handleError(test) {
+      console.log("bla", test);
       this.feedback = {
         variant: "danger",
-        message: "Let op: Het adres is niet opgeslagen. Controleer uw invoer.",
+        message: "Let op: Het adres is niet opgeslagen. Controleer uw invoer."
       };
-    },
-  },
+    }
+  }
 };
 </script>
