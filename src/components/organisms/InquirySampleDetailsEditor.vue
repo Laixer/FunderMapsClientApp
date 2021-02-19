@@ -16,7 +16,7 @@
       @save="save"
       @select="select(1)"
     />
-    <InquiryStepAlgemeen
+    <InquiryStepFundering
       v-model="value"
       :is-active="currentStep === 2"
       :is-completed="currentStep > 2"
@@ -46,6 +46,7 @@
 <script>
 import InquiryStepAlgemeen from "molecule/inquiry/steps/InquiryStepAlgemeen";
 import InquiryStepOmgeving from "molecule/inquiry/steps/InquiryStepOmgeving";
+import InquiryStepFundering from "molecule/inquiry/steps/InquiryStepFundering";
 
 import { EventBus } from "utils/eventBus.js";
 
@@ -56,7 +57,8 @@ export default {
   name: "InquirySampleDetailsEditor",
   components: {
     InquiryStepAlgemeen,
-    InquiryStepOmgeving
+    InquiryStepOmgeving,
+    InquiryStepFundering,
     // Divider,
     // Feedback
   },

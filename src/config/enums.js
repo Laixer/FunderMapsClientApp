@@ -246,8 +246,47 @@ export const substructureOptions = [
   }
 ]
 
+export const damageCharacteristicsOptions = [
+  {
+    // value: 'JammingDoorWindow'
+    value: 0,
+    text: 'Klemmende ramen en/of deuren'
+  },
+  {
+    // value: 'Crack'
+    value: 1,
+    text: 'Scheur(en) in de muur en/of gevels'
+  },
+  {
+    // value: 'Skewed'
+    value: 2,
+    text: 'De woning staat wat scheef'
+  },
+  {
+    // value: 'CrawlspaceFlooding'
+    value: 3,
+    text: 'Hoog water in de kruipruimte'
+  },
+  {
+    // value: 'ThresholdAboveSubsurface'
+    value: 4,
+    text: 'De woning light hoger dan trottoir/weg'
+  },
+  {
+    // value: 'ThresholdBelowSubsurface'
+    value: 5,
+    text: 'De woning ligt lager dan trottoir/weg'
+  },
+  {
+    // value: 'CrookedFloorWall'
+    value: 6,
+    text: 'Scheve vloeren/muren in de woning'
+  },
+]
+
+
 // TODO Hardcoded, enums didn't map
-export const foundationDamageCauseOptions = [
+export const damageCauseOptions = [
   {
     //value: 'Drainage',
     value: 0,

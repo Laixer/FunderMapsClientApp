@@ -61,6 +61,19 @@
       @blur="handleBlur"
     ></b-form-radio-group>
 
+
+    <b-form-radio-group
+      v-else-if="type === 'radio-image'"
+      v-model="fieldValue"
+      :options="options"
+      :state="state"
+      :placeholder="placeholder"
+      :autocomplete="autocomplete"
+      :disabled="isDisabled"
+      @input="handleInput"
+      @blur="handleBlur"
+    ></b-form-radio-group>
+
     <!-- <v-date-picker
       locale="nl"
       :popover="{ visibility: 'click' }"

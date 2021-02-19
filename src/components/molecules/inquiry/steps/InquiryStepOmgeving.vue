@@ -36,7 +36,7 @@ import FormField from "molecule/form/FormField";
 
 import fields from "mixin/fields";
 
-import { mapGetters, mapActions } from "vuex";
+import { mapActions } from "vuex";
 
 export default {
   components: {
@@ -107,7 +107,7 @@ export default {
           }
         },
         groundwaterLevelTemp: {
-          label: "Grondwaterniveau bij ontgravinng",
+          label: "Grondwaterniveau bij ontgraving",
           type: "text", // TODO: int
           value: null,
           validationRules: {
@@ -124,9 +124,6 @@ export default {
       },
       deep: true,
     },
-  },
-  computed: {
-    ...mapGetters("report", ["activeReport"]),
   },
   async created() {
     await this.initialize(this.value);
@@ -160,41 +157,7 @@ export default {
           groundwaterLevelTemp: sample.groundwaterLevelTemp ? sample.groundwaterLevelTemp : null
         });
       }
-    },
-    booleanValue({ name }) {
-      return this.value[name] === true || this.value[name] === false
-        ? this.value[name]
-        : null;
-    },
-    addressSerializer(address) {
-      return address.weergavenaam;
-    },
-    async handleHit(suggestion) {
-      const { response } = await fetch(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?fl=nummeraanduiding_id&id=${suggestion.id}`
-      ).then((res) => {
-        if (!res.ok) throw new Error(res.statusText);
-        return res.json();
-      });
-
-      const _id = `NL.IMBAG.NUMMERAANDUIDING.${response.docs[0].nummeraanduiding_id}`;
-      let _address = await this.getAddressById({ id: _id });
-
-      this.fields.address.value = _address.format();
-      this.fields.address.selected = _address;
-
-      this.$emit("addressSelected", { addressId: _address.id });
-    },
-    async getAddresses(query) {
-      // Only process if we have a substantial amount of characters to go by.
-      if (query.length < 4) {
-        return;
-      }
-
-      // TODO Race condition when we keep on typing.
-      let addresses = await this.getAddressSuggestions({ query: query });
-      this.fields.address.data = addresses;
-    },
-  },
+    }
+  }
 };
 </script>
