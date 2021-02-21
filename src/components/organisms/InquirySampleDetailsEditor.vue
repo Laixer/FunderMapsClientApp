@@ -32,13 +32,21 @@
       @save="save"
       @select="select(3)"
     />
-    <InquiryStepAlgemeen
+     <InquiryStepNiveauKwaliteit
       v-model="value"
       :is-active="currentStep === 4"
       :is-completed="currentStep > 4"
       :feedback="feedback"
       @save="save"
       @select="select(4)"
+    />
+    <InquiryStepScheuren
+      v-model="value"
+      :is-active="currentStep === 5"
+      :is-completed="currentStep > 5"
+      :feedback="feedback"
+      @save="save"
+      @select="select(5)"
     />
   </div>
 </template>
@@ -48,12 +56,13 @@ import InquiryStepAlgemeen from "molecule/inquiry/steps/InquiryStepAlgemeen";
 import InquiryStepOmgeving from "molecule/inquiry/steps/InquiryStepOmgeving";
 import InquiryStepFundering from "molecule/inquiry/steps/InquiryStepFundering";
 import InquiryStepPalenHout from "molecule/inquiry/steps/InquiryStepPalenHout";
+import InquiryStepNiveauKwaliteit from "molecule/inquiry/steps/InquiryStepNiveauKwaliteit";
+import InquiryStepScheuren from "molecule/inquiry/steps/InquiryStepScheuren";
 
-import { EventBus } from "utils/eventBus.js";
+
 import { isWood } from "config/enums";
 
 import { mapGetters, mapActions } from "vuex";
-import SampleModel from "../../models/Sample";
 
 export default {
   name: "InquirySampleDetailsEditor",
@@ -61,7 +70,9 @@ export default {
     InquiryStepAlgemeen,
     InquiryStepOmgeving,
     InquiryStepFundering,
-    InquiryStepPalenHout
+    InquiryStepPalenHout,
+    InquiryStepNiveauKwaliteit,
+    InquiryStepScheuren
     // Divider,
     // Feedback
   },

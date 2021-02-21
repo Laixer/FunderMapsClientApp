@@ -299,7 +299,7 @@ export const damageCharacteristicsOptions = [
   },
 ]
 
-export const woodEncroachment = [
+export const woodEncroachement = [
   {
     //value: 'Fungusinfection',
     value: 0,
@@ -316,6 +316,30 @@ export const woodEncroachment = [
     text: 'Bacterie en schimmel'
   }
 ]
+
+export const crackType = [
+  {
+    //value: 'VerySmall',
+    value: 0,
+    text: 'Zeer klein'
+  },
+  {
+    //value: 'Small',
+    value: 1,
+    text: 'Klein'
+  },
+  {
+    //value: 'Mediocre',
+    value: 2,
+    text: 'Middel'
+  },
+  {
+    //value: 'Large',
+    value: 3,
+    text: 'Groot'
+  }
+]
+
 
 export const quality = [
   {
@@ -339,6 +363,7 @@ export const quality = [
     text: 'Hoog'
   }
 ]
+
 export const carryingCapacityQuality = [
   {
     //value: 'Area 1',
@@ -359,6 +384,44 @@ export const carryingCapacityQuality = [
     //value: 'Area 4',
     value: 3,
     text: '4'
+  }
+]
+
+export const constructionPile = [
+  {
+    //value: 'Punched',
+    value: 0,
+    text: 'Punched'
+  },
+  {
+    //value: 'Broken',
+    value: 1,
+    text: 'Broken'
+  },
+  {
+    //value: 'Pinched',
+    value: 2,
+    text: 'Pinched'
+  },
+  {
+    //value: 'Pressed',
+    value: 3,
+    text: 'Pressed'
+  },
+  {
+    //value: 'Perished',
+    value: 4,
+    text: 'Perished'
+  },
+  {
+    //value: 'Decay',
+    value: 5,
+    text: 'Decay'
+  },
+  {
+    //value: 'RootGrowth',
+    value: 6,
+    text: 'RootGrowth'
   }
 ]
 

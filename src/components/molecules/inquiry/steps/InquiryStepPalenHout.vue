@@ -65,12 +65,12 @@
         />
 
         <FormField
-          v-model="fields.woodEncroachment.value"
-          v-bind="fields.woodEncroachment"
+          v-model="fields.woodEncroachement.value"
+          v-bind="fields.woodEncroachement"
         />
         <FormField
-          v-model="fields.carryingCapacity.value"
-          v-bind="fields.carryingCapacity"
+          v-model="fields.carryingCapacityQuality.value"
+          v-bind="fields.carryingCapacityQuality"
         />
         <FormField
           v-model="fields.woodCapacityHorizontalQuality.value"
@@ -83,7 +83,7 @@
 
 <script>
 import { decimal, maxValue, minValue } from "vuelidate/lib/validators";
-import { woodEncroachment, quality, isWood, isWoodCharger } from "config/enums";
+import { woodEncroachement, quality, isWood, isWoodCharger } from "config/enums";
 import Feedback from "atom/Feedback";
 
 import InquirySampleStep from "molecule/inquiry/InquirySampleStep";
@@ -226,7 +226,7 @@ export default {
             minValue: minValue(-999)
           }
         },
-        woodEncroachment: {
+        woodEncroachement: {
           label: "Hout aantasting",
           type: "select", // TODO: int
           value: null,
@@ -235,7 +235,7 @@ export default {
               value: null,
               text: "Selecteer een optie"
             }
-          ].concat(woodEncroachment),
+          ].concat(woodEncroachement),
           validationRules: {}
         },
         woodQuality: {
@@ -250,7 +250,7 @@ export default {
           ].concat(quality),
           validationRules: {}
         },
-        carryingCapacity: {
+        carryingCapacityQuality: {
           label: "Kwaliteit draagkracht paal",
           type: "select", // TODO: int
           value: null,
@@ -320,9 +320,9 @@ export default {
       val.woodType = this.fields.woodType.value;
       val.woodQualityNecessity = this.fields.woodQualityNecessity.value;
       val.woodPenetrationDepth = this.fields.woodPenetrationDepth.value;
-      val.woodEncroachment = this.fields.woodEncroachment.value;
+      val.woodEncroachement = this.fields.woodEncroachement.value;
       val.woodQuality = this.fields.woodQuality.value;
-      val.carryingCapacity = this.fields.carryingCapacity.value;
+      val.carryingCapacityQuality = this.fields.carryingCapacityQuality.value;
       val.pileWoodCapacityVerticalQuality = this.fields.pileWoodCapacityVerticalQuality.value;
       val.woodCapacityHorizontalQuality = this.fields.woodCapacityHorizontalQuality.value;
 
@@ -341,9 +341,9 @@ export default {
           woodType: sample.woodType,
           woodQualityNecessity: sample.woodQualityNecessity,
           woodPenetrationDepth: sample.woodPenetrationDepth,
-          woodEncroachment: sample.woodEncroachment,
+          woodEncroachement: sample.woodEncroachement,
           woodQuality: sample.woodQuality,
-          carryingCapacity: sample.carryingCapacity,
+          carryingCapacityQuality: sample.carryingCapacityQuality,
           pileWoodCapacityVerticalQuality:
             sample.pileWoodCapacityVerticalQuality,
           woodCapacityHorizontalQuality: sample.woodCapacityHorizontalQuality
