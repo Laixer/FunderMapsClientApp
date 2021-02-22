@@ -61,7 +61,6 @@
       @blur="handleBlur"
     ></b-form-radio-group>
 
-
     <b-form-radio-group
       v-else-if="type === 'radio-image'"
       v-model="fieldValue"
@@ -442,6 +441,9 @@ export default {
 .col-form-label {
   padding-bottom: 0 !important;
 }
+.custom-select {
+  background-position: calc(100% - 15px);
+}
 
 // .custom-select:valid {
 //     border-color: #29cc8b;
@@ -491,7 +493,6 @@ export default {
 //       background-size: cover;
 //     }
 //   }
-
 
 //   .vdp-datepicker {
 //     .form-control[readonly] {

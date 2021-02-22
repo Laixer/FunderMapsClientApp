@@ -32,7 +32,7 @@
       @save="save"
       @select="select(3)"
     />
-     <InquiryStepNiveauKwaliteit
+    <InquiryStepNiveauKwaliteit
       v-model="value"
       :is-active="currentStep === 4"
       :is-completed="currentStep > 4"
@@ -48,6 +48,14 @@
       @save="save"
       @select="select(5)"
     />
+    <InquiryStepVervorming
+      v-model="value"
+      :is-active="currentStep === 6"
+      :is-completed="currentStep > 6"
+      :feedback="feedback"
+      @save="save"
+      @select="select(6)"
+    />
   </div>
 </template>
 
@@ -58,7 +66,7 @@ import InquiryStepFundering from "molecule/inquiry/steps/InquiryStepFundering";
 import InquiryStepPalenHout from "molecule/inquiry/steps/InquiryStepPalenHout";
 import InquiryStepNiveauKwaliteit from "molecule/inquiry/steps/InquiryStepNiveauKwaliteit";
 import InquiryStepScheuren from "molecule/inquiry/steps/InquiryStepScheuren";
-
+import InquiryStepVervorming from "molecule/inquiry/steps/InquiryStepVervorming";
 
 import { isWood } from "config/enums";
 
@@ -72,20 +80,21 @@ export default {
     InquiryStepFundering,
     InquiryStepPalenHout,
     InquiryStepNiveauKwaliteit,
-    InquiryStepScheuren
+    InquiryStepScheuren,
+    InquiryStepVervorming,
     // Divider,
     // Feedback
   },
   props: {
     value: {
-      type: Object
-    }
+      type: Object,
+    },
   },
   data() {
     return {
-      currentStep: -1,
+      currentStep: 0,
       isDisabled: false,
-      feedback: {}
+      feedback: {},
     };
   },
   watch: {
@@ -105,11 +114,11 @@ export default {
         }
         this.feedback = {};
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   computed: {
-    ...mapGetters("report", ["activeReport"])
+    ...mapGetters("report", ["activeReport"]),
   },
   methods: {
     isWood,
@@ -122,20 +131,23 @@ export default {
     },
     async save({ sample, next }) {
       if (sample.id) {
-        console.log(sample);
         await this.updateSample({
           inquiryId: this.activeReport.id,
           sampleId: sample.id,
-          data: sample
+          data: sample,
         })
-          .then(this.handleSuccess(next))
+          .then(() => {
+            this.handleSuccess(next);
+          }, this.handleError)
           .catch(this.handleError);
       } else {
         await this.createSample({
           inquiryId: this.activeReport.id,
-          data: sample
+          data: sample,
         })
-          .then(this.handleSuccess(next))
+          .then(() => {
+            this.handleSuccess(next);
+          }, this.handleError)
           .catch(this.handleError);
       }
     },
@@ -146,12 +158,50 @@ export default {
       }
     },
     handleError(test) {
-      console.log("bla", test);
       this.feedback = {
         variant: "danger",
-        message: "Let op: Het adres is niet opgeslagen. Controleer uw invoer."
+        message: "Let op: Het adres is niet opgeslagen. Controleer uw invoer.",
       };
-    }
-  }
+    },
+  },
 };
 </script>
+<style lang="scss">
+.upload-steps {
+  .upload-step:first-child {
+    .upload-step-dropdown {
+      &::after {
+        content: none;
+      }
+    }
+  }
+
+  .upload-step--completed:first-child {
+    .upload-step-dropdown {
+      &::after {
+        content: "";
+      }
+    }
+  }
+
+  .upload-step--completed:last-child {
+    .upload-step-dropdown {
+      &::after {
+        content: none;
+      }
+    }
+  }
+
+  .upload-step-dropdown {
+    text-decoration: none;
+    cursor: default;
+  }
+
+  .upload-step--completed {
+    .upload-step-dropdown {
+      text-decoration: none;
+      cursor: pointer;
+    }
+  }
+}
+</style>

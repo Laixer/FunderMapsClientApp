@@ -15,7 +15,6 @@
                 <span class="h6 steps-item__title">Rapportinformatie</span>
               </router-link>
             </li>
-            <li class="steps-spacer"></li>
             <li :class="`steps-item steps-item${headerClasses[1]}`">
               <router-link class="steps-item__link" :to="{ name: 'edit-report-2', params: $route.params }">
                 <svg class="steps-item__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -35,7 +34,6 @@
                 <span class="h6 steps-item__title">Funderingsgegevens</span>
               </router-link>
             </li>
-            <li class="steps-spacer"></li>
             <li :class="`steps-item steps-item${headerClasses[2]}`">
               <router-link class="steps-item__link" :to="{ name: 'edit-report-3', params: $route.params }">
                 <svg class="steps-item__icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22"

@@ -85,16 +85,14 @@
         <div class="form-row">
           <div class="col-5">
             <FormField
-                                                              :disabled="!crackIndoorEnabled"
-
+              :disabled="!crackIndoorEnabled"
               v-model="fields.crackIndoorType.value"
               v-bind="fields.crackIndoorType"
             />
           </div>
           <div class="col-7">
             <FormField
-                                                              :disabled="!crackIndoorEnabled"
-
+              :disabled="!crackIndoorEnabled"
               v-model="fields.crackIndoorRestored.value"
               v-bind="fields.crackIndoorRestored"
             />
@@ -103,8 +101,7 @@
         <div class="form-row form-row--special">
           <div class="col form-col">
             <FormField
-                                                              :disabled="!crackIndoorEnabled"
-
+              :disabled="!crackIndoorEnabled"
               v-model="fields.crackIndoorSize.value"
               v-bind="fields.crackIndoorSize"
             />
@@ -166,16 +163,14 @@
         <div class="form-row">
           <div class="col-5">
             <FormField
-                                                  :disabled="!crackFacadeFrontEnabled"
-
+              :disabled="!crackFacadeFrontEnabled"
               v-model="fields.crackFacadeFrontType.value"
               v-bind="fields.crackFacadeFrontType"
             />
           </div>
           <div class="col-7">
             <FormField
-                                                  :disabled="!crackFacadeFrontEnabled"
-
+              :disabled="!crackFacadeFrontEnabled"
               v-model="fields.crackFacadeFrontRestored.value"
               v-bind="fields.crackFacadeFrontRestored"
             />
@@ -184,8 +179,7 @@
         <div class="form-row form-row--special">
           <div class="col form-col">
             <FormField
-                                                  :disabled="!crackFacadeFrontEnabled"
-
+              :disabled="!crackFacadeFrontEnabled"
               v-model="fields.crackFacadeFrontSize.value"
               v-bind="fields.crackFacadeFrontSize"
             />
@@ -245,16 +239,14 @@
         <div class="form-row">
           <div class="col-5">
             <FormField
-                                      :disabled="!crackFacadeBackEnabled"
-
+              :disabled="!crackFacadeBackEnabled"
               v-model="fields.crackFacadeBackType.value"
               v-bind="fields.crackFacadeBackType"
             />
           </div>
           <div class="col-7">
             <FormField
-                                      :disabled="!crackFacadeBackEnabled"
-
+              :disabled="!crackFacadeBackEnabled"
               v-model="fields.crackFacadeBackRestored.value"
               v-bind="fields.crackFacadeBackRestored"
             />
@@ -263,8 +255,7 @@
         <div class="form-row form-row--special">
           <div class="col form-col">
             <FormField
-                                      :disabled="!crackFacadeBackEnabled"
-
+              :disabled="!crackFacadeBackEnabled"
               v-model="fields.crackFacadeBackSize.value"
               v-bind="fields.crackFacadeBackSize"
             />
@@ -342,16 +333,14 @@
         <div class="form-row">
           <div class="col-5">
             <FormField
-                          :disabled="!crackFacadeLeftEnabled"
-
+              :disabled="!crackFacadeLeftEnabled"
               v-model="fields.crackFacadeLeftType.value"
               v-bind="fields.crackFacadeLeftType"
             />
           </div>
           <div class="col-7">
             <FormField
-                          :disabled="!crackFacadeLeftEnabled"
-
+              :disabled="!crackFacadeLeftEnabled"
               v-model="fields.crackFacadeLeftRestored.value"
               v-bind="fields.crackFacadeLeftRestored"
             />
@@ -360,7 +349,7 @@
         <div class="form-row form-row--special">
           <div class="col form-col">
             <FormField
-                          :disabled="!crackFacadeLeftEnabled"
+              :disabled="!crackFacadeLeftEnabled"
               v-model="fields.crackFacadeLeftSize.value"
               v-bind="fields.crackFacadeLeftSize"
             />
@@ -451,31 +440,29 @@ import FormField from "molecule/form/FormField";
 
 import fields from "mixin/fields";
 
-import { mapActions } from "vuex";
-
 export default {
   components: {
     InquirySampleStep,
     FormField,
-    Feedback
+    Feedback,
   },
   mixins: [fields],
   props: {
     isActive: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isCompleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     value: {
-      type: Object
+      type: Object,
     },
     feedback: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   data() {
     return {
@@ -490,10 +477,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(crackType),
-          validationRules: {}
+          validationRules: {},
         },
         crackIndoorSize: {
           label: "Scheurgrootte",
@@ -502,8 +489,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         crackIndoorRestored: {
           label: "Scheur hersteld?",
@@ -512,14 +499,14 @@ export default {
           options: [
             {
               value: true,
-              text: "Ja"
+              text: "Ja",
             },
             {
               value: false,
-              text: "Nee"
-            }
+              text: "Nee",
+            },
           ],
-          validationRules: {}
+          validationRules: {},
         },
         // FacadeFront
         crackFacadeFrontType: {
@@ -529,10 +516,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(crackType),
-          validationRules: {}
+          validationRules: {},
         },
         crackFacadeFrontSize: {
           label: "Scheurgrootte",
@@ -541,8 +528,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         crackFacadeFrontRestored: {
           label: "Scheur hersteld?",
@@ -551,14 +538,14 @@ export default {
           options: [
             {
               value: true,
-              text: "Ja"
+              text: "Ja",
             },
             {
               value: false,
-              text: "Nee"
-            }
+              text: "Nee",
+            },
           ],
-          validationRules: {}
+          validationRules: {},
         },
         // FacadeBack
         crackFacadeBackType: {
@@ -568,12 +555,12 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(crackType),
           validationRules: {
-            numeric
-          }
+            numeric,
+          },
         },
         crackFacadeBackSize: {
           label: "Scheurgrootte",
@@ -582,8 +569,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         crackFacadeBackRestored: {
           label: "Scheur hersteld?",
@@ -592,14 +579,14 @@ export default {
           options: [
             {
               value: true,
-              text: "Ja"
+              text: "Ja",
             },
             {
               value: false,
-              text: "Nee"
-            }
+              text: "Nee",
+            },
           ],
-          validationRules: {}
+          validationRules: {},
         },
         // FacadeLeft
         crackFacadeLeftType: {
@@ -609,11 +596,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(crackType),
-          validationRules: {}
-
+          validationRules: {},
         },
         crackFacadeLeftSize: {
           label: "Scheurgrootte",
@@ -622,8 +608,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         crackFacadeLeftRestored: {
           label: "Scheur hersteld?",
@@ -632,14 +618,14 @@ export default {
           options: [
             {
               value: true,
-              text: "Ja"
+              text: "Ja",
             },
             {
               value: false,
-              text: "Nee"
-            }
+              text: "Nee",
+            },
           ],
-          validationRules: {}
+          validationRules: {},
         },
         // FacadeRight
         crackFacadeRightType: {
@@ -649,10 +635,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(crackType),
-          validationRules: {}
+          validationRules: {},
         },
         crackFacadeRightSize: {
           label: "Scheurgrootte",
@@ -661,8 +647,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         crackFacadeRightRestored: {
           label: "Scheur hersteld?",
@@ -671,31 +657,21 @@ export default {
           options: [
             {
               value: true,
-              text: "Ja"
+              text: "Ja",
             },
             {
               value: false,
-              text: "Nee"
-            }
+              text: "Nee",
+            },
           ],
-          validationRules: {}
-        }
+          validationRules: {},
+        },
       },
-      crackIndoorEnabled: this.value
-        ? this.value.crackIndoorType !== null
-        : false,
-      crackFacadeFrontEnabled: this.value
-        ? this.value.crackFacadeFrontType !== null
-        : false,
-      crackFacadeBackEnabled: this.value
-        ? this.value.crackFacadeBackType !== null
-        : false,
-      crackFacadeLeftEnabled: this.value
-        ? this.value.crackFacadeLeftType !== null
-        : false,
-      crackFacadeRightEnabled: this.value
-        ? this.value.crackFacadeRightType !== null
-        : false
+      crackIndoorEnabled: false,
+      crackFacadeFrontEnabled: false,
+      crackFacadeBackEnabled: false,
+      crackFacadeLeftEnabled: false,
+      crackFacadeRightEnabled: false,
     };
   },
   watch: {
@@ -703,119 +679,120 @@ export default {
       async handler(newValue) {
         await this.initialize(newValue);
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   async created() {
     await this.initialize(this.value);
   },
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     save(next) {
       const val = this.value;
 
       // Indoor
       val.crackIndoorType =
-        this.crackIndoorEnabled && this.fields.crackIndoorType.value
+        this.crackIndoorEnabled && this.fields.crackIndoorType.value !== null
           ? this.fields.crackIndoorType.value
           : null;
       val.crackIndoorSize =
-        this.crackIndoorEnabled && this.fields.crackIndoorSize.value
+        this.crackIndoorEnabled && this.fields.crackIndoorSize.value !== null
           ? this.fields.crackIndoorSize.value
           : null;
       val.crackIndoorRestored =
-        this.crackIndoorEnabled && this.fields.crackIndoorRestored.value
-          ? this.fields.crackIndoorRestored.value
-          : null;
+        this.crackIndoorEnabled
+        ? this.fields.crackIndoorRestored.value
+        : null;
 
       // FacadeFront
       val.crackFacadeFrontType =
-        this.cracFacadeFrontEnabled && this.fields.crackFacadeFrontType.value
+        this.crackFacadeFrontEnabled && this.fields.crackFacadeFrontType.value !== null
           ? this.fields.crackFacadeFrontType.value
           : null;
       val.crackFacadeFrontSize =
-        this.crackFacadeFrontEnabled && this.fields.crackFacadeFrontSize.value
+        this.crackFacadeFrontEnabled && this.fields.crackFacadeFrontSize.value !== null
           ? this.fields.crackFacadeFrontSize.value
           : null;
       val.crackFacadeFrontRestored =
-        this.crackFacadeFrontEnabled &&
-        this.fields.crackFacadeFrontRestored.value
-          ? this.fields.crackFacadeFrontRestored.value
-          : null;
+        this.crackFacadeFrontEnabled
+        ? this.fields.crackFacadeFrontRestored.value
+        : null;
 
       // FacadeBack
       val.crackFacadeBackType =
-        this.crackFacadeBackEnabled && this.fields.crackFacadeBackType.value
+        this.crackFacadeBackEnabled && this.fields.crackFacadeBackType.value !== null
           ? this.fields.crackFacadeBackType.value
           : null;
       val.crackFacadeBackSize =
-        this.crackFacadeBackEnabled && this.fields.crackFacadeBackSize.value
+        this.crackFacadeBackEnabled && this.fields.crackFacadeBackSize.value !== null
           ? this.fields.crackFacadeBackSize.value
           : null;
       val.crackFacadeBackRestored =
-        this.crackFacadeBackEnabled && this.fields.crackFacadeBackRestored.value
-          ? this.fields.crackFacadeBackRestored.value
-          : null;
+        this.crackFacadeBackEnabled
+        ? this.fields.crackFacadeBackRestored.value
+        : null;
+
 
       // FacadeLeft
       val.crackFacadeLeftType =
-        this.crackFacadeLeftEnabled && this.fields.crackFacadeLeftType.value
+        this.crackFacadeLeftEnabled && this.fields.crackFacadeLeftType.value !== null
           ? this.fields.crackFacadeLeftType.value
           : null;
       val.crackFacadeLeftSize =
-        this.crackFacadeLeftEnabled && this.fields.crackFacadeLeftSize.value
+        this.crackFacadeLeftEnabled && this.fields.crackFacadeLeftSize.value !== null
           ? this.fields.crackFacadeLeftSize.value
           : null;
       val.crackFacadeLeftRestored =
-        this.crackFacadeLeftEnabled && this.fields.crackFacadeLeftRestored.value
-          ? this.fields.crackFacadeLeftRestored.value
-          : null;
+        this.crackFacadeLeftEnabled
+        ? this.fields.crackFacadeLeftRestored.value
+        : null;
 
       // FacadeRight
       val.crackFacadeRightType =
-        this.crackFacadeRightEnabled && this.fields.crackFacadeRightType.value
+        this.crackFacadeRightEnabled && this.fields.crackFacadeRightType.value !== null
           ? this.fields.crackFacadeRightType.value
           : null;
       val.crackFacadeRightSize =
-        this.crackFacadeRightEnabled && this.fields.crackFacadeRightSize.value
+        this.crackFacadeRightEnabled && this.fields.crackFacadeRightSize.value !== null
           ? this.fields.crackFacadeRightSize.value
           : null;
-      val.crackFacadeRightRestored =
-        this.crackFacadeRightEnabled &&
-        this.fields.crackFacadeRightRestored.value
-          ? this.fields.crackFacadeRightRestored.value
-          : null;
+      val.crackFacadeRightRestored = this.crackFacadeRightEnabled
+        ? this.fields.crackFacadeRightRestored.value
+        : null;
 
       this.$emit("input", val);
       this.$emit("save", { sample: val, next: next });
     },
     async initialize(sample) {
       if (sample) {
-        this.setFieldValues({
-          // Indoor
-          crackIndoorType: sample.crackIndoorType,
-          crackIndoorSize: sample.crackIndoorSize,
-          crackIndoorRestored: sample.crackIndoorRestored,
-          // FacadeFront
-          crackFacadeFrontType: sample.crackFacadeFrontType,
-          crackFacadeFrontSize: sample.crackFacadeFrontSize,
-          crackFacadeFrontRestored: sample.crackFacadeFrontRestored,
-          // FacadeBack
-          crackFacadeBackType: sample.crackFacadeBackType,
-          crackFacadeBackSize: sample.crackFacadeBackSize,
-          crackFacadeBackRestored: sample.crackFacadeBackRestored,
-          // FacadeLeft
-          crackFacadeLeftType: sample.crackFacadeLeftType,
-          crackFacadeLeftSize: sample.crackFacadeLeftSize,
-          crackFacadeLeftRestored: sample.crackFacadeLeftRestored,
-          // FacadeRight
-          crackFacadeRightType: sample.crackFacadeRightType,
-          crackFacadeRightSize: sample.crackFacadeRightSize,
-          crackFacadeRightRestored: sample.crackFacadeRightRestored
-        });
+        (this.crackIndoorEnabled = sample.crackIndoorType !== null),
+          (this.crackFacadeFrontEnabled = sample.crackFacadeFrontType !== null),
+          (this.crackFacadeBackEnabled = sample.crackFacadeBackType !== null),
+          (this.crackFacadeLeftEnabled = sample.crackFacadeLeftType !== null),
+          (this.crackFacadeRightEnabled = sample.crackFacadeRightType !== null),
+          this.setFieldValues({
+            // Indoor
+            crackIndoorType: sample.crackIndoorType,
+            crackIndoorSize: sample.crackIndoorSize,
+            crackIndoorRestored: sample.crackIndoorRestored,
+            // FacadeFront
+            crackFacadeFrontType: sample.crackFacadeFrontType,
+            crackFacadeFrontSize: sample.crackFacadeFrontSize,
+            crackFacadeFrontRestored: sample.crackFacadeFrontRestored,
+            // FacadeBack
+            crackFacadeBackType: sample.crackFacadeBackType,
+            crackFacadeBackSize: sample.crackFacadeBackSize,
+            crackFacadeBackRestored: sample.crackFacadeBackRestored,
+            // FacadeLeft
+            crackFacadeLeftType: sample.crackFacadeLeftType,
+            crackFacadeLeftSize: sample.crackFacadeLeftSize,
+            crackFacadeLeftRestored: sample.crackFacadeLeftRestored,
+            // FacadeRight
+            crackFacadeRightType: sample.crackFacadeRightType,
+            crackFacadeRightSize: sample.crackFacadeRightSize,
+            crackFacadeRightRestored: sample.crackFacadeRightRestored,
+          });
       }
-    }
-  }
+    },
+  },
 };
 </script>

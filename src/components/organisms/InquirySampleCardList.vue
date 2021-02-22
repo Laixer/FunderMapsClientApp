@@ -42,7 +42,7 @@ export default {
   methods: {
     select(sample) {
       if (sample === this.value) {
-        this.$emit("input", null);
+        return
       } else {
         this.$emit("input", sample);
       }

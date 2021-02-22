@@ -10,8 +10,8 @@
       <div v-if="samples.length !== 0" class="Report__samples">
         <Sample v-for="(sample, index) in samples" :key="index" :sample="sample" />
       </div>
-      <div v-else-if="nosamples" class="text-center mt-4">Deze rapportage bevat nog geen samples</div>
-      <div class="text-center mt-4" v-else>De addres gegevens worden geladen...</div>
+      <div v-else-if="nosamples" class="text-center mt-4">Deze rapportage bevat nog geen adresgegevens</div>
+      <div class="text-center mt-4" v-else>De adresgegevens worden geladen...</div>
     </div>
 
     <div
@@ -49,13 +49,15 @@ export default {
   data() {
     return {
       feedback: {},
-      nosamples: false,
       isDisabled: false
     };
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
+    nosamples() {
+      return this.samples.length === 0;
+    },
     previousStep() {
       // TODO When is this ever useful?
       let report = this.activeReport
@@ -101,9 +103,6 @@ export default {
 
       await this.getSamples({ inquiryId: this.activeReport.id });
 
-      if (this.samples.length === 0) {
-        this.nosamples = true;
-      }
     } catch (err) {
       this.feedback = {
         variant: "danger",

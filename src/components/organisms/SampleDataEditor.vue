@@ -92,7 +92,7 @@ import {
   foundationQualityOptions,
   enforcementTermOptions,
   substructureOptions,
-  foundationDamageCauseOptions,
+  damageCauseOptions,
   BaseMeasurementLevelOptions
 } from "config/enums";
 
@@ -239,7 +239,7 @@ export default {
               value: null,
               text: "Selecteer een optie"
             }
-          ].concat(foundationDamageCauseOptions),
+          ].concat(damageCauseOptions),
           validationRules: {
             required
           }
@@ -360,7 +360,7 @@ export default {
         name: "recoveryAdvised"
       }),
       damageCause: this.optionValue({
-        options: foundationDamageCauseOptions,
+        options: damageCauseOptions,
         name: "damageCause"
       }),
       enforcementTerm: this.optionValue({

@@ -49,8 +49,6 @@ export default {
      */
     isValid() {
       return this.fields.every(field => {
-        console.log(field, field.isValid());
-
         return field.isValid()
       });
     },

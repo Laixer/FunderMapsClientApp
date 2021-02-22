@@ -1,6 +1,8 @@
 <template>
   <section class="upload">
     <div class="container">
+      <ReportStepHeader :step="2" label="Funderingsgegevens" />
+
       <div class="upload-row my-4">
         <div class="upload-col-4">
           <a @click="handleAddSample" class="btn btn-add">Adres toevoegen</a>
@@ -13,16 +15,10 @@
       </div>
       <div class="upload-row">
         <div class="upload-col-4 pr-4">
-          <InquirySampleCardList
-            v-if="samples.length > 0"
-            v-model="activeSample"
-            :samples="samples"
-            :feedback="feedback"
-          />
-          <div v-else-if="nosamples" class="text-center mt-4">
+          <div v-if="nosamples" class="text-center mt-4">
             Deze rapportage bevat nog geen adressen
           </div>
-          <div v-else class="text-center mt-4">
+          <div v-else-if="samples.length === 0" class="text-center mt-4">
             De adresgegevens worden geladen...
           </div>
           <div
@@ -35,9 +31,16 @@
             </span>
             <Feedback :feedback="feedback" />
           </div>
+          <InquirySampleCardList
+            v-else-if="samples.length > 0"
+            v-model="activeSample"
+            :samples="samples"
+            :feedback="feedback"
+          />
         </div>
         <div class="upload-col-8">
           <InquirySampleDetailsEditor
+            v-if="activeSample"
             v-model="activeSample"
             :activeReport="activeReport"
           />
@@ -49,6 +52,7 @@
 
 <script>
 import Feedback from "atom/Feedback";
+import ReportStepHeader from "atom/ReportStepHeader";
 import InquirySampleCardList from "organism/InquirySampleCardList";
 import InquirySampleDetailsEditor from "organism/InquirySampleDetailsEditor";
 
@@ -63,19 +67,22 @@ export default {
     Feedback,
     InquirySampleCardList,
     InquirySampleDetailsEditor,
+    ReportStepHeader,
   },
   data() {
     return {
       feedback: {},
       activeSample: null,
       selectedSampleAddress: null,
-      nosamples: false,
       isDisabled: false,
     };
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
+    nosamples() {
+      return this.samples.length === 0;
+    },
     selectedSampleAddressFormatted() {
       return this.selectedSampleAddress
         ? this.selectedSampleAddress.format()
@@ -183,25 +190,22 @@ export default {
           }
         })
         // TODO: Error
-        .catch((err) => console.error(err));
+        .catch(() => {
+          this.feedback = {
+            variant: "danger",
+            message: "Het adres kon niet worden verwijderd.",
+          };
+        });
     },
-    async copySample(sample) {
-      await this.createSample({
-        inquiryId: this.activeReport.id,
-        data: sample,
-      })
-        .then(
-          async (_id) => {
-            await this.getSamples({ inquiryId: this.activeReport.id })
-            console.log(this.samples.find(x => x.id === _id | null));
-            this.activeSample = this.samples.find(x => x.id === _id);
-          }
-        )
-        // TODO: Error
-        .catch(() => console.log("error"));
+    copySample(sample) {
+      const _sample = Object.assign({}, sample);
+      _sample.id = null;
+      _sample.address = null;
+      console.log(_sample, sample);
+      this.addUnsavedSample({ data: _sample });
     },
-    handleAddSample() {
-      this.addUnsavedSample();
+    handleAddSample(data) {
+      this.addUnsavedSample({ data });
     },
     async saveAllSamples() {
       return await Promise.all(

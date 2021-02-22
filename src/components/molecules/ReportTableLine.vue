@@ -7,7 +7,7 @@
         :style="{ 'backgroundColor': report.statusColor() }"
         class="ReportTableLine__status mx-auto"></div>
     </td>
-    <td class="py-1 flex-grow-1">
+    <td class="py-1">
       <strong>{{ report.label() }}</strong>
     </td>
     <td>{{ userObject ? userObject.getUserName() : 'Unknown' }}</td>
@@ -19,9 +19,9 @@
     </td>
     <td class="d-flex justify-content-end">
       <button
+        v-if="editable"
         type="button"
         class="btn btn-default"
-        v-if="editable"
         @click.stop="handleEdit">
         Bewerk
       </button>
@@ -100,7 +100,6 @@ export default {
 
 <style lang="scss">
 .ReportTableLine {
-  width: 100%;
   background: white;
   border: 1px solid #DFE2E5;
   border-radius: 4px;
@@ -113,6 +112,10 @@ export default {
   &:hover {
     box-shadow: 0 0 15px 0 rgba(158, 169, 184, 0.7);
     transform: scale(1);
+  }
+
+  .badge {
+    width: 200px;
   }
 
   &__status {
@@ -128,6 +131,7 @@ export default {
 
   .btn {
     color: #7F8FA4;
+    width: 100%;
 
     &:hover, &:active {
       color: darken(#7F8FA4, 10%)

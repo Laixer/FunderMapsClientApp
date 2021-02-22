@@ -14,7 +14,7 @@ import samplesAPI from 'api/samples';
  * Declare Variable
  */
 const state = {
-  samples : []
+  samples: []
 }
 
 const getters = {
@@ -38,8 +38,8 @@ const actions = {
   async clearSamples({ commit }) {
     commit('clear_samples')
   },
-  async addUnsavedSample({ commit }) {
-    commit('add_unsaved_sample')
+  async addUnsavedSample({ commit }, { data }) {
+    commit('add_unsaved_sample', { sample: data })
   },
   async updateSample({ commit }, { inquiryId, sampleId, data }) {
     delete data.createDate;
@@ -86,7 +86,7 @@ const actions = {
 }
 const mutations = {
   set_samples(state, { samples }) {
-    state.samples = samples.sort((a, b) => (a.createDate > b.createDate) ? 1 : -1).map( sample => {
+    state.samples = samples.sort((a, b) => (a.createDate > b.createDate) ? 1 : -1).map(sample => {
       return new SampleModel({ sample, stored: true })
     })
   },
@@ -96,10 +96,12 @@ const mutations = {
   /**
    * Create a new, empty sample
    */
-  add_unsaved_sample(state) {
-    const sample = new SampleModel({ sample: {}, stored: false, editorState: 'open' });
-    sample.creationstamp = Date.now();
-    state.samples.push(sample)
+  add_unsaved_sample(state, { sample }) {
+    const _sample = new SampleModel({ sample: sample ? sample : {}, stored: false, editorState: 'open' });
+    console.log(_sample, sample);
+
+    _sample.creationstamp = Date.now();
+    state.samples.push(_sample)
   },
   /**
    * Update sample data in store (after positive API response)

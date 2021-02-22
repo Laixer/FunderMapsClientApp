@@ -1,17 +1,16 @@
 <template>
   <div
-    class="address-card"
+    :class="classList"
+    class="SampleLine d-flex align-items-center"
     @click="togglePanel">
 
-    <span class="address-card__title" v-if="address" :title="address.format()">
-      {{ address.format() }}
+    <span class="SampleLine__address flex-grow-1">
+      {{ addressFormatted }}
     </span>
 
-    <span class="address-card__title" v-else title="Nieuw adres">Nieuw adres</span>
-
-    <span
+    <div
       v-if="editMode"
-      class="address-card__actions">
+      class="SampleLine__edit d-flex align-items-center mr-3 pr-3">
       <b-button
         v-if="open"
         size="sm"
@@ -25,19 +24,16 @@
         width="16"
         height="16"
         @click.prevent.stop="$emit('delete')" />
-    </span>
+    </div>
 
-      <div class="address-card__progress">
-         <div class="address-card__progress-indicator--2"></div>
-      </div>
+    <img :src="arrow" width="10" height="10" />
+
   </div>
 </template>
 
 <script>
-
 import { icon } from 'helper/assets'
 import { mapActions } from 'vuex'
-
 export default {
   props: {
     addressId: {
@@ -59,12 +55,12 @@ export default {
     }
   },
   computed: {
-    // classList() {
-    //   return {
-    //     // 'SampleLine--open': !! this.open,
-    //     'SampleLine--edit': !! this.editMode
-    //   }
-    // },
+    classList() {
+      return {
+        // 'SampleLine--open': !! this.open,
+        'SampleLine--edit': !! this.editMode
+      }
+    },
     arrow() {
       let name = this.open
         ? 'ArrowUp-icon.svg'
@@ -73,6 +69,9 @@ export default {
     },
     delIcon() {
       return icon('Delete-icon.svg');
+    },
+    addressFormatted: function() {
+      return this.address ? this.address.format() : 'Nieuw adres'
     }
   },
   methods: {
@@ -98,5 +97,17 @@ export default {
 </script>
 
 <style lang="scss">
-
+.SampleLine {
+  height: 60px;
+  padding: 0 30px;
+  background-color: white;
+  cursor: pointer;
+  // &--open &__address {
+  //   font-weight: 600;
+  // }
+  &__edit {
+    border-right: 1px solid #E8EAF1;
+    height: 30px;
+  }
+}
 </style>

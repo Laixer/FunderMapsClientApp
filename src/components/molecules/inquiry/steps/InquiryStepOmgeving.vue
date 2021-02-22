@@ -11,13 +11,28 @@
     <div class="form-row">
       <div class="col">
         <FormField v-model="fields.cpt.value" v-bind="fields.cpt" />
-        <FormField v-model="fields.groundLevel.value" v-bind="fields.groundLevel" />
-        <FormField v-model="fields.groundwaterLevelNet.value" v-bind="fields.groundwaterLevelNet" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="col">
+        <FormField
+          v-model="fields.groundLevel.value"
+          v-bind="fields.groundLevel"
+        />
+        <FormField
+          v-model="fields.groundwaterLevelNet.value"
+          v-bind="fields.groundwaterLevelNet"
+        />
       </div>
       <div class="col">
-        <FormField v-model="fields.baseMeasurementLevel.value" v-bind="fields.baseMeasurementLevel" />
-        <FormField v-model="fields.monitoringWell.value" v-bind="fields.monitoringWell" />
-        <FormField v-model="fields.groundwaterLevelTemp.value" v-bind="fields.groundwaterLevelTemp" />
+        <FormField
+          v-model="fields.monitoringWell.value"
+          v-bind="fields.monitoringWell"
+        />
+        <FormField
+          v-model="fields.groundwaterLevelTemp.value"
+          v-bind="fields.groundwaterLevelTemp"
+        />
       </div>
     </div>
   </InquirySampleStep>
@@ -26,17 +41,16 @@
 <script>
 import {
   decimal,
-  maxLength, maxValue, minValue
+  maxLength,
+  maxValue,
+  minValue,
 } from "vuelidate/lib/validators";
-import { BaseMeasurementLevelOptions } from "config/enums";
 import Feedback from "atom/Feedback";
 
 import InquirySampleStep from "molecule/inquiry/InquirySampleStep";
 import FormField from "molecule/form/FormField";
 
 import fields from "mixin/fields";
-
-import { mapActions } from "vuex";
 
 export default {
   components: {
@@ -75,13 +89,6 @@ export default {
             maxLength: maxLength(128),
           },
         },
-        baseMeasurementLevel: {
-          label: "Referentieniveau",
-          type: "select",
-          value: 0,
-          options: BaseMeasurementLevelOptions,
-          validationRules: {},
-        },
         groundLevel: {
           label: "Maaiveldniveau",
           type: "text", // TODO: int
@@ -89,7 +96,7 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
+            minValue: minValue(-999),
           },
         },
         monitoringWell: {
@@ -107,8 +114,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         groundwaterLevelTemp: {
           label: "Grondwaterniveau bij ontgraving",
@@ -117,9 +124,9 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
-        }
+            minValue: minValue(-999),
+          },
+        },
       },
     };
   },
@@ -135,35 +142,27 @@ export default {
     await this.initialize(this.value);
   },
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
-    optionValue({ options, name }) {
-      let key = this.value[name];
-      return options[key] ? options[key].value : null;
-    },
     save(next) {
       const val = this.value;
       val.cpt = this.fields.cpt.value;
-      val.baseMeasurementLevel = this.fields.baseMeasurementLevel.value;
       val.groundLevel = this.fields.groundLevel.value;
       val.monitoringWell = this.fields.monitoringWell.value;
       val.groundwaterLevelNet = this.fields.groundwaterLevelNet.value;
       val.groundwaterLevelTemp = this.fields.groundwaterLevelTemp.value;
       this.$emit("input", val);
-      this.$emit("save", { sample: val, next: next});
+      this.$emit("save", { sample: val, next: next });
     },
     async initialize(sample) {
       if (sample) {
         this.setFieldValues({
           cpt: sample.cpt,
-          baseMeasurementLevel: sample.baseMeasurementLevel,
           groundLevel: sample.groundLevel,
           monitoringWell: sample.monitoringWell,
           groundwaterLevelNet: sample.groundwaterLevelNet,
-          groundwaterLevelTemp: sample.groundwaterLevelTemp
+          groundwaterLevelTemp: sample.groundwaterLevelTemp,
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>

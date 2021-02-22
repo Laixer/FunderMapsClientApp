@@ -154,6 +154,7 @@ $progress: (
 );
 
 .address-card {
+  cursor: pointer;
   position: relative;
   display: flex;
   flex-direction: row;
@@ -175,6 +176,9 @@ $progress: (
     .address-card {
       &__icon {
         fill: $primary;
+        &:hover {
+          fill: $secondary;
+        }
       }
     }
   }

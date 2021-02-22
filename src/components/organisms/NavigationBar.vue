@@ -45,5 +45,6 @@ export default {
   width: 100%;
   background-color: $white;
   border-top: 1px solid $mischka;
+  z-index: 999;
 }
 </style>

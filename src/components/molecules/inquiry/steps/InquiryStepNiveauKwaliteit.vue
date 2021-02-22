@@ -75,8 +75,6 @@ import FormField from "molecule/form/FormField";
 
 import fields from "mixin/fields";
 
-import { mapActions } from "vuex";
-
 export default {
   components: {
     InquirySampleStep,
@@ -207,8 +205,6 @@ export default {
     await this.initialize(this.value);
   },
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     isWood,
     save(next) {
       const val = this.value;

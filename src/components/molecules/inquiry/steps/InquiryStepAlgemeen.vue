@@ -167,16 +167,26 @@ export default {
       val.substructure = this.fields.substructure.value;
       val.recoveryAdvised = this.fields.recoveryAdvised.value;
       this.$emit("input", val);
-      this.$emit("save", { sample: val, next: next});
+      this.$emit("save", { sample: val, next: next });
     },
     async initialize(sample) {
       if (sample) {
         this.internalFeedback = sample.stored
           ? {}
-          : this.feedback ? {} : {
+          : this.feedback
+          ? {}
+          : {
               variant: "info",
               message: "Let op: Dit adres is nog niet opgeslagen",
             };
+
+        this.setFieldValues({
+          substructure: sample.substructure,
+          builtYear: sample.builtYear
+            ? new Date(sample.builtYear).getFullYear()
+            : null,
+          recoveryAdvised: sample.recoveryAdvised,
+        });
 
         if (sample.address !== null) {
           let addressFetched = await this.getAddressById({
@@ -188,19 +198,6 @@ export default {
           this.fields.address.value = null;
           this.fields.address.selected = null;
         }
-
-        this.setFieldValues({
-          substructure: this.optionValue({
-            options: substructureOptions,
-            name: "substructure",
-          }),
-          builtYear: sample.builtYear
-            ? new Date(sample.builtYear).getFullYear()
-            : null,
-          recoveryAdvised: this.booleanValue({
-            name: "recoveryAdvised",
-          }),
-        });
       }
     },
     booleanValue({ name }) {

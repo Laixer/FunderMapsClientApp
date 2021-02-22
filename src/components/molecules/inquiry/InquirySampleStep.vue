@@ -1,5 +1,9 @@
 <template>
-  <div :class="`upload-step${ isActive ? ' upload-step--active' : ''}${ isCompleted ? ' upload-step--completed' : ''}`">
+  <div
+    :class="`upload-step${isActive ? ' upload-step--active' : ''}${
+      isCompleted ? ' upload-step--completed' : ''
+    }`"
+  >
     <a class="upload-step-dropdown" @click="$emit('select')">
       <h5 class="upload-step__title">{{ title }}</h5>
 
@@ -24,7 +28,9 @@
     <Form ref="form" class="upload-form" v-if="isActive" @submit="handleSubmit">
       <Feedback :feedback="feedback" />
       <slot />
-      <a @click.prevent.stop="next" class="btn btn-continue">Verder</a>
+      <a @click.prevent.stop="next" class="btn btn-continue"
+        >{{ lastStep ? "Gereed" : "Verder" }}
+      </a>
     </Form>
   </div>
 </template>
@@ -32,7 +38,6 @@
 <script>
 import Form from "molecule/form/Form";
 import Feedback from "atom/Feedback";
-import { EventBus } from "utils/eventBus.js";
 
 export default {
   name: "InquirySampleStep",
@@ -40,41 +45,50 @@ export default {
     Form,
     // FormField,
     // Divider,
-    Feedback
+    Feedback,
   },
   props: {
     title: {
       type: String,
-      required: true
+      required: true,
     },
     isActive: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isCompleted: {
       type: Boolean,
-      default: false
+      default: false,
+    },
+    lastStep: {
+      type: Boolean,
+      default: false,
     },
     feedback: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   methods: {
     next() {
-      console.log("submit")
       this.$refs.form.submit();
     },
     handleSubmit() {
-      console.log("save")
       this.$emit("save", true);
-    }
+    },
+  },
+  mounted() {
+    this.$nextTick(() => {
+      if (this.$refs.form) {
+        this.$refs.form.resetValidation();
+      }
+    });
   },
   data() {
     return {
       isDisabled: false,
-      stored: false
+      stored: false,
     };
-  }
+  },
 };
 </script>

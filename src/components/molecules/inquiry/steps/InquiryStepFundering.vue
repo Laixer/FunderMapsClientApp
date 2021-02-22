@@ -35,15 +35,16 @@
           v-bind="fields.damageCharacteristics"
         />
         <FormField
-          v-if="fields.damageCharacteristics.value !== null"
+          :disabled="!fields.damageCharacteristics.value"
           v-model="fields.damageCause.value"
           v-bind="fields.damageCause"
         />
       </div>
     </div>
-    <div class="form-row" v-if="isNoPile(fields.foundationType.value)">
+    <div class="form-row">
       <div class="col">
         <FormField
+          :disabled="!isNoPile(fields.foundationType.value)"
           v-model="fields.foundationDepth.value"
           v-bind="fields.foundationDepth"
         />
@@ -53,14 +54,19 @@
 </template>
 
 <script>
-import { decimal, numeric, maxLength, required } from "vuelidate/lib/validators";
+import {
+  decimal,
+  numeric,
+  maxLength,
+  required,
+} from "vuelidate/lib/validators";
 import {
   enforcementTermOptions,
   damageCharacteristicsOptions,
   foundationQualityOptions,
   damageCauseOptions,
   foundationTypeOptions,
-  isNoPile
+  isNoPile,
 } from "config/enums";
 import Feedback from "atom/Feedback";
 
@@ -69,31 +75,29 @@ import FormField from "molecule/form/FormField";
 
 import fields from "mixin/fields";
 
-import { mapActions } from "vuex";
-
 export default {
   components: {
     InquirySampleStep,
     FormField,
-    Feedback
+    Feedback,
   },
   mixins: [fields],
   props: {
     isActive: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isCompleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     value: {
-      type: Object
+      type: Object,
     },
     feedback: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   data() {
     return {
@@ -107,13 +111,13 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(foundationTypeOptions),
           validationRules: {
             numeric,
-            required
-          }
+            required,
+          },
         },
         enforcementTerm: {
           label: "Handhavingstermijn",
@@ -122,14 +126,14 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(
-            enforcementTermOptions.filter(x =>
+            enforcementTermOptions.filter((x) =>
               [3, 4, 5, 6, 7].includes(x.value)
             )
           ),
-          validationRules: {}
+          validationRules: {},
         },
         damageCharacteristics: {
           label: "Geconstateerde schade",
@@ -138,10 +142,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(damageCharacteristicsOptions),
-          validationRules: {}
+          validationRules: {},
         },
         overallQuality: {
           label: "Algehele funderingskwaliteit",
@@ -150,13 +154,13 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(foundationQualityOptions),
           validationRules: {
             decimal,
-            maxLength: maxLength(10)
-          }
+            maxLength: maxLength(10),
+          },
         },
         damageCause: {
           label: "Oorzaak funderingsschade",
@@ -165,12 +169,12 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(damageCauseOptions),
           validationRules: {
-            maxLength: maxLength(128)
-          }
+            maxLength: maxLength(128),
+          },
         },
         foundationDepth: {
           label: "Funderingsdiepte",
@@ -178,10 +182,10 @@ export default {
           value: null,
           validationRules: {
             decimal,
-            maxLength: maxLength(10)
-          }
-        }
-      }
+            maxLength: maxLength(10),
+          },
+        },
+      },
     };
   },
   watch: {
@@ -189,16 +193,14 @@ export default {
       async handler(newValue) {
         await this.initialize(newValue);
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   async created() {
     await this.initialize(this.value);
   },
   methods: {
     isNoPile,
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     save(next) {
       const val = this.value;
       val.foundationType = this.fields.foundationType.value;
@@ -208,10 +210,9 @@ export default {
       val.damageCause = this.fields.damageCharacteristics.value
         ? this.fields.damageCause.value
         : null;
-      val.foundationDepth =
-        isNoPile(this.value.foundationType)
-          ? this.fields.foundationDepth.value
-          : null;
+      val.foundationDepth = isNoPile(this.value.foundationType)
+        ? this.fields.foundationDepth.value
+        : null;
       this.$emit("input", val);
       this.$emit("save", { sample: val, next: next });
     },
@@ -223,10 +224,10 @@ export default {
           damageCharacteristics: sample.damageCharacteristics,
           overallQuality: sample.overallQuality,
           damageCause: sample.damageCause,
-          foundationDepth: sample.foundationDepth
+          foundationDepth: sample.foundationDepth,
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>

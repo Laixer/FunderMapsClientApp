@@ -34,7 +34,7 @@
           v-bind="fields.pileDiameterBottom"
         />
         <FormField
-          v-if="isWoodCharger(value.foundationType)"
+          :disabled="!isWoodCharger(value.foundationType)"
           v-model="fields.concreteChargerLength.value"
           v-bind="fields.concreteChargerLength"
         />
@@ -90,8 +90,6 @@ import InquirySampleStep from "molecule/inquiry/InquirySampleStep";
 import FormField from "molecule/form/FormField";
 
 import fields from "mixin/fields";
-
-import { mapActions } from "vuex";
 
 export default {
   components: {
@@ -301,8 +299,6 @@ export default {
     await this.initialize(this.value);
   },
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     isWood,
     isWoodCharger,
     save(next) {
