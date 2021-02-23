@@ -1,0 +1,22 @@
+$done: url("data:image/svg+xml,%3Csvg height='10' viewBox='0 0 12 10' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m456.921953 31.9073174-2.751221-2.7317059-1.170732 1.1707301 3.921953 3.9219525 8.078047-8.0780497-1.17073-1.1902444z' fill='%23fff' fill-rule='evenodd' transform='translate(-453 -25)'/%3E%3C/svg%3E"), $shamrock;
+
+// Statusses
+$statusses: (
+  "done": $done,
+  "pending": $buttercup,
+  "denied": $sunset-orange,
+);
+
+@each $name, $val in $statusses {
+  .status--#{$name} {
+    position: relative;
+    background: $val;
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin: 0 auto;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+}

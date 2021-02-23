@@ -1,0 +1,110 @@
+@import "dropdown";
+@import "overview/overview";
+
+$progress: (
+  1: $shamrock,
+  2: $shamrock,
+  3: $shamrock,
+  4: $shamrock,
+  5: $shamrock,
+  6: $shamrock,
+  7: $shamrock,
+);
+
+.upload-step {
+  &--active {
+    background-color: $white;
+    border-radius: 5px;
+    border: 1px solid $mischka;
+
+    .upload-step,
+    .upload-step-overview {
+      &__title {
+        font-family: $headings-font-family;
+        font-weight: 700;
+        color: $secondary;
+      }
+    }
+
+    .upload-form,
+    .upload-step-overview {
+      background-color: $catskill-white;
+    }
+  }
+
+  &--completed {
+    margin-bottom: 35px;
+    background-color: transparentize($color: $white, $amount: 0.5);
+    border: 1px solid transparentize($color: $mischka, $amount: 0.5);
+
+    .upload-step {
+      &__title {
+        color: $secondary;
+      }
+    }
+  }
+
+  & + & {
+    margin-top: 11px;
+  }
+
+  &__title {
+    display: inline-block;
+    margin-bottom: 0;
+    line-height: 26px;
+    font-family: $font-family-base;
+    font-weight: 400;
+    color: $regent-gray;
+    text-transform: capitalize;
+
+    .page-renovate & {
+      color: $secondary;
+      font-size: $h5-font-size !important;
+    }
+  }
+
+  &__progress {
+    height: 4px;
+    width: 100%;
+    background-color: $mischka;
+    border-radius: 15px;
+    max-width: 100px;
+
+    @each $stage, $color in $progress {
+      &-indicator--#{$stage} {
+        width: calc((100% / 7) * #{$stage});
+        height: 4px;
+        border-radius: 10px;
+        background-color: $color;
+      }
+    }
+  }
+
+  &__heading-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .file-type {
+    position: relative;
+    display: inline-block;
+    margin-left: -15px;
+    margin-right: 20px;
+
+    &__name {
+      background-color: $regent-gray;
+      font-family: $headings-font-family;
+      font-weight: $headings-font-weight;
+      color: $white;
+      display: inline-block;
+      font-size: 10px;
+      position: absolute;
+      padding: 2px 3px 1px;
+      line-height: 10px;
+      bottom: 5px;
+      left: 10px;
+      border-radius: 2px;
+    }
+  }
+}
+//      transform: translateY(-3px) rotate(180deg);

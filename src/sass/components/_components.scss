@@ -1,0 +1,25 @@
+//
+// Component base
+//
+
+// Bootstrap components (with extends)
+@import "button";
+@import "custom-forms";
+@import "form";
+@import "media";
+@import "modal";
+@import "table";
+
+// Site components
+@import "header";
+@import "navbar";
+@import "content";
+@import "status";
+@import "pagination";
+@import "label";
+@import "page/page";
+@import "login/login";
+@import "upload/upload";
+// @import "address/address";
+@import "dashboard/dashboard";
+@import "search/search";

@@ -15,12 +15,13 @@ import Layout from "./views/layouts/layouts.vue";
 })
 export default class App extends Vue {}
 </script>
-
 <style lang="scss">
+@import "~@/sass/common/common";
+
 html,
 body {
   height: 100%;
-  font-family: "Gibson" !important;
+  font-family: $font-family-base;
   font-size: 14px;
 }
 html {

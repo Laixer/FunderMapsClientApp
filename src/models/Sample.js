@@ -3,7 +3,7 @@ import {
   foundationTypeOptions,
   foundationQualityOptions,
   substructureOptions,
-  foundationDamageCauseOptions,
+  damageCauseOptions,
   enforcementTermOptions,
   BaseMeasurementLevelOptions,
   accessOptions
@@ -14,37 +14,83 @@ import {
  */
 
 let structure = {
-  id: '',
-  report: '',
-  foundationType: null,
-  foundationQuality: null,
-  substructure: null,
-  monitoringWell: '',
-  cpt: '',
-  note: '',
-  woodLevel: null,
-  groundwaterLeveTemp: null,
-  groundLevel: null,
-  recoveryAdvised: false,
-  foundationDamageCause: null,
-  builtYear: '',
-  enforcementTerm: null,
-  baseMeasurementLevel: null,
+  id: null,
+  inquiry: null,
   address: null,
-  policy: 0,
-  createDate: '',
-  updateDate: '',
-  deleteDate: ''
+  builtYear: null,
+  carryingCapacityQuality: null,
+  concreteChargerLength: null,
+  constructionLevel: null,
+  constructionPile: null,
+  constructionQuality: null,
+  cpt: null,
+  crackFacadeBackRestored: null,
+  crackFacadeBackSize: null,
+  crackFacadeBackType: null,
+  crackFacadeFrontRestored: null,
+  crackFacadeFronSize: null,
+  crackFacadeFronType: null,
+  crackFacadeLeftRestored: null,
+  crackFacadeLeftSize: null,
+  crackFacadeLeftType: null,
+  crackFacadeRightRestored: null,
+  crackFacadeRightSize: null,
+  crackFacadeRightType: null,
+  crackIndoorRestored: null,
+  crackIndoorSize: null,
+  crackIndoorType: null,
+  createDate: null,
+  camageCause: null,
+  camageCharacteristics: null,
+  ceformedFacadee: null,
+  celeteDate: null,
+  enforcementTerm: null,
+  foundationDepth: null,
+  foundationType: null,
+  groundLevel: null,
+  groundwaterLevelNet: null,
+  groundwaterLevelTemp: null,
+  masonLevel: null,
+  masonQuality: null,
+  monitoringWell: null,
+  note: null,
+  overallQuality: null,
+  pileDiameterBottom: null,
+  pileDiameterTop: null,
+  pileDistanceLength: null,
+  pileHeadLevel: null,
+  pileTipLevel: null,
+  pileWoodCapacityVerticalQuality: null,
+  recoveryAdvised: null,
+  settlementSpeed: null,
+  skewedFacade: null,
+  skewedParallel: null,
+  skewedPerpendicular: null,
+  substructure: null,
+  thresholdBackLevel: null,
+  thresholdFrontLevel: null,
+  thresholdUpdownSkewed: null,
+  updateDate: null,
+  woodCapacityHorizontalQuality: null,
+  woodEncroachement: null,
+  woodLevel: null,
+  woodPenetrationDepth: null,
+  woodQuality: null,
+  woodQualityNecessity: null,
+  woodType: null,
+  skewedWindowFrame: null
 }
 
 export default class SampleModel {
   constructor({ sample, stored, editorState }) {
-    Object.assign(this, structure, sample);
+    Object.assign(this, structure);
+    Object.assign(this, sample);
+
     this.stored = stored;
     this.editorState = editorState || 'close';
   }
   updateValues({ data }) {
-    Object.assign(this, structure, data);
+    Object.assign(this, data);
   }
   // ****************************************************************************
   //  Editor states
@@ -68,7 +114,7 @@ export default class SampleModel {
     return substructureOptions[this.substructure] || null;
   }
   getFoundationDamageCause() {
-    return foundationDamageCauseOptions[this.damageCause] || null;
+    return damageCauseOptions[this.damageCause] || null;
   }
   // Note: returns an object {text, value}
   getEnforcementTerm() {

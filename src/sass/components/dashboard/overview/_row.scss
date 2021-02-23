@@ -1,0 +1,15 @@
+.dashboard-overview-row {
+  display: table-row;
+  vertical-align: middle;
+  text-decoration: none;
+  transition: box-shadow ease-in-out 0.18s;
+  color: $body-color;
+  text-align: left;
+  border-radius: 4px;
+
+  &:hover {
+    text-decoration: none;
+    box-shadow: 0 10px 20px 0 rgba(127, 143, 164, 0.5);
+    color: $body-color;
+  }
+}

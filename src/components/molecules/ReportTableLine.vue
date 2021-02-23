@@ -1,34 +1,36 @@
 <template>
-  <tr 
+  <tr
     class="ReportTableLine d-flex align-items-center p-2 mb-2"
     @click="openReport">
     <td scope="row" class="py-1">
-      <div 
+      <div
         :style="{ 'backgroundColor': report.statusColor() }"
         class="ReportTableLine__status mx-auto"></div>
     </td>
-    <td class="py-1 flex-grow-1">
+    <td class="py-1">
       <strong>{{ report.label() }}</strong>
     </td>
     <td>{{ userObject ? userObject.getUserName() : 'Unknown' }}</td>
     <td>{{ report.date() }}</td>
     <td>
-      <TypeTag 
-        v-if="report.hasType()" 
+      <TypeTag
+        v-if="report.hasType()"
         :type="report.getType()" />
     </td>
     <td class="d-flex justify-content-end">
-      <b-button
+      <button
         v-if="editable"
-        variant="light"
+        type="button"
+        class="btn btn-default"
         @click.stop="handleEdit">
         Bewerk
-      </b-button>
-      <b-button
+      </button>
+      <button
         v-else
-        variant="light">
+        type="button"
+        class="btn btn-default">
         Bekijk
-      </b-button>
+      </button>
     </td>
   </tr>
 </template>
@@ -75,21 +77,21 @@ export default {
   },
   methods: {
     openReport() {
-      this.$router.push({ 
-        name: 'view-report', 
-        params: { 
-          id: this.report.id, 
-          document: this.report.documentId 
-        } 
+      this.$router.push({
+        name: 'view-report',
+        params: {
+          id: this.report.id,
+          document: this.report.documentId
+        }
       })
     },
     handleEdit() {
-      this.$router.push({ 
-        name: 'edit-report-1', 
-        params: { 
-          id: this.report.id, 
-          document: this.report.documentId 
-        } 
+      this.$router.push({
+        name: 'edit-report-1',
+        params: {
+          id: this.report.id,
+          document: this.report.documentId
+        }
       })
     }
   }
@@ -98,7 +100,6 @@ export default {
 
 <style lang="scss">
 .ReportTableLine {
-  width: 100%;
   background: white;
   border: 1px solid #DFE2E5;
   border-radius: 4px;
@@ -111,6 +112,10 @@ export default {
   &:hover {
     box-shadow: 0 0 15px 0 rgba(158, 169, 184, 0.7);
     transform: scale(1);
+  }
+
+  .badge {
+    width: 200px;
   }
 
   &__status {
@@ -126,6 +131,7 @@ export default {
 
   .btn {
     color: #7F8FA4;
+    width: 100%;
 
     &:hover, &:active {
       color: darken(#7F8FA4, 10%)

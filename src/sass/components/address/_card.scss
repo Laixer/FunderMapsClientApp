@@ -1,0 +1,87 @@
+//Vars for progress
+$progress: (
+  1: $secondary,
+  2: $secondary,
+  3: $buttercup,
+  4: $buttercup,
+  5: $shamrock,
+  6: $shamrock,
+  7: $shamrock,
+);
+
+.address-card {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 15px 20px 20px;
+  border-radius: 5px;
+  background-color: $aqua-haze;
+  border: 1px solid $mischka;
+  transition: border-color ease-in-out 0.2s, box-shadow ease-in-out 0.1s, background-color ease-in-out 0.15s;
+
+  &:hover {
+    border: 1px solid $primary;
+    box-shadow: 0 0 5px 0 rgba(23, 164, 234, 0.5);
+    background-color: $white;
+
+    .address-card {
+      &__icon {
+        fill: $primary;
+      }
+    }
+  }
+
+  & + & {
+    margin-top: 10px;
+  }
+
+  &--active {
+    border: 1px solid $primary;
+    box-shadow: 0 0 5px 0 rgba(23, 164, 234, 0.5);
+    background-color: $white;
+
+    .address-card {
+      &__icon {
+        fill: $primary;
+      }
+    }
+  }
+
+  &__title {
+    @include text-ellipsis(1);
+    color: $secondary;
+    max-width: 85%;
+  }
+
+  &__progress {
+    margin-top: 15px;
+    height: 4px;
+    width: 100%;
+    background-color: $mischka;
+    border-radius: 15px;
+
+    @each $stage, $color in $progress {
+      &-indicator--#{$stage} {
+        width: calc((100% / 7) * #{$stage});
+        height: 4px;
+        border-radius: 10px;
+        background-color: $color;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+  }
+
+  &__open {
+    margin-right: 12px;
+  }
+
+  &__icon {
+    fill: $regent-gray;
+    transition: fill ease-in-out 0.2;
+  }
+}

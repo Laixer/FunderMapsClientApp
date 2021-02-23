@@ -5,7 +5,9 @@
         {{ title }}
       </h2>
       <div v-if="synchronizing" class="flex-grow-1 d-flex justify-content-end">
-        <span class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1">
+        <span
+          class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1"
+        >
           Verversen van informatie ...
         </span>
       </div>
@@ -13,64 +15,55 @@
     <table>
       <thead>
         <tr class="d-flex p-2">
-          <th scope="col" class="text-center">
-            Status
-          </th>
-          <th scope="col">
-            Documentnaam
-          </th>
-          <th scope="col">
-            Reviewer
-          </th>
-          <th scope="col" >
-            Rapportdatum
-          </th>
-          <th scope="col">
-            Type
-          </th>
+          <th scope="col" class="text-center">Status</th>
+          <th scope="col">Documentnaam</th>
+          <th scope="col">Reviewer</th>
+          <th scope="col">Rapportdatum</th>
+          <th scope="col">Type</th>
           <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
-        <ReportTableLine 
-          v-for="(report, index) in reports" 
-          :key="index" 
-          :report="report" />
+        <ReportTableLine
+          v-for="(report, index) in reports"
+          :key="index"
+          :report="report"
+        />
       </tbody>
     </table>
   </div>
 </template>
 
 <script>
-import ReportTableLine from 'molecule/ReportTableLine';
+import ReportTableLine from "molecule/ReportTableLine";
 
 export default {
-  name: 'ReportTable',
+  name: "ReportTable",
   components: {
-    ReportTableLine
+    ReportTableLine,
   },
   props: {
     title: {
       type: String,
-      default: ''
+      default: "",
     },
     synchronizing: {
       type: Boolean,
-      default: false
+      default: false,
     },
     reports: {
       type: Array,
-      default: function() {
-        return []
-      }
-    }
+      default: function () {
+        return [];
+      },
+    },
   },
   computed: {
     hasTitle() {
-      return this.title !== ''
-    }
-  }
-}
+      return this.title !== "";
+    },
+  },
+};
 </script>
 
 <style lang="scss">
@@ -87,34 +80,33 @@ export default {
     width: 100%;
 
     th {
-      color: #7F8FA4;
+      color: #7f8fa4;
       font-size: 14px;
       font-weight: normal;
     }
     th, td {
       &:nth-child(1) {
-        width: 100px
+        width: 100px;
       }
       &:nth-child(2) {
         min-width: 300px;
         flex-grow: 1;
       }
       &:nth-child(3) {
-        width: 200px
+        width: 200px;
       }
       &:nth-child(4) {
-        width: 200px
+        width: 200px;
       }
       &:nth-child(5) {
         // width: 295px
-        width: 245px
+        width: 245px;
       }
       &:nth-child(6) {
         // width: 155px
-        width: 75px
+        width: 75px;
       }
     }
   }
 }
-
 </style>

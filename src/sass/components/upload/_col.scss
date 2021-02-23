@@ -1,0 +1,8 @@
+.upload-col {
+  &-4 {
+    @include make-col(4);
+  }
+  &-8 {
+    @include make-col(8);
+  }
+}

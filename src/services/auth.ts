@@ -82,7 +82,7 @@ export function getLastUserEmail(): string {
 
 
 // ****************************************************************************
-//  User Roles & Capabilities 
+//  User Roles & Capabilities
 // ****************************************************************************
 
 export function isAdmin(): boolean {
@@ -123,7 +123,7 @@ export function canRead(): boolean {
 }
 
 // ****************************************************************************
-//  Private 
+//  Private
 // ****************************************************************************
 
 // localStorage keys

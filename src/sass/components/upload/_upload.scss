@@ -1,0 +1,59 @@
+@import "window";
+@import "form";
+@import "row";
+@import "col";
+@import "step/step";
+
+.upload {
+  margin-top: 60px;
+
+  &--check {
+    .upload-form {
+      padding: 0;
+      margin-left: -5px;
+    }
+
+    .upload-step__title {
+      font-size: $font-size-base;
+    }
+
+    .upload-step--active {
+      .upload-step__title {
+        color: $secondary;
+      }
+
+      .upload-step-dropdown {
+        border: 0;
+        border-bottom: 1px solid $mischka;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+    }
+
+    .upload-step--inactive {
+      .upload-step-dropdown {
+        background-color: transparentize($color: $white, $amount: 0.5);
+      }
+    }
+
+    .upload-step-dropdown {
+      padding: 25px 40px;
+      background-color: $white;
+      border: 1px solid $mischka;
+      border-radius: 5px;
+
+      &::before,
+      &::after {
+        content: none;
+      }
+
+      &__indicator {
+        display: block;
+      }
+
+      .upload-step--active &__indicator {
+        display: none;
+      }
+    }
+  }
+}

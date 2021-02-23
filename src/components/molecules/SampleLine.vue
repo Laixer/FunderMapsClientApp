@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     :class="classList"
     class="SampleLine d-flex align-items-center"
     @click="togglePanel">
@@ -8,10 +8,10 @@
       {{ addressFormatted }}
     </span>
 
-    <div 
+    <div
       v-if="editMode"
       class="SampleLine__edit d-flex align-items-center mr-3 pr-3">
-      <b-button 
+      <b-button
         v-if="open"
         size="sm"
         variant="outline-primary"
@@ -19,23 +19,21 @@
         @click.stop="$emit('save')">
         opslaan
       </b-button>
-      <img 
-        :src="delIcon" 
-        width="16" 
+      <img
+        :src="delIcon"
+        width="16"
         height="16"
         @click.prevent.stop="$emit('delete')" />
     </div>
 
     <img :src="arrow" width="10" height="10" />
-    
+
   </div>
 </template>
 
 <script>
-
 import { icon } from 'helper/assets'
 import { mapActions } from 'vuex'
-
 export default {
   props: {
     addressId: {
@@ -64,8 +62,8 @@ export default {
       }
     },
     arrow() {
-      let name = this.open 
-        ? 'ArrowUp-icon.svg' 
+      let name = this.open
+        ? 'ArrowUp-icon.svg'
         : 'ArrowDown-icon.svg'
       return icon(name);
     },
@@ -104,7 +102,6 @@ export default {
   padding: 0 30px;
   background-color: white;
   cursor: pointer;
-
   // &--open &__address {
   //   font-weight: 600;
   // }

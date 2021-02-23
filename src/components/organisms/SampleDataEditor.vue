@@ -92,7 +92,7 @@ import {
   foundationQualityOptions,
   enforcementTermOptions,
   substructureOptions,
-  foundationDamageCauseOptions,
+  damageCauseOptions,
   BaseMeasurementLevelOptions
 } from "config/enums";
 
@@ -239,7 +239,7 @@ export default {
               value: null,
               text: "Selecteer een optie"
             }
-          ].concat(foundationDamageCauseOptions),
+          ].concat(damageCauseOptions),
           validationRules: {
             required
           }
@@ -278,7 +278,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+            maxValue: maxValue(999),
+            minValue: minValue(-999)          }
         },
         groundwaterLevelTemp: {
           label: "Grondwaterstand",
@@ -286,7 +287,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+            maxValue: maxValue(999),
+            minValue: minValue(-999)          }
         },
         groundLevel: {
           label: "Maaiveldhoogte",
@@ -294,7 +296,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+            maxValue: maxValue(999),
+            minValue: minValue(-999)          }
         }
       }
     };
@@ -357,7 +360,7 @@ export default {
         name: "recoveryAdvised"
       }),
       damageCause: this.optionValue({
-        options: foundationDamageCauseOptions,
+        options: damageCauseOptions,
         name: "damageCause"
       }),
       enforcementTerm: this.optionValue({

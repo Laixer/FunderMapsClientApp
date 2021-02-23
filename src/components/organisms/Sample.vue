@@ -25,12 +25,10 @@
 import SampleLine from "molecule/SampleLine";
 import SampleDataPresentation from "molecule/SampleDataPresentation";
 import SampleDataEditor from "organism/SampleDataEditor";
-
 /**
  * Import model.
  */
 import AddressModel from "../../models/Address.ts";
-
 export default {
   components: {
     SampleLine,
@@ -110,12 +108,10 @@ export default {
   border-radius: 5px;
   margin-top: 10px;
   overflow: hidden;
-
   &__details {
     position: relative;
     background: #fafbfc;
     border-top: 1px solid #ced0da;
-
     &:after {
       position: absolute;
       content: "";

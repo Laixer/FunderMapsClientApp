@@ -1,0 +1,16 @@
+//
+// Common: base
+//
+
+@import "~bootstrap/scss/bootstrap-reboot";
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -khtml-font-smoothing: antialiased;
+  -apple-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+}

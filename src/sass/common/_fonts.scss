@@ -1,0 +1,59 @@
+//
+// Common: Fonts
+//
+
+$fontpath: "~@/assets/fonts/";
+
+// Font definitions
+
+/* @import must be at top of file, otherwise CSS will not work */
+//@import url('//hello.myfonts.net/count/38299f');
+
+@font-face {
+  font-family: "Gibson";
+  font-weight: normal;
+  font-style: normal;
+  src: url("#{$fontpath}/Gibson.woff2") format("woff2"), url("#{$fontpath}/Gibson.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Gibson-Bold";
+  font-weight: 700;
+  font-style: normal;
+  src: url("#{$fontpath}/Gibson-Bold.woff2") format("woff2"), url("#{$fontpath}/Gibson-Bold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Gibson";
+  font-weight: 200;
+  font-style: normal;
+  src: url("#{$fontpath}/Gibson-Light.woff2") format("woff2"), url("#{$fontpath}/Gibson-Light.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Gibson-SemiBold";
+  font-weight: 600;
+  font-style: normal;
+  src: url("#{$fontpath}/Gibson-SemiBold.woff2") format("woff2"), url("#{$fontpath}/Gibson-SemiBold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Gibson";
+  font-weight: normal;
+  font-style: italic;
+  src: url("#{$fontpath}/Gibson-Italic.woff2") format("woff2"), url("#{$fontpath}/Gibson-Italic.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Gibson-Bold";
+  font-weight: 700;
+  font-style: italic;
+  src: url("#{$fontpath}/Gibson-BoldItalic.woff2") format("woff2"), url("#{$fontpath}/Gibson-BoldItalic.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Gibson-SemiBold";
+  font-weight: 600;
+  font-style: italic;
+  src: url("#{$fontpath}/Gibson-SemiBoldItalic.woff2") format("woff2"), url("#{$fontpath}/Gibson-SemiBoldItalic.woff") format("woff");
+}

@@ -26,8 +26,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import '@/assets/sass/variables.scss';
-
 .FadedBackgroundCover {
   position: absolute;
   top: 0;
