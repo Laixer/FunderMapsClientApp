@@ -85,7 +85,6 @@ export default class SampleModel {
   constructor({ sample, stored, editorState }) {
     Object.assign(this, structure);
     Object.assign(this, sample);
-    console.log(this, sample);
 
     this.stored = stored;
     this.editorState = editorState || 'close';

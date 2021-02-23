@@ -201,7 +201,6 @@ export default {
       const _sample = Object.assign({}, sample);
       _sample.id = null;
       _sample.address = null;
-      console.log(_sample, sample);
       this.addUnsavedSample({ data: _sample });
     },
     handleAddSample(data) {
