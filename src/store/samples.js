@@ -57,6 +57,7 @@ const actions = {
   // TODO: where does creationstamp come from?
   async createSample({ commit }, { inquiryId, data }) {
     delete data.id;
+    delete data.inquiry;
     delete data.createDate;
     delete data.updateDate;
     delete data.deleteDate;
@@ -98,7 +99,6 @@ const mutations = {
    */
   add_unsaved_sample(state, { sample }) {
     const _sample = new SampleModel({ sample: sample ? sample : {}, stored: false, editorState: 'open' });
-    console.log(_sample, sample);
 
     _sample.creationstamp = Date.now();
     state.samples.push(_sample)

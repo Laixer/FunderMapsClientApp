@@ -83,7 +83,7 @@
 
 <script>
 import { decimal, maxValue, minValue } from "vuelidate/lib/validators";
-import { woodEncroachement, quality, isWood, isWoodCharger } from "config/enums";
+import { woodEncroachement, quality, isWood, isWoodCharger, woodType } from "config/enums";
 import Feedback from "atom/Feedback";
 
 import InquirySampleStep from "molecule/inquiry/InquirySampleStep";
@@ -186,16 +186,7 @@ export default {
           label: "Houtsoort",
           type: "radio",
           value: null,
-          options: [
-            {
-              value: 0,
-              text: "Vuren"
-            },
-            {
-              value: 1,
-              text: "Grenen"
-            }
-          ],
+          options: woodType,
           validationRules: {}
         },
         woodQualityNecessity: {

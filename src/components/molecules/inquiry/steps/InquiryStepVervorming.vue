@@ -27,8 +27,8 @@
           append="cm"
         />
         <FormField
-          v-model="fields.scheveDeur.value"
-          v-bind="fields.scheveDeur"
+          v-model="fields.skewedWindowFrame.value"
+          v-bind="fields.skewedWindowFrame"
         />
       </div>
       <div class="col">
@@ -167,7 +167,7 @@ export default {
             minValue: minValue(-999),
           },
         },
-        scheveDeur: {
+        skewedWindowFrame: {
           label: "Scheve deur- en/of raamkozijnen",
           type: "radio",
           value: null,
@@ -220,7 +220,7 @@ export default {
       val.thresholdBackLevel = this.fields.thresholdUpdownSkewed.value
         ? this.fields.thresholdBackLevel.value
         : null;
-      // val.scheveDeur = this.fields.scheveDeur.value;
+      val.skewedWindowFrame = this.fields.skewedWindowFrame.value;
       val.settlementSpeed = this.fields.settlementSpeed.value;
 
       this.$emit("input", val);
@@ -235,7 +235,7 @@ export default {
           skewedPerpendicular: sample.skewedPerpendicular,
           thresholdFrontLevel: sample.thresholdFrontLevel,
           thresholdBackLevel: sample.thresholdBackLevel,
-          // scheveDeur: sample.scheveDeur,
+          skewedWindowFrame: sample.skewedWindowFrame,
           settlementSpeed: sample.settlementSpeed,
         });
       }
