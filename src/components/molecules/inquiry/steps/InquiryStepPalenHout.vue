@@ -14,29 +14,35 @@
         <FormField
           v-model="fields.pileHeadLevel.value"
           v-bind="fields.pileHeadLevel"
+          append="m t.o.v. NAP"
         />
         <FormField
           v-model="fields.pileDiameterTop.value"
           v-bind="fields.pileDiameterTop"
+          append="mm"
         />
         <FormField
           v-model="fields.pileDistanceLength.value"
           v-bind="fields.pileDistanceLength"
+          append="mm"
         />
       </div>
       <div class="col">
         <FormField
           v-model="fields.pileTipLevel.value"
           v-bind="fields.pileTipLevel"
+          append="m t.o.v. NAP"
         />
         <FormField
           v-model="fields.pileDiameterBottom.value"
           v-bind="fields.pileDiameterBottom"
+          append="mm"
         />
         <FormField
           :disabled="!isWoodCharger(value.foundationType)"
           v-model="fields.concreteChargerLength.value"
           v-bind="fields.concreteChargerLength"
+          append="m"
         />
       </div>
     </div>
@@ -48,15 +54,9 @@
         <FormField
           v-model="fields.woodPenetrationDepth.value"
           v-bind="fields.woodPenetrationDepth"
+          append="mm"
         />
-        <FormField
-          v-model="fields.woodQuality.value"
-          v-bind="fields.woodQuality"
-        />
-        <FormField
-          v-model="fields.pileWoodCapacityVerticalQuality.value"
-          v-bind="fields.pileWoodCapacityVerticalQuality"
-        />
+
       </div>
       <div class="col">
         <FormField
@@ -68,6 +68,23 @@
           v-model="fields.woodEncroachement.value"
           v-bind="fields.woodEncroachement"
         />
+
+      </div>
+    </div>
+        <div class="form-row">
+      <div class="col">
+
+        <FormField
+          v-model="fields.woodQuality.value"
+          v-bind="fields.woodQuality"
+        />
+        <FormField
+          v-model="fields.pileWoodCapacityVerticalQuality.value"
+          v-bind="fields.pileWoodCapacityVerticalQuality"
+        />
+      </div>
+      <div class="col">
+
         <FormField
           v-model="fields.carryingCapacityQuality.value"
           v-bind="fields.carryingCapacityQuality"
@@ -83,7 +100,13 @@
 
 <script>
 import { decimal, maxValue, minValue } from "vuelidate/lib/validators";
-import { woodEncroachement, quality, isWood, isWoodCharger, woodType } from "config/enums";
+import {
+  woodEncroachement,
+  quality,
+  isWood,
+  isWoodCharger,
+  woodType,
+} from "config/enums";
 import Feedback from "atom/Feedback";
 
 import InquirySampleStep from "molecule/inquiry/InquirySampleStep";
@@ -95,25 +118,25 @@ export default {
   components: {
     InquirySampleStep,
     FormField,
-    Feedback
+    Feedback,
   },
   mixins: [fields],
   props: {
     isActive: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isCompleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     value: {
-      type: Object
+      type: Object,
     },
     feedback: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   data() {
     return {
@@ -128,8 +151,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         pileTipLevel: {
           label: "Paalpunt niveau",
@@ -138,8 +161,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         pileDiameterTop: {
           label: "Paalkop diameter",
@@ -148,8 +171,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         pileDiameterBottom: {
           label: "Paalpunt diameter",
@@ -158,8 +181,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         pileDistanceLength: {
           label: "Hart-op-hart afstand",
@@ -168,8 +191,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         concreteChargerLength: {
           label: "Oplanger lengte",
@@ -178,8 +201,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         // Hout
         woodType: {
@@ -187,7 +210,7 @@ export default {
           type: "radio",
           value: null,
           options: woodType,
-          validationRules: {}
+          validationRules: {},
         },
         woodQualityNecessity: {
           label: "Houtonderzoek",
@@ -196,14 +219,14 @@ export default {
           options: [
             {
               value: true,
-              text: "Ja"
+              text: "Ja",
             },
             {
               value: false,
-              text: "Nee"
-            }
+              text: "Nee",
+            },
           ],
-          validationRules: {}
+          validationRules: {},
         },
         woodPenetrationDepth: {
           label: "Inslagdiepte",
@@ -212,8 +235,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         woodEncroachement: {
           label: "Hout aantasting",
@@ -222,10 +245,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(woodEncroachement),
-          validationRules: {}
+          validationRules: {},
         },
         woodQuality: {
           label: "Houtkwaliteit paal",
@@ -234,10 +257,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(quality),
-          validationRules: {}
+          validationRules: {},
         },
         carryingCapacityQuality: {
           label: "Kwaliteit draagkracht paal",
@@ -246,10 +269,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(quality),
-          validationRules: {}
+          validationRules: {},
         },
         pileWoodCapacityVerticalQuality: {
           label: "Resterende draagkracht paal",
@@ -258,10 +281,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(quality),
-          validationRules: {}
+          validationRules: {},
         },
         woodCapacityHorizontalQuality: {
           label: "Horizontale draagkracht paal",
@@ -270,12 +293,12 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(quality),
-          validationRules: {}
-        }
-      }
+          validationRules: {},
+        },
+      },
     };
   },
   watch: {
@@ -283,8 +306,8 @@ export default {
       async handler(newValue) {
         await this.initialize(newValue);
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   async created() {
     await this.initialize(this.value);
@@ -333,10 +356,10 @@ export default {
           carryingCapacityQuality: sample.carryingCapacityQuality,
           pileWoodCapacityVerticalQuality:
             sample.pileWoodCapacityVerticalQuality,
-          woodCapacityHorizontalQuality: sample.woodCapacityHorizontalQuality
+          woodCapacityHorizontalQuality: sample.woodCapacityHorizontalQuality,
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>

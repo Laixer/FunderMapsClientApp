@@ -98,12 +98,13 @@
             />
           </div>
         </div>
-        <div class="form-row form-row--special">
-          <div class="col form-col">
+        <div class="form-row">
+          <div class="col">
             <FormField
               :disabled="!crackIndoorEnabled"
               v-model="fields.crackIndoorSize.value"
               v-bind="fields.crackIndoorSize"
+              append="mm"
             />
           </div>
         </div>
@@ -176,12 +177,13 @@
             />
           </div>
         </div>
-        <div class="form-row form-row--special">
-          <div class="col form-col">
+        <div class="form-row">
+          <div class="col">
             <FormField
               :disabled="!crackFacadeFrontEnabled"
               v-model="fields.crackFacadeFrontSize.value"
               v-bind="fields.crackFacadeFrontSize"
+              append="mm"
             />
           </div>
         </div>
@@ -252,12 +254,13 @@
             />
           </div>
         </div>
-        <div class="form-row form-row--special">
-          <div class="col form-col">
+        <div class="form-row">
+          <div class="col">
             <FormField
               :disabled="!crackFacadeBackEnabled"
               v-model="fields.crackFacadeBackSize.value"
               v-bind="fields.crackFacadeBackSize"
+              append="mm"
             />
           </div>
         </div>
@@ -346,12 +349,13 @@
             />
           </div>
         </div>
-        <div class="form-row form-row--special">
-          <div class="col form-col">
+        <div class="form-row">
+          <div class="col">
             <FormField
               :disabled="!crackFacadeLeftEnabled"
               v-model="fields.crackFacadeLeftSize.value"
               v-bind="fields.crackFacadeLeftSize"
+              append="mm"
             />
           </div>
         </div>
@@ -415,12 +419,13 @@
             />
           </div>
         </div>
-        <div class="form-row form-row--special">
-          <div class="col form-col">
+        <div class="form-row">
+          <div class="col">
             <FormField
               :disabled="!crackFacadeRightEnabled"
               v-model="fields.crackFacadeRightSize.value"
               v-bind="fields.crackFacadeRightSize"
+              append="mm"
             />
           </div>
         </div>
@@ -698,61 +703,64 @@ export default {
         this.crackIndoorEnabled && this.fields.crackIndoorSize.value !== null
           ? this.fields.crackIndoorSize.value
           : null;
-      val.crackIndoorRestored =
-        this.crackIndoorEnabled
+      val.crackIndoorRestored = this.crackIndoorEnabled
         ? this.fields.crackIndoorRestored.value
         : null;
 
       // FacadeFront
       val.crackFacadeFrontType =
-        this.crackFacadeFrontEnabled && this.fields.crackFacadeFrontType.value !== null
+        this.crackFacadeFrontEnabled &&
+        this.fields.crackFacadeFrontType.value !== null
           ? this.fields.crackFacadeFrontType.value
           : null;
       val.crackFacadeFrontSize =
-        this.crackFacadeFrontEnabled && this.fields.crackFacadeFrontSize.value !== null
+        this.crackFacadeFrontEnabled &&
+        this.fields.crackFacadeFrontSize.value !== null
           ? this.fields.crackFacadeFrontSize.value
           : null;
-      val.crackFacadeFrontRestored =
-        this.crackFacadeFrontEnabled
+      val.crackFacadeFrontRestored = this.crackFacadeFrontEnabled
         ? this.fields.crackFacadeFrontRestored.value
         : null;
 
       // FacadeBack
       val.crackFacadeBackType =
-        this.crackFacadeBackEnabled && this.fields.crackFacadeBackType.value !== null
+        this.crackFacadeBackEnabled &&
+        this.fields.crackFacadeBackType.value !== null
           ? this.fields.crackFacadeBackType.value
           : null;
       val.crackFacadeBackSize =
-        this.crackFacadeBackEnabled && this.fields.crackFacadeBackSize.value !== null
+        this.crackFacadeBackEnabled &&
+        this.fields.crackFacadeBackSize.value !== null
           ? this.fields.crackFacadeBackSize.value
           : null;
-      val.crackFacadeBackRestored =
-        this.crackFacadeBackEnabled
+      val.crackFacadeBackRestored = this.crackFacadeBackEnabled
         ? this.fields.crackFacadeBackRestored.value
         : null;
 
-
       // FacadeLeft
       val.crackFacadeLeftType =
-        this.crackFacadeLeftEnabled && this.fields.crackFacadeLeftType.value !== null
+        this.crackFacadeLeftEnabled &&
+        this.fields.crackFacadeLeftType.value !== null
           ? this.fields.crackFacadeLeftType.value
           : null;
       val.crackFacadeLeftSize =
-        this.crackFacadeLeftEnabled && this.fields.crackFacadeLeftSize.value !== null
+        this.crackFacadeLeftEnabled &&
+        this.fields.crackFacadeLeftSize.value !== null
           ? this.fields.crackFacadeLeftSize.value
           : null;
-      val.crackFacadeLeftRestored =
-        this.crackFacadeLeftEnabled
+      val.crackFacadeLeftRestored = this.crackFacadeLeftEnabled
         ? this.fields.crackFacadeLeftRestored.value
         : null;
 
       // FacadeRight
       val.crackFacadeRightType =
-        this.crackFacadeRightEnabled && this.fields.crackFacadeRightType.value !== null
+        this.crackFacadeRightEnabled &&
+        this.fields.crackFacadeRightType.value !== null
           ? this.fields.crackFacadeRightType.value
           : null;
       val.crackFacadeRightSize =
-        this.crackFacadeRightEnabled && this.fields.crackFacadeRightSize.value !== null
+        this.crackFacadeRightEnabled &&
+        this.fields.crackFacadeRightSize.value !== null
           ? this.fields.crackFacadeRightSize.value
           : null;
       val.crackFacadeRightRestored = this.crackFacadeRightEnabled

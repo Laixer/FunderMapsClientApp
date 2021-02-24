@@ -47,6 +47,7 @@
           :disabled="!isNoPile(fields.foundationType.value)"
           v-model="fields.foundationDepth.value"
           v-bind="fields.foundationDepth"
+          append="m t.o.v. NAP"
         />
       </div>
     </div>

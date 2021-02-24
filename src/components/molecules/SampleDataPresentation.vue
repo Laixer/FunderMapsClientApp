@@ -60,7 +60,7 @@
               {{
                 sanitize(
                   sample.groundLevel !== null
-                    ? `${sample.groundLevel} cm`
+                    ? `${sample.groundLevel} m t.o.v. NAP`
                     : null
                 )
               }}</span
@@ -74,7 +74,7 @@
               {{
                 sanitize(
                   sample.groundwaterLevelNet !== null
-                    ? `${sample.groundwaterLevelNet} cm`
+                    ? `${sample.groundwaterLevelNet} m t.o.v. NAP`
                     : null
                 )
               }}</span
@@ -94,7 +94,7 @@
               {{
                 sanitize(
                   sample.groundwaterLevelTemp !== null
-                    ? `${sample.groundwaterLevelTemp} cm`
+                    ? `${sample.groundwaterLevelTemp} m t.o.v. NAP`
                     : null
                 )
               }}</span
@@ -158,7 +158,7 @@
               {{
                 sanitize(
                   sample.pileHeadLevel !== null
-                    ? `${sample.pileHeadLevel} cm`
+                    ? `${sample.pileHeadLevel} m t.o.v. NAP`
                     : null
                 )
               }}</span
@@ -172,7 +172,7 @@
               {{
                 sanitize(
                   sample.pileDiameterTop !== null
-                    ? `${sample.pileDiameterTop} cm`
+                    ? `${sample.pileDiameterTop} mm`
                     : null
                 )
               }}</span
@@ -186,7 +186,7 @@
               {{
                 sanitize(
                   sample.pileDistanceLength !== null
-                    ? `${sample.pileDistanceLength} cm`
+                    ? `${sample.pileDistanceLength} mm`
                     : null
                 )
               }}</span
@@ -202,7 +202,7 @@
               {{
                 sanitize(
                   sample.pileTipLevel !== null
-                    ? `${sample.pileTipLevel} cm`
+                    ? `${sample.pileTipLevel} m t.o.v. NAP`
                     : null
                 )
               }}</span
@@ -216,7 +216,7 @@
               {{
                 sanitize(
                   sample.pileDiameterBottom !== null
-                    ? `${sample.pileDiameterBottom} cm`
+                    ? `${sample.pileDiameterBottom} mm`
                     : null
                 )
               }}</span
@@ -230,7 +230,7 @@
               {{
                 sanitize(
                   sample.concreteChargerLength !== null
-                    ? `${sample.concreteChargerLength} cm`
+                    ? `${sample.concreteChargerLength} m`
                     : null
                 )
               }}</span
@@ -256,7 +256,7 @@
               {{
                 sanitize(
                   sample.woodPenetrationDepth !== null
-                    ? `${sample.woodPenetrationDepth} cm`
+                    ? `${sample.woodPenetrationDepth} mm`
                     : null
                 )
               }}</span
@@ -330,7 +330,7 @@
               {{
                 sanitize(
                   sample.constructionLevel !== null
-                    ? `${sample.constructionLevel} cm`
+                    ? `${sample.constructionLevel} m t.o.v. NAP`
                     : null
                 )
               }}</span
@@ -345,7 +345,7 @@
             <span>
               {{
                 sanitize(
-                  sample.masonLevel !== null ? `${sample.masonLevel} cm` : null
+                  sample.masonLevel !== null ? `${sample.masonLevel} m t.o.v. NAP` : null
                 )
               }}</span
             >
@@ -363,7 +363,7 @@
             <span>
               {{
                 sanitize(
-                  sample.woodLevel !== null ? `${sample.woodLevel} cm` : null
+                  sample.woodLevel !== null ? `${sample.woodLevel} m t.o.v. NAP` : null
                 )
               }}</span
             >
@@ -452,7 +452,7 @@
                   {{
                     sanitize(
                       sample.crackIndoorSize !== null
-                        ? `${sample.crackIndoorSize} cm`
+                        ? `${sample.crackIndoorSize} mm`
                         : null
                     )
                   }}</span
@@ -527,7 +527,7 @@
                   {{
                     sanitize(
                       sample.crackFacadeFrontSize !== null
-                        ? `${sample.crackFacadeFrontSize} cm`
+                        ? `${sample.crackFacadeFrontSize} mm`
                         : null
                     )
                   }}
@@ -610,7 +610,7 @@
                   {{
                     sanitize(
                       sample.crackFacadeBackSize !== null
-                        ? `${sample.crackFacadeBackSize} cm`
+                        ? `${sample.crackFacadeBackSize} mm`
                         : null
                     )
                   }}
@@ -708,7 +708,7 @@
                   {{
                     sanitize(
                       sample.crackFacadeLeftSize !== null
-                        ? `${sample.crackFacadeLeftSize} cm`
+                        ? `${sample.crackFacadeLeftSize} mm`
                         : null
                     )
                   }}
@@ -775,7 +775,7 @@
                   {{
                     sanitize(
                       sample.crackFacadeRightSize !== null
-                        ? `${sample.crackFacadeRightSize} cm`
+                        ? `${sample.crackFacadeRightSize} mm`
                         : null
                     )
                   }}
@@ -813,7 +813,7 @@
               {{
                 sanitize(
                   sample.skewedPerpendicular !== null
-                    ? `${sample.skewedPerpendicular} cm`
+                    ? `${sample.skewedPerpendicular} mm`
                     : null
                 )
               }}
@@ -827,7 +827,7 @@
               {{
                 sanitize(
                   sample.thresholdFrontLevel !== null
-                    ? `${sample.thresholdFrontLevel} cm`
+                    ? `${sample.thresholdFrontLevel} m t.o.v. NAP`
                     : null
                 )
               }}</span
@@ -860,7 +860,7 @@
                   {{
                     sanitize(
                       sample.skewedParallel !== null
-                        ? `${sample.skewedParallel} cm`
+                        ? `${sample.skewedParallel} mm`
                         : null
                     )
                   }}
@@ -873,7 +873,7 @@
                   {{
                     sanitize(
                       sample.thresholdBackLevel !== null
-                        ? `${sample.thresholdBackLevel} cm`
+                        ? `${sample.thresholdBackLevel} m t.o.v. NAP`
                         : null
                     )
                   }}
@@ -886,7 +886,7 @@
                   {{
                     sanitize(
                       sample.settlementSpeed !== null
-                        ? `${sample.settlementSpeed} cm`
+                        ? `${sample.settlementSpeed} mm/jaar`
                         : null
                     )
                   }}

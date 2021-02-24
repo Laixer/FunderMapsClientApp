@@ -18,10 +18,12 @@
         <FormField
           v-model="fields.groundLevel.value"
           v-bind="fields.groundLevel"
+          append="m t.o.v. NAP"
         />
         <FormField
           v-model="fields.groundwaterLevelNet.value"
           v-bind="fields.groundwaterLevelNet"
+          append="m t.o.v. NAP"
         />
       </div>
       <div class="col">
@@ -32,6 +34,7 @@
         <FormField
           v-model="fields.groundwaterLevelTemp.value"
           v-bind="fields.groundwaterLevelTemp"
+          append="m t.o.v. NAP"
         />
       </div>
     </div>

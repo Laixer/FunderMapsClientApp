@@ -19,6 +19,7 @@
         <FormField
           v-model="fields.masonLevel.value"
           v-bind="fields.masonLevel"
+          append="m t.o.v. NAP"
         />
       </div>
     </div>
@@ -33,6 +34,7 @@
           <FormField
             v-model="fields.constructionLevel.value"
             v-bind="fields.constructionLevel"
+            append="m t.o.v. NAP"
           />
         </div>
         <div class="col">
@@ -43,6 +45,7 @@
           <FormField
             v-model="fields.woodLevel.value"
             v-bind="fields.woodLevel"
+            append="m t.o.v. NAP"
           />
         </div>
       </div>
@@ -53,12 +56,14 @@
         <FormField
           v-model="fields.thresholdFrontLevel.value"
           v-bind="fields.thresholdFrontLevel"
+          append="m t.o.v. NAP"
         />
       </div>
       <div class="col">
         <FormField
           v-model="fields.thresholdBackLevel.value"
           v-bind="fields.thresholdBackLevel"
+          append="m t.o.v. NAP"
         />
       </div>
     </div>
@@ -79,25 +84,25 @@ export default {
   components: {
     InquirySampleStep,
     FormField,
-    Feedback
+    Feedback,
   },
   mixins: [fields],
   props: {
     isActive: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isCompleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     value: {
-      type: Object
+      type: Object,
     },
     feedback: {
       type: Object,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   data() {
     return {
@@ -111,10 +116,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(quality),
-          validationRules: {}
+          validationRules: {},
         },
         masonLevel: {
           label: "Niveau onderkant metselwerk",
@@ -123,8 +128,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         constructionPile: {
           label: "Funderingsbalk",
@@ -133,10 +138,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(constructionPile),
-          validationRules: {}
+          validationRules: {},
         },
         constructionQuality: {
           label: "Kwaliteit funderingsbalk",
@@ -145,10 +150,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(quality),
-          validationRules: {}
+          validationRules: {},
         },
         constructionLevel: {
           label: "Niveau onderkant funderingsbalk",
@@ -157,8 +162,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         woodLevel: {
           label: "Niveau bovenkant funderingsbalk",
@@ -167,8 +172,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         thresholdFrontLevel: {
           label: "Drempelniveau voorgevel",
@@ -177,8 +182,8 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
+            minValue: minValue(-999),
+          },
         },
         thresholdBackLevel: {
           label: "Drempelniveau achtergevel",
@@ -187,10 +192,10 @@ export default {
           validationRules: {
             decimal,
             maxValue: maxValue(999),
-            minValue: minValue(-999)
-          }
-        }
-      }
+            minValue: minValue(-999),
+          },
+        },
+      },
     };
   },
   watch: {
@@ -198,8 +203,8 @@ export default {
       async handler(newValue) {
         await this.initialize(newValue);
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   async created() {
     await this.initialize(this.value);
@@ -246,10 +251,10 @@ export default {
           constructionLevel: sample.constructionLevel,
           woodLevel: sample.woodLevel,
           thresholdFrontLevel: sample.thresholdFrontLevel,
-          thresholdBackLevel: sample.thresholdBackLevel
+          thresholdBackLevel: sample.thresholdBackLevel,
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>
