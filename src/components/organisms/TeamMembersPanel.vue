@@ -1,28 +1,28 @@
 <template>
   <div>
    <div v-if="(isSuperUser() || isAdmin()) && orgUsers">
-    <div class="panel px-4 py-3" style="width: 300px">
+    <div class="panel px-4 py-3">
       <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
-      <TeamMember 
-        v-for="(member, index) in orgUsers" 
+      <TeamMember
+        v-for="(member, index) in orgUsers"
         :member="member"
         :key="index"
         @edit="handleEdit"
         @remove="handleRemove" />
     </div>
-   
-    <TeamMemberModal 
-      :userId="editUserId" 
+
+    <TeamMemberModal
+      :userId="editUserId"
       :organizationId="organizationId" />
 
-    <RemoveTeamMemberModal 
-      :userId="editUserId" 
+    <RemoveTeamMemberModal
+      :userId="editUserId"
       :organizationId="organizationId" />
 
     </div>
-    <b-button 
-      variant="primary" 
-      class="SubmitButton font-weight-bold mt-4" 
+    <b-button
+      variant="primary"
+      class="SubmitButton font-weight-bold mt-4"
       size="lg"
       @click="handleCreate"
       pill>
@@ -30,10 +30,10 @@
         Gebruiker registreren
       </span>
     </b-button>
-    
-    <NewTeamMemberModal 
+
+    <NewTeamMemberModal
       :organizationId="organizationId" />
-  
+
   </div>
 </template>
 
@@ -50,9 +50,9 @@ import { getUserId } from 'service/auth'
 
 export default {
   components: {
-    TeamMember, 
-    TeamMemberModal, 
-    NewTeamMemberModal, 
+    TeamMember,
+    TeamMemberModal,
+    NewTeamMemberModal,
     RemoveTeamMemberModal
   },
   data() {
@@ -129,4 +129,4 @@ h1 {
     color: #354052;
   }
 }
-</style> 
+</style>

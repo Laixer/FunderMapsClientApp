@@ -1,26 +1,24 @@
 <template>
-  <div 
+  <div
     class="TeamMember mb-3 d-flex align-items-center" >
     <img class="mr-2 rounded-circle" :src="member.getAvatar()" width="60" height="60" />
     <div class="pl-1 d-flex flex-column flex-grow-1 align-items-start">
       <div class="w-100 d-flex justify-content-between flex-wrap">
-        <span class="mr-3 mb-2">{{ member.getUserName() }}</span>
-        <span class="text-muted mb-2">{{ member.getRoleName() }}</span>
+        <span class="m-2">{{ member.getUserName() }}</span>
+        <span class="text-muted m-2">{{ member.getRoleName() }}</span>
       </div>
       <div class="d-flex justify-content-between w-100">
-        <b-button
+        <button
           v-if="member.id !== getUserId"
-          class="font-weight-bold"
-          variant="light"
+          class="btn btn-light mx-2 rounded-0 font-weight-bold"
           @click="$emit('remove', { id: member.id })">
           Verwijderen
-        </b-button>
-        <b-button
-          class="font-weight-bold"
-          variant="light"
+        </button>
+        <button
+          class=" btn btn-light mx-2 rounded-0 font-weight-bold"
           @click="$emit('edit', { id: member.id })">
           Bewerk
-        </b-button>
+        </button>
       </div>
     </div>
   </div>
@@ -51,6 +49,8 @@ export default class TeamMember extends Vue {
 
   .btn {
     color: #7F8FA4;
+    font-size: 1rem;
+    padding: 0.375rem 0.75rem;
 
     &:hover, &:active {
       color: darken(#7F8FA4, 10%)
