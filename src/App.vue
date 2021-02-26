@@ -20,9 +20,11 @@ export default class App extends Vue {}
 
 html,
 body {
-  height: 100%;
-  font-family: $font-family-base;
-  font-size: 14px;
+  height: 100% !important;
+  font-family: $font-family-base !important;
+  font-size: 14px !important;
+  background-color: $aqua-haze !important;
+
 }
 html {
   overflow-y: scroll;

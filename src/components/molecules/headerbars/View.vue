@@ -1,17 +1,17 @@
 <template>
   <div class="ViewHeader d-flex align-items-center pr-3">
-    <div 
+    <div
       v-if="isAvailableForReview"
       class="d-flex align-items-center">
-      Status: 
-      <div 
+      Status:
+      <div
         :class="approvedClasslist"
         class="ViewHeader__choice ml-4 align-items-center"
         @click="handleApprove">
         <img :src='approveIcon' width="30" height="30" />
         <div class="ml-3">{{ approveLabel }}</div>
       </div>
-      <span 
+      <span
         :class="disapprovedClasslist"
         class="ViewHeader__choice ml-4 align-items-center"
         @click="handleDisapproveModal">
@@ -20,18 +20,18 @@
       </span>
     </div>
     <!-- TODO Cleanup this ugly if statement-->
-    <div 
+    <div
       v-else-if="approved === true || approved === false || approvedByUser === true || approvedByUser === false"
       class="d-flex align-items-center">
-      Status: 
-      <div 
+      Status:
+      <div
         v-if="approved === true || approvedByUser === true"
         :class="approvedClasslist"
         class="ViewHeader__choice ml-4 align-items-center">
         <img :src='approveIcon' width="30" height="30" />
         <div class="ml-3">Goedgekeurd</div>
       </div>
-      <div 
+      <div
         v-else-if="approved === false || approvedByUser === false"
         :class="disapprovedClasslist"
         class="ViewHeader__choice ml-4 align-items-center">
@@ -41,23 +41,23 @@
     </div>
     <div class="flex-grow-1"></div>
 
-    <b-button 
+    <b-button
       v-if="editable"
       :to="editRoute"
       variant="light"
-      class="font-weight-bold">
+      class="font-weight-bold rounded-0">
       Bewerk
     </b-button>
-    <b-button 
+    <b-button
       :to="{ name: 'dashboard' }"
-      variant="primary" 
-      class="ml-2 mr-3 font-weight-bold d-flex align-items-center">
-      <img :src='icon("Close-icon.svg")' width="11" height="11" /> 
+      variant="primary"
+      class="ml-2 mr-3 font-weight-bold d-flex align-items-center rounded-0">
+      <img :src='icon("Close-icon.svg")' width="11" height="11" />
       <span class="ml-1">Sluiten</span>
     </b-button>
 
-    <DisapproveModal 
-      @disapprove="handleDisapprove"     
+    <DisapproveModal
+      @disapprove="handleDisapprove"
       @hidden="onHidden" />
   </div>
 </template>
@@ -95,13 +95,13 @@ export default {
       'user'
     ]),
     editRoute() {
-      let report = this.activeReport 
-        ? this.activeReport 
+      let report = this.activeReport
+        ? this.activeReport
         : { id: 'id', documentId: 'document' }
-      return { 
-        name: 'edit-report-1', 
-        params: { 
-          id: report.id, 
+      return {
+        name: 'edit-report-1',
+        params: {
+          id: report.id,
           documentName: report.documentName
         }
       }
@@ -110,11 +110,11 @@ export default {
       if (!canWrite()) {
         return false
       }
-      
+
       if (this.activeReport) {
         return this.activeReport.isEditable();
       }
-        
+
       // TODO This part was removed. Our API does not support this.
       //|| isSuperUser()
       return false
@@ -146,16 +146,16 @@ export default {
     // TODO These if-statements are very ugly. Bind them in the future.
 
     disapprovedClasslist() {
-      return { 
-        'ViewHeader__choice--active' : this.approved === false || this.approvedByUser === false, 
-        'd-none': this.approved === true || this.approvedByUser === true, 
+      return {
+        'ViewHeader__choice--active' : this.approved === false || this.approvedByUser === false,
+        'd-none': this.approved === true || this.approvedByUser === true,
         'd-flex': this.approved !== true || this.approvedByUser !== true
       }
     },
     approvedClasslist() {
-      return { 
-        'ViewHeader__choice--active' : this.approved === true || this.approvedByUser === true, 
-        'd-none': this.approved === false || this.approvedByUser === false, 
+      return {
+        'ViewHeader__choice--active' : this.approved === true || this.approvedByUser === true,
+        'd-none': this.approved === false || this.approvedByUser === false,
         'd-flex': this.approved !== false || this.approvedByUser !== false
       }
     },
@@ -215,6 +215,8 @@ export default {
 
   .btn {
     line-height: 19px;
+    padding: .375rem .75rem;
+    font-size: 1rem;
 
     img {
       position: relative;
