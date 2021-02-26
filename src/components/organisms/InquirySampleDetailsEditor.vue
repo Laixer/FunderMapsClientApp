@@ -130,6 +130,7 @@ export default {
       }
     },
     async save({ sample, next }) {
+      if (this.currentStep === 6) {
       if (sample.id) {
         await this.updateSample({
           inquiryId: this.activeReport.id,
@@ -149,6 +150,9 @@ export default {
             this.handleSuccess(next);
           }, this.handleError)
           .catch(this.handleError);
+      }
+      } else {
+        this.handleSuccess(next);
       }
     },
     handleSuccess(next) {

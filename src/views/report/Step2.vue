@@ -144,9 +144,6 @@ export default {
 
       await this.getSamples({ inquiryId: this.activeReport.id });
 
-      if (this.samples.length === 0) {
-        this.nosamples = true;
-      }
     } catch (err) {
       this.feedback = {
         variant: "danger",
