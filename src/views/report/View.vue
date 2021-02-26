@@ -1,49 +1,48 @@
 <template>
-  <div 
+  <div
     class="d-flex align-items-start">
-    <div 
-      v-if="activeReport" 
+    <div
+      v-if="activeReport"
       class="Report flex-grow-1">
-      
-      <ReportDetails 
+
+      <ReportDetails
         :activeReport="activeReport"
         :showLastEdited="true"
         :showUsers="false" />
 
-      <div 
-        v-if="samples.length !== 0" 
+      <div
+        v-if="samples.length !== 0"
         class="Report__samples">
-        <Sample  
-          v-for="(sample, index) in samples" 
-          :key="index" 
+        <Sample
+          v-for="(sample, index) in samples"
+          :key="index"
           :sample="sample" />
       </div>
-      <div 
+      <div
         v-else-if="nosamples"
         class="text-center mt-4">
         Deze rapportage bevat nog geen adressen
       </div>
-      <div 
+      <div
         class="text-center mt-4"
         v-else>
         De addres gegevens worden geladen...
       </div>
     </div>
-    <div 
-      v-if="activeReport" 
+    <div
+      v-if="activeReport"
       class="d-flex flex-column">
 
-      <b-button 
-        variant="primary" 
-        class="side__btn p-3 font-weight-bold d-flex align-items-center"
+      <button
+        class="btn btn-primary side__btn rounded-0 p-3 font-weight-bold d-flex align-items-center"
         target="_blank"
         @click="getReportDownloadLink">
-        <img 
-          alt="arrow" 
+        <img
+          alt="arrow"
           :src="icon('Download-icon.svg')"
           width="17" />
         <span class="ml-2">Download rapport</span>
-      </b-button>
+      </button>
       <div class="side p-3 mt-3">
         <h3>Organisaties</h3>
         <ReportOrgRoleExplicit :organizationId="activeReport.ownerId" organizationRoleOverride="Eigenaar"/>
@@ -56,8 +55,8 @@
       </div>
     </div>
 
-    <div 
-      v-if="!activeReport" 
+    <div
+      v-if="!activeReport"
       class="d-flex w-100 h-100 align-items-center justify-content-center">
       <span v-if="!feedback.message">
         Het rapport wordt geladen...
@@ -145,7 +144,7 @@ export default {
     icon,
     getReportDownloadLink() {
       try {
-        reportsAPI.getDownloadLink({ 
+        reportsAPI.getDownloadLink({
           id: this.activeReport.id
         })
         .then((response) => {
