@@ -26,13 +26,15 @@ export default {
 </script>
 
 <style lang="scss">
+@import "~@/sass/common/common";
+
 .FadedBackgroundCover {
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
   width: 100%;
-  background-color: theme-color('primary');
+  background-color: transparentize($color: $primary, $amount: 0.75);
   background-repeat: no-repeat;
   background-size: cover;
 }
