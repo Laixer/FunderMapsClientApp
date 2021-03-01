@@ -24,7 +24,7 @@
         <FormField
           v-model="fields.thresholdFrontLevel.value"
           v-bind="fields.thresholdFrontLevel"
-          append="cm"
+          append="mm:100mm"
         />
         <FormField
           v-model="fields.skewedWindowFrame.value"
@@ -45,7 +45,7 @@
         <FormField
           v-model="fields.thresholdBackLevel.value"
           v-bind="fields.thresholdBackLevel"
-          append="cm"
+          append="mm:100mm"
         />
         <FormField
           v-model="fields.settlementSpeed.value"
