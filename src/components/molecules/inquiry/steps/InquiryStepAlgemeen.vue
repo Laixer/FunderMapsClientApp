@@ -160,6 +160,15 @@ export default {
     ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     save(next) {
       const val = this.value;
+      if (!this.fields.address.selected) {
+        this.internalFeedback = {
+            variant: "danger",
+            message: "Let op: Het ingevoerde adres is ongeldig.",
+        };
+        return;
+      } else {
+        this.internalFeedback = {};
+      }
       val.address = this.fields.address.selected
         ? this.fields.address.selected.id
         : null;
@@ -200,15 +209,6 @@ export default {
         }
       }
     },
-    booleanValue({ name }) {
-      return this.value[name] === true || this.value[name] === false
-        ? this.value[name]
-        : null;
-    },
-    optionValue({ options, name }) {
-      let key = this.value[name];
-      return options[key] ? options[key].value : null;
-    },
     addressSerializer(address) {
       return address.weergavenaam;
     },
@@ -221,12 +221,21 @@ export default {
       });
 
       const _id = `NL.IMBAG.NUMMERAANDUIDING.${response.docs[0].nummeraanduiding_id}`;
-      let _address = await this.getAddressById({ id: _id });
 
-      this.fields.address.value = _address.format();
-      this.fields.address.selected = _address;
-
-      this.$emit("addressSelected", { addressId: _address.id });
+      await this.getAddressById({ id: _id })
+        .then((_address) => {
+          this.internalFeedback = {};
+          this.fields.address.value = _address.format();
+          this.fields.address.selected = _address;
+          this.$emit("addressSelected", { addressId: _address.id });
+        })
+        .catch(() => {
+          this.fields.address.selected = null;
+          this.internalFeedback = {
+            variant: "danger",
+            message: "Let op: Het ingevoerde adres is ongeldig.",
+          };
+        });
     },
     async getAddresses(query) {
       // Only process if we have a substantial amount of characters to go by.
