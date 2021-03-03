@@ -35,7 +35,6 @@
           v-bind="fields.damageCharacteristics"
         />
         <FormField
-          :disabled="!fields.damageCharacteristics.value"
           v-model="fields.damageCause.value"
           v-bind="fields.damageCause"
         />
@@ -208,9 +207,7 @@ export default {
       val.enforcementTerm = this.fields.enforcementTerm.value;
       val.damageCharacteristics = this.fields.damageCharacteristics.value;
       val.overallQuality = this.fields.overallQuality.value;
-      val.damageCause = this.fields.damageCharacteristics.value
-        ? this.fields.damageCause.value
-        : null;
+      val.damageCause = this.fields.damageCause.value;
       val.foundationDepth = isNoPile(this.value.foundationType)
         ? this.fields.foundationDepth.value
         : null;
