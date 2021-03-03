@@ -58,7 +58,6 @@ import {
   decimal,
   numeric,
   maxLength,
-  required,
 } from "vuelidate/lib/validators";
 import {
   enforcementTermOptions,
@@ -115,8 +114,7 @@ export default {
             },
           ].concat(foundationTypeOptions),
           validationRules: {
-            numeric,
-            required,
+            numeric
           },
         },
         enforcementTerm: {
