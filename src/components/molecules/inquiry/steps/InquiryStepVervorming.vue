@@ -22,11 +22,6 @@
           append="cm"
         />
         <FormField
-          v-model="fields.thresholdFrontLevel.value"
-          v-bind="fields.thresholdFrontLevel"
-          append="mm:100mm"
-        />
-        <FormField
           v-model="fields.skewedWindowFrame.value"
           v-bind="fields.skewedWindowFrame"
         />
@@ -41,11 +36,6 @@
           v-model="fields.skewedPerpendicular.value"
           v-bind="fields.skewedPerpendicular"
           append="cm"
-        />
-        <FormField
-          v-model="fields.thresholdBackLevel.value"
-          v-bind="fields.thresholdBackLevel"
-          append="mm:100mm"
         />
         <FormField
           v-model="fields.settlementSpeed.value"
@@ -147,26 +137,6 @@ export default {
             minValue: minValue(-999),
           },
         },
-        thresholdFrontLevel: {
-          label: "Drempel voorgevel niveau",
-          type: "text", // TODO: int
-          value: null,
-          validationRules: {
-            decimal,
-            maxValue: maxValue(999),
-            minValue: minValue(-999),
-          },
-        },
-        thresholdBackLevel: {
-          label: "Drempel achtergevel niveau",
-          type: "text", // TODO: int
-          value: null,
-          validationRules: {
-            decimal,
-            maxValue: maxValue(999),
-            minValue: minValue(-999),
-          },
-        },
         skewedWindowFrame: {
           label: "Scheve deur- en/of raamkozijnen",
           type: "radio",
@@ -214,12 +184,6 @@ export default {
       val.thresholdUpdownSkewed = this.fields.thresholdUpdownSkewed.value;
       val.skewedParallel = this.fields.skewedParallel.value;
       val.skewedPerpendicular = this.fields.skewedPerpendicular.value;
-      val.thresholdFrontLevel = this.fields.thresholdUpdownSkewed.value
-        ? this.fields.thresholdFrontLevel.value
-        : null;
-      val.thresholdBackLevel = this.fields.thresholdUpdownSkewed.value
-        ? this.fields.thresholdBackLevel.value
-        : null;
       val.skewedWindowFrame = this.fields.skewedWindowFrame.value;
       val.settlementSpeed = this.fields.settlementSpeed.value;
 
@@ -233,8 +197,6 @@ export default {
           thresholdUpdownSkewed: sample.thresholdUpdownSkewed,
           skewedParallel: sample.skewedParallel,
           skewedPerpendicular: sample.skewedPerpendicular,
-          thresholdFrontLevel: sample.thresholdFrontLevel,
-          thresholdBackLevel: sample.thresholdBackLevel,
           skewedWindowFrame: sample.skewedWindowFrame,
           settlementSpeed: sample.settlementSpeed,
         });

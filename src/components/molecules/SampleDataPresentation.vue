@@ -348,6 +348,20 @@
               }}</span
             >
           </p>
+           <p class="upload-step-overview-item__text">
+            <span class="upload-step-overview-item__text-label"
+              >Drempel voorgevel niveau:</span
+            >
+            <span>
+              {{
+                sanitize(
+                  sample.thresholdFrontLevel !== null
+                    ? `${sample.thresholdFrontLevel} m t.o.v. NAP`
+                    : null
+                )
+              }}</span
+            >
+          </p>
         </div>
         <div class="col-6">
           <p class="upload-step-overview-item__text">
@@ -383,6 +397,20 @@
                 )
               }}</span
             >
+          </p>
+          <p class="upload-step-overview-item__text">
+            <span class="upload-step-overview-item__text-label"
+              >Drempel achtergevel niveau:</span
+            >
+            <span>
+              {{
+                sanitize(
+                  sample.thresholdBackLevel !== null
+                    ? `${sample.thresholdBackLevel} m t.o.v. NAP`
+                    : null
+                )
+              }}
+            </span>
           </p>
         </div>
       </div>
@@ -872,20 +900,6 @@
           </p>
           <p class="upload-step-overview-item__text">
             <span class="upload-step-overview-item__text-label"
-              >Drempel voorgevel niveau:</span
-            >
-            <span>
-              {{
-                sanitize(
-                  sample.thresholdFrontLevel !== null
-                    ? `${sample.thresholdFrontLevel} m t.o.v. NAP`
-                    : null
-                )
-              }}</span
-            >
-          </p>
-          <p class="upload-step-overview-item__text">
-            <span class="upload-step-overview-item__text-label"
               >Scheve deur- en/of raamkozijn:</span
             >
             <span>{{
@@ -930,20 +944,6 @@
                 sanitize(
                   sample.skewedParallel !== null
                     ? `${sample.skewedParallel} mm`
-                    : null
-                )
-              }}
-            </span>
-          </p>
-          <p class="upload-step-overview-item__text">
-            <span class="upload-step-overview-item__text-label"
-              >Drempel achtergevel niveau:</span
-            >
-            <span>
-              {{
-                sanitize(
-                  sample.thresholdBackLevel !== null
-                    ? `${sample.thresholdBackLevel} m t.o.v. NAP`
                     : null
                 )
               }}
