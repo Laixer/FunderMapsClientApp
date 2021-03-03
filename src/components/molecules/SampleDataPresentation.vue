@@ -27,9 +27,15 @@
             <span class="upload-step-overview-item__text-label"
               >Funderingsherstel advies:</span
             >
-                <span>{{
-                  sanitize(sample.recoveryAdvised !== null ? sample.recoveryAdvised ? "Ja" : "Nee" : null)
-                }}</span>
+            <span>{{
+              sanitize(
+                sample.recoveryAdvised !== null
+                  ? sample.recoveryAdvised
+                    ? "Ja"
+                    : "Nee"
+                  : null
+              )
+            }}</span>
           </p>
         </div>
       </div>
@@ -280,9 +286,15 @@
             <span class="upload-step-overview-item__text-label"
               >Houtonderzoek:</span
             >
-                <span>{{
-                  sanitize(sample.woodQualityNecessity !== null ? sample.woodQualityNecessity ? "Ja" : "Nee" : null)
-                }}</span>
+            <span>{{
+              sanitize(
+                sample.woodQualityNecessity !== null
+                  ? sample.woodQualityNecessity
+                    ? "Ja"
+                    : "Nee"
+                  : null
+              )
+            }}</span>
           </p>
           <p class="upload-step-overview-item__text">
             <span class="upload-step-overview-item__text-label"
@@ -345,7 +357,9 @@
             <span>
               {{
                 sanitize(
-                  sample.masonLevel !== null ? `${sample.masonLevel} m t.o.v. NAP` : null
+                  sample.masonLevel !== null
+                    ? `${sample.masonLevel} m t.o.v. NAP`
+                    : null
                 )
               }}</span
             >
@@ -363,7 +377,9 @@
             <span>
               {{
                 sanitize(
-                  sample.woodLevel !== null ? `${sample.woodLevel} m t.o.v. NAP` : null
+                  sample.woodLevel !== null
+                    ? `${sample.woodLevel} m t.o.v. NAP`
+                    : null
                 )
               }}</span
             >
@@ -378,7 +394,6 @@
           <div class="form-row">
             <div class="col-3">
               <div class="form-control-tile has-image has-multicolour">
-
                 <label class="form-control-tile-label" for="inpandigScheur">
                   <svg
                     height="98"
@@ -463,7 +478,13 @@
                   >Hersteld:</span
                 >
                 <span>{{
-                  sanitize(sample.crackIndoorRestored !== null ? sample.crackIndoorRestored ? "Ja" : "Nee" : null)
+                  sanitize(
+                    sample.crackIndoorRestored !== null
+                      ? sample.crackIndoorRestored
+                        ? "Ja"
+                        : "Nee"
+                      : null
+                  )
                 }}</span>
               </p>
             </div>
@@ -473,7 +494,6 @@
           <div class="form-row">
             <div class="col-3">
               <div class="form-control-tile has-image has-multicolour">
-
                 <label class="form-control-tile-label" for="voorgevelScheur">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -531,14 +551,20 @@
                         : null
                     )
                   }}
-                  </span>
+                </span>
               </p>
               <p class="upload-step-overview-item__text">
                 <span class="upload-step-overview-item__text-label"
                   >Hersteld:</span
                 >
                 <span>{{
-                  sanitize(sample.crackFacadeFrontRestored !== null ? sample.crackFacadeFrontRestored ? "Ja" : "Nee" : null)
+                  sanitize(
+                    sample.crackFacadeFrontRestored !== null
+                      ? sample.crackFacadeFrontRestored
+                        ? "Ja"
+                        : "Nee"
+                      : null
+                  )
                 }}</span>
               </p>
             </div>
@@ -614,13 +640,20 @@
                         : null
                     )
                   }}
-                  </span>              </p>
+                </span>
+              </p>
               <p class="upload-step-overview-item__text">
                 <span class="upload-step-overview-item__text-label"
                   >Hersteld:</span
                 >
                 <span>{{
-                  sanitize(sample.crackFacadeBackRestored !== null ? sample.crackFacadeBackRestored ? "Ja" : "Nee" : null)
+                  sanitize(
+                    sample.crackFacadeBackRestored !== null
+                      ? sample.crackFacadeBackRestored
+                        ? "Ja"
+                        : "Nee"
+                      : null
+                  )
                 }}</span>
               </p>
             </div>
@@ -630,7 +663,6 @@
           <div class="form-row">
             <div class="col-3">
               <div class="form-control-tile has-image has-multicolour">
-
                 <label class="form-control-tile-label" for="linkergevelScheur">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -712,13 +744,20 @@
                         : null
                     )
                   }}
-                  </span>              </p>
+                </span>
+              </p>
               <p class="upload-step-overview-item__text">
                 <span class="upload-step-overview-item__text-label"
                   >Hersteld:</span
                 >
                 <span>{{
-                  sanitize(sample.crackFacadeLeftRestored !== null ? sample.crackFacadeLeftRestored ? "Ja" : "Nee" : null)
+                  sanitize(
+                    sample.crackFacadeLeftRestored !== null
+                      ? sample.crackFacadeLeftRestored
+                        ? "Ja"
+                        : "Nee"
+                      : null
+                  )
                 }}</span>
               </p>
             </div>
@@ -728,7 +767,6 @@
           <div class="form-row">
             <div class="col-3">
               <div class="form-control-tile has-image has-multicolour">
-
                 <label class="form-control-tile-label" for="rechtergevelScheur">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -779,13 +817,20 @@
                         : null
                     )
                   }}
-                  </span>              </p>
+                </span>
+              </p>
               <p class="upload-step-overview-item__text">
                 <span class="upload-step-overview-item__text-label"
                   >Hersteld:</span
                 >
                 <span>{{
-                  sanitize(sample.crackFacadeRightRestored !== null ? sample.crackFacadeRightRestored ? "Ja" : "Nee" : null)
+                  sanitize(
+                    sample.crackFacadeRightRestored !== null
+                      ? sample.crackFacadeRightRestored
+                        ? "Ja"
+                        : "Nee"
+                      : null
+                  )
                 }}</span>
               </p>
             </div>
@@ -801,9 +846,15 @@
             <span class="upload-step-overview-item__text-label"
               >Gevel vervormd:</span
             >
-                <span>{{
-                  sanitize(sample.deformedFacade !== null ? sample.deformedFacade ? "Ja" : "Nee" : null)
-                }}</span>
+            <span>{{
+              sanitize(
+                sample.deformedFacade !== null
+                  ? sample.deformedFacade
+                    ? "Ja"
+                    : "Nee"
+                  : null
+              )
+            }}</span>
           </p>
           <p class="upload-step-overview-item__text">
             <span class="upload-step-overview-item__text-label"
@@ -837,60 +888,81 @@
             <span class="upload-step-overview-item__text-label"
               >Scheve deur- en/of raamkozijn:</span
             >
-                <span>{{
-                  sanitize(sample.thresholdUpdownSkewed !== null ? sample.thresholdUpdownSkewed ? "Ja" : "Nee" : null)
-                }}</span>
+            <span>{{
+              sanitize(
+                sample.thresholdUpdownSkewed !== null
+                  ? sample.thresholdUpdownSkewed
+                    ? "Ja"
+                    : "Nee"
+                  : null
+              )
+            }}</span>
           </p>
-          <a href="#" class="btn btn-submit">Bewerken</a>
+          <router-link
+            :to="{ name: 'edit-report-2' }"
+            type="button"
+            class="btn btn-submit"
+          >
+            Bewerken
+          </router-link>
         </div>
         <div class="col-6">
           <p class="upload-step-overview-item__text">
             <span class="upload-step-overview-item__text-label"
               >Scheefstand:</span
             >
-                <span>{{
-                  sanitize(sample.thresholdUpdownSkewed !== null ? sample.thresholdUpdownSkewed ? "Ja" : "Nee" : null)
-                }}</span>
+            <span>{{
+              sanitize(
+                sample.thresholdUpdownSkewed !== null
+                  ? sample.thresholdUpdownSkewed
+                    ? "Ja"
+                    : "Nee"
+                  : null
+              )
+            }}</span>
           </p>
           <p class="upload-step-overview-item__text">
             <span class="upload-step-overview-item__text-label"
               >Scheefstand van links naar rechts:</span
             >
-                <span>
-                  {{
-                    sanitize(
-                      sample.skewedParallel !== null
-                        ? `${sample.skewedParallel} mm`
-                        : null
-                    )
-                  }}
-                  </span>          </p>
+            <span>
+              {{
+                sanitize(
+                  sample.skewedParallel !== null
+                    ? `${sample.skewedParallel} mm`
+                    : null
+                )
+              }}
+            </span>
+          </p>
           <p class="upload-step-overview-item__text">
             <span class="upload-step-overview-item__text-label"
               >Drempel achtergevel niveau:</span
             >
-                <span>
-                  {{
-                    sanitize(
-                      sample.thresholdBackLevel !== null
-                        ? `${sample.thresholdBackLevel} m t.o.v. NAP`
-                        : null
-                    )
-                  }}
-                  </span>          </p>
+            <span>
+              {{
+                sanitize(
+                  sample.thresholdBackLevel !== null
+                    ? `${sample.thresholdBackLevel} m t.o.v. NAP`
+                    : null
+                )
+              }}
+            </span>
+          </p>
           <p class="upload-step-overview-item__text">
             <span class="upload-step-overview-item__text-label"
               >Pandzakkingssnelheid:</span
             >
-                <span>
-                  {{
-                    sanitize(
-                      sample.settlementSpeed !== null
-                        ? `${sample.settlementSpeed} mm/jaar`
-                        : null
-                    )
-                  }}
-                  </span>          </p>
+            <span>
+              {{
+                sanitize(
+                  sample.settlementSpeed !== null
+                    ? `${sample.settlementSpeed} mm/jaar`
+                    : null
+                )
+              }}
+            </span>
+          </p>
         </div>
       </div>
     </div>
@@ -906,8 +978,8 @@ export default {
   props: {
     sample: {
       type: SampleModel,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     const { sample } = this;
@@ -978,19 +1050,19 @@ export default {
         sample.constructionQuality,
         "quality"
       ),
-      masonQualityText: this.findEnumValue(sample.masonQuality, "quality")
+      masonQualityText: this.findEnumValue(sample.masonQuality, "quality"),
     };
   },
   methods: {
     findEnumValue(value, _enum) {
       return value !== null
-        ? enums[_enum].find(x => x.value === value).text
+        ? enums[_enum].find((x) => x.value === value).text
         : null;
     },
     sanitize(val) {
       return val !== null ? val : "-";
-    }
-  }
+    },
+  },
 };
 </script>
 <style lang="scss">
