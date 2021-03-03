@@ -152,7 +152,7 @@
         </div>
       </div>
     </div>
-    <div class="upload-step-overview-item">
+    <div class="upload-step-overview-item" v-if="isWood(sample.foundationType)">
       <h6><strong>Palen &amp; hout</strong></h6>
       <div class="row">
         <div class="col-6">
@@ -415,7 +415,7 @@
         </div>
       </div>
     </div>
-    <div class="upload-step-overview-item">
+    <div class="upload-step-overview-item" v-if="hasAnyCracks">
       <h6><strong>Scheuren</strong></h6>
       <div class="upload-form upload-form--icon-rows">
         <template v-if="sample.crackIndoorType !== null">
@@ -971,6 +971,7 @@
 
 <script>
 import SampleModel from "../../models/Sample";
+import { isWood } from "config/enums";
 import * as enums from "config/enums";
 export default {
   name: "SampleDataPresentation",
@@ -980,6 +981,11 @@ export default {
       type: SampleModel,
       required: true,
     },
+  },
+  computed: {
+    hasAnyCracks() {
+      return [this.sample.crackIndoorType, this.sample.crackFacadeFrontType, this.sample.crackFacadeBackType, this.sample.crackFacadeLeftType, this.sample.crackFacadeRightType].some((crack) => crack !== null);
+    }
   },
   data() {
     const { sample } = this;
@@ -1054,6 +1060,7 @@ export default {
     };
   },
   methods: {
+    isWood,
     findEnumValue(value, _enum) {
       return value !== null
         ? enums[_enum].find((x) => x.value === value).text
