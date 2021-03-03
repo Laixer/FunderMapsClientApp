@@ -105,12 +105,8 @@ export default {
     },
     value: {
       handler(newVal, oldVal) {
-        if (newVal && oldVal && newVal.id !== oldVal.id) {
+        if (oldVal !== newVal) {
           this.currentStep = 0;
-        } else if (!oldVal && newVal) {
-          this.currentStep = 0;
-        } else if (!newVal && oldVal) {
-          this.currentStep = -1;
         }
         this.feedback = {};
       },

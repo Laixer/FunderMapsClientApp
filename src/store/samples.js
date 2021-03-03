@@ -74,14 +74,14 @@ const actions = {
     return response.data.id;
   },
   async deleteSample({ commit }, { inquiryId, sampleId, creationstamp }) {
-    if (sampleId === '') {
-      // not stored in API yet
-      commit('delete_sample', { sampleId, creationstamp })
-    } else {
+    if (sampleId) {
       let response = await samplesAPI.deleteSample({ inquiryId, sampleId });
       if (response.status === 204) {
         commit('delete_sample', { sampleId, creationstamp })
       }
+    } else {
+      // not stored in API yet
+      commit('delete_sample', { sampleId, creationstamp })
     }
   }
 }
@@ -101,38 +101,31 @@ const mutations = {
     const _sample = new SampleModel({ sample: sample ? sample : {}, stored: false, editorState: 'open' });
 
     _sample.creationstamp = Date.now();
-    state.samples.push(_sample)
+    state.samples = [...state.samples, _sample]
   },
   /**
    * Update sample data in store (after positive API response)
    */
   update_sample(state, { id, data }) {
-    let index = -1
-    if (id) {
-      index = state.samples.findIndex(sample => sample.id === id)
-    }
-    // For new samples we depend on an internal timestamp
-    if (index === -1) {
-      index = state.samples.findIndex(sample => sample.creationstamp === data.creationstamp)
-    }
-    if (index !== -1) {
-      state.samples[index].updateValues({ data })
-      state.samples[index].stored = true
-    }
+    state.samples = state.samples.map(val => {
+      if (data.id) {
+        if (val.id === data.id) {
+          val.updateValues({ data })
+        }
+      } else if (data.creationstamp) {
+        if (val.creationstamp === data.creationstamp) {
+          val.updateValues({ data })
+        }
+      }
+      return val;
+    })
   },
   // Delete sample.
   delete_sample(state, { id, creationstamp }) {
-    let index = state.samples.findIndex(
-      (sample) => sample.id === id
-    )
-    // For new samples we depend on an internal timestamp
-    if (index === -1) {
-      index = state.samples.findIndex(
-        (sample) => sample.creationstamp === creationstamp
-      )
-    }
-    if (index !== -1) {
-      Vue.delete(state.samples, index)
+    if (id) {
+      state.samples = state.samples.filter(val => val.id !== id)
+    } else if (creationstamp) {
+      state.samples = state.samples.filter(val => val.creationstamp !== creationstamp)
     }
   }
 }

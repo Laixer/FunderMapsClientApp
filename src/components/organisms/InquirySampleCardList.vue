@@ -7,6 +7,7 @@
         :ref="'sample_' + index"
         :key="index + '-' + Date.now()"
         :sample="sample"
+        :can-delete="samples.length > 1"
         :is-active="isActive(sample)"
         @click.native="select(sample)"
       />
@@ -15,7 +16,6 @@
 </template>
 
 <script>
-import SampleModel from "model/Sample";
 import Feedback from "atom/Feedback";
 import InquirySampleCard from "molecule/inquiry/InquirySampleCard";
 
@@ -39,11 +39,26 @@ export default {
       default: () => {},
     },
   },
+  created() {
+    if (!this.value && this.samples.length) {
+      this.$emit("input", this.samples[this.samples.length - 1]);
+    }
+  },
+  watch: {
+    samples(newVal, oldVal) {
+      if (newVal.length > oldVal.length) {
+        this.$emit("input", newVal[newVal.length - 1]);
+      } else {
+        if (this.value) {
+          if (!newVal.includes(this.value))
+            this.$emit("input", newVal[newVal.length - 1]);
+        }
+      }
+    },
+  },
   methods: {
     select(sample) {
-      if (sample === this.value) {
-        return
-      } else {
+      if (sample !== this.value) {
         this.$emit("input", sample);
       }
     },

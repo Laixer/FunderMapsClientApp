@@ -131,9 +131,6 @@ export default {
         return;
       }
       EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
-      EventBus.$on("add-sample", () => {
-        this.addUnsavedSample();
-      });
       EventBus.$on("remove-inquiry-sample", (sample) => {
         this.removeSample(sample);
       });
@@ -143,6 +140,10 @@ export default {
       });
 
       await this.getSamples({ inquiryId: this.activeReport.id });
+
+      if (this.samples.length === 0) {
+        this.addUnsavedSample({ data: null });
+      }
 
     } catch (err) {
       this.feedback = {
@@ -172,85 +173,79 @@ export default {
       "deleteSample",
     ]),
     async removeSample(sample) {
-      const _id = sample.id;
       await this.deleteSample({
         inquiryId: this.activeReport.id,
         sampleId: sample.id,
         creationstamp: sample.creationstamp,
-      })
-        .then(async () => {
-          await this.getSamples({ inquiryId: this.activeReport.id });
-          if (this.activeSample) {
-            if (this.activeSample.id === _id) {
-              this.activeSample = null;
-            }
-          }
-        })
-        // TODO: Error
-        .catch(() => {
+      }).then(
+        // Success
+        () => {},
+        // Error
+        () => {
           this.feedback = {
             variant: "danger",
             message: "Het adres kon niet worden verwijderd.",
           };
-        });
+        }
+      );
     },
     copySample(sample) {
       const _sample = Object.assign({}, sample);
       _sample.id = null;
-      _sample.address = null;
+      _sample.creationstamp = null;
       this.addUnsavedSample({ data: _sample });
     },
     handleAddSample(data) {
       this.addUnsavedSample({ data });
     },
-    async saveAllSamples() {
-      return await Promise.all(
-        this.samples.map(async (sample, index) => {
-          return await this.$refs["sample_" + index][0].save();
-        })
-      );
-    },
-    handleSaveSamplesAndNextStep() {
-      // TODO Is this in the right place?
-      if (this.samples.length === 0) {
-        return;
-      }
+    // async saveAllSamples() {
+    //   return await Promise.all(
+    //     this.samples.map(async (sample, index) => {
+    //       return await this.$refs["sample_" + index][0].save();
+    //     })
+    //   );
+    // },
+    // handleSaveSamplesAndNextStep() {
+    //   // TODO Is this in the right place?
+    //   if (this.samples.length === 0) {
+    //     return;
+    //   }
 
-      // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
-      this.countdownToNextPage = this.samples.length;
+    //   // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
+    //   this.countdownToNextPage = this.samples.length;
 
-      // No samples to store
-      if (this.countdownToNextPage === 0) {
-        this.$router.push(this.nextStep);
-      } else {
-        this.saveAllSamples();
-      }
-    },
+    //   // No samples to store
+    //   if (this.countdownToNextPage === 0) {
+    //     this.$router.push(this.nextStep);
+    //   } else {
+    //     this.saveAllSamples();
+    //   }
+    // },
     /**
      * If we're counting down, and the submit event was a success,
      * count down, until we reach the end and can go to the next page.
      *
      * One mistake and we cancel the countdown.
      */
-    handleStored(payload) {
-      if (this.countdownToNextPage !== false && payload.success) {
-        this.countdownToNextPage = this.countdownToNextPage - 1;
-        if (this.countdownToNextPage === 0) {
-          this.$router.push(this.nextStep);
-        }
-      } else if (payload.success === false) {
-        this.countdownToNextPage = false;
-      }
+    // handleStored(payload) {
+    //   if (this.countdownToNextPage !== false && payload.success) {
+    //     this.countdownToNextPage = this.countdownToNextPage - 1;
+    //     if (this.countdownToNextPage === 0) {
+    //       this.$router.push(this.nextStep);
+    //     }
+    //   } else if (payload.success === false) {
+    //     this.countdownToNextPage = false;
+    //   }
 
-      if (this.countdownToNewSample !== false && payload.success) {
-        this.countdownToNewSample = this.countdownToNewSample - 1;
-        if (this.countdownToNewSample === 0) {
-          this.addUnsavedSample();
-        }
-      } else if (payload.success === false) {
-        this.countdownToNewSample = false;
-      }
-    },
+    //   if (this.countdownToNewSample !== false && payload.success) {
+    //     this.countdownToNewSample = this.countdownToNewSample - 1;
+    //     if (this.countdownToNewSample === 0) {
+    //       this.addUnsavedSample();
+    //     }
+    //   } else if (payload.success === false) {
+    //     this.countdownToNewSample = false;
+    //   }
+    // },
   },
 };
 </script>

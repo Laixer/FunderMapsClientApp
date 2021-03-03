@@ -19,7 +19,6 @@ const deleteSample = ({ inquiryId, sampleId }) => {
 
 export default {
   getSamples,
-
   updateSample,
   createSample,
   deleteSample

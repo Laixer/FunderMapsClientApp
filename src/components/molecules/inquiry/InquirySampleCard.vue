@@ -26,7 +26,7 @@
             />
           </svg>
         </a>
-        <a class="address-card__delete" @click.prevent.stop="remove">
+        <a class="address-card__delete" @click.prevent.stop="remove" v-if="canDelete">
           <svg
             class="address-card__icon"
             xmlns="http://www.w3.org/2000/svg"
@@ -48,7 +48,7 @@
       <span class="address-card__title" title="Nieuw adres"> Nieuw adres </span>
 
       <span class="address-card__actions">
-        <a class="address-card__delete" @click.prevent.stop="remove">
+        <a class="address-card__delete" @click.prevent.stop="remove" v-if="canDelete">
           <svg
             class="address-card__icon"
             xmlns="http://www.w3.org/2000/svg"
@@ -98,6 +98,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    canDelete: {
+      type: Boolean,
+      required: true
+    }
   },
   computed: {
     // progress() {
