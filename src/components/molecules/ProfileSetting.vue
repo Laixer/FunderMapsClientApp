@@ -1,19 +1,19 @@
 <template>
-  <div 
+  <div
     :class="{ 'ProfileSetting__editMode': editMode }"
     class="ProfileSetting">
     <div class="ProfileSetting__text d-flex">
       <label class="d-inline-block font-weight-bold d-flex align-items-center">
         <span>{{ label }}</span>
       </label>
-      <input 
+      <input
         v-if="editMode"
-        class="form-control d-inline-block flex-grow-1" 
-        :type="type" 
+        class="form-control d-inline-block flex-grow-1"
+        :type="type"
         :disabled="disabled"
         :value="value"
         @input="$emit('input', $event.target.value)" />
-      <span 
+      <span
         v-else
         class="d-inline-block flex-grow-1" >
         {{ value }}
@@ -67,7 +67,7 @@ export default {
 
   &__text {
     label {
-      color: #354052;
+      color: $oxford-blue;
       width: 125px;
       margin: 0;
     }

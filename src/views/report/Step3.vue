@@ -157,7 +157,112 @@ export default {
 }
 h3 {
   font-size: 16px;
-  color: #354052;
+  color: $oxford-blue;
   font-weight: 600;
 }
+
+.upload-step-overview-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &__img {
+    margin-right: 20px;
+    max-width: 32px;
+    max-height: 32px;
+    width: auto;
+    height: 100%;
+  }
+
+  &__text {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+
+    &-block {
+      padding: 7px 12px 15px;
+      background-color: $white;
+      border-radius: 5px;
+      margin-bottom: 0;
+      border: 1px solid $mischka;
+    }
+  }
+
+  &__info {
+    color: $secondary;
+  }
+
+  &__comment {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 15px;
+  }
+
+  &__icon {
+    margin: 15px 15px 0 0;
+    width: 100%;
+    height: 100%;
+    max-height: 15px;
+    max-width: 15px;
+  }
+}
+
+.upload-step-overview-item {
+  padding: 20px 40px;
+
+  & + & {
+    border-top: 1px solid $athens-gray;
+  }
+
+  input,
+  label {
+    cursor: pointer;
+    pointer-events: none;
+  }
+
+  .btn {
+    margin-top: 45px;
+  }
+
+  .upload-form {
+
+    .form-control-tile {
+      margin-bottom: 0;
+    }
+  }
+
+  &__text {
+    margin-bottom: 5px;
+
+    svg {
+      margin-right: 10px;
+    }
+
+    &-label {
+      color: $ebony-clay;
+    }
+  }
+
+  &__label {
+    margin-right: 30px;
+  }
+
+  &__info {
+    color: $secondary;
+  }
+
+  &__input {
+    margin-left: 15px;
+
+    &--correct {
+      color: $shamrock;
+      font-family: $headings-font-family;
+    }
+    &--false {
+      color: $secondary;
+      font-family: $headings-font-family;
+    }
+  }
+}
+
 </style>

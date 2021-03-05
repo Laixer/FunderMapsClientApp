@@ -72,7 +72,7 @@ export default {
   }
   .list-group-item.active {
     position: relative;
-    color: #17A4EA;
+    color: $picton-blue;
     background: white;
     border-color: rgba(0, 0, 0, 0.125);
     // font-weight: 600;
@@ -86,7 +86,7 @@ export default {
     &:after {
       content: '';
       position: absolute;
-      background-color: #17A4EA;
+      background-color: $picton-blue;
       height: 100%;
       width: 5px;
       top: 0;

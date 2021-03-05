@@ -1,0 +1,117 @@
+
+/**
+ * Variables that override the Bootstrap defaults
+ */
+
+//
+// Common: variables: colors
+//
+
+$white: #fff;
+$catskill-white: #f8fafc;
+
+$athens-gray: #e8eaf1;
+$regent-gray: #7f8fa4;
+$gull-gray: #9ea9b8;
+$raven: #77808d;
+
+$mischka: #ced0da;
+
+$shamrock: #29cc8b;
+
+$aqua-haze: #eff3f6;
+
+$curious-blue: #1991eb; //#17A4EA
+$picton-blue: #17a4ea; //#2EA2F8
+$oxford-blue: #354052; //#3C495C
+
+$sunset-orange: #ff4e4e;
+$burnt-sienna: #ef5350;
+
+$buttercup: #f5a623;
+
+$ebony-clay: #273142;
+$east-bay: #3d5372;
+$turqoise: #39c9c9;
+$cruise: #ace8d2;
+$purple: #610cab;
+$olive: #9d9400;
+
+$body-bg: $aqua-haze;
+
+$theme-colors: (
+  "primary": $picton-blue,
+  "secondary": $oxford-blue,
+  "light": $athens-gray,
+  "danger": $sunset-orange,
+  "success": $shamrock,
+  "green": $shamrock
+);
+
+$primary: $picton-blue;
+$secondary: $oxford-blue;
+
+$headings-color: $east-bay;
+$body-color: $regent-gray; // #354052
+
+$link-color: $curious-blue;
+$link-hover-color: $secondary;
+
+//
+// Common: variables: fonts
+//
+
+$font-family-base: "Gibson", sans-serif;
+
+$text-muted: #7F8FA4;
+$font-weight-bold: 600;
+
+$font-size-base: 1rem;
+$font-size-small: 14 / 16 + rem;
+
+$line-height-base: 26 / 16;
+$line-height-sm: 1.2;
+$line-height-lg: 1.5;
+
+$headings-margin-bottom: 1rem;
+$headings-line-height: 1.1;
+$headings-font-family: "Gibson-SemiBold", serif;
+$headings-font-weight: 600;
+
+$link-decoration: underline;
+$link-font-family: "Gibson-SemiBold", serif;
+
+// $headings-color: $dark-blue;
+// $body-color: $dark-blue;
+
+$display1-size: 90 / 16 + rem;
+
+$h1-font-size: 34 / 16 + rem;
+$h2-font-size: 30 / 16 + rem;
+$h3-font-size: 24 / 16 + rem;
+$h4-font-size: 20 / 16 + rem;
+$h5-font-size: 18 / 16 + rem;
+$h6-font-size: 16 / 16 + rem;
+
+$font-sizes-mobile: (
+  "h1": 40 / 16 + rem,
+  "h2": 30 / 16 + rem,
+  "h3": 30 / 16 + rem,
+  "h4": 24 / 16 + rem,
+  "h5": 20 / 16 + rem,
+  "h6": 16 / 16 + rem,
+  "s": 15 / 16 + rem,
+  "xs": 14 / 16 + rem,
+);
+
+@mixin text-ellipsis($val) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: $val;
+  -webkit-box-orient: vertical;
+}
+
+@import "~bootstrap/scss/_functions.scss";
+@import "~bootstrap/scss/_variables.scss";
+@import "~bootstrap/scss/_mixins.scss";

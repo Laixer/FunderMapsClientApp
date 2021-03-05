@@ -1,5 +1,5 @@
 <template>
-  <tr 
+  <tr
     class="OrganizationTableLine d-flex align-items-center p-2 mb-2"
     @click="openOrganization">
     <td class="py-1 flex-grow-1">
@@ -29,11 +29,11 @@ export default {
   },
   methods: {
     openOrganization() {
-      this.$router.push({ 
-        name: 'admin-organization', 
-        params: { 
+      this.$router.push({
+        name: 'admin-organization',
+        params: {
           id: this.organization.id
-        } 
+        }
       })
     }
   }
@@ -46,7 +46,7 @@ export default {
   background: white;
   border: 1px solid #DFE2E5;
   border-radius: 4px;
-  color: #7F8FA4;
+  color: $regent-gray;
   line-height: 1;
   transition: all 0.15s;
   user-select: none;
@@ -59,14 +59,14 @@ export default {
 
   strong {
     font-weight: 600;
-    color: #354052;
+    color: $oxford-blue;
   }
 
   .btn {
-    color: #7F8FA4;
+    color: $regent-gray;
 
     &:hover, &:active {
-      color: darken(#7F8FA4, 10%)
+      color: darken($regent-gray, 10%)
     }
   }
 }

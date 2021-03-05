@@ -13,8 +13,9 @@ export default {
 </script>
 
 <style lang="scss">
+
 .Divider {
-  background-color: #E8EAF1;
+  background-color: $athens-gray;
   height: 1px;
   width: 100%;
   border: none;

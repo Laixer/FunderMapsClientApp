@@ -51,7 +51,7 @@ export default {
   background: white;
   box-shadow: -1px 0px 0px 0px rgba(223, 226, 229, 1) inset;
   user-select: none;
-  color: #7f8fa4;
+  color: $regent-gray;
   max-height: 100%;
   z-index: 1;
   left: 0;

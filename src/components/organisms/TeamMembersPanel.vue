@@ -116,7 +116,7 @@ export default {
 <style scoped lang="scss">
 h1 {
   font-size: 30px;
-  color: #354052;
+  color: $oxford-blue;
 }
 
 .panel {
@@ -126,7 +126,7 @@ h1 {
 
   h2 {
     font-size: 22px;
-    color: #354052;
+    color: $oxford-blue;
   }
 }
 </style>

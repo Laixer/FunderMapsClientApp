@@ -2,40 +2,40 @@ import Vue from 'vue'
 import VueRouter, { Route } from 'vue-router'
 
 // Dashboard
-import Dashboard from '@/views/Dashboard.vue'
+const Dashboard = () => import('@/views/Dashboard.vue');
 
 // Auth & User
-import Login from '@/views/Login.vue'
-import Logout from '@/views/Logout.vue'
-import User from '@/views/User.vue'
-import Security from '@/views/Security.vue'
+const Login = () => import('@/views/Login.vue');
+const Logout = () => import('@/views/Logout.vue');
+const User = () => import('@/views/User.vue');
+const Security = () => import('@/views/Security.vue');
 
 // Register
-import Register from '@/views/RegisterOrganization.vue'
+const Register = () => import('@/views/RegisterOrganization.vue');
 
 // Single Report
-import Step1 from '@/views/report/Step1.vue'
-import Step2 from '@/views/report/Step2.vue'
-import Step3 from '@/views/report/Step3.vue'
-import ReportView from '@/views/report/View.vue'
+const Step1 = () => import('@/views/report/Step1.vue');
+const Step2 = () => import('@/views/report/Step2.vue');
+const Step3 = () => import('@/views/report/Step3.vue');
+const ReportView = () => import('@/views/report/View.vue');
 
 // Reports
-import Reports from '@/views/Reports.vue'
+const Reports = () => import('@/views/Reports.vue');
 
 // Organization
-import Organization from '@/views/Organization.vue'
+const Organization = () => import('@/views/Organization.vue');
 
 // Admin
-import AdminDashboard from '@/views/admin/AdminDashboard.vue'
-import AdminOrganization from '@/views/admin/AdminOrganization.vue'
-import AdminOrganizations from '@/views/admin/AdminOrganizations.vue'
-import AdminOrganizationProposals from '@/views/admin/AdminOrganizationProposals.vue'
+const AdminDashboard = () => import('@/views/admin/AdminDashboard.vue');
+const AdminOrganization = () => import('@/views/admin/AdminOrganization.vue');
+const AdminOrganizations = () => import('@/views/admin/AdminOrganizations.vue');
+const AdminOrganizationProposals = () => import('@/views/admin/AdminOrganizationProposals.vue');
 
 // 404
-import NotFound from '@/views/NotFound.vue'
+const NotFound = () => import('@/views/NotFound.vue');
 
 // Maps
-import MapView from '@/views/Map.vue'
+const MapView = () => import('@/views/Map.vue');
 
 // Services
 import { isLoggedIn, isAdmin, logout } from '../services/auth'

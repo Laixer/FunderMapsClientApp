@@ -4,50 +4,50 @@
       Profiel Instellingen
     </h1>
     <div class="d-flex">
-      <form 
+      <form
         class="mr-4"
         style="width: 570px"
         @submit.prevent="handleUpdateUser">
 
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Algemeen</h2>
-          
+
           <Feedback :feedback="feedback" />
 
-          <ProfileSetting 
+          <ProfileSetting
             label="Voornaam"
-            :editMode="editMode" 
+            :editMode="editMode"
             v-model="user.givenName" />
-          <ProfileSetting 
-            label="Achternaam" 
-            :editMode="editMode" 
+          <ProfileSetting
+            label="Achternaam"
+            :editMode="editMode"
             v-model="user.lastName" />
-          <ProfileSetting 
-            label="E-mail" 
+          <ProfileSetting
+            label="E-mail"
             :editMode="editMode"
             :disabled="true"
             :value="user.email" />
-          <ProfileSetting 
-            label="Functie" 
-            :editMode="editMode" 
+          <ProfileSetting
+            label="Functie"
+            :editMode="editMode"
             v-model="user.jobTitle" />
-          <ProfileSetting 
+          <ProfileSetting
             label="Telefoon"
-            :editMode="editMode"  
+            :editMode="editMode"
             v-model="user.phoneNumber" />
         </div>
 
-        <b-button 
-          type="submit" 
-          variant="primary" 
-          class="SubmitButton font-weight-bold mt-4" 
-          size="lg" 
+        <b-button
+          type="submit"
+          variant="primary"
+          class="SubmitButton font-weight-bold mt-4"
+          size="lg"
           pill>
           <span class="d-inline-block my-2">
             Bewaar instellingen
           </span>
         </b-button>
-        
+
       </form>
     </div>
 
@@ -65,7 +65,7 @@ import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'User',
-  
+
   components: {
     ProfileSetting,
     Feedback
@@ -93,17 +93,17 @@ export default {
     async handleUpdateUser() {
       try {
         this.feedback = {
-          variant: 'info', 
+          variant: 'info',
           message: 'Bezig met opslaan...'
         }
         await this.updateUser();
         this.feedback = {
-          variant: 'success', 
+          variant: 'success',
           message: 'Wijzigingen zijn opgeslagen'
         }
       } catch(err) {
         this.feedback = {
-          variant: 'danger', 
+          variant: 'danger',
           message: 'Wijzigingen zijn niet opgeslagen'
         }
       }
@@ -116,7 +116,7 @@ export default {
 
 h1 {
   font-size: 30px;
-  color: #354052;
+  color: $oxford-blue;
 }
 
 .panel {
@@ -126,7 +126,7 @@ h1 {
 
   h2 {
     font-size: 22px;
-    color: #354052;
+    color: $oxford-blue;
   }
 }
 

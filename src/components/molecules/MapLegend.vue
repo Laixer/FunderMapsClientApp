@@ -87,7 +87,7 @@ export default {
 
     span > img {
       margin-top: 8px;
-      color: #7f8fa4;
+      color: $regent-gray;
       vertical-align: baseline;
     }
   }

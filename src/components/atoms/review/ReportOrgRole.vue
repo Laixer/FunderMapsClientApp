@@ -35,12 +35,12 @@ export default {
 <style lang="scss">
 .ReportOrgRole {
   &__name {
-    color: #354052;
+    color: $oxford-blue;
     font-size: 16px;
     line-height: 1;
   }
   &__role {
-    color: #7f8fa4;
+    color: $regent-gray;
     line-height: 1;
   }
 }

@@ -1,70 +1,63 @@
 <template>
   <tr
     class="ReportTableLine d-flex align-items-center p-2 mb-2"
-    @click="openReport">
+    @click="openReport"
+  >
     <td scope="row" class="py-1">
       <div
-        :style="{ 'backgroundColor': report.statusColor() }"
-        class="ReportTableLine__status mx-auto"></div>
+        :style="{ backgroundColor: report.statusColor() }"
+        class="ReportTableLine__status mx-auto"
+      ></div>
     </td>
     <td class="py-1">
       <strong>{{ report.label() }}</strong>
     </td>
-    <td>{{ userObject ? userObject.getUserName() : 'Unknown' }}</td>
+    <td>{{ userObject ? userObject.getUserName() : "Unknown" }}</td>
     <td>{{ report.date() }}</td>
     <td>
-      <TypeTag
-        v-if="report.hasType()"
-        :type="report.getType()" />
+      <TypeTag v-if="report.hasType()" :type="report.getType()" />
     </td>
     <td class="d-flex justify-content-end">
       <button
         v-if="editable"
         type="button"
         class="btn btn-default"
-        @click.stop="handleEdit">
+        @click.stop="handleEdit"
+      >
         Bewerk
       </button>
-      <button
-        v-else
-        type="button"
-        class="btn btn-default">
-        Bekijk
-      </button>
+      <button v-else type="button" class="btn btn-default">Bekijk</button>
     </td>
   </tr>
 </template>
 
 <script>
-import TypeTag from 'atom/TypeTag';
+import TypeTag from "atom/TypeTag";
 
-import { isSuperUser, canWrite } from 'service/auth'
+import { isSuperUser, canWrite } from "service/auth";
 
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 
-import ReportModel from 'model/Report'
+import ReportModel from "model/Report";
 
 export default {
-  name: 'ReportTableLine',
+  name: "ReportTableLine",
   components: {
-    TypeTag
+    TypeTag,
   },
   props: {
     report: {
       type: ReportModel,
-      default: function() {
-        return {}
-      }
-    }
+      default: function () {
+        return {};
+      },
+    },
   },
   computed: {
-    ...mapGetters('reviewers', [
-      'getUserById',
-      'areReviewersAvailable'
-    ]),
+    ...mapGetters("reviewers", ["getUserById", "areReviewersAvailable"]),
     editable() {
       if (!canWrite()) {
-        return false
+        return false;
       }
       return this.report.isEditable();
 
@@ -72,38 +65,40 @@ export default {
       // support this functionality.
     },
     userObject() {
-      return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewerId }) : null
-    }
+      return this.areReviewersAvailable
+        ? this.getUserById({ id: this.report.reviewerId })
+        : null;
+    },
   },
   methods: {
     openReport() {
       this.$router.push({
-        name: 'view-report',
+        name: "view-report",
         params: {
           id: this.report.id,
-          document: this.report.documentId
-        }
-      })
+          document: this.report.documentId,
+        },
+      });
     },
     handleEdit() {
       this.$router.push({
-        name: 'edit-report-1',
+        name: "edit-report-1",
         params: {
           id: this.report.id,
-          document: this.report.documentId
-        }
-      })
-    }
-  }
-}
+          document: this.report.documentId,
+        },
+      });
+    },
+  },
+};
 </script>
 
 <style lang="scss">
 .ReportTableLine {
   background: white;
-  border: 1px solid #DFE2E5;
+  border: 1px solid #dfe2e5;
   border-radius: 4px;
-  color: #7F8FA4;
+  color: $regent-gray;
   line-height: 1;
   transition: all 0.15s;
   user-select: none;
@@ -124,17 +119,22 @@ export default {
     height: 20px;
     border-radius: 50%;
   }
+
   strong {
     font-weight: 600;
-    color: #354052;
+    color: $oxford-blue;
   }
 
   .btn {
-    color: #7F8FA4;
-    width: 100%;
+    position: relative;
 
-    &:hover, &:active {
-      color: darken(#7F8FA4, 10%)
+    &-default {
+      padding: 9.5px 12px;
+      background-color: $athens-gray;
+      color: $regent-gray;
+      font-size: $font-size-small;
+      line-height: 15px;
+      border-radius: 4px;
     }
   }
 }

@@ -23,10 +23,10 @@ export default {
   computed: {
     boundDate() {
       if (isDate(this.date)) {
-        // return this.date.getDate() + ' - ' 
+        // return this.date.getDate() + ' - '
         //   + (this.date.getMonth() + 1) + ' - '
         //   + this.date.getFullYear();
-        return this.date.getDate() + ' ' 
+        return this.date.getDate() + ' '
         + monthYearStringFromDate({ date: this.date });
       }
       return this.date;
@@ -49,7 +49,7 @@ export default {
     color: #8292A6;
   }
   span:nth-child(3) {
-    color: #354052;
+    color: $oxford-blue;
   }
 }
 </style>

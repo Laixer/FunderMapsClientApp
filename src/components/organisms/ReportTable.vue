@@ -73,14 +73,14 @@ export default {
 
   h2 {
     font-size: 18px;
-    color: #354052;
+    color: $oxford-blue;
     font-weight: 600;
   }
   table {
     width: 100%;
 
     th {
-      color: #7f8fa4;
+      color: $regent-gray;
       font-size: 14px;
       font-weight: normal;
     }

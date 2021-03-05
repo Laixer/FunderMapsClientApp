@@ -2,7 +2,7 @@
   <div class="ReportStepHeader d-flex align-items-center justify-content-between">
     <h2 class="m-0 flex-grow-1">
       <span class="font-weight-bold">Stap {{ step }}</span>
-      <span 
+      <span
         class="ReportStepHeader__label ml-3 pl-3"
         v-if="label">
         {{ label }}
@@ -40,7 +40,6 @@ export default {
   h2 {
     line-height: 20px;
     font-size: 24px;
-    color: #3D5372
   }
 
   &__label {
@@ -50,17 +49,17 @@ export default {
     &:before {
       position: absolute;
       content: '';
-      border-left: 1px solid #E8EAF1;
+      border-left: 1px solid $athens-gray;
       height: 30px;
       left: 0;
       top: -50%;
     }
   }
   .btn {
-    color: #7F8FA4;
+    color: $regent-gray;
 
     &:hover, &:visited, &:active {
-      color: darken(#7F8FA4, 10%)
+      color: darken($regent-gray, 10%)
     }
   }
 }

@@ -77,8 +77,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/sass/common/common";
-
 .address-bar {
   display: flex;
   flex-direction: column-reverse;

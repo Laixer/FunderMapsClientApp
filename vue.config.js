@@ -38,5 +38,14 @@ module.exports = {
       }
     },
     // plugins: [ new BundleAnalyzerPlugin() ]
+  },
+  css: {
+    loaderOptions: {
+      sass: {
+        additionalData: `
+          @import '~@/assets/sass/custom.scss';
+        `
+      }
+    }
   }
 }

@@ -41,19 +41,19 @@ export default class TeamMember extends Vue {
 
 <style lang="scss">
 .TeamMember {
-  color: #354052;
+  color: $oxford-blue;
 
   span {
     line-height: 1
   }
 
   .btn {
-    color: #7F8FA4;
+    color: $regent-gray;
     font-size: 1rem;
     padding: 0.375rem 0.75rem;
 
     &:hover, &:active {
-      color: darken(#7F8FA4, 10%)
+      color: darken($regent-gray, 10%)
     }
   }
 
@@ -61,7 +61,7 @@ export default class TeamMember extends Vue {
     border: 1px solid #CED0DA;
     border-radius: 4px;
     height: 30px;
-    color: #354052;
+    color: $oxford-blue;
     cursor: pointer;
     max-width: 120px;
 

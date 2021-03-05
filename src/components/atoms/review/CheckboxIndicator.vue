@@ -1,7 +1,7 @@
 <template>
   <div class="CheckboxIndicator d-flex align-items-center">
     <span>
-      <img :src="icon(iconName)" width="16" height="16" /> 
+      <img :src="icon(iconName)" width="16" height="16" />
     </span>
     <span>{{ label }}</span>
   </div>
@@ -36,7 +36,7 @@ export default {
 <style lang="scss">
 .CheckboxIndicator {
   font-size: 16px;
-  color: #354052;
+  color: $oxford-blue;
 
   span:first-child {
     width: 30px;

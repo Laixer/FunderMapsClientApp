@@ -43,8 +43,8 @@ export default {
 
   &:hover, &:active, &:focus {
     background: transparent;
-    color: darken(#17A4EA, 20%);
-    border-color: darken(#17A4EA, 20%);
+    color: darken($picton-blue, 20%);
+    border-color: darken($picton-blue, 20%);
   }
 }
 </style>

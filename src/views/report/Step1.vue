@@ -497,7 +497,6 @@ export default {
     h2 {
       font-size: 24px;
       line-height: 20px;
-      color: #3d5372;
       margin-bottom: 31px;
     }
   }

@@ -1,6 +1,6 @@
 <template>
-  <div 
-    v-if="userObject" 
+  <div
+    v-if="userObject"
     class="ReportUserRole d-flex align-items-center mt-4">
     <img :src="userObject.getAvatar()" width="32" height="32" class="rounded-circle" />
     <div class="ml-3">
@@ -43,12 +43,12 @@ export default {
 <style lang="scss">
 .ReportUserRole {
   &__name {
-    color: #354052;
+    color: $oxford-blue;
     font-size: 16px;
     line-height: 1
   }
   &__role {
-    color: #7F8FA4;
+    color: $regent-gray;
     line-height: 1
   }
 }

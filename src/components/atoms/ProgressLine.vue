@@ -1,6 +1,6 @@
 <template>
   <div class="ProgressLine">
-    <div 
+    <div
       :style="progress"
       class="ProgressLine__progress"></div>
   </div>
@@ -40,7 +40,7 @@ export default {
 
   &__progress {
     position: absolute;
-    background: #17A4EA;
+    background: $picton-blue;
     height: 100%;
     top: 0;
     left: 0;

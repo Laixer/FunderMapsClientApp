@@ -26,7 +26,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/sass/common/common";
 
 .FadedBackgroundCover {
   position: absolute;

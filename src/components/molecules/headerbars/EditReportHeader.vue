@@ -94,8 +94,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/sass/common/common";
-
 .steps {
   position: relative;
   display: flex;
@@ -179,7 +177,7 @@ export default {
 
     .steps-item--active &:hover {
       .steps-item__title {
-        color: #1991eb;
+        color: $curious-blue;
       }
     }
   }

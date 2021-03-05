@@ -14,7 +14,7 @@
       </b-input>
     </td>
     <td class="d-flex justify-content-end">
-      <b-button 
+      <b-button
         variant="light"
         @click="cancelOrganizationProposal">
         Annuleren
@@ -40,7 +40,7 @@ export default {
     tokenLink() {
       // TODO Is this the way to go?
       let host = window.location.origin || ''
-      
+
       // TODO: Build wrapper
 
       return new URL(`register/${this.proposal.id}`, host).toString()
@@ -52,7 +52,7 @@ export default {
     ]),
     cancelOrganizationProposal() {
       this.$bvModal.msgBoxConfirm(
-        'Het verwijderen van de uitnodiging aan ' + this.proposal.name + ' kan niet ongedaan worden gemaakt. Het is altijd mogelijk een nieuwe uitnodiging aan te maken, maar de oude uitnodiging zal dan niet langer werken.', 
+        'Het verwijderen van de uitnodiging aan ' + this.proposal.name + ' kan niet ongedaan worden gemaakt. Het is altijd mogelijk een nieuwe uitnodiging aan te maken, maar de oude uitnodiging zal dan niet langer werken.',
         {
           title: 'Bevestig actie - ' + this.proposal.name,
           okVariant: 'danger',
@@ -78,7 +78,7 @@ export default {
   background: white;
   border: 1px solid #DFE2E5;
   border-radius: 4px;
-  color: #7F8FA4;
+  color: $regent-gray;
   line-height: 1;
   transition: all 0.15s;
   user-select: none;
@@ -91,14 +91,14 @@ export default {
 
   strong {
     font-weight: 600;
-    color: #354052;
+    color: $oxford-blue;
   }
 
   .btn {
-    color: #7F8FA4;
+    color: $regent-gray;
 
     &:hover, &:active {
-      color: darken(#7F8FA4, 10%)
+      color: darken($regent-gray, 10%)
     }
   }
 }

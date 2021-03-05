@@ -1,12 +1,12 @@
 <template>
-  <div 
+  <div
     :class="statusClass"
     class="ProgressIndicator">
     <div class="ProgressIndicator__sphere d-flex align-items-center justify-content-center">
-      <img 
+      <img
         v-if="iconName"
-        :src="icon(iconName)" 
-        width="45" 
+        :src="icon(iconName)"
+        width="45"
         height="45" />
     </div>
     <div class="ProgressIndicator__button"></div>
@@ -65,7 +65,7 @@ export default {
   &--active, &--passed {
     .ProgressIndicator {
       &__sphere {
-        background-color: #17A4EA;
+        background-color: $picton-blue;
       }
     }
   }
@@ -80,7 +80,7 @@ export default {
           top: -5px;
           left: -5px;
           border-radius: 50%;
-          border: 2px solid #17A4EA;
+          border: 2px solid $picton-blue;
         }
       }
     }

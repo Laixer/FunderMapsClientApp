@@ -16,15 +16,10 @@ import Layout from "./views/layouts/layouts.vue";
 export default class App extends Vue {}
 </script>
 <style lang="scss">
-@import "~@/sass/common/common";
-
 html,
 body {
   height: 100% !important;
-  font-family: $font-family-base !important;
   font-size: 14px !important;
-  background-color: $aqua-haze !important;
-
 }
 html {
   overflow-y: scroll;

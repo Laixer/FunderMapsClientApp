@@ -211,7 +211,7 @@ export default {
   height: 60px;
   width: 100%;
   padding-left: 39px;
-  color: #7F8FA4;
+  color: $regent-gray;
 
   .btn {
     line-height: 19px;
@@ -229,7 +229,7 @@ export default {
     cursor: pointer;
 
     &:hover, &--active {
-      color: #354052;
+      color: $oxford-blue;
       font-weight: 600;
     }
   }

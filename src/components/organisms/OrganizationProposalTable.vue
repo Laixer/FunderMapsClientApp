@@ -26,9 +26,9 @@
         </tr>
       </thead>
       <tbody>
-        <OrganizationProposalLine 
-          v-for="(proposal, index) in proposals" 
-          :key="index" 
+        <OrganizationProposalLine
+          v-for="(proposal, index) in proposals"
+          :key="index"
           :proposal="proposal" />
       </tbody>
     </table>
@@ -74,14 +74,14 @@ export default {
 
   h2 {
     font-size: 18px;
-    color: #354052;
+    color: $oxford-blue;
     font-weight: 600;
   }
   table {
     width: 100%;
 
     th {
-      color: #7F8FA4;
+      color: $regent-gray;
       font-size: 14px;
       font-weight: normal;
     }

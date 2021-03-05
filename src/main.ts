@@ -2,27 +2,26 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-
-Vue.config.productionTip = false
-
-
+import BootstrapVue from 'bootstrap-vue'
+import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
 
 // Services
 import { refreshLogin } from './services/auth'
 
-// Bootstrap
-import "@/sass/main.scss";
-
-// Bootstrap Vue
-import BootstrapVue from 'bootstrap-vue'
-Vue.use(BootstrapVue)
-
-import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
-Vue.component('vue-typeahead-bootstrap', VueTypeaheadBootstrap)
-
 // Named Avatar Generator
 import { config as configNamedAvatars } from './utils/namedavatar'
+
+// Bootstrap config
+import "@/assets/sass/bootstrap.scss";
+
 configNamedAvatars()
+
+// Bootstrap Vue
+Vue.use(BootstrapVue)
+
+Vue.component('vue-typeahead-bootstrap', VueTypeaheadBootstrap)
+
+Vue.config.productionTip = false
 
 new Vue({
   router,

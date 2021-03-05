@@ -87,7 +87,7 @@ export default {
     padding: 20px 0 0 30px;
   }
   &__description {
-    color: #7f8fa4;
+    color: $regent-gray;
   }
   .form-group {
     margin-bottom: 0;

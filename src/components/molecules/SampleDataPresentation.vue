@@ -1095,7 +1095,7 @@ export default {
     }
     .form-row {
       padding: 20px 0;
-      border-bottom: 1px solid #e8eaf1;
+      border-bottom: 1px solid $athens-gray;
 
       &:last-child {
         border-bottom: none;
@@ -1104,4 +1104,22 @@ export default {
     }
   }
 }
+
+.btn {
+  position: relative;
+
+  &-submit {
+    background-color: $athens-gray;
+    font-size: 12 / 16 + rem;
+    border-radius: 3px;
+    line-height: 12 / 16 + rem;
+    padding: 10px;
+
+    &:hover {
+      background-color: $regent-gray;
+      color: $white;
+    }
+  }
+}
+
 </style>

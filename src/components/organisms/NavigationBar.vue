@@ -35,8 +35,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/sass/common/common";
-
 .navigation {
   position: sticky;
   padding: 25px 0;

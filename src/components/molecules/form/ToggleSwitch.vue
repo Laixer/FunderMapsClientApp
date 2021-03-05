@@ -1,8 +1,8 @@
 <template>
   <label class="switch">
-    <input 
-      :checked="value" 
-      type="checkbox" 
+    <input
+      :checked="value"
+      type="checkbox"
       @change="$emit('input', $event.target.checked)">
     <span class="slider round success"></span>
   </label>
@@ -53,14 +53,14 @@ export default {
     width: 13px;
     left: 2px;
     bottom: 2px;
-    background-color: white;
+    background-color: $white;
     -webkit-transition: .4s;
     transition: .4s;
   }
 
   /* Rounded sliders */
   &.round {
-    border-radius: 17px; 
+    border-radius: 17px;
 
     &:before {
       border-radius: 50%;

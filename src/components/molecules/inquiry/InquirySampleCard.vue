@@ -145,8 +145,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/sass/common/common";
-
 $progress: (
   1: $shamrock,
   2: $shamrock,

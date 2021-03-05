@@ -13,16 +13,16 @@ export default {
     }
   },
   render(h, context) {
-    
+
     return h('span', {
       class: combineClassLists({
         classList: { copyright: true },
         context
       }),
       domProps: {
-        innerHTML: 
-          ('&copy; Copyright ' 
-          + new Date().getFullYear() 
+        innerHTML:
+          ('&copy; Copyright '
+          + new Date().getFullYear()
           + ' ' + context.props.company)
           .trim()
       }
@@ -33,6 +33,6 @@ export default {
 <style>
 .copyright {
   font-size: 12px;
-  color: white;
+  color: $white;
 }
 </style>

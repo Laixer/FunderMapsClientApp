@@ -38,7 +38,7 @@ export default {
     line-height: 24px;
     font-size: 16px;
     width: calc(100% - 30px);
-    color: #7F8FA4;
+    color: $regent-gray;
   }
 }
 </style>

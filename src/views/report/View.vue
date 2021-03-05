@@ -193,7 +193,7 @@ export default {
 }
 h3 {
   font-size: 16px;
-  color: #354052;
+  color: $oxford-blue;
   font-weight: 600;
 }
 </style>

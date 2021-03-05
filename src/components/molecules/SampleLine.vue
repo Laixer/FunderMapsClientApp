@@ -100,13 +100,13 @@ export default {
 .SampleLine {
   height: 60px;
   padding: 0 30px;
-  background-color: white;
+  background-color: $white;
   cursor: pointer;
   // &--open &__address {
   //   font-weight: 600;
   // }
   &__edit {
-    border-right: 1px solid #E8EAF1;
+    border-right: 1px solid $athens-gray;
     height: 30px;
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="BasicDataItem d-flex flex-column">
     <strong>{{ label }}</strong>
-    <span 
+    <span
       :class="valueClass"
       class="mt-2">
       {{ boundValue }}
@@ -32,10 +32,10 @@ export default {
       }
     },
     boundValue() {
-      let value = (isObject(this.value) && this.value.hasOwnProperty('text')) 
+      let value = (isObject(this.value) && this.value.hasOwnProperty('text'))
         ? this.value.text
         : this.value;
-      return value 
+      return value
         ? value
         : 'Geen data';
     }
@@ -49,12 +49,12 @@ export default {
     font-size: 16px;
     line-height: 1;
     font-weight: 400;
-    color: #7F8FA4;
+    color: $regent-gray;
   }
   span {
     line-height: 19px;
     font-size: 16px;
-    color: #354052;
+    color: $oxford-blue;
   }
 }
 </style>

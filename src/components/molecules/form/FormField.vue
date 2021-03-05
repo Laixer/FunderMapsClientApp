@@ -1,15 +1,21 @@
 <template>
-  <div class="form-group" :state="state">
+  <b-form-group
+   class="FormField"
+   :state="state">
     <!-- :label="label" -->
-    <label>{{ label }}</label>
-    <span v-if="hasInfo" class="info ml-1" @click="openInfo">
-      <img
-        style="margin-top: -2px; cursor: pointer"
-        :src="icon('search-icon.svg')"
-        width="16"
-        height="16"
-      />
-    </span>
+    <template v-slot:label>
+      <span>{{ label }}</span>
+      <span
+        v-if="hasInfo"
+        class="info ml-1"
+        @click="openInfo">
+        <img
+          style="margin-top: -2px; cursor: pointer"
+          :src="icon('info-circle-light.svg')"
+          width="16"
+          height="16" />
+      </span>
+    </template>
 
     <b-form-select
       v-if="type === 'select'"
@@ -165,7 +171,7 @@
     <template slot="invalid-feedback">
       {{ invalidFeedback }}
     </template>
-  </div>
+  </b-form-group>
 </template>
 
 <script>
@@ -437,70 +443,63 @@ export default {
 };
 </script>
 
-// <style lang="scss" scoped>
-.col-form-label {
-  padding-bottom: 0 !important;
+<style lang="scss">
+.FormField {
+  font-size: 16px;
+  position: relative;
+
+  input {
+    color: rgba(53, 64, 82, 0.5);
+  }
+  input:disabled {
+    color: #495057 !important;
+  }
+
+  label,
+  legend {
+    color: $regent-gray;
+    text-transform: uppercase;
+    padding-bottom: 0;
+  }
+
+  // .invalid-feedback {
+  //   position: absolute;
+  //   top: -1.75rem;
+  //   text-align: right;
+  // }
+
+  &--choice {
+    height: 33px;
+
+    .custom-control-input:checked ~ .custom-control-label::before {
+      border-color: transparent;
+      background-color: transparent;
+    }
+    .custom-radio.check
+      .custom-control-input:checked
+      ~ .custom-control-label::after {
+      background-color: $white;
+      background-image: url("../../../assets/icons/Check-icon.svg");
+      background-size: cover;
+    }
+    .custom-radio.none
+      .custom-control-input:checked
+      ~ .custom-control-label::after {
+      background-color: $white;
+      background-image: url("../../../assets/icons/None-icon.svg");
+      background-size: cover;
+    }
+  }
+
+  .vdp-datepicker {
+    .form-control[readonly] {
+      background-color: #fff;
+    }
+    &__calendar,
+    .cell:hover,
+    .selected {
+      border-radius: 0.25rem;
+    }
+  }
 }
-.custom-select {
-  background-position: calc(100% - 15px);
-}
-
-// .custom-select:valid {
-//     border-color: #29cc8b;
-//     background-image: url("data:image/svg+xml,%3Csvg height='12' viewBox='0 0 8 12' width='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m8 8.07927724-4 3.92072276-4-3.92072276zm-4-8.07927724 4 3.92072276h-8z' fill='%233d5372' fill-rule='evenodd'/%3E%3C/svg%3E") 8px 12px no-repeat, linear-gradient(0deg, #f2f4f7 0%, #ffffff 100%) center;
-//     background-position: calc(100% - 15px);
-//     background-repeat: no-repeat;
-
-// }
-// .FormField {
-//   font-size: 16px;
-//   position: relative;
-
-//   input {
-//     color: rgba(53, 64, 82, 0.5);
-//   }
-//   input:disabled {
-//     color: #495057 !important
-//   }
-
-//   label, legend {
-//     color: #7F8FA4;
-//     text-transform: uppercase;
-//     padding-bottom: 0;
-//   }
-
-//   // .invalid-feedback {
-//   //   position: absolute;
-//   //   top: -1.75rem;
-//   //   text-align: right;
-//   // }
-
-//   &--choice {
-//     height: 33px;
-
-//     .custom-control-input:checked ~ .custom-control-label::before {
-//       border-color: transparent;
-//       background-color: transparent;
-//     }
-//     .custom-radio.check .custom-control-input:checked ~ .custom-control-label::after {
-//       background-color: white;
-//       background-image: url('../../../assets/icons/Check-icon.svg');
-//       background-size: cover;
-//     }
-//     .custom-radio.none .custom-control-input:checked ~ .custom-control-label::after {
-//       background-color: white;
-//       background-image: url('../../../assets/icons/None-icon.svg');
-//       background-size: cover;
-//     }
-//   }
-
-//   .vdp-datepicker {
-//     .form-control[readonly] {
-//       background-color: #fff;
-//     }
-//     &__calendar, .cell:hover, .selected {
-//       border-radius: 0.25rem;
-//     }
-//   }
-// }
 </style>

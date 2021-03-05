@@ -251,7 +251,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/sass/common/common";
+.upload-col {
+  &-4 {
+    @include make-col(4);
+  }
+  &-8 {
+    @include make-col(8);
+  }
+}
+
+.upload-row {
+  @include make-row;
+  margin: 0;
+}
 
 .address {
   &__title {

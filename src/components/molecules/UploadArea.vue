@@ -1,9 +1,9 @@
 <template>
   <div>
     <Feedback :feedback="feedback" />
-    <vue2Dropzone 
+    <vue2Dropzone
       id="dropzone"
-      v-if="canUserWrite()" 
+      v-if="canUserWrite()"
       ref="dropzone"
       :options="options"
       useCustomSlot
@@ -12,8 +12,8 @@
       @vdropzone-error="handleError"
       class="UploadArea d-flex justify-content-center">
       <div class="align-self-center">
-        <img 
-          alt="upload" 
+        <img
+          alt="upload"
           :src="image('upload.svg')" />
         <p class="mb-0 mt-3">
           <strong>
@@ -21,7 +21,7 @@
           </strong>
           <br>
           <span>
-            of 
+            of
             <span>bladeren</span>
             om een bestand te kiezen
           </span>
@@ -97,7 +97,7 @@ export default {
       if (file && this.$refs.dropzone) {
         this.$refs.dropzone.removeFile(file)
       }
-      
+
       this.feedback = {
         message: 'Het bestand kon niet verwerkt worden.',
         variant: 'danger'
@@ -120,7 +120,7 @@ export default {
   p {
     text-align: center;
     font-size: 14px;
-    color: #354052;
+    color: $oxford-blue;
     font-weight: 300;
     line-height: 17px;
 
@@ -130,7 +130,7 @@ export default {
       font-weight: 600;
     }
     span span {
-      color: #1991EB;
+      color: $curious-blue;
       font-weight: 600;
       text-decoration: underline;
       cursor: pointer;
@@ -145,10 +145,10 @@ export default {
     font-family: 'Gibson' !important;
   }
   &.vue-dropzone:hover {
-    background-color: white;
+    background-color: $white;
   }
   &.vue-dropzone>.dz-preview .dz-details {
-    background: #17A4EA;
+    background: $picton-blue;
   }
 }
 
