@@ -72,10 +72,10 @@ export default {
           }
         ],
         [
-          {
-            label: "Referentiestelsel",
-            value: this.sample.getBaseMeasurementLevel()
-          },
+          // {
+          //   label: "Referentiestelsel",
+          //   value: this.sample.getBaseMeasurementLevel()
+          // },
           {
             label: "Hoogte Langshout",
             value: this.sample.woodLevel

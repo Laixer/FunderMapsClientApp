@@ -194,11 +194,11 @@ export const foundationTypeOptions = [
     value: 14,
     text: 'Overig'
   },
-  {
-    //value: 'Unknown',
-    value: 15,
-    text: 'Onbekend'
-  }
+  // {
+  //   //value: 'Unknown',
+  //   value: 15,
+  //   text: 'Onbekend'
+  // }
 ]
 
 // TODO Hardcoded, enums didn't map
@@ -296,11 +296,11 @@ export const foundationDamageCauseOptions = [
     value: 6,
     text: 'Bacteriele aantasting'
   },
-  {
-    //value: 'Unknown',
-    value: 7,
-    text: 'Niet vermeld'
-  },
+  // {
+  //   //value: 'Unknown',
+  //   value: 7,
+  //   text: 'Niet vermeld'
+  // },
   {
     //value: 'FungusInfection',
     value: 8,
@@ -363,7 +363,7 @@ export const enforcementTermOptions = [
   {
     text: '5 jaar',
     //value: 'Term5'
-    value: 3 
+    value: 3
   },
   {
     text: '10 jaar',
@@ -398,23 +398,23 @@ export const enforcementTermOptions = [
 ]
 
 // TODO Hardcoded, enums didn't map
-export const BaseMeasurementLevelOptions = [
-  {
-    // value: 'NAP',
-    value: 0,
-    text: 'NAP (Nederland)'
-  },
-  {
-    // value: 'TAW',
-    value: 1,
-    text: 'TAW (België)'
-  },
-  {
-    // value: 'NN',
-    value: 2,
-    text: 'NN (Duitsland)'
-  }
-]
+// export const BaseMeasurementLevelOptions = [
+//   {
+//     // value: 'NAP',
+//     value: 0,
+//     text: 'NAP (Nederland)'
+//   },
+//   {
+//     // value: 'TAW',
+//     value: 1,
+//     text: 'TAW (België)'
+//   },
+//   {
+//     // value: 'NN',
+//     value: 2,
+//     text: 'NN (Duitsland)'
+//   }
+// ]
 
 export const FoundationRecoveryEvidenceTypeOptions = [
   {

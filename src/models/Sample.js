@@ -5,7 +5,7 @@ import {
   substructureOptions,
   foundationDamageCauseOptions,
   enforcementTermOptions,
-  BaseMeasurementLevelOptions,
+  // BaseMeasurementLevelOptions,
   accessOptions
 } from 'config/enums'
 
@@ -74,10 +74,10 @@ export default class SampleModel {
   getEnforcementTerm() {
     return enforcementTermOptions[this.enforcementTerm] || null;
   }
-  getBaseMeasurementLevel() {
-    // TODO This is a fix
-    return BaseMeasurementLevelOptions[0] || null;
-  }
+  // getBaseMeasurementLevel() {
+  //   // TODO This is a fix
+  //   return BaseMeasurementLevelOptions[0] || null;
+  // }
   getAccess() {
     return accessOptions[this.policy] || null;
   }

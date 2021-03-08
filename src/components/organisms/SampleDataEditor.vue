@@ -61,11 +61,11 @@
     </div>
 
     <div class="form-row">
-      <FormField
+      <!-- <FormField
         v-model="fields.baseMeasurementLevel.value"
         v-bind="fields.baseMeasurementLevel"
         class="col-md-3"
-      />
+      /> -->
       <FormField v-model="fields.woodLevel.value" v-bind="fields.woodLevel" class="col-md-3" />
       <FormField
         v-model="fields.groundwaterLevelTemp.value"
@@ -93,7 +93,7 @@ import {
   enforcementTermOptions,
   substructureOptions,
   foundationDamageCauseOptions,
-  BaseMeasurementLevelOptions
+  // BaseMeasurementLevelOptions
 } from "config/enums";
 
 import Divider from "atom/Divider";
@@ -241,7 +241,7 @@ export default {
             }
           ].concat(foundationDamageCauseOptions),
           validationRules: {
-            required
+            // required
           }
         },
         enforcementTerm: {
@@ -258,20 +258,20 @@ export default {
           }
         },
         // LINE 6
-        baseMeasurementLevel: {
-          label: "Referentiestelsel",
-          type: "select",
-          value: "NAP",
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie"
-            }
-          ].concat(BaseMeasurementLevelOptions),
-          validationRules: {
-            required
-          }
-        },
+        // baseMeasurementLevel: {
+        //   label: "Referentiestelsel",
+        //   type: "select",
+        //   value: "NAP",
+        //   options: [
+        //     {
+        //       value: null,
+        //       text: "Selecteer een optie"
+        //     }
+        //   ].concat(BaseMeasurementLevelOptions),
+        //   validationRules: {
+        //     required
+        //   }
+        // },
         woodLevel: {
           label: "Hoogte langshout",
           type: "text",
@@ -319,13 +319,13 @@ export default {
       };
     }
 
-    // Required fields by API
-    if (this.sample.baseMeasurementLevel === null) {
-      this.sample.baseMeasurementLevel = 0; // NAP
-    }
-    if (this.sample.damageCause === null) {
-      this.sample.damageCause = 7; // Unknown
-    }
+    // // Required fields by API
+    // if (this.sample.baseMeasurementLevel === null) {
+    //   this.sample.baseMeasurementLevel = 0; // NAP
+    // }
+    // if (this.sample.damageCause === null) {
+    //   this.sample.damageCause = 7; // Unknown
+    // }
 
     // Explicitly set the address field.
     if (this.sample.address !== null) {
@@ -364,10 +364,10 @@ export default {
         options: enforcementTermOptions,
         name: "enforcementTerm"
       }),
-      baseMeasurementLevel: this.optionValue({
-        options: BaseMeasurementLevelOptions,
-        name: "baseMeasurementLevel"
-      }),
+      // baseMeasurementLevel: this.optionValue({
+      //   options: BaseMeasurementLevelOptions,
+      //   name: "baseMeasurementLevel"
+      // }),
       woodLevel: this.sample.woodLevel,
       groundwaterLevelTemp: this.sample.groundwaterLevelTemp,
       groundLevel: this.sample.groundLevel
@@ -472,15 +472,15 @@ export default {
       }
 
       // required by API
-      if (data.baseMeasurementLevel === null) {
-        data.baseMeasurementLevel = 0; // NAP
-      }
-      if (data.damageCause === null) {
-        data.damageCause = 7; // Unknown
-      }
-      if (data.foundationType === null) {
-        data.foundationType = 15; // Unknown
-      }
+      // if (data.baseMeasurementLevel === null) {
+      //   data.baseMeasurementLevel = 0; // NAP
+      // }
+      // if (data.damageCause === null) {
+      //   data.damageCause = 7; // Unknown
+      // }
+      // if (data.foundationType === null) {
+      //   data.foundationType = 15; // Unknown
+      // }
 
       // Assign address geocoder id from selected field
       data.address = this.fields.address.selected.id;
