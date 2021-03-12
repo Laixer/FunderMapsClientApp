@@ -487,7 +487,7 @@ export default {
       data.report = this.activeReport.id;
 
       // TODO These fields should be mapped automatically
-      data.builtYear = new Date(data.builtYear, 1, 1, 0, 0, 0, 0);
+      data.builtYear = data.builtYear ? new Date(data.builtYear, 1, 1, 0, 0, 0, 0) : null;
       data.groundLevel = data.groundLevel ? Number(data.groundLevel) : null
       data.groundwaterLevelTemp = data.groundwaterLevelTemp ? Number(data.groundwaterLevelTemp) : null
       data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null
