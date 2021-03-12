@@ -38,7 +38,7 @@ export default {
           },
           {
             label: "Bouwjaar",
-            value: new Date(this.sample.builtYear).getFullYear()
+            value: this.sample.builtYear ? new Date(this.sample.builtYear).getFullYear() : null
           }
         ],
         [
