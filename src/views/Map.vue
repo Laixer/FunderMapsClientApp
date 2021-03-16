@@ -5,8 +5,7 @@
 <script>
 import mapboxgl from 'mapbox-gl';
 
-import { generatePaintStyleFromJSON } from 'helper/paint';
-
+import { generatePaintStyleFromMarkup, generateTooltipForFeature } from 'helper/paint';
 import { authHeader } from "service/auth";
 
 import { mapGetters, mapMutations, mapActions } from "vuex";
@@ -146,21 +145,12 @@ export default {
             },
             minzoom: bundle.metadata.minzoom || 1,
             // maxzoom: bundle.metadata.maxzoom || 24,
-            paint: generatePaintStyleFromJSON(JSON.parse(layer.markup))
+            paint: generatePaintStyleFromMarkup(layer.markup)
           }, firstSymbolLayerId);
 
           this.$store.map.on('click', uniqueId, (e) => {
-            this.setPopupFeature(e.features[0])
-
-            let html = ""
-            for (const [key, value] of Object.entries(this.popupFeature.properties)) {
-              if (key == 'external_id' || key == 'id') continue
-              html += `<span><b>${key}:</b> ${value}</span><br>`
-            }
-
-            if (html == "") {
-              html = "No properties available."
-            }
+            this.setPopupFeature(e.features[0]);
+            const html = generateTooltipForFeature(layer, this.popupFeature);
 
             new mapboxgl.Popup()
               .setLngLat(this.popupFeature.geometry.coordinates[0][0])
@@ -216,6 +206,10 @@ export default {
 .mapboxgl-marker {
   position: absolute;
   cursor: pointer;
+}
+
+.mapboxgl-popup-content {
+  padding: 0;
 }
 
 .mapboxgl-map {
