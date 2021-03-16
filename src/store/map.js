@@ -5,6 +5,7 @@
 /**
  * Import API
  */
+import { MapLayer } from "@/models/MapLayer";
 import mapAPI from "api/map";
 
 /**
@@ -57,7 +58,7 @@ const actions = {
     }
   },
   async getMapLayers({ commit }, bundle) {
-    return await Promise.all(
+    const _layers = await Promise.all(
       bundle.layerConfiguration.layers.map(async layerConfig => {
         const response = await mapAPI.getLayer(layerConfig.layerId);
         const layer = response.data;
@@ -66,6 +67,7 @@ const actions = {
         }
       })
     );
+    return _layers.map(layer => new MapLayer(layer.id, layer.markup, layer.name, layer.slug));
   },
   clearMapState({ commit }) {
     commit("clear_state");

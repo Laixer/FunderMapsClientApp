@@ -1,48 +1,11 @@
+import { Case, Case_Multimatch, Color, MapLayer, ValueType, Range, LayerMarkup } from '@/models/MapLayer'
 import { StringToColor } from './string'
-
-enum ValueType {
-  Range = "range",
-  Range_Num = "range_num",
-  Case = "case",
-  Case_Multimatch = "case_multimatch",
-  Color = "color",
-  Color_Hash = "hash_color"
-}
-
-interface JSONMarkup {
-  column: string;
-  type: ValueType;
-  values: Range[] | Case[] | Case_Multimatch[] | Color | null;
-}
-
-interface Range {
-  min: string,
-  max: string,
-  color: string,
-  label: string
-}
-
-interface Case {
-  match: string,
-  color: string,
-  label: string
-}
-
-interface Case_Multimatch {
-  match: string[],
-  color: string,
-  label: string
-}
-
-interface Color {
-  color: string
-}
 
 class LegendEntry {
   constructor(public color: string, public label: string) { }
 }
 
-export function generatePaintStyleFromJSON(markup: JSONMarkup) {
+export function generatePaintStyleFromMarkup(markup: LayerMarkup) {
   return {
     'fill-outline-color': _generateFillOutlineColor(markup),
     'fill-opacity': _generateFillOpacity(markup),
@@ -50,7 +13,7 @@ export function generatePaintStyleFromJSON(markup: JSONMarkup) {
   }
 }
 
-function _generateFillOutlineColor(markup: JSONMarkup) {
+function _generateFillOutlineColor(markup: LayerMarkup) {
   const data = markup.values
   switch (markup.type) {
     case ValueType.Range_Num: return _range_num(<Range[]>data, markup.column, true)
@@ -63,7 +26,7 @@ function _generateFillOutlineColor(markup: JSONMarkup) {
   }
 }
 
-function _generateFillOpacity(markup: JSONMarkup) {
+function _generateFillOpacity(markup: LayerMarkup) {
 
   return [
     'case',
@@ -73,7 +36,7 @@ function _generateFillOpacity(markup: JSONMarkup) {
   ]
 }
 
-function _generateFillColor(markup: JSONMarkup) {
+function _generateFillColor(markup: LayerMarkup) {
   const data = markup.values
   switch (markup.type) {
     case ValueType.Range_Num: return _range_num(<Range[]>data, markup.column)
@@ -86,7 +49,7 @@ function _generateFillColor(markup: JSONMarkup) {
   }
 }
 
-function _hash_color(json: JSONMarkup, darken: boolean = false) {
+function _hash_color(json: LayerMarkup, darken: boolean = false) {
   const color = StringToColor(json.column)
   if (darken) {
     return changeColor(color)
@@ -94,7 +57,7 @@ function _hash_color(json: JSONMarkup, darken: boolean = false) {
   return color
 }
 
-function _color(json: JSONMarkup, darken: boolean = false) {
+function _color(json: LayerMarkup, darken: boolean = false) {
   const color = (json.values as Color).color
   if (darken) {
     return changeColor(color)
@@ -167,10 +130,11 @@ function _case_multimatch(data: Case_Multimatch[], column: string, darken: boole
   return cases
 }
 
-export function generateLegend(markup: JSONMarkup): LegendEntry[] {
+export function generateLegend(markup: LayerMarkup): LegendEntry[] {
   const data = markup.values
   const arr = new Array<LegendEntry>();
 
+  // TODO: Rewrite - it's no longer necessary to infer types from the type column as we now type the values in LayerMarkup constructor
   switch (markup.type) {
     case ValueType.Range_Num: return (data as Range[]).map(entry => new LegendEntry(entry.color, entry.label))
     case ValueType.Range: return (data as Range[]).map(entry => new LegendEntry(entry.color, entry.label))
@@ -203,4 +167,35 @@ function changeColor(color: String): object {
       ]
     ]
   ]
+}
+
+export function generateTooltipForFeature(layer: MapLayer, feature: any): string {
+  const title = layer.name ? `<h5 class="card-title">${layer.name}</h5>` : '';
+  
+  let html = "<div class='card box-shadow'>";
+  let body = "";
+
+  for (const [key, value] of Object.entries(feature.properties).sort(([k1, v1], [k2, v2]) => k1 == 'inquiry_id' ? 1 : -1)) {
+    body += propToHtml(key, value, layer.markup);
+  }
+
+  if (body == "") {
+    body = "Geen informatie beschikbaar."
+  }
+
+  html += "<div class='card-body'>"
+  html += title;
+  html += body;
+  html += "</div></div>"
+  return html;
+}
+
+export function propToHtml(key: string, value: any, markup: LayerMarkup) {
+  const { translatedKey, translatedValue } = markup.translateProp(key, value);
+  switch (key) {
+    case 'id': return '';
+    case 'external_id': return '';
+    case 'inquiry_id': return `<a class='card-link' target="_blank" href="/inquiry/${value}">Bekijk rapport</a>`;
+    default: return `<p class='card-text'><b>${translatedKey}:</b> ${translatedValue}</p>`
+  }
 }

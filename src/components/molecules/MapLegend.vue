@@ -24,7 +24,7 @@
         <div v-if="layer.visibility === 'visible'">
           <ul class="m-0 p-0 pl-3 ml-3 mb-3 list-unstyled">
             <li
-              v-for="(item, index) in generateLegendForLayer(layer)"
+              v-for="(item, index) in generateLegend(layer.markup)"
               :key="index"
               class="d-flex my-2 mr-3 align-items-center"
             >
@@ -50,6 +50,7 @@ import { generateLegend } from "helper/paint";
 
 export default {
   methods: {
+    generateLegend,
     icon,
     toggleVisibility(layer) {
       layer.visibility = layer.visibility == 'visible' ? 'none' : 'visible'
@@ -60,9 +61,6 @@ export default {
         layer.visibility
       );
       this.$forceUpdate();
-    },
-    generateLegendForLayer(layer) {
-      return generateLegend(JSON.parse(layer.markup))
     }
   },
   computed: {
