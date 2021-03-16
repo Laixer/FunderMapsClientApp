@@ -56,6 +56,7 @@ export class LayerMarkup {
 
   translateProp(propKey: string, propValue: string): { translatedKey: string, translatedValue: string } {
     switch (propKey) {
+      case 'overall_quality': return { translatedKey: 'Funderingskwaliteit', translatedValue: this.translatePropValue(propValue) }
       case 'damage_cause': return { translatedKey: 'Schadeoorzaak', translatedValue: this.translatePropValue(propValue) }
       case 'category': return { translatedKey: 'Categorie', translatedValue: propValue }
       case 'incidents': return { translatedKey: 'Incidenten', translatedValue: propValue }
