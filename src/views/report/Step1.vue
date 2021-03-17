@@ -115,8 +115,9 @@ export default {
           value: "",
           type: "datepicker",
           validationRules: {
-            required
-            // TODO: Set min/max
+            required,
+            min: value => value > new Date(1000, 1, 1),
+            max: value => value < new Date(2100, 1, 1)
           },
           disabled: false
         },
@@ -249,9 +250,9 @@ export default {
       let report = this.activeReport || { id: "id", documentName: "documentName" };
       return {
         name: "edit-report-2",
-        params: { 
-          id: report.id, 
-          documentName: report.documentName 
+        params: {
+          id: report.id,
+          documentName: report.documentName
         }
       };
     },
@@ -316,7 +317,7 @@ export default {
       // TODO Clean up this monstrosity.
     } else if (to.name === 'edit-report-2'
       && this.activeReport
-      && values.documentName === this.activeReport.documentName 
+      && values.documentName === this.activeReport.documentName
       && values.type === this.activeReport.type
       && values.documentDate === this.activeReport.documentDate
       && values.contractorId === this.activeReport.contractorId
@@ -446,7 +447,7 @@ export default {
     /**
      * Handle the creation or updating of the report. This does not
      * check for any modifications in the form, this will always
-     * submit the form to the API. This check is done in the 
+     * submit the form to the API. This check is done in the
      * beforeRouteLeave() method.
      */
     async handleSubmit() {
