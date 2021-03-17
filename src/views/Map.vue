@@ -4,6 +4,7 @@
 
 <script>
 import mapboxgl from 'mapbox-gl';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 import { generatePaintStyleFromMarkup, generateTooltipForFeature } from 'helper/paint';
 import { authHeader } from "service/auth";
@@ -68,6 +69,11 @@ export default {
       attributionControl: false,
       transformRequest: this.transformRequest
     })
+
+    this.map.addControl(new MapboxGeocoder({
+      accessToken: this.accessToken,
+      mapboxgl: mapboxgl
+    }))
 
     this.map.addControl(new mapboxgl.GeolocateControl())
     this.map.addControl(new mapboxgl.FullscreenControl())
@@ -193,6 +199,7 @@ export default {
 </script>
 
 <style src='mapbox-gl/dist/mapbox-gl.css'></style>
+<style src='@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'></style>
 
 <style lang="scss">
 .mapboxgl-canvas-container,
