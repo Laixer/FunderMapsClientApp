@@ -8,6 +8,8 @@ import AttributedUser from 'model/AttributedUser'
  */
 import reviewersAPI from 'api/reviewers';
 
+import { isSuperUser, isWriter } from '../services/auth'
+
 /**
  * Declare Variable
  */
@@ -41,13 +43,15 @@ const actions = {
    * validReviewers field.
    */
   async getReviewers({ commit, rootState }) {
-    let response = await reviewersAPI.getReviewers();
-    
-    if (response.status === 200 && response.data) {
-      commit('set_reviewers', { reviewers: response.data })
+    if (isSuperUser() || isWriter() ) {
+      let response = await reviewersAPI.getReviewers();
 
-      let filteredData = response.data.filter(r => r.id !== rootState.user.user.id);
-      commit('set_valid_reviewers', { reviewers: filteredData })
+      if (response.status === 200 && response.data) {
+        commit('set_reviewers', { reviewers: response.data })
+
+        let filteredData = response.data.filter(r => r.id !== rootState.user.user.id);
+        commit('set_valid_reviewers', { reviewers: filteredData })
+      }
     }
   },
 
