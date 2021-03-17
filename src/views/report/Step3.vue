@@ -29,7 +29,7 @@
     <div class="d-flex align-items-center justify-content-center mt-4">
       <BackButton :disabled="isDisabled" :to="previousStep" class="mr-3" label="Vorige" />
       <PrimaryArrowButton
-        :disabled="isDisabled || activeReport.isPending() === false"
+        :disabled="isDisabled"
         label="Aanbieden ter review"
         @click="handleToPendingReview"
       />
@@ -67,7 +67,6 @@ export default {
     return {
       feedback: {},
       nosamples: false,
-      isDisabled: false,
       steps: [
         new ProgressStep({
           status: "passed",
@@ -90,6 +89,9 @@ export default {
   computed: {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
+    isDisabled() {
+      return this.activeReport ? this.activeReport.isPending() : true
+    },
     previousStep() {
       // TODO When is this ever useful?
       let report = this.activeReport
