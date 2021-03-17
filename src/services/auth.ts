@@ -2,6 +2,7 @@
 import authAPI from '../api/auth'
 import { organizationUserRoleClaimType, userClaimType } from '../config/claimTypes'
 import jwt_decode from "jwt-decode"
+import store from "@/store"
 
 /**
  * Check whether the user has credentials stored
@@ -176,14 +177,9 @@ function getAccessTokenDecoded(): JwtToken {
 
 /**
  * Get the user from storage.
- * TODO This is broken because our user isn't returned by the token anymore.
  */
 function getUser(): any {
-  let tokenDecoded = getAccessTokenDecoded();
-
-  //throw new Error("auth.ts .getUser() should retrieve from the store.")
-
-  return null;
+  return store.getters["user/user"];
 }
 
 /**

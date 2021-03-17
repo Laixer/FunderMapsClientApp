@@ -9,7 +9,7 @@
       </div>
       <div class="d-flex justify-content-between w-100">
         <b-button
-          v-if="member.id !== getUserId"
+          v-if="member.id !== getUserId()"
           class="font-weight-bold"
           variant="light"
           @click="$emit('remove', { id: member.id })">
