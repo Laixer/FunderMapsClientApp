@@ -33,8 +33,8 @@ export function login(email: string, password: string) {
  * End the user session
  */
 export function logout(): void {
-  store.dispatch('clearAll');
-  localStorage.clear();
+  localStorage.removeItem(access_token_key)
+  localStorage.removeItem(user_key)
 }
 
 /**
@@ -137,6 +137,10 @@ const access_token_key = 'access_token';
  * Store the authentication or refresh response
  */
 function handleAuthResponse(response: any) {
+  // Clear our Vuex store and browser store
+  store.dispatch('clearAll');
+  localStorage.clear();
+
   localStorage.setItem(access_token_key, response.data.token)
 
   // TODO We don't get a principal or email back anymore.
