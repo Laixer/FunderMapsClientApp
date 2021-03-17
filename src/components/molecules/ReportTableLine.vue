@@ -10,7 +10,7 @@
     <td class="py-1 flex-grow-1">
       <strong>{{ report.label() }}</strong>
     </td>
-    <td>{{ userObject ? userObject.getUserName() : 'Unknown' }}</td>
+    <td>{{ userObject ? userObject.getUserName() : '-' }}</td>
     <td>{{ report.date() }}</td>
     <td>
       <TypeTag 
