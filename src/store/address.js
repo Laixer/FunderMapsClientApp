@@ -13,10 +13,12 @@ import addressAPI from 'api/address';
  * Declare store variables.
  * TODO Store everything here.
  */
-const state = {
+const defaultState = {
   // TODO Not used.
   addressCollection: []
 }
+
+const state = Object.assign({}, defaultState);
 
 /**
  * Declare getters.
@@ -91,6 +93,9 @@ const mutations = {
       address.street,
       address.city);
   },
+  reset(state) {
+    Object.assign(state, defaultState);
+  }
 }
 
 /**

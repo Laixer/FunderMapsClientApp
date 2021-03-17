@@ -12,9 +12,11 @@ import orgUserAPI from 'api/orgUser'
 /**
  * Declare Variable
  */
-const state = {
+const defaultState = {
   users : null
 }
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   orgUsers: state => {
@@ -24,14 +26,14 @@ const getters = {
     return state.users !== null
   },
   getReviewers: state => {
-    return state.users 
+    return state.users
       ? state.users.filter(user => {
         return user.canReview()
       })
       : null;
   },
   getCreators: state => {
-    return state.users 
+    return state.users
     ? state.users.filter(user => {
       return user.canCreate()
     })
@@ -59,7 +61,7 @@ const actions = {
       commit('set_users', {
         users: response.data
       })
-    } 
+    }
   },
 
   /**
@@ -72,7 +74,7 @@ const actions = {
       commit('set_users', {
         users: response.data
       })
-    } 
+    }
   },
 
   /**
@@ -193,6 +195,9 @@ const mutations = {
   },
   clear_users(state) {
     state.users = null
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 

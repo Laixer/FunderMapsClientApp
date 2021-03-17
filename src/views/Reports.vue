@@ -1,13 +1,13 @@
 <template>
   <div>
-    <ReportTable 
+    <ReportTable
       title="Alle rapporten"
       :reports="reports"
       class="mt-4 pt-2 mb-5" />
-      <b-pagination-nav 
+      <b-pagination-nav
         v-if="pageCount > 1"
         v-model="page"
-        :number-of-pages="pageCount" 
+        :number-of-pages="pageCount"
         :link-gen="pageLink"
         align="center" />
   </div>
@@ -24,7 +24,7 @@ export default {
   },
   data() {
     return {
-      page: 1, 
+      page: 1,
       reportsPerPage: 25, // TODO: set to higher number...
     }
   },
@@ -34,14 +34,14 @@ export default {
       'reports'
     ]),
     pageCount() {
-      return (this.reportCount > 0) 
-        ? Math.ceil(this.reportCount / this.reportsPerPage) 
+      return (this.reportCount > 0)
+        ? Math.ceil(this.reportCount / this.reportsPerPage)
         : 1
     }
   },
   beforeRouteUpdate(to, from, next) {
     this.getReports({
-      page: to.params.page || 1, 
+      page: to.params.page || 1,
       limit: this.reportsPerPage
     });
     next();
@@ -54,7 +54,7 @@ export default {
       await Promise.all([
         this.getReviewers(),
         this.getReports({
-          page: this.page, 
+          page: this.page,
           limit: this.reportsPerPage
         }),
         this.getReportCount(),

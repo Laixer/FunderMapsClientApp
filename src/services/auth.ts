@@ -33,7 +33,8 @@ export function login(email: string, password: string) {
  * End the user session
  */
 export function logout(): void {
-  removeUserInformation();
+  store.dispatch('clearAll');
+  localStorage.clear();
 }
 
 /**
@@ -83,7 +84,7 @@ export function getLastUserEmail(): string {
 
 
 // ****************************************************************************
-//  User Roles & Capabilities 
+//  User Roles & Capabilities
 // ****************************************************************************
 
 export function isAdmin(): boolean {
@@ -124,7 +125,7 @@ export function canRead(): boolean {
 }
 
 // ****************************************************************************
-//  Private 
+//  Private
 // ****************************************************************************
 
 // localStorage keys
@@ -141,11 +142,6 @@ function handleAuthResponse(response: any) {
   // TODO We don't get a principal or email back anymore.
   //localStorage.setItem(user_key, JSON.stringify(response.data.principal))
   //sessionStorage.setItem(last_user, response.data.principal.email)
-}
-
-function removeUserInformation() {
-  localStorage.removeItem(access_token_key)
-  localStorage.removeItem(user_key)
 }
 
 /**

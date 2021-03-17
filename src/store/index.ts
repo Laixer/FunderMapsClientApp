@@ -36,7 +36,24 @@ const store: StoreOptions<{}> = {
   mutations: {
   },
   actions: {
+    clearAll({ commit }){
+      commit("address/reset")
+      commit("org/reset")
+      commit("reports/reset")
+      commit("report/reset")
+      commit("user/reset")
+      commit("org/reset")
+      commit("orgUsers/reset")
+      commit("samples/reset")
+      commit("attestation/reset")
+      commit("version/reset")
+      commit("map/reset")
+      commit("contractors/reset")
+      commit("reviewers/reset")
+    }
   }
 };
+
+
 
 export default new Vuex.Store(store);

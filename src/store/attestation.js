@@ -13,17 +13,19 @@ import attestationAPI from 'api/attestation';
 /**
  * Declare Variable
  */
-const state = {
+const defaultState = {
   users : null,
   contractors: null
 }
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   principalUsers: state => {
     return state.users
   },
   arePrincipalUsersAvailable: state => {
-    return state.users !== null // state // 
+    return state.users !== null // state //
   },
   getUserById: (state) => ({ id }) => {
     return state.users.find(user => {
@@ -49,7 +51,7 @@ const actions = {
       commit('set_principal_users', {
         users: response.data
       })
-    } 
+    }
   },
   async getContractors({ commit }) {
     let response = await attestationAPI.getOrganizations();
@@ -57,7 +59,7 @@ const actions = {
       commit('set_contractors', {
         contractors: response.data
       })
-    } 
+    }
   },
   clearPrincipalUsers({ commit }) {
     commit('clear_principal_users')
@@ -74,6 +76,9 @@ const mutations = {
   },
   clear_principal_users(state) {
     state.users = null
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 

@@ -11,7 +11,7 @@ import mapAPI from "api/map";
 /**
  * Declare Variable
  */
-const state = {
+const defaultState = {
   mapboxIsReady: false,
   bundles: [],
   layers: [],
@@ -19,6 +19,8 @@ const state = {
   hasMapBundles: false,
   hasMapLayers: false
 };
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   isMapboxReady: state => state.mapboxIsReady,
@@ -70,7 +72,7 @@ const actions = {
     return _layers.map(layer => new MapLayer(layer.id, layer.markup, layer.name, layer.slug));
   },
   clearMapState({ commit }) {
-    commit("clear_state");
+    commit("reset");
   }
 };
 const mutations = {
@@ -88,11 +90,8 @@ const mutations = {
     state.layers = layers;
     state.hasMapLayers = true
   },
-  clear_state(state) {
-    state.bundles = null;
-    state.activeBundle = null;
-    state.layers = null;
-    state.activeLayers = null;
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 };
 

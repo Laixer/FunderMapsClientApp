@@ -17,9 +17,11 @@ interface VersionState {
  */
 const namespaced: boolean = true;
 
-const state: VersionState = {
+const defaultState: VersionState = {
   version: null
 };
+
+const state = Object.assign({}, defaultState);
 
 const getters: GetterTree<VersionState, {}> = {
   version(state): string | null {
@@ -49,6 +51,9 @@ const mutations: MutationTree<VersionState> = {
   },
   clear_version(state) {
     state.version = null;
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 };
 

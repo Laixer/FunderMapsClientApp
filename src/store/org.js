@@ -13,7 +13,7 @@ import orgAPI from 'api/org';
 /**
  * Declare Variable
  */
-const state = {
+const defaultState = {
   organization : null,
   // Admin
   organizations: [],
@@ -27,12 +27,14 @@ const state = {
   // TODO This is an experiment.
   /**
    * Collection containing all fetched organizations.
-   * When a new organization is fetched, it will be 
+   * When a new organization is fetched, it will be
    * added to the existing collection.
    */
   organizationCollection: null,
   proposals: null
 }
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   currentOrganization: state => {
@@ -48,7 +50,7 @@ const getters = {
     return state.organization !== null;
   },
   getOrgId: state => {
-    return (state.organization) 
+    return (state.organization)
       ? state.organization.getId()
       : null;
   },
@@ -80,7 +82,7 @@ const actions = {
         organization: response.data
       })
       return state.organization;
-    } 
+    }
   },
 
   /**
@@ -106,7 +108,7 @@ const actions = {
 
     return getters.getOrganizationCollection.find(x => { return x.id === id });
   },
-  
+
   /**
    * Gets all organizations from the store.
    */
@@ -154,7 +156,7 @@ const actions = {
       commit('set_proposals', {
         proposals: response.data
       })
-    } 
+    }
   },
   async removeProposal({ commit }, { id }) {
     let response = await orgAPI.removeProposal({ id });
@@ -162,7 +164,7 @@ const actions = {
       commit('remove_proposal', {
         id
       })
-    } 
+    }
   },
 
   /**
@@ -174,9 +176,9 @@ const actions = {
       commit('create_proposal', {
         proposal: response.data
       })
-    } 
+    }
   },
-  
+
   /**
    * Used to complete the organization registration process
    * by creating the first user with email and password.
@@ -233,6 +235,9 @@ const mutations = {
     state.proposals.unshift(
       new OrganizationProposalModal(proposal)
     )
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 

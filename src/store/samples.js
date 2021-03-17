@@ -13,16 +13,18 @@ import samplesAPI from 'api/samples';
 /**
  * Declare Variable
  */
-const state = {
-  samples : []
+const defaultState = {
+  samples: []
 }
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   samples: state => {
     return state.samples
   },
   sampleCount: state => {
-    return state.samples.length
+    return state.samples ? state.samples.length : 0
   }
 }
 const actions = {
@@ -100,8 +102,8 @@ const mutations = {
       //sample.address.buildingNumberSuffix = ''
 
       // used as alternative to 'id' reference for newly created items
-      sample.creationstamp = Date.now() 
-      
+      sample.creationstamp = Date.now()
+
       state.samples.unshift(
         new SampleModel({
           sample,
@@ -115,7 +117,7 @@ const mutations = {
    * Update sample data in store (after positive API response)
    */
   update_sample(state, { id, data }) {
-    let index = -1 
+    let index = -1
     if (id) {
       index = state.samples.findIndex(
         (sample) => sample.id === id
@@ -146,6 +148,9 @@ const mutations = {
     if (index !== -1) {
       Vue.delete(state.samples, index)
     }
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 

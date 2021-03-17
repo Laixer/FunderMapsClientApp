@@ -11,16 +11,18 @@ import userAPI from 'api/user';
 /**
  * Declare Variable
  */
-const state = {
-  user : null
+const defaultState = {
+  user: null
 }
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   user: state => {
     return state.user;
   },
   isUserAvailable: state => {
-    return state.user !== null && state.user !== undefined
+    return !!state.user
   }
 }
 const actions = {
@@ -50,15 +52,18 @@ const mutations = {
     state.user = new UserModel({
       id: user.id,
       email: user.email,
-      givenName: user.givenName, 
-      lastName: user.lastName, 
-      avatar: user.avatar, 
-      jobTitle: user.jobTitle, 
+      givenName: user.givenName,
+      lastName: user.lastName,
+      avatar: user.avatar,
+      jobTitle: user.jobTitle,
       phoneNumber: user.phoneNumber
     });
   },
   clear_user(state) {
     state.user = null
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 
