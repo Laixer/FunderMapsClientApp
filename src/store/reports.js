@@ -11,10 +11,12 @@ import reportAPI from 'api/reports';
 /**
  * Declare Variable
  */
-const state = {
+const defaultState = {
   reports : [],
   reportCount: 0
 }
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   latestReports: state => ({ count }) => {
@@ -74,6 +76,9 @@ const mutations = {
   clear_reports(state) {
     state.reports = []
     state.reportCount = false
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 

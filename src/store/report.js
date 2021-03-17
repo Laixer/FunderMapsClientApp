@@ -11,10 +11,12 @@ import reportAPI from 'api/reports';
 /**
  * Declare Variable
  */
-const state = {
+const defaultState = {
   report : false,
   reviewers: []
 }
+
+const state = Object.assign({}, defaultState);
 
 const getters = {
   activeReport: state => state.report,
@@ -38,7 +40,7 @@ const actions = {
       commit('set_report', {
         report: response.data
       })
-    } 
+    }
   },
   async updateReport({ commit }, { id, data }) {
     let response = await reportAPI.updateReport({ id, data })
@@ -46,13 +48,13 @@ const actions = {
       commit('set_report', {
         report: data
       })
-    } 
+    }
   },
   async approveReport({ commit, state }, { message }) {
     if (!message) { message = 'Approving'; }
 
     let response = await reportAPI.approveInquiry({
-      id: state.report.id, 
+      id: state.report.id,
       message: message
     })
     if (response.status === 204) {
@@ -61,7 +63,7 @@ const actions = {
   },
   async rejectReport({ commit, state }, { message }) {
     let response = await reportAPI.rejectInquiry({
-      id: state.report.id, 
+      id: state.report.id,
       message: message
     })
     if (response.status === 204) {
@@ -72,14 +74,14 @@ const actions = {
     if (!message) { message = 'Submitting for review'; }
 
     let response = await reportAPI.submitForReview({
-      id: state.report.id, 
+      id: state.report.id,
       message: message,
     })
     if (response.status === 204) {
       commit('set_report_pending_review')
     }
   },
-  
+
   async getReviewers({ commit }) {
     let response = await reportAPI.getReviewers()
     if (response.status === 200 && response.data) {
@@ -113,6 +115,9 @@ const mutations = {
   },
   clear_reviewers(state) {
     state.reviewers = []
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 

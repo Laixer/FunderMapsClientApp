@@ -2,6 +2,7 @@
 import authAPI from '../api/auth'
 import { organizationUserRoleClaimType, userClaimType } from '../config/claimTypes'
 import jwt_decode from "jwt-decode"
+import store from "@/store"
 
 /**
  * Check whether the user has credentials stored
@@ -32,7 +33,8 @@ export function login(email: string, password: string) {
  * End the user session
  */
 export function logout(): void {
-  removeUserInformation();
+  localStorage.removeItem(access_token_key)
+  localStorage.removeItem(user_key)
 }
 
 /**
@@ -82,7 +84,7 @@ export function getLastUserEmail(): string {
 
 
 // ****************************************************************************
-//  User Roles & Capabilities 
+//  User Roles & Capabilities
 // ****************************************************************************
 
 export function isAdmin(): boolean {
@@ -123,7 +125,7 @@ export function canRead(): boolean {
 }
 
 // ****************************************************************************
-//  Private 
+//  Private
 // ****************************************************************************
 
 // localStorage keys
@@ -135,16 +137,15 @@ const access_token_key = 'access_token';
  * Store the authentication or refresh response
  */
 function handleAuthResponse(response: any) {
+  // Clear our Vuex store and browser store
+  store.dispatch('clearAll');
+  localStorage.clear();
+
   localStorage.setItem(access_token_key, response.data.token)
 
   // TODO We don't get a principal or email back anymore.
   //localStorage.setItem(user_key, JSON.stringify(response.data.principal))
   //sessionStorage.setItem(last_user, response.data.principal.email)
-}
-
-function removeUserInformation() {
-  localStorage.removeItem(access_token_key)
-  localStorage.removeItem(user_key)
 }
 
 /**
@@ -176,14 +177,9 @@ function getAccessTokenDecoded(): JwtToken {
 
 /**
  * Get the user from storage.
- * TODO This is broken because our user isn't returned by the token anymore.
  */
 function getUser(): any {
-  let tokenDecoded = getAccessTokenDecoded();
-
-  //throw new Error("auth.ts .getUser() should retrieve from the store.")
-
-  return null;
+  return store.getters["user/user"];
 }
 
 /**

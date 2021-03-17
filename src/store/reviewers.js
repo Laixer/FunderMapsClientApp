@@ -8,27 +8,31 @@ import AttributedUser from 'model/AttributedUser'
  */
 import reviewersAPI from 'api/reviewers';
 
-/**
- * Declare Variable
- */
-const state = {
-  /**
+import { isSuperUser, isWriter } from '../services/auth'
+
+const defaultState = {
+    /**
    * Contains all reviewers. This will exclude the current
    * user if the user has reviewing privileges.
    */
-  validReviewers : [],
+     validReviewers : [],
 
-  /**
-   * Contains all reviewers for this users organization.
-   */
-  reviewers: [],
+     /**
+      * Contains all reviewers for this users organization.
+      */
+     reviewers: [],
 }
 
+/**
+ * Declare Variable
+ */
+const state = Object.assign({}, defaultState);
+
 const getters = {
-  areReviewersAvailable: state => state.validReviewers.length > 0,
+  areReviewersAvailable: state => state.validReviewers ? state.validReviewers.length > 0 : false,
   validReviewers: state => state.validReviewers,
   reviewers: state => state.reviewers,
-  getUserById: state => ({ id }) => (state.reviewers) 
+  getUserById: state => ({ id }) => (state.reviewers)
     ? state.reviewers.find(reviewer => reviewer.id === id)
     : null
 }
@@ -36,18 +40,20 @@ const getters = {
 const actions = {
   /**
    * Gets all reviewers for our current organization from the
-   * API. This also filters out the current user if he or she 
+   * API. This also filters out the current user if he or she
    * has reviewing privileges. This result is stored to the
    * validReviewers field.
    */
   async getReviewers({ commit, rootState }) {
-    let response = await reviewersAPI.getReviewers();
-    
-    if (response.status === 200 && response.data) {
-      commit('set_reviewers', { reviewers: response.data })
+    if (isSuperUser() || isWriter()) {
+      let response = await reviewersAPI.getReviewers();
 
-      let filteredData = response.data.filter(r => r.id !== rootState.user.user.id);
-      commit('set_valid_reviewers', { reviewers: filteredData })
+      if (response.status === 200 && response.data) {
+        commit('set_reviewers', { reviewers: response.data })
+
+        let filteredData = response.data.filter(r => r.id !== rootState.user.user.id);
+        commit('set_valid_reviewers', { reviewers: filteredData })
+      }
     }
   },
 
@@ -75,7 +81,7 @@ const mutations = {
     )
   },
     /**
-   * Writes the fetched reviewers to the store. No filters 
+   * Writes the fetched reviewers to the store. No filters
    * are applied by this function.
    */
   set_valid_reviewers(state , { reviewers }) {
@@ -85,6 +91,9 @@ const mutations = {
   },
   clear_reviewers(state) {
     state.reviewers = null;
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 

@@ -11,12 +11,14 @@ import contractorsAPI from 'api/contractors';
 /**
  * Declare Variable
  */
-const state = {
+const defaultState = {
   contractors : []
 }
 
+const state = Object.assign({}, defaultState);
+
 const getters = {
-  areContractorsAvailable: state => state.contractors.length > 0,
+  areContractorsAvailable: state => state.contractors ? state.contractors.length > 0 : false,
   contractors: state => state.contractors,
   getContractorById: state => ({ id }) => state.contractors.find(contractor => contractor.id === id)
 }
@@ -37,6 +39,9 @@ const mutations = {
   },
   clear_contractors(state) {
     state.contractors = null;
+  },
+  reset(state) {
+    Object.assign(state, defaultState);
   }
 }
 
