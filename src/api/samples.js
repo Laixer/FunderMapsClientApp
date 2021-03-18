@@ -3,7 +3,7 @@ import axios from '@/utils/axios'
 
 // Collection
 const getSamples = ({ inquiryId }) => {
-  return axios.get(`/api/inquiry/${inquiryId}/sample?limit=200000`)
+  return axios.get(`/api/inquiry/${inquiryId}/sample?limit=200`)
 }
 
 // Single
