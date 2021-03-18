@@ -45,6 +45,12 @@ const actions = {
       throw new Error('Address id cannot be null');
     }
     let _id = null;
+
+    // Check if we have the address already in our store, if so return it
+    if (state.addressCollection[id]) {
+      return getters.getAddressByIdFromCollection({ id: id })
+    }
+
     let response = await addressAPI.getAddressById(id);
     if (response.status === 200) {
       _id = response.data.id;
