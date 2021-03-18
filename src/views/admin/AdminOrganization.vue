@@ -4,129 +4,134 @@
       Organisatie Profiel<span v-if="organization">: {{ organization.name }}</span>
     </h1>
     <div v-if="organization" class="d-flex">
-      <form 
+      <form
         class="mr-4"
         style="width: 570px"
         @submit.prevent="handleUpdateOrg">
 
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Algemeen</h2>
-          
+
           <Feedback :feedback="feedback" />
 
-          <ProfileSetting 
+          <ProfileSetting
             label="Naam"
             :editMode="editMode"
             :disabled="true"
             v-model="organization.name" />
-          <ProfileSetting 
-            label="Email" 
-            :editMode="editMode" 
+          <ProfileSetting
+            label="Email"
+            type="email"
+            :editMode="editMode"
             v-model="organization.email" />
-          <ProfileSetting 
-            label="Telefoonnummer" 
+          <ProfileSetting
+            label="Telefoonnummer"
+            type="tel"
             :editMode="editMode"
             v-model="organization.phoneNumber" />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Factuur informatie</h2>
-          <ProfileSetting 
-            label="Naam" 
+          <ProfileSetting
+            label="Naam"
             :editMode="editMode"
             v-model="organization.invoiceName" />
-          <ProfileSetting 
-            label="PO nummer" 
+          <ProfileSetting
+            label="PO nummer"
             :editMode="editMode"
             v-model="organization.invoicePoBox" />
-          <ProfileSetting 
-            label="E-mail adres" 
+          <ProfileSetting
+            label="E-mail adres"
+            type="email"
             :editMode="editMode"
             v-model="organization.invoiceEmail" />
         </div>
 
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Bezoek adres</h2>
-          <ProfileSetting 
-            label="Straat" 
+          <ProfileSetting
+            label="Straat"
             :editMode="editMode"
             v-model="organization.homeStreet" />
-          <ProfileSetting 
-            label="Huisnummer" 
+          <ProfileSetting
+            label="Huisnummer"
             :editMode="editMode"
             :maxLength="6"
+            type="number"
             v-model="organization.homeAddressNumber" />
-          <ProfileSetting 
-            label="Toevoeging" 
+          <ProfileSetting
+            label="Toevoeging"
             :editMode="editMode"
             v-model="organization.homeAddressNumberPostfix" />
-          <ProfileSetting 
-            label="Postbus" 
+          <ProfileSetting
+            label="Postbus"
             :editMode="editMode"
             v-model="organization.homePostbox" />
-          <ProfileSetting 
-            label="Stad" 
+          <ProfileSetting
+            label="Stad"
             :editMode="editMode"
             v-model="organization.homeCity" />
-          <ProfileSetting 
-            label="Postcode" 
+          <ProfileSetting
+            label="Postcode"
             :editMode="editMode"
             v-model="organization.homeZipcode" />
-          <ProfileSetting 
-            label="Provincie" 
+          <ProfileSetting
+            label="Provincie"
             :editMode="editMode"
             v-model="organization.homeState" />
-          <ProfileSetting 
-            label="Land" 
+          <ProfileSetting
+            label="Land"
             :editMode="editMode"
             v-model="organization.homeCountry" />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Post adres</h2>
-          <ProfileSetting 
-            label="Straat" 
+          <ProfileSetting
+            label="Straat"
             :editMode="editMode"
             v-model="organization.postalStreet" />
-          <ProfileSetting 
-            label="Huisnummer" 
+          <ProfileSetting
+            label="Huisnummer"
             :editMode="editMode"
+            type="number"
             v-model="organization.postalAddressNumber" />
-          <ProfileSetting 
-            label="Toevoeging" 
+          <ProfileSetting
+            label="Toevoeging"
             :editMode="editMode"
             v-model="organization.postalAddressNumberPostfix" />
-          <ProfileSetting 
-            label="Postbus" 
+          <ProfileSetting
+            label="Postbus"
             :editMode="editMode"
             v-model="organization.postalPostbox" />
-          <ProfileSetting 
-            label="Stad" 
+          <ProfileSetting
+            label="Stad"
             :editMode="editMode"
             v-model="organization.postalCity" />
-          <ProfileSetting 
-            label="Postcode" 
+          <ProfileSetting
+            label="Postcode"
             :editMode="editMode"
             v-model="organization.postalZipcode" />
-          <ProfileSetting 
-            label="Provincie" 
+          <ProfileSetting
+            label="Provincie"
             :editMode="editMode"
             v-model="organization.postalState" />
-          <ProfileSetting 
-            label="Land" 
+          <ProfileSetting
+            label="Land"
             :editMode="editMode"
             v-model="organization.postalCountry" />
         </div>
 
-        <b-button 
-          type="submit" 
-          variant="primary" 
-          class="SubmitButton font-weight-bold mt-4" 
-          size="lg" 
+        <b-button
+          type="submit"
+          variant="primary"
+          class="SubmitButton font-weight-bold mt-4"
+          size="lg"
           pill>
           <span class="d-inline-block my-2">
             Bewaar instellingen
           </span>
         </b-button>
-        
+
       </form>
 
       <TeamMembersPanel />
@@ -147,7 +152,7 @@ import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'OrganisatieProfiel',
-  
+
   components: {
     ProfileSetting,
     TeamMembersPanel,
@@ -161,7 +166,7 @@ export default {
     }
   },
   async created() {
-    this.organization = isAdmin() 
+    this.organization = isAdmin()
      ? await this.getOrganizationById({ id: this.$route.params.id })
      : await this.getOrganization()
   },
@@ -176,7 +181,7 @@ export default {
     async handleUpdateOrg() {
       try {
         this.feedback = {
-          variant: 'info', 
+          variant: 'info',
           message: 'Bezig met opslaan...'
         }
 
@@ -193,12 +198,12 @@ export default {
         }
 
         this.feedback = {
-          variant: 'success', 
+          variant: 'success',
           message: 'Wijzigingen zijn opgeslagen'
         }
       } catch(err) {
         this.feedback = {
-          variant: 'danger', 
+          variant: 'danger',
           message: 'Wijzigingen zijn niet opgeslagen'
         }
       }
