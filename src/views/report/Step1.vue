@@ -465,7 +465,7 @@ export default {
         jointMeasurement: values.jointMeasurement,
         floorMeasurement: values.floorMeasurement,
         note: values.note,
-        documentDate: values.documentDate.toISOString(),
+        documentDate: new Date(Date.UTC(values.documentDate.getFullYear(), values.documentDate.getMonth(), values.documentDate.getDate())).toISOString(),
         documentFile: this.documentFile,
         type: parseInt(values.type),
         standardF3o: values.standardF3o,
