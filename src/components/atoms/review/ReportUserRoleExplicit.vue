@@ -1,6 +1,6 @@
 <template>
-  <div 
-    v-if="userObject" 
+  <div
+    v-if="userObject"
     class="ReportUserRole d-flex align-items-center mt-4">
     <img :src="userObject.getAvatar()" width="32" height="32" class="rounded-circle" />
     <div class="ml-3">
@@ -27,8 +27,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('reviewers', [
-      'reviewers',
+    ...mapGetters('orgUsers', [
       'getUserById',
     ]),
     userObject() {
@@ -44,15 +43,15 @@ export default {
   },
 
   methods: {
-    ...mapActions('reviewers', ['getReviewersIfNotStored']),
+    ...mapActions('orgUsers', ['getOrgUsersIfNotStored']),
   },
-  
+
   /**
    * Calls getReviewersIfNotStored to guarantee that we have
    * the involved users in our store.
    */
   async created() {
-    await this.getReviewersIfNotStored({ id: this.userId })
+    await this.getOrgUsersIfNotStored({ id: this.userId })
   }
 }
 </script>

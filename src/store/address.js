@@ -45,9 +45,15 @@ const actions = {
       throw new Error('Address id cannot be null');
     }
     let _id = null;
+
+    // Check if we have the address already in our store, if so return it
+    if (state.addressCollection[id]) {
+      return getters.getAddressByIdFromCollection({ id: id })
+    }
+
     let response = await addressAPI.getAddressById(id);
     if (response.status === 200) {
-      _id = response.data.addressId
+      _id = response.data.id;
       commit('add_address_to_collection', {
         address: response.data
       });
@@ -85,13 +91,14 @@ const mutations = {
    * If address already exists, overwrite its entry with new data.
    */
   add_address_to_collection(state, { address }) {
-    state.addressCollection[address.addressId] = new AddressModel(
+    state.addressCollection[address.id] = new AddressModel(
       // TODO: There is more that is returned
-      address.addressId,
+      address.id,
       address.buildingNumber,
       address.postalCode,
       address.street,
-      address.city);
+      address.city
+    );
   },
   reset(state) {
     Object.assign(state, defaultState);

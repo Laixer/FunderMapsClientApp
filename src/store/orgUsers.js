@@ -13,7 +13,7 @@ import orgUserAPI from 'api/orgUser'
  * Declare Variable
  */
 const defaultState = {
-  users : null
+  users: []
 }
 
 const state = Object.assign({}, defaultState);
@@ -76,6 +76,16 @@ const actions = {
       })
     }
   },
+
+    /**
+   * This calls getUsers() if we can't find the requested
+   * user id in our store. If we can find it, nothing will happen.
+   */
+     async getOrgUsersIfNotStored({ getters, dispatch }, { userId }) {
+      if (!getters.getUserById({ id: userId })) {
+        dispatch('getUsers');
+      }
+    },
 
   /**
    * Updates an organization user, then triggers the getUsers

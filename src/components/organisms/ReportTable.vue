@@ -20,6 +20,9 @@
             Documentnaam
           </th>
           <th scope="col">
+            Verwerker
+          </th>
+          <th scope="col">
             Reviewer
           </th>
           <th scope="col" >
@@ -32,9 +35,9 @@
         </tr>
       </thead>
       <tbody>
-        <ReportTableLine 
-          v-for="(report, index) in reports" 
-          :key="index" 
+        <ReportTableLine
+          v-for="(report, index) in reports"
+          :key="index"
           :report="report" />
       </tbody>
     </table>
@@ -43,11 +46,15 @@
 
 <script>
 import ReportTableLine from 'molecule/ReportTableLine';
+import { mapActions } from "vuex";
 
 export default {
   name: 'ReportTable',
   components: {
     ReportTableLine
+  },
+  methods: {
+    ...mapActions('orgUsers', ['getUsers']),
   },
   props: {
     title: {
@@ -64,6 +71,9 @@ export default {
         return []
       }
     }
+  },
+  created() {
+    this.getUsers();
   },
   computed: {
     hasTitle() {
@@ -96,20 +106,23 @@ export default {
         width: 100px
       }
       &:nth-child(2) {
-        min-width: 300px;
+        min-width: 200px;
         flex-grow: 1;
       }
       &:nth-child(3) {
-        width: 200px
+        width: 150px
       }
       &:nth-child(4) {
-        width: 200px
+        width: 150px
       }
       &:nth-child(5) {
+        width: 150px
+      }
+      &:nth-child(6) {
         // width: 295px
         width: 245px
       }
-      &:nth-child(6) {
+      &:nth-child(7) {
         // width: 155px
         width: 75px
       }

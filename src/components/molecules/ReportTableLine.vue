@@ -1,20 +1,21 @@
 <template>
-  <tr 
+  <tr
     class="ReportTableLine d-flex align-items-center p-2 mb-2"
     @click="openReport">
-    <td scope="row" class="py-1">
-      <div 
+    <td scope="row">
+      <div
         :style="{ 'backgroundColor': report.statusColor() }"
         class="ReportTableLine__status mx-auto"></div>
     </td>
-    <td class="py-1 flex-grow-1">
+    <td>
       <strong>{{ report.label() }}</strong>
     </td>
-    <td>{{ userObject ? userObject.getUserName() : '-' }}</td>
+    <td>{{ ownerUserObject ? ownerUserObject.getUserName() : '-' }}</td>
+    <td>{{ reviewerUserObject ? reviewerUserObject.getUserName() : '-' }}</td>
     <td>{{ report.date() }}</td>
     <td>
-      <TypeTag 
-        v-if="report.hasType()" 
+      <TypeTag
+        v-if="report.hasType()"
         :type="report.getType()" />
     </td>
     <td class="d-flex justify-content-end">
@@ -36,7 +37,7 @@
 <script>
 import TypeTag from 'atom/TypeTag';
 
-import { isSuperUser, canWrite } from 'service/auth'
+import { canWrite } from 'service/auth'
 
 import { mapGetters } from 'vuex'
 
@@ -56,9 +57,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('reviewers', [
-      'getUserById',
-      'areReviewersAvailable'
+    ...mapGetters('orgUsers', [
+      'getUserById'
     ]),
     editable() {
       if (!canWrite()) {
@@ -69,27 +69,30 @@ export default {
       // TODO || isSuperUser() was removed. The state machine does not
       // support this functionality.
     },
-    userObject() {
-      return this.areReviewersAvailable ? this.getUserById({ id: this.report.reviewerId }) : null
+    reviewerUserObject() {
+      return this.getUserById({ id: this.report.reviewerId })
+    },
+    ownerUserObject() {
+      return this.getUserById({ id: this.report.creatorId })
     }
   },
   methods: {
     openReport() {
-      this.$router.push({ 
-        name: 'view-report', 
-        params: { 
-          id: this.report.id, 
-          document: this.report.documentId 
-        } 
+      this.$router.push({
+        name: 'view-report',
+        params: {
+          id: this.report.id,
+          document: this.report.documentId
+        }
       })
     },
     handleEdit() {
-      this.$router.push({ 
-        name: 'edit-report-1', 
-        params: { 
-          id: this.report.id, 
-          document: this.report.documentId 
-        } 
+      this.$router.push({
+        name: 'edit-report-1',
+        params: {
+          id: this.report.id,
+          document: this.report.documentId
+        }
       })
     }
   }
