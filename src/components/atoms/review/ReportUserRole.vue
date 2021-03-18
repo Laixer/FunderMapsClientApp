@@ -1,6 +1,6 @@
 <template>
-  <div 
-    v-if="userObject" 
+  <div
+    v-if="userObject"
     class="ReportUserRole d-flex align-items-center mt-4">
     <img :src="userObject.getAvatar()" width="32" height="32" class="rounded-circle" />
     <div class="ml-3">
@@ -21,21 +21,13 @@ export default {
       required: true
     }
   },
+  data() {
+    userObject = this.getUserById({ id: this.user.id })
+  },
   computed: {
-    ...mapGetters('reviewers', [
-      'getUserById',
-      'areReviewersAvailable'
-    ]),
-    userObject() {
-      if (this.user.getUserName()) {
-        return this.user
-      }
-      if (this.user.getRole() === 'Reviewer' && this.areReviewersAvailable) {
-        return this.getUserById({ id: this.user.id })
-      }
-
-      return null
-    }
+    ...mapGetters('orgUsers', [
+      'getUserById'
+    ])
   }
 }
 </script>
