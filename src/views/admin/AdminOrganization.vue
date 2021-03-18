@@ -53,6 +53,7 @@
           <ProfileSetting 
             label="Huisnummer" 
             :editMode="editMode"
+            :maxLength="6"
             v-model="organization.homeAddressNumber" />
           <ProfileSetting 
             label="Toevoeging" 
