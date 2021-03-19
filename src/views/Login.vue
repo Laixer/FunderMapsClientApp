@@ -24,6 +24,7 @@
 <script>
 import { login, getLastUserEmail } from "service/auth";
 import PasswordResetLink from "atom/branding/PasswordResetLink";
+import store from "@/store"
 
 import { required, email } from "vuelidate/lib/validators";
 
@@ -84,6 +85,7 @@ export default {
           message: "Bezig met inloggen..."
         };
         await login(this.fieldValue("email"), this.fieldValue("password"));
+        store.dispatch('clearAll');
         await this.$router.push({ name: "dashboard" });
       } catch (err) {
         // FUTURE: BUG: Cannot throw empty exception.
