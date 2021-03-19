@@ -46,8 +46,6 @@ export class LayerMarkup {
         this.values = (values as Case_Multimatch[]).map(val => new Case_Multimatch(val.match, val.color, val.label));
         break;
       case ValueType.Color:
-        this.values = new Color((values as Color).color);
-        break;
       case ValueType.Color_Hash:
         this.values = new Color((values as Color).color);
         break;
