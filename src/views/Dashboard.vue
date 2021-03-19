@@ -77,7 +77,7 @@ export default {
 
       this.loading = false;
 
-      timer = setTimeout(this.syncReports, 60 * 1000); // every minute
+      timer = setTimeout(this.syncReports, 60 * 5 * 1000); // every  5 minutes
     }
   }
 };
