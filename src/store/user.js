@@ -36,6 +36,11 @@ const actions = {
     }
   },
   async updateUser({ state }) {
+    state.user.givenName = state.user.givenName === '' ? null : state.user.givenName;
+    state.user.lastName = state.user.lastName === '' ? null : state.user.lastName;
+    state.user.avatar = state.user.avatar === '' ? null : state.user.avatar;
+    state.user.jobTitle = state.user.jobTitle === '' ? null : state.user.jobTitle;
+    state.user.phoneNumber = state.user.phoneNumber === '' ? null : state.user.phoneNumber;
     return await userAPI.updateUser(state.user)
   },
   // TODO: This is not the way to save the users password

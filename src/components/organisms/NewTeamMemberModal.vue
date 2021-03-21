@@ -1,73 +1,78 @@
 <template>
-  <b-modal 
+  <b-modal
     id="modal-new-teammember"
-    ref="modal" 
-    centered 
-    okTitle='Aanmaken'
-    cancelTitle='Annuleren'
+    ref="modal"
+    centered
+    okTitle="Aanmaken"
+    cancelTitle="Annuleren"
     @ok="onOk"
     @show="onShow"
-    title="Nieuw teamlid">
+    title="Nieuw teamlid"
+  >
     <template slot="default">
       <Feedback :feedback="feedback" />
-      <Form 
-        ref="form" 
+      <Form
+        ref="form"
         autocomplete="off"
         @error="handleError"
-        @submit="handleSubmit">
-
-        <FormField 
+        @submit="handleSubmit"
+      >
+        <FormField
           label="Email"
           type="text"
           v-model="fields.email.value"
-          v-bind="fields.email" />
+          v-bind="fields.email"
+        />
 
-        <FormField 
+        <FormField
           label="Wachtwoord"
           v-model="fields.password.value"
-          v-bind="fields.password" />
+          v-bind="fields.password"
+        />
 
         <Divider />
 
-        <FormField 
+        <FormField
           label="Rol"
           type="select"
           v-model="fields.role.value"
-          v-bind="fields.role" />
-
+          v-bind="fields.role"
+        />
       </Form>
     </template>
   </b-modal>
 </template>
 
 <script>
+import { required, minLength, email } from "vuelidate/lib/validators";
 
-import { required, minLength, email } from 'vuelidate/lib/validators';
+import Divider from "atom/Divider";
 
-import Divider from 'atom/Divider'
+import Feedback from "atom/Feedback";
+import Form from "molecule/form/Form";
+import FormField from "molecule/form/FormField";
 
-import Feedback from 'atom/Feedback'
-import Form from 'molecule/form/Form'
-import FormField from 'molecule/form/FormField'
+import { mapActions } from "vuex";
+import fields from "mixin/fields";
+import timeout from "mixin/timeout";
 
-import { mapActions } from 'vuex'
-import fields from 'mixin/fields'
-import timeout from 'mixin/timeout'
+import { userRoles, userRoleToInteger } from "config/roles";
 
-import { userRoles, userRoleToInteger } from 'config/roles'
-
-import { isAdmin } from 'service/auth'
+import { isAdmin } from "service/auth";
 
 export default {
   components: {
-    Divider, FormField, Form, Feedback
+    Divider,
+    FormField,
+    Form,
+    Feedback,
   },
-  mixins: [ fields, timeout ],
+  mixins: [fields, timeout],
   props: {
     organizationId: {
-      type: [ String, Number ],
-      default: null
-    }
+      type: [String, Number],
+      default: null,
+    },
   },
   data() {
     return {
@@ -76,107 +81,106 @@ export default {
       fields: {
         email: {
           value: "",
-          placeholder: 'naam@bedrijf.nl',
+          placeholder: "naam@bedrijf.nl",
           validationRules: {
-            required, email
+            required,
+            email,
           },
-          disabled: false
+          disabled: false,
         },
         role: {
           value: null,
           validationRules: {
-            required
+            required,
           },
           disabled: false,
-          options: [
-            { value: null, text: 'Selecteer een optie' }
-          ].concat(userRoles),
+          options: [{ value: null, text: "Selecteer een optie" }].concat(
+            userRoles
+          ),
         },
         password: {
-          value: '',
-          type: 'password',
+          value: "",
+          type: "password",
           validationRules: {
             required,
-            minLength: minLength(7)
+            minLength: minLength(7),
           },
           autocomplete: "new-password",
-          disabled: false
-        }
-      }
-    }
+          disabled: false,
+        },
+      },
+    };
   },
   methods: {
-    ...mapActions('orgUsers', [
-      'createUser',
-      'adminCreateUser'
-    ]),
+    ...mapActions("orgUsers", ["createUser", "adminCreateUser"]),
     onShow() {
-      this.feedback = { show: false }
+      this.feedback = { show: false };
     },
     onOk(e) {
-      e.preventDefault()
-      if ( ! this.isDisabled) {
-        this.$refs.form.submit()
+      e.preventDefault();
+      if (!this.isDisabled) {
+        this.$refs.form.submit();
       }
     },
     async handleSubmit() {
-      this.disableAllFields()
+      this.disableAllFields();
       this.isDisabled = true;
       this.feedback = {
-        variant: 'info', 
-        message: 'Bezig met opslaan...'
-      }
-      
+        variant: "info",
+        message: "Bezig met opslaan...",
+      };
+
       try {
         // TODO This is a tempfix because strings aren't mapped  to enums in our backend.
-        var roleInt = userRoleToInteger({ roleAsEnumText: this.fields.role.value });
+        var roleInt = userRoleToInteger({
+          roleAsEnumText: this.fields.role.value,
+        });
 
         // Extract the form data and create the user.
         let userData = {
           email: this.fields.email.value,
-            password: this.fields.password.value,
-            organizationRole: roleInt
+          password: this.fields.password.value,
+          organizationRole: roleInt,
         };
 
         // Act according to user privileges
         if (isAdmin()) {
-          await this.adminCreateUser({ 
+          await this.adminCreateUser({
             organizationId: this.organizationId,
-            data: userData
-          })
+            data: userData,
+          });
         } else {
           await this.createUser({
-            data: userData
+            data: userData,
           });
         }
 
         this.feedback = {
-          variant: 'success',
-          message: 'Het nieuwe teamlid is geregistreerd'
-        }
+          variant: "success",
+          message: "Het nieuwe teamlid is geregistreerd",
+        };
 
         this.setTimeout(() => {
-          this.$refs.modal.hide()
-          this.isDisabled = false
-          this.enableAllFields()
-        }, 500)
-        
+          this.$refs.modal.hide();
+          this.isDisabled = false;
+          this.enableAllFields();
+        }, 500);
       } catch (err) {
         this.feedback = {
-          variant: 'danger', 
-          message: 'Het teamlid kon niet worden geregistreerd. Mogelijk is het e-mail adres reeds in gebruik.'
-        }
+          variant: "danger",
+          message:
+            "Het teamlid kon niet worden geregistreerd. Mogelijk is het e-mail adres reeds in gebruik.",
+        };
         this.isDisabled = false;
-        this.enableAllFields()
+        this.enableAllFields();
       }
-      
     },
     handleError() {
       this.feedback = {
-        variant: 'danger', 
-        message: 'Controleer de validatie berichten a.u.b.'
-      }
-    }
-  }
-}
+        variant: "danger",
+        message: "Controleer de validatie berichten a.u.b.",
+      };
+    },
+  },
+};
 </script>

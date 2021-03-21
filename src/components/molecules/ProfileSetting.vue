@@ -1,7 +1,5 @@
 <template>
-  <div
-    :class="{ 'ProfileSetting__editMode': editMode }"
-    class="ProfileSetting">
+  <div :class="{ ProfileSetting__editMode: editMode }" class="ProfileSetting">
     <div class="ProfileSetting__text d-flex">
       <label class="d-inline-block font-weight-bold d-flex align-items-center">
         <span>{{ label }}</span>
@@ -15,10 +13,9 @@
         :maxLength="maxLength"
         :max="max"
         :min="min"
-        @input="$emit('input', $event.target.value)" />
-      <span
-        v-else
-        class="d-inline-block flex-grow-1" >
+        @input="$emit('input', $event.target.value)"
+      />
+      <span v-else class="d-inline-block flex-grow-1">
         {{ value }}
       </span>
     </div>
@@ -27,47 +24,47 @@
 
 <script>
 export default {
-  name: 'ProfileSettings',
+  name: "ProfileSettings",
   props: {
     value: {
       type: [String, Number],
-      default: ''
+      default: "",
     },
     type: {
       type: String,
-      default: 'text'
+      default: "text",
     },
     label: {
       type: String,
-      default: ''
+      default: "",
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     editMode: {
       type: Boolean,
-      default: true
+      default: true,
     },
     maxLength: {
       type: Number,
-      default: 524288 // Default input field max length
+      default: 524288, // Default input field max length
     },
     max: {
       type: Number,
-      default: 2147483647 // Max 32 bit integer. Javascript uses double-precision 64-bit integers. It's best to limit this manually
+      default: 2147483647, // Max 32 bit integer. Javascript uses double-precision 64-bit integers. It's best to limit this manually
     },
     min: {
       type: Number,
-      default: -2147483648 // Min 32 bit integer. Javascript uses double-precision 64-bit integers. It's best to limit this manually
-    }
-  }
-}
+      default: -2147483648, // Min 32 bit integer. Javascript uses double-precision 64-bit integers. It's best to limit this manually
+    },
+  },
+};
 </script>
 
 <style lang="scss">
 .ProfileSetting {
-  border-bottom: 1px solid #E6EAEE;
+  border-bottom: 1px solid #e6eaee;
   padding-bottom: 16px;
   padding-top: 18px;
 
@@ -95,7 +92,7 @@ export default {
     }
     .form-control:disabled {
       background-color: #fff;
-      cursor: not-allowed
+      cursor: not-allowed;
     }
   }
 }

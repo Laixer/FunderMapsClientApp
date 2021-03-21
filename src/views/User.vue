@@ -59,7 +59,6 @@ import ProfileSetting from "molecule/ProfileSetting";
 import Feedback from "atom/Feedback";
 
 import { image } from "helper/assets";
-import { getUserEmail } from "service/auth";
 
 import { mapGetters, mapActions } from "vuex";
 
@@ -78,10 +77,6 @@ export default {
   },
   computed: {
     ...mapGetters("user", ["user"]),
-    // TODO This is not used
-    email() {
-      return getUserEmail();
-    },
   },
   methods: {
     image,

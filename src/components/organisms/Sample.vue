@@ -55,12 +55,12 @@ export default {
       return {
         "SampleLine--open": true,
       };
-    }
+    },
   },
-  data: function() {
+  data: function () {
     return {
-      addressId: null
-    }
+      addressId: null,
+    };
   },
   methods: {
     handleToggle() {
@@ -99,7 +99,7 @@ export default {
   created() {
     // TODO Is this correct?
     this.addressId = this.sample.address;
-  }
+  },
 };
 </script>
 

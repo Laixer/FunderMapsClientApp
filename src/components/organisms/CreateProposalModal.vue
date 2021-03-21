@@ -1,53 +1,56 @@
 <template>
-  <b-modal 
+  <b-modal
     id="modal-new-proposal"
-    ref="modal" 
-    centered 
-    okTitle='Aanmaken'
-    cancelTitle='Annuleren'
+    ref="modal"
+    centered
+    okTitle="Aanmaken"
+    cancelTitle="Annuleren"
     @ok="onOk"
     @show="onShow"
-    title="Nieuw voorstel">
+    title="Nieuw voorstel"
+  >
     <template slot="default">
       <Feedback :feedback="feedback" />
-      <Form 
-        ref="form" 
+      <Form
+        ref="form"
         autocomplete="off"
         @error="handleError"
-        @submit="handleSubmit">
-
-        <FormField 
+        @submit="handleSubmit"
+      >
+        <FormField
           label="Naam"
           v-model="fields.name.value"
-          v-bind="fields.name" />
-        <FormField 
+          v-bind="fields.name"
+        />
+        <FormField
           label="Email"
           type="text"
           v-model="fields.email.value"
-          v-bind="fields.email" />
-
+          v-bind="fields.email"
+        />
       </Form>
     </template>
   </b-modal>
 </template>
 
 <script>
+import { required, minLength, email } from "vuelidate/lib/validators";
 
-import { required, minLength, email } from 'vuelidate/lib/validators';
+import Feedback from "atom/Feedback";
+import Form from "molecule/form/Form";
+import FormField from "molecule/form/FormField";
 
-import Feedback from 'atom/Feedback'
-import Form from 'molecule/form/Form'
-import FormField from 'molecule/form/FormField'
-
-import { mapActions } from 'vuex'
-import fields from 'mixin/fields'
-import timeout from 'mixin/timeout'
+import { mapActions } from "vuex";
+import fields from "mixin/fields";
+import timeout from "mixin/timeout";
 
 export default {
   components: {
-    FormField, Form, Feedback
+    FormField,
+    Form,
+    Feedback,
   },
-  mixins: [ fields, timeout ],
+  mixins: [fields, timeout],
   data() {
     return {
       isDisabled: false,
@@ -55,86 +58,82 @@ export default {
       fields: {
         email: {
           value: "",
-          placeholder: 'naam@bedrijf.nl',
+          placeholder: "naam@bedrijf.nl",
           validationRules: {
-            required, email
+            required,
+            email,
           },
-          disabled: false
+          disabled: false,
         },
         name: {
           value: "",
           validationRules: {
             required,
-            minLength: minLength(2)
+            minLength: minLength(2),
           },
-          disabled: false
-        }
-      }
-    }
+          disabled: false,
+        },
+      },
+    };
   },
   methods: {
-    ...mapActions('org', [
-      'createProposal'
-    ]),
+    ...mapActions("org", ["createProposal"]),
     onShow() {
-      this.feedback = { show: false }
+      this.feedback = { show: false };
     },
     onOk(e) {
-      e.preventDefault()
-      if ( ! this.isDisabled) {
-        this.$refs.form.submit()
+      e.preventDefault();
+      if (!this.isDisabled) {
+        this.$refs.form.submit();
       }
     },
     async handleSubmit() {
-      this.disableAllFields()
+      this.disableAllFields();
       this.isDisabled = true;
       this.feedback = {
-        variant: 'info', 
-        message: 'Bezig met opslaan...'
-      }
-      
+        variant: "info",
+        message: "Bezig met opslaan...",
+      };
+
       try {
         // Make a copy, and add form field data
         await this.createProposal({
-          name: this.fieldValue('name'), 
-          email: this.fieldValue('email')
-        })
+          name: this.fieldValue("name"),
+          email: this.fieldValue("email"),
+        });
         this.feedback = {
-          variant: 'success',
-          message: 'Het nieuwe voorstel is aangemaakt'
-        }
+          variant: "success",
+          message: "Het nieuwe voorstel is aangemaakt",
+        };
 
         this.setTimeout(() => {
-          this.$refs.modal.hide()
+          this.$refs.modal.hide();
 
           // Reset the form & validation once it is hidden (after 300ms)
           this.setTimeout(() => {
-            this.isDisabled = false
-            this.enableAllFields()
-            this.clearAllFieldValues()
+            this.isDisabled = false;
+            this.enableAllFields();
+            this.clearAllFieldValues();
 
             // TODO I belive we don't need this
-            //this.$refs.form.resetValidation() 
-          }, 400)
-
-        }, 500)
-        
+            //this.$refs.form.resetValidation()
+          }, 400);
+        }, 500);
       } catch (err) {
         this.feedback = {
-          variant: 'danger', 
-          message: 'Het voorstel kon niet aangemaakt worden.'
-        }
+          variant: "danger",
+          message: "Het voorstel kon niet aangemaakt worden.",
+        };
         this.isDisabled = false;
-        this.enableAllFields()
+        this.enableAllFields();
       }
-      
     },
     handleError() {
       this.feedback = {
-        variant: 'danger', 
-        message: 'Controleer de validatie berichten a.u.b.'
-      }
-    }
-  }
-}
+        variant: "danger",
+        message: "Controleer de validatie berichten a.u.b.",
+      };
+    },
+  },
+};
 </script>

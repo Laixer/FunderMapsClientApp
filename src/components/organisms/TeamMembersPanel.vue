@@ -1,84 +1,76 @@
 <template>
   <div>
-   <div v-if="(isSuperUser() || isAdmin()) && orgUsers">
-    <div class="panel px-4 py-3" style="width: 300px">
-      <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
-      <TeamMember 
-        v-for="(member, index) in orgUsers" 
-        :member="member"
-        :key="index"
-        @edit="handleEdit"
-        @remove="handleRemove" />
-    </div>
-   
-    <TeamMemberModal 
-      :userId="editUserId" 
-      :organizationId="organizationId" />
+    <div v-if="(isSuperUser() || isAdmin()) && orgUsers">
+      <div class="panel px-4 py-3" style="width: 300px">
+        <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
+        <TeamMember
+          v-for="(member, index) in orgUsers"
+          :member="member"
+          :key="index"
+          @edit="handleEdit"
+          @remove="handleRemove"
+        />
+      </div>
 
-    <RemoveTeamMemberModal 
-      :userId="editUserId" 
-      :organizationId="organizationId" />
+      <TeamMemberModal :userId="editUserId" :organizationId="organizationId" />
 
+      <RemoveTeamMemberModal
+        :userId="editUserId"
+        :organizationId="organizationId"
+      />
     </div>
-    <b-button 
-      variant="primary" 
-      class="SubmitButton font-weight-bold mt-4" 
+    <b-button
+      variant="primary"
+      class="SubmitButton font-weight-bold mt-4"
       size="lg"
       @click="handleCreate"
-      pill>
-      <span class="d-inline-block my-2">
-        Gebruiker registreren
-      </span>
+      pill
+    >
+      <span class="d-inline-block my-2"> Gebruiker registreren </span>
     </b-button>
-    
-    <NewTeamMemberModal 
-      :organizationId="organizationId" />
-  
+
+    <NewTeamMemberModal :organizationId="organizationId" />
   </div>
 </template>
 
 <script>
-import { isSuperUser, isAdmin } from 'service/auth'
-import { mapGetters, mapActions } from 'vuex'
+import { isSuperUser, isAdmin } from "service/auth";
+import { mapGetters, mapActions } from "vuex";
 
-import TeamMember from 'molecule/TeamMember'
-import TeamMemberModal from 'organism/TeamMemberModal'
-import NewTeamMemberModal from 'organism/NewTeamMemberModal'
-import RemoveTeamMemberModal from 'organism/RemoveTeamMemberModal'
+import TeamMember from "molecule/TeamMember";
+import TeamMemberModal from "organism/TeamMemberModal";
+import NewTeamMemberModal from "organism/NewTeamMemberModal";
+import RemoveTeamMemberModal from "organism/RemoveTeamMemberModal";
 
-import { getUserId } from 'service/auth'
+import { getUserId } from "service/auth";
 
 export default {
   components: {
-    TeamMember, 
-    TeamMemberModal, 
-    NewTeamMemberModal, 
-    RemoveTeamMemberModal
+    TeamMember,
+    TeamMemberModal,
+    NewTeamMemberModal,
+    RemoveTeamMemberModal,
   },
   data() {
     return {
-      editUserId: null
-    }
+      editUserId: null,
+    };
   },
   computed: {
-    ...mapGetters('org', [
-      'getOrgId'
-    ]),
-    ...mapGetters('orgUsers', [
-      'orgUsers'
-    ]),
+    ...mapGetters("org", ["getOrgId"]),
+    ...mapGetters("orgUsers", ["orgUsers"]),
     organizationId() {
       if (isAdmin() && this.$route.params.id) {
-        return this.$route.params.id
+        return this.$route.params.id;
       } else if (this.isSuperUser()) {
         return this.getOrgId;
       }
-      return false
+      return false;
     },
   },
   async created() {
     if (isAdmin() || isSuperUser()) {
-      this.clearUsers()
+      this.clearUsers();
 
       // Act according to user privileges
       if (isAdmin()) {
@@ -91,26 +83,22 @@ export default {
   methods: {
     isAdmin,
     isSuperUser,
-    ...mapActions('orgUsers', [
-      'getUsers',
-      'adminGetUsers',
-      'clearUsers'
-    ]),
+    ...mapActions("orgUsers", ["getUsers", "adminGetUsers", "clearUsers"]),
     handleEdit({ id }) {
       this.editUserId = id;
-      this.$bvModal.show('modal-teammember')
+      this.$bvModal.show("modal-teammember");
     },
     handleRemove({ id }) {
       if (id !== getUserId()) {
         this.editUserId = id;
-        this.$bvModal.show('modal-remove-teammember')
+        this.$bvModal.show("modal-remove-teammember");
       }
     },
     handleCreate() {
-      this.$bvModal.show('modal-new-teammember')
-    }
-  }
-}
+      this.$bvModal.show("modal-new-teammember");
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -122,7 +110,7 @@ h1 {
 .panel {
   background: white;
   border-radius: 4px;
-  border: 1px solid #E6EAEE;
+  border: 1px solid #e6eaee;
 
   h2 {
     font-size: 22px;

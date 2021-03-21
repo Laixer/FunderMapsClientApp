@@ -5,7 +5,9 @@
         {{ title }}
       </h2>
       <div v-if="synchronizing" class="flex-grow-1 d-flex justify-content-end">
-        <span class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1">
+        <span
+          class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1"
+        >
           Verversen van informatie ...
         </span>
       </div>
@@ -13,61 +15,58 @@
     <table>
       <thead>
         <tr class="d-flex p-2">
-          <th scope="col">
-            Naam
-          </th>
-          <th scope="col">
-            E-mail
-          </th>
+          <th scope="col">Naam</th>
+          <th scope="col">E-mail</th>
           <th scope="col"></th>
         </tr>
       </thead>
       <tbody v-if="organizations">
-        <OrganizationTableLine 
-          v-for="(organization, index) in organizations" 
-          :key="index" 
-          :organization="organization" />
+        <OrganizationTableLine
+          v-for="(organization, index) in organizations"
+          :key="index"
+          :organization="organization"
+        />
       </tbody>
     </table>
   </div>
 </template>
 
 <script>
-import OrganizationTableLine from 'molecule/OrganizationTableLine';
+import OrganizationTableLine from "molecule/OrganizationTableLine";
 import { mapActions } from "vuex";
 
 export default {
-  name: 'OrganizationTable',
+  name: "OrganizationTable",
   components: {
-    OrganizationTableLine
+    OrganizationTableLine,
   },
   props: {
     title: {
       type: String,
-      default: ''
+      default: "",
     },
     synchronizing: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     hasTitle() {
-      return this.title !== ''
-    }
+      return this.title !== "";
+    },
   },
-  data: function() {
+  data: function () {
     return {
-      organizations: null
-    }
+      organizations: null,
+    };
   },
   methods: {
-    ...mapActions('org', ['getAllOrganizations'])
+    ...mapActions("org", ["getAllOrganizations"]),
   },
   async created() {
     this.organizations = await this.getAllOrganizations();
-  }
-}
+  },
+};
 </script>
 
 <style lang="scss">
@@ -84,11 +83,12 @@ export default {
     width: 100%;
 
     th {
-      color: #7F8FA4;
+      color: #7f8fa4;
       font-size: 14px;
       font-weight: normal;
     }
-    th, td {
+    th,
+    td {
       &:nth-child(1) {
         min-width: 200px;
         flex-grow: 1;
@@ -103,5 +103,4 @@ export default {
     }
   }
 }
-
 </style>

@@ -1,5 +1,10 @@
 <template>
-  <Form ref="form" class="py-4 px-5" @submit="handleSubmit" @error="handleFormError">
+  <Form
+    ref="form"
+    class="py-4 px-5"
+    @submit="handleSubmit"
+    @error="handleFormError"
+  >
     <Feedback :feedback="feedback" />
 
     <div class="form-row mb-3">
@@ -19,8 +24,16 @@
         v-bind="fields.foundationType"
         class="col-md-5"
       />
-      <FormField v-model="fields.substructure.value" v-bind="fields.substructure" class="col-md-5" />
-      <FormField v-model="fields.builtYear.value" v-bind="fields.builtYear" class="col-md-2" />
+      <FormField
+        v-model="fields.substructure.value"
+        v-bind="fields.substructure"
+        class="col-md-5"
+      />
+      <FormField
+        v-model="fields.builtYear.value"
+        v-bind="fields.builtYear"
+        class="col-md-2"
+      />
     </div>
 
     <div class="form-row">
@@ -29,7 +42,11 @@
         v-bind="fields.monitoringWell"
         class="col-md-6"
       />
-      <FormField v-model="fields.cpt.value" v-bind="fields.cpt" class="col-md-6" />
+      <FormField
+        v-model="fields.cpt.value"
+        v-bind="fields.cpt"
+        class="col-md-6"
+      />
     </div>
 
     <Divider />
@@ -66,13 +83,21 @@
         v-bind="fields.baseMeasurementLevel"
         class="col-md-3"
       /> -->
-      <FormField v-model="fields.woodLevel.value" v-bind="fields.woodLevel" class="col-md-3" />
+      <FormField
+        v-model="fields.woodLevel.value"
+        v-bind="fields.woodLevel"
+        class="col-md-3"
+      />
       <FormField
         v-model="fields.groundwaterLevelTemp.value"
         v-bind="fields.groundwaterLevelTemp"
         class="col-md-3"
       />
-      <FormField v-model="fields.groundLevel.value" v-bind="fields.groundLevel" class="col-md-3" />
+      <FormField
+        v-model="fields.groundLevel.value"
+        v-bind="fields.groundLevel"
+        class="col-md-3"
+      />
     </div>
   </Form>
 </template>
@@ -85,7 +110,7 @@ import {
   decimal,
   maxLength,
   minValue,
-  maxValue
+  maxValue,
 } from "vuelidate/lib/validators";
 import {
   foundationTypeOptions,
@@ -116,14 +141,14 @@ export default {
     Form,
     FormField,
     Divider,
-    Feedback
+    Feedback,
   },
   mixins: [fields],
   props: {
     sample: {
       type: SampleModel,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
@@ -140,8 +165,8 @@ export default {
           data: [],
           validationRules: {
             required,
-            maxLength: maxLength(128)
-          }
+            maxLength: maxLength(128),
+          },
         },
         // LINE 2
         foundationType: {
@@ -151,11 +176,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(foundationTypeOptions),
-          validationRules: {
-          }
+          validationRules: {},
         },
         substructure: {
           label: "Onderbouw",
@@ -164,11 +188,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(substructureOptions),
-          validationRules: {
-          }
+          validationRules: {},
         },
         builtYear: {
           label: "Bouwjaar",
@@ -178,7 +201,7 @@ export default {
             numeric,
             minValue: minValue(1000),
             maxValue: maxValue(2100),
-          }
+          },
         },
         // LINE 3
         monitoringWell: {
@@ -186,16 +209,16 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32)
-          }
+            maxLength: maxLength(32),
+          },
         },
         cpt: {
           label: "Sondering",
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32)
-          }
+            maxLength: maxLength(32),
+          },
         },
         // DIVIDER
         // LINE 4
@@ -206,11 +229,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(foundationQualityOptions),
-          validationRules: {
-          }
+          validationRules: {},
         },
         recoveryAdvised: {
           label: "Funderingsherstel advies",
@@ -219,15 +241,14 @@ export default {
           options: [
             {
               value: true,
-              text: "Ja"
+              text: "Ja",
             },
             {
               value: false,
-              text: "Nee"
-            }
+              text: "Nee",
+            },
           ],
-          validationRules: {
-          }
+          validationRules: {},
         },
         // LINE 5
         damageCause: {
@@ -237,12 +258,12 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(foundationDamageCauseOptions),
           validationRules: {
             // required
-          }
+          },
         },
         enforcementTerm: {
           label: "Handhavingstermijn",
@@ -251,11 +272,10 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een optie"
-            }
+              text: "Selecteer een optie",
+            },
           ].concat(enforcementTermOptions),
-          validationRules: {
-          }
+          validationRules: {},
         },
         // LINE 6
         // baseMeasurementLevel: {
@@ -278,7 +298,7 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+          },
         },
         groundwaterLevelTemp: {
           label: "Grondwaterstand",
@@ -286,7 +306,7 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
+          },
         },
         groundLevel: {
           label: "Maaiveldhoogte",
@@ -294,9 +314,9 @@ export default {
           value: "",
           validationRules: {
             decimal,
-          }
-        }
-      }
+          },
+        },
+      },
     };
   },
   watch: {
@@ -305,8 +325,8 @@ export default {
       handler() {
         this.stored = false;
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
@@ -315,7 +335,7 @@ export default {
     if (this.sample.stored === false) {
       this.feedback = {
         variant: "info",
-        message: "Let op: Dit adres is nog niet opgeslagen"
+        message: "Let op: Dit adres is nog niet opgeslagen",
       };
     }
 
@@ -329,20 +349,22 @@ export default {
 
     // Explicitly set the address field.
     if (this.sample.address !== null) {
-      let addressFetched = await this.getAddressById({ id: this.sample.address });
+      let addressFetched = await this.getAddressById({
+        id: this.sample.address,
+      });
       this.fields.address.value = addressFetched.format();
-      this.fields.address.data = [ addressFetched ];
+      this.fields.address.data = [addressFetched];
       this.fields.address.selected = addressFetched;
     }
 
     this.setFieldValues({
       foundationType: this.optionValue({
         options: foundationTypeOptions,
-        name: "foundationType"
+        name: "foundationType",
       }),
       substructure: this.optionValue({
         options: substructureOptions,
-        name: "substructure"
+        name: "substructure",
       }),
       builtYear: this.sample.builtYear
         ? new Date(this.sample.builtYear).getFullYear()
@@ -351,18 +373,18 @@ export default {
       cpt: this.sample.cpt,
       overallQuality: this.optionValue({
         options: foundationQualityOptions,
-        name: "overallQuality"
+        name: "overallQuality",
       }),
       recoveryAdvised: this.booleanValue({
-        name: "recoveryAdvised"
+        name: "recoveryAdvised",
       }),
       damageCause: this.optionValue({
         options: foundationDamageCauseOptions,
-        name: "damageCause"
+        name: "damageCause",
       }),
       enforcementTerm: this.optionValue({
         options: enforcementTermOptions,
-        name: "enforcementTerm"
+        name: "enforcementTerm",
       }),
       // baseMeasurementLevel: this.optionValue({
       //   options: BaseMeasurementLevelOptions,
@@ -370,7 +392,7 @@ export default {
       // }),
       woodLevel: this.sample.woodLevel,
       groundwaterLevelTemp: this.sample.groundwaterLevelTemp,
-      groundLevel: this.sample.groundLevel
+      groundLevel: this.sample.groundLevel,
     });
 
     // After setting the field values, set the DB storage status
@@ -380,7 +402,7 @@ export default {
   },
   methods: {
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    ...mapActions('address', ['getAddressById', 'getAddressSuggestions']),
+    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     optionValue({ options, name }) {
       let key = this.sample[name];
       return options[key] ? options[key].value : null;
@@ -396,7 +418,7 @@ export default {
     async handleHit(address) {
       const { response } = await fetch(
         `https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?fl=nummeraanduiding_id&id=${address.id}`
-      ).then(res => {
+      ).then((res) => {
         if (!res.ok) throw new Error(res.statusText);
         return res.json();
       });
@@ -407,7 +429,7 @@ export default {
       this.fields.address.value = address.weergavenaam;
       this.fields.address.selected = _address;
 
-      this.$emit('addressSelected', { addressId: _address.id });
+      this.$emit("addressSelected", { addressId: _address.id });
     },
     formatAddressDisplayName(address) {
       return address.displayName;
@@ -443,12 +465,12 @@ export default {
       this.disableAllFields();
       this.feedback = {
         variant: "info",
-        message: "Het adres wordt verwijderd..."
+        message: "Het adres wordt verwijderd...",
       };
       this.deleteSample({
         inquiryId: this.activeReport.id,
         sampleId: this.sample.id,
-        creationstamp: this.sample.creationstamp
+        creationstamp: this.sample.creationstamp,
       });
     },
     // Called when we submit our sample.
@@ -460,7 +482,7 @@ export default {
       this.disableAllFields();
       this.feedback = {
         variant: "info",
-        message: "Het adres wordt opgeslagen..."
+        message: "Het adres wordt opgeslagen...",
       };
 
       let data = this.allFieldValues();
@@ -487,23 +509,27 @@ export default {
       data.report = this.activeReport.id;
 
       // TODO These fields should be mapped automatically
-      data.builtYear = data.builtYear ? new Date(data.builtYear, 1, 1, 0, 0, 0, 0) : null;
-      data.groundLevel = data.groundLevel ? Number(data.groundLevel) : null
-      data.groundwaterLevelTemp = data.groundwaterLevelTemp ? Number(data.groundwaterLevelTemp) : null
-      data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null
+      data.builtYear = data.builtYear
+        ? new Date(data.builtYear, 1, 1, 0, 0, 0, 0)
+        : null;
+      data.groundLevel = data.groundLevel ? Number(data.groundLevel) : null;
+      data.groundwaterLevelTemp = data.groundwaterLevelTemp
+        ? Number(data.groundwaterLevelTemp)
+        : null;
+      data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
 
       if (data.id) {
         await this.updateSample({
           inquiryId: this.activeReport.id,
           sampleId: data.id,
-          data: data
+          data: data,
         })
           .then(this.handleSuccess)
           .catch(this.handleError);
       } else {
         await this.createSample({
           inquiryId: this.activeReport.id,
-          data: data
+          data: data,
         })
           .then(this.handleSuccess)
           .catch(this.handleError);
@@ -513,7 +539,7 @@ export default {
       try {
         this.feedback = {
           variant: "success",
-          message: "De wijzigingen zijn opgeslagen"
+          message: "De wijzigingen zijn opgeslagen",
         };
         this.enableAllFields();
         this.isDisabled = false;
@@ -528,7 +554,7 @@ export default {
     handleError(err) {
       this.feedback = {
         variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen"
+        message: "De wijzigingen zijn niet opgeslagen",
       };
       this.enableAllFields();
       this.isDisabled = false;
@@ -537,10 +563,10 @@ export default {
     handleFormError() {
       this.feedback = {
         variant: "danger",
-        message: "Controleer a.u.b. de invoer"
+        message: "Controleer a.u.b. de invoer",
       };
       this.$emit("stored", { success: false, message: "Invalid input" });
-    }
-  }
+    },
+  },
 };
 </script>

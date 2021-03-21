@@ -23,7 +23,8 @@
           v-for="(item, index) in menuItems"
           :key="index"
           :to="item.to"
-        >{{ item.label }}</b-dropdown-item>
+          >{{ item.label }}</b-dropdown-item
+        >
       </b-nav-item-dropdown>
       <MapControls v-if="hasMapControls" />
     </b-nav>
@@ -41,36 +42,36 @@ export default {
   name: "NavBar",
   components: {
     Logo,
-    MapControls
+    MapControls,
   },
   props: {
     admin: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   data() {
     return {
       company: "FunderMaps",
       menuItems: [
         new MenuItem("Profiel", {
-          name: this.admin ? "admin-user" : "user"
+          name: this.admin ? "admin-user" : "user",
         }),
         new MenuItem("Wachtwoord Wijzigen", {
-          name: this.admin ? "admin-security" : "security"
+          name: this.admin ? "admin-security" : "security",
         }),
         new MenuItem("Uitloggen", {
-          name: "logout"
-        })
-      ]
+          name: "logout",
+        }),
+      ],
     };
   },
   computed: {
     ...mapGetters("user", ["user"]),
     hasMapControls() {
       return this.$route.meta.layout === "map";
-    }
-  }
+    },
+  },
 };
 </script>
 

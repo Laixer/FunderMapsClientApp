@@ -5,7 +5,9 @@
         {{ title }}
       </h2>
       <div v-if="synchronizing" class="flex-grow-1 d-flex justify-content-end">
-        <span class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1">
+        <span
+          class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1"
+        >
           Verversen van informatie ...
         </span>
       </div>
@@ -13,58 +15,53 @@
     <table>
       <thead>
         <tr class="d-flex p-2">
-          <th scope="col">
-            Naam
-          </th>
-          <th scope="col">
-            E-mail
-          </th>
-          <th scope="col">
-            Registratielink
-          </th>
+          <th scope="col">Naam</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">Registratielink</th>
           <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
-        <OrganizationProposalLine 
-          v-for="(proposal, index) in proposals" 
-          :key="index" 
-          :proposal="proposal" />
+        <OrganizationProposalLine
+          v-for="(proposal, index) in proposals"
+          :key="index"
+          :proposal="proposal"
+        />
       </tbody>
     </table>
   </div>
 </template>
 
 <script>
-import OrganizationProposalLine from 'molecule/OrganizationProposalLine';
+import OrganizationProposalLine from "molecule/OrganizationProposalLine";
 
 export default {
-  name: 'OrganizationProposalTable',
+  name: "OrganizationProposalTable",
   components: {
-    OrganizationProposalLine
+    OrganizationProposalLine,
   },
   props: {
     title: {
       type: String,
-      default: ''
+      default: "",
     },
     synchronizing: {
       type: Boolean,
-      default: false
+      default: false,
     },
     proposals: {
       type: Array,
-      default: function() {
-        return []
-      }
-    }
+      default: function () {
+        return [];
+      },
+    },
   },
   computed: {
     hasTitle() {
-      return this.title !== ''
-    }
-  }
-}
+      return this.title !== "";
+    },
+  },
+};
 </script>
 
 <style lang="scss">
@@ -81,11 +78,12 @@ export default {
     width: 100%;
 
     th {
-      color: #7F8FA4;
+      color: #7f8fa4;
       font-size: 14px;
       font-weight: normal;
     }
-    th, td {
+    th,
+    td {
       &:nth-child(1) {
         min-width: 200px;
         flex-grow: 1;
@@ -103,5 +101,4 @@ export default {
     }
   }
 }
-
 </style>

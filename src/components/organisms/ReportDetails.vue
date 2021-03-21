@@ -13,109 +13,124 @@
     </header>
     <ReportDate :date="activeReport.documentDate" />
     <Divider />
-    <div
-      v-if="showUsers"
-      class="Report__users d-flex">
-      <ReportUserRoleExplicit :userId="activeReport.creatorId" userRoleOverride="Verwerker"/>
-      <ReportUserRoleExplicit :userId="activeReport.reviewerId" userRoleOverride="Reviewer" />
+    <div v-if="showUsers" class="Report__users d-flex">
+      <ReportUserRoleExplicit
+        :userId="activeReport.creatorId"
+        userRoleOverride="Verwerker"
+      />
+      <ReportUserRoleExplicit
+        :userId="activeReport.reviewerId"
+        userRoleOverride="Reviewer"
+      />
     </div>
     <Divider v-if="showUsers" />
     <div class="Report__indicators d-flex flex-wrap">
       <CheckboxIndicator
         :value="activeReport.standardF3o"
         class="mb-1"
-        label="Conform F3O" />
+        label="Conform F3O"
+      />
       <CheckboxIndicator
         :value="activeReport.jointMeasurement"
         class="mb-1"
-        label="Lintvoegmeting"  />
+        label="Lintvoegmeting"
+      />
       <CheckboxIndicator
         :value="activeReport.inspection"
         class="mb-1"
-        label="Onderzoeksput" />
+        label="Onderzoeksput"
+      />
       <CheckboxIndicator
         :value="activeReport.floorMeasurement"
         class="mb-1"
-        label="Vloer waterpas" />
+        label="Vloer waterpas"
+      />
     </div>
     <Divider v-if="activeReport.note" />
-    <Note
-      v-if="activeReport.note"
-      :note="activeReport.note" />
+    <Note v-if="activeReport.note" :note="activeReport.note" />
   </div>
 </template>
 
 <script>
-
-import ReportDate from 'atom/review/ReportDate'
-import ReportUserRoleExplicit from 'atom/review/ReportUserRoleExplicit'
-import Note from 'atom/review/Note'
-import CheckboxIndicator from 'atom/review/CheckboxIndicator'
-import TypeTag from 'atom/TypeTag'
-import Divider from 'atom/Divider'
+import ReportDate from "atom/review/ReportDate";
+import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
+import Note from "atom/review/Note";
+import CheckboxIndicator from "atom/review/CheckboxIndicator";
+import TypeTag from "atom/TypeTag";
+import Divider from "atom/Divider";
 
 import {
   convertDateStringToDate,
   weekDayFromDate,
-  monthYearStringFromDate
-} from 'helper/date'
+  monthYearStringFromDate,
+} from "helper/date";
 
 export default {
   components: {
-    TypeTag, Divider, ReportUserRoleExplicit,
-    ReportDate, CheckboxIndicator, Note
+    TypeTag,
+    Divider,
+    ReportUserRoleExplicit,
+    ReportDate,
+    CheckboxIndicator,
+    Note,
   },
   props: {
     activeReport: {
       type: Object,
-      required: true
+      required: true,
     },
     showLastEdited: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showUsers: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     // IN: "2019-04-28T21:55:02.09066+00:00"
     // OUT: vrijdag 30 oktober 2020 - 10:31
     lastEdited() {
-      const date = this.activeReport.updateDate
-      return weekDayFromDate({ date }) + ' '
-        + date.getDate() + ' '
-        + monthYearStringFromDate({ date }) + ' - '
-        + date.getHours() + ':'
-        + date.getMinutes()
+      const date = this.activeReport.updateDate;
+      return (
+        weekDayFromDate({ date }) +
+        " " +
+        date.getDate() +
+        " " +
+        monthYearStringFromDate({ date }) +
+        " - " +
+        date.getHours() +
+        ":" +
+        date.getMinutes()
+      );
     },
     hasEditedDate() {
-      return this.activeReport.updateDate !== null
+      return this.activeReport.updateDate !== null;
     },
-  }
-}
+  },
+};
 </script>
 
 <style lang="scss">
 .Report__details {
-  background: #FAFBFC;
+  background: #fafbfc;
   border-radius: 5px;
-  border: 1px solid #CED0DA;
+  border: 1px solid #ced0da;
   overflow: hidden;
 
   header {
     padding: 25px 30px;
     background: white;
-    border-bottom: 1px solid #CED0DA;
+    border-bottom: 1px solid #ced0da;
     width: 100%;
     line-height: 1;
 
     h3 {
-      margin: 0
+      margin: 0;
     }
     span {
-      color: #7F8FA4;
+      color: #7f8fa4;
       font-size: 12px;
     }
   }
@@ -132,7 +147,7 @@ export default {
     padding: 0 30px;
 
     .CheckboxIndicator {
-      width: 50%
+      width: 50%;
     }
     &:last-child {
       margin-bottom: 20px;
