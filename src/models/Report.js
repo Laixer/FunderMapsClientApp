@@ -37,7 +37,7 @@ class ReportModel {
     if (!documentDate) {
       throw "Missing documentDate";
     }
-    
+
     this.id = id;
     this.documentName = documentName;
     this.inspection = inspection;
@@ -107,9 +107,7 @@ class ReportModel {
    * Formatted date
    */
   date() {
-    return this.documentDate.getDate() + " - " +
-      this.documentDate.getMonth() + " - " +
-      this.documentDate.getFullYear();
+    return this.documentDate.toLocaleDateString('nl-NL', { year: 'numeric', month: 'short', day: 'numeric' })
   }
   /**
    * Status
