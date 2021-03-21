@@ -4,7 +4,7 @@
       v-for="(row, index) in sampleData"
       :key="index"
       :items="row"
-      :divider="index !== (sampleData.length - 1)"
+      :divider="index !== sampleData.length - 1"
     />
   </div>
 </template>
@@ -16,13 +16,13 @@ import SampleModel from "../../models/Sample";
 export default {
   name: "SampleDataPresentation",
   components: {
-    DataRow
+    DataRow,
   },
   props: {
     sample: {
       type: SampleModel,
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     sampleData() {
@@ -30,46 +30,48 @@ export default {
         [
           {
             label: "Funderingstype",
-            value: this.sample.getFoundationType()
+            value: this.sample.getFoundationType(),
           },
           {
             label: "Onderbouw",
-            value: this.sample.getSubstructure()
+            value: this.sample.getSubstructure(),
           },
           {
             label: "Bouwjaar",
-            value: this.sample.builtYear ? new Date(this.sample.builtYear).getFullYear() : null
-          }
+            value: this.sample.builtYear
+              ? new Date(this.sample.builtYear).getFullYear()
+              : null,
+          },
         ],
         [
           {
             label: "Peilbuis",
-            value: this.sample.monitoringWell
+            value: this.sample.monitoringWell,
           },
           {
             label: "Sondering",
-            value: this.sample.cpt
-          }
+            value: this.sample.cpt,
+          },
         ],
         [
           {
             label: "Funderingskwaliteit",
-            value: this.sample.getOverallQuality()
+            value: this.sample.getOverallQuality(),
           },
           {
             label: "Funderingsherstel advies",
-            value: this.sample.recoveryAdvised
-          }
+            value: this.sample.recoveryAdvised,
+          },
         ],
         [
           {
             label: "Oorzaak funderingsschade",
-            value: this.sample.getFoundationDamageCause()
+            value: this.sample.getFoundationDamageCause(),
           },
           {
             label: "Handhavingstermijn",
-            value: this.sample.getEnforcementTerm()
-          }
+            value: this.sample.getEnforcementTerm(),
+          },
         ],
         [
           // {
@@ -78,21 +80,21 @@ export default {
           // },
           {
             label: "Hoogte Langshout",
-            value: this.sample.woodLevel
-          }
+            value: this.sample.woodLevel,
+          },
         ],
         [
           {
             label: "Grondwaterstand",
-            value: this.sample.groundwaterLevelTemp
+            value: this.sample.groundwaterLevelTemp,
           },
           {
             label: "Maaiveldhoogte",
-            value: this.sample.groundLevel
-          }
-        ]
+            value: this.sample.groundLevel,
+          },
+        ],
       ];
-    }
-  }
+    },
+  },
 };
 </script>

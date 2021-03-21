@@ -23,70 +23,65 @@
 </template>
 
 <script>
-
-import { icon } from 'helper/assets'
-import Form from 'molecule/form/Form'
-import FormField from 'molecule/form/FormField'
-import { mapGetters, mapMutations } from 'vuex'
+import { icon } from "helper/assets";
+import Form from "molecule/form/Form";
+import FormField from "molecule/form/FormField";
+import { mapGetters, mapMutations } from "vuex";
 
 export default {
   components: {
-    Form, FormField
+    Form,
+    FormField,
   },
   data() {
     return {
       mapModelField: {
-        type: 'select',
+        type: "select",
         label: null,
         novalidate: true,
-      }
-    }
+      },
+    };
   },
   computed: {
-    ...mapGetters('map', [
-      'mapBundles',
-      'activeBundle'
-    ]),
+    ...mapGetters("map", ["mapBundles", "activeBundle"]),
     downloadUrl() {
-      return `${process.env.VUE_APP_MVT_BASE_URL}ORG${this.activeBundle.organizationId}/BND${this.activeBundle.id}/GPKG/${this.activeBundle.id}.gpkg`
+      return `${process.env.VUE_APP_MVT_BASE_URL}ORG${this.activeBundle.organizationId}/BND${this.activeBundle.id}/GPKG/${this.activeBundle.id}.gpkg`;
     },
     mapBundleOptions() {
-      return [...this.mapBundles].map(bundle => {
+      return [...this.mapBundles].map((bundle) => {
         return {
           value: bundle.id,
-          text: bundle.name
-        }
-      })
+          text: bundle.name,
+        };
+      });
     },
     mapModel: {
       get() {
-        return this.activeBundle ? this.activeBundle.id : null
+        return this.activeBundle ? this.activeBundle.id : null;
       },
       set(value) {
-        this.setActiveBundle({ id: value })
-      }
-    }
+        this.setActiveBundle({ id: value });
+      },
+    },
   },
   watch: {
     mapBundles(value) {
       if (value.length && !this.activeBundle) {
-        this.setActiveBundle({ id: value[0].id })
+        this.setActiveBundle({ id: value[0].id });
       }
-    }
+    },
   },
   created() {
     // If bundles are available, yet none is selected, select the first
     if (this.mapBundles.size && !this.activeBundle) {
-      this.setActiveBundle({ id: this.mapBundles.values().next().value.id })
+      this.setActiveBundle({ id: this.mapBundles.values().next().value.id });
     }
   },
   methods: {
     icon,
-    ...mapMutations('map', [
-      'setActiveBundle'
-    ])
-  }
-}
+    ...mapMutations("map", ["setActiveBundle"]),
+  },
+};
 </script>
 
 <style lang="scss">

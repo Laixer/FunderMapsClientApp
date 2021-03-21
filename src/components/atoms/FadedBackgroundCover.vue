@@ -1,32 +1,32 @@
 
 <script>
 // TODO: Unused for now
-import { image } from 'helper/assets'
+import { image } from "helper/assets";
 
 export default {
-  name: 'FadedBackgroundCover',
+  name: "FadedBackgroundCover",
   functional: true,
   props: {
     image: {
       type: String,
-      default: 'login/background.png'
-    }
+      default: "login/background.png",
+    },
   },
   render(h, context) {
-    return h('div', {
+    return h("div", {
       class: {
-        'FadedBackgroundCover' : true
+        FadedBackgroundCover: true,
       },
       style: {
-        backgroundImage: 'url(' + image(context.props.image) + ')'
+        backgroundImage: "url(" + image(context.props.image) + ")",
       },
-    })
-  }
-}
+    });
+  },
+};
 </script>
 
 <style lang="scss">
-@import '@/assets/sass/variables.scss';
+@import "@/assets/sass/variables.scss";
 
 .FadedBackgroundCover {
   position: absolute;
@@ -34,7 +34,7 @@ export default {
   left: 0;
   height: 100%;
   width: 100%;
-  background-color: theme-color('primary');
+  background-color: theme-color("primary");
   background-repeat: no-repeat;
   background-size: cover;
 }

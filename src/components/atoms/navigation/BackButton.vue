@@ -1,58 +1,55 @@
 <template>
-  <b-button 
-    variant="outline-primary" 
+  <b-button
+    variant="outline-primary"
     :to="to"
-    :disabled="disabled" 
-    class="BackButton font-weight-bold d-inline-flex align-items-center" 
-    size="lg" 
-    pill>
-    <img 
-      alt="arrow" 
-      :src="icon('ArrowLeft-icon.svg')" />
-      
+    :disabled="disabled"
+    class="BackButton font-weight-bold d-inline-flex align-items-center"
+    size="lg"
+    pill
+  >
+    <img alt="arrow" :src="icon('ArrowLeft-icon.svg')" />
+
     <span class="mx-4 my-2">
       {{ label }}
     </span>
-    
   </b-button>
 </template>
 
 <script>
-
 import { icon } from "helper/assets";
 export default {
   props: {
     label: {
       type: String,
-      default: 'Alle rapporten'
+      default: "Alle rapporten",
     },
     to: {
       type: Object,
-      default: function() {
-        return { name: 'reports' }
-      }
+      default: function () {
+        return { name: "reports" };
+      },
     },
     disabled: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   methods: {
-    icon
-  }
-}
+    icon,
+  },
+};
 </script>
 
 <style lang="scss">
 .BackButton.btn {
   font-size: 18px;
   line-height: 1;
-  
 
-  &:hover, &:active {
-    background: transparent !important;  
-    color: darken(#17A4EA, 20%);
-    border-color: darken(#17A4EA, 20%);
+  &:hover,
+  &:active {
+    background: transparent !important;
+    color: darken(#17a4ea, 20%);
+    border-color: darken(#17a4ea, 20%);
   }
 }
 </style>

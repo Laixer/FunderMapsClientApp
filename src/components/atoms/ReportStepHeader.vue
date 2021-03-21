@@ -1,10 +1,10 @@
 <template>
-  <div class="ReportStepHeader d-flex align-items-center justify-content-between">
+  <div
+    class="ReportStepHeader d-flex align-items-center justify-content-between"
+  >
     <h2 class="m-0 flex-grow-1">
       <span class="font-weight-bold">Stap {{ step }}</span>
-      <span 
-        class="ReportStepHeader__label ml-3 pl-3"
-        v-if="label">
+      <span class="ReportStepHeader__label ml-3 pl-3" v-if="label">
         {{ label }}
       </span>
     </h2>
@@ -17,14 +17,14 @@ export default {
   props: {
     step: {
       type: Number,
-      default: 1
+      default: 1,
     },
     label: {
       type: String,
-      default: null
-    }
-  }
-}
+      default: null,
+    },
+  },
+};
 </script>
 
 <style lang="scss">
@@ -33,14 +33,14 @@ export default {
   background: white;
   height: 100px;
   width: 100%;
-  border: 1px solid #CED0DA;
+  border: 1px solid #ced0da;
   padding: 0 30px;
   margin-bottom: 10px;
 
   h2 {
     line-height: 20px;
     font-size: 24px;
-    color: #3D5372
+    color: #3d5372;
   }
 
   &__label {
@@ -49,18 +49,20 @@ export default {
 
     &:before {
       position: absolute;
-      content: '';
-      border-left: 1px solid #E8EAF1;
+      content: "";
+      border-left: 1px solid #e8eaf1;
       height: 30px;
       left: 0;
       top: -50%;
     }
   }
   .btn {
-    color: #7F8FA4;
+    color: #7f8fa4;
 
-    &:hover, &:visited, &:active {
-      color: darken(#7F8FA4, 10%)
+    &:hover,
+    &:visited,
+    &:active {
+      color: darken(#7f8fa4, 10%);
     }
   }
 }

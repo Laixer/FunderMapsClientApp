@@ -12,7 +12,7 @@ export default class TypeTag extends Vue {
   get typeStyles(): object {
     return {
       color: this.type.color || "white",
-      backgroundColor: this.type.bgColor
+      backgroundColor: this.type.bgColor,
     };
   }
 }

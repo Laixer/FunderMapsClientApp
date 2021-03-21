@@ -1,6 +1,14 @@
 <template>
-  <div v-if="hasOrganization" class="ReportOrgRole d-flex align-items-center mt-4">
-    <img :src="organization.getAvatar()" width="32" height="32" class="rounded-circle" />
+  <div
+    v-if="hasOrganization"
+    class="ReportOrgRole d-flex align-items-center mt-4"
+  >
+    <img
+      :src="organization.getAvatar()"
+      width="32"
+      height="32"
+      class="rounded-circle"
+    />
     <div class="ml-3">
       <div class="ReportOrgRole__name">{{ organization.name }}</div>
       <div class="ReportOrgRole__role">{{ organizationRole }}</div>
@@ -16,18 +24,18 @@ export default {
   props: {
     organizationId: {
       type: String,
-      required: true
+      required: true,
     },
     organizationRoleOverride: {
       type: String,
-      required: false
-    }
+      required: false,
+    },
   },
   computed: {
-    ...mapGetters('contractors', ['getContractorById']),
+    ...mapGetters("contractors", ["getContractorById"]),
     organizationRole() {
       if (this.organizationRoleOverride) {
-        return this.organizationRoleOverride; 
+        return this.organizationRoleOverride;
       } else {
         return this.organization.role;
       }
@@ -37,7 +45,7 @@ export default {
     },
     organization() {
       return this.getContractorById({ id: this.organizationId });
-    }
+    },
   },
 };
 </script>

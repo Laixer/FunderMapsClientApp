@@ -7,16 +7,11 @@
       {{ proposal.email }}
     </td>
     <td>
-      <b-input readonly
-        variant="light"
-        type="url"
-        v-model="tokenLink">
+      <b-input readonly variant="light" type="url" v-model="tokenLink">
       </b-input>
     </td>
     <td class="d-flex justify-content-end">
-      <b-button 
-        variant="light"
-        @click="cancelOrganizationProposal">
+      <b-button variant="light" @click="cancelOrganizationProposal">
         Annuleren
       </b-button>
     </td>
@@ -24,61 +19,63 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from "vuex";
 
 export default {
-  name: 'OrganizationProposalTableLine',
+  name: "OrganizationProposalTableLine",
   props: {
     proposal: {
       type: Object,
-      default: function() {
-        return {}
-      }
-    }
+      default: function () {
+        return {};
+      },
+    },
   },
   computed: {
     tokenLink() {
       // TODO Is this the way to go?
-      let host = window.location.origin || ''
-      
+      let host = window.location.origin || "";
+
       // TODO: Build wrapper
 
-      return new URL(`register/${this.proposal.id}`, host).toString()
-    }
+      return new URL(`register/${this.proposal.id}`, host).toString();
+    },
   },
   methods: {
-    ...mapActions('org', [
-      'removeProposal'
-    ]),
+    ...mapActions("org", ["removeProposal"]),
     cancelOrganizationProposal() {
-      this.$bvModal.msgBoxConfirm(
-        'Het verwijderen van de uitnodiging aan ' + this.proposal.name + ' kan niet ongedaan worden gemaakt. Het is altijd mogelijk een nieuwe uitnodiging aan te maken, maar de oude uitnodiging zal dan niet langer werken.', 
-        {
-          title: 'Bevestig actie - ' + this.proposal.name,
-          okVariant: 'danger',
-          okTitle: 'Verdwijderen',
-          cancelTitle: 'Annuleren',
-          footerClass: 'p-2 mt-3',
-          hideHeaderClose: false,
-          centered: true
-        })
-          .then((confirmation) => {
-            if (confirmation) {
-              this.removeProposal({ id: this.proposal.id })
-            }
-          })
-    }
-  }
-}
+      this.$bvModal
+        .msgBoxConfirm(
+          "Het verwijderen van de uitnodiging aan " +
+            this.proposal.name +
+            " kan niet ongedaan worden gemaakt. Het is altijd mogelijk een nieuwe uitnodiging aan te maken, maar de oude uitnodiging zal dan niet langer werken.",
+          {
+            title: "Bevestig actie - " + this.proposal.name,
+            okVariant: "danger",
+            okTitle: "Verdwijderen",
+            cancelTitle: "Annuleren",
+            footerClass: "p-2 mt-3",
+            hideHeaderClose: false,
+            centered: true,
+          }
+        )
+        .then((confirmation) => {
+          if (confirmation) {
+            this.removeProposal({ id: this.proposal.id });
+          }
+        });
+    },
+  },
+};
 </script>
 
 <style lang="scss">
 .OrganizationProposalTableLine {
   width: 100%;
   background: white;
-  border: 1px solid #DFE2E5;
+  border: 1px solid #dfe2e5;
   border-radius: 4px;
-  color: #7F8FA4;
+  color: #7f8fa4;
   line-height: 1;
   transition: all 0.15s;
   user-select: none;
@@ -95,10 +92,11 @@ export default {
   }
 
   .btn {
-    color: #7F8FA4;
+    color: #7f8fa4;
 
-    &:hover, &:active {
-      color: darken(#7F8FA4, 10%)
+    &:hover,
+    &:active {
+      color: darken(#7f8fa4, 10%);
     }
   }
 }

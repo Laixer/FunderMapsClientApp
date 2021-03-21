@@ -1,10 +1,5 @@
 <template>
-  <b-alert 
-    v-model="show" 
-    class="Feedback"
-    :variant="variant" 
-    dismissible 
-    fade>
+  <b-alert v-model="show" class="Feedback" :variant="variant" dismissible fade>
     {{ message }}
   </b-alert>
 </template>
@@ -15,28 +10,28 @@ export default {
     // This input is processed by `processFeedback`
     feedback: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     // The processed data, which is bound to the template
     return {
       show: false,
-      variant: 'info',
-      message: ''
-    }
+      variant: "info",
+      message: "",
+    };
   },
   watch: {
     /**
-     * When the feedback prop is updated, the input object is evaluated 
+     * When the feedback prop is updated, the input object is evaluated
      * and the bound data updated accordingly.
      */
     feedback(feedback) {
-      this.processFeedback(feedback)
-    }
+      this.processFeedback(feedback);
+    },
   },
   created() {
-    this.processFeedback(this.feedback)
+    this.processFeedback(this.feedback);
   },
   methods: {
     /**
@@ -44,10 +39,10 @@ export default {
      */
     processFeedback(feedback) {
       if (feedback.variant) {
-        this.variant = feedback.variant
+        this.variant = feedback.variant;
       }
       if (feedback.message) {
-        this.message = feedback.message
+        this.message = feedback.message;
       }
       // If the message or variant is changed, we assume it should be visible
       if (feedback.variant || feedback.message) {
@@ -55,20 +50,20 @@ export default {
       }
       // The above assumption can be overwritten by explicitly passing a value
       if (feedback.show) {
-        this.show = feedback.show
+        this.show = feedback.show;
       }
     },
     /**
      * These two methods allow programmatic access through a `ref` binding
      */
     hideFeedback() {
-      this.show = false
+      this.show = false;
     },
     showFeedback({ variant, message }) {
-      this.variant = variant
-      this.message = message
-      this.show = true
-    }
-  }
-}
+      this.variant = variant;
+      this.message = message;
+      this.show = true;
+    },
+  },
+};
 </script>

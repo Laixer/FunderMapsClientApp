@@ -1,13 +1,14 @@
 <template>
   <div class="DataRow">
-    <div class="DataRow__entries d-flex align-items-center ">
+    <div class="DataRow__entries d-flex align-items-center">
       <template v-for="(item, index) in items">
-        <component 
+        <component
           class="DataRow__item"
           :is="componentType({ item })"
-          :key="index" 
-          :label="item.label" 
-          :value="item.value" />
+          :key="index"
+          :label="item.label"
+          :value="item.value"
+        />
       </template>
     </div>
     <Divider v-if="divider" />
@@ -15,35 +16,37 @@
 </template>
 
 <script>
-import BasicDataItem from 'atom/dataitems/BasicDataItem'
-import CheckboxIndicator from 'atom/review/CheckboxIndicator'
-import Divider from 'atom/Divider'
+import BasicDataItem from "atom/dataitems/BasicDataItem";
+import CheckboxIndicator from "atom/review/CheckboxIndicator";
+import Divider from "atom/Divider";
 
 export default {
-  name: 'DataRow',
+  name: "DataRow",
   components: {
-    Divider, BasicDataItem, CheckboxIndicator
+    Divider,
+    BasicDataItem,
+    CheckboxIndicator,
   },
   props: {
     items: {
       type: Array,
-      default: function() {
-        return []
-      }
+      default: function () {
+        return [];
+      },
     },
     divider: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   methods: {
     componentType({ item }) {
       return item.value === true || item.value === false
-        ? 'CheckboxIndicator'
-        : 'BasicDataItem'
-    }
-  }
-}
+        ? "CheckboxIndicator"
+        : "BasicDataItem";
+    },
+  },
+};
 </script>
 
 <style lang="scss">
@@ -57,7 +60,7 @@ export default {
   width: 50%;
 
   // 3rd item is only on first row, as an exceptional datapoint
-  &:nth-child(n+3) {
+  &:nth-child(n + 3) {
     position: absolute;
     top: 0;
     right: 30px;

@@ -19,26 +19,26 @@ export default {
   props: {
     label: {
       type: String,
-      default: "Alle rapporten"
+      default: "Alle rapporten",
     },
     to: {
       type: [Object, String],
-      default: function() {
+      default: function () {
         return "";
-      }
+      },
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     hasIcon: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   methods: {
-    icon
-  }
+    icon,
+  },
 };
 </script>
 

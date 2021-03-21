@@ -1,6 +1,11 @@
 <template>
   <div v-if="orgObject" class="ReportOrgRole d-flex align-items-center mt-4">
-    <img :src="orgObject.getAvatar()" width="32" height="32" class="rounded-circle" />
+    <img
+      :src="orgObject.getAvatar()"
+      width="32"
+      height="32"
+      class="rounded-circle"
+    />
     <div class="ml-3">
       <div class="ReportOrgRole__name">{{ orgObject.name }}</div>
       <div class="ReportOrgRole__role">{{ orgObject.role }}</div>
@@ -16,8 +21,8 @@ export default {
   props: {
     org: {
       type: AttributedOrganisation,
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     ...mapGetters("contractors", ["getContractorById"]),
@@ -27,8 +32,8 @@ export default {
       }
 
       return this.getContractorById({ id: this.org.id });
-    }
-  }
+    },
+  },
 };
 </script>
 

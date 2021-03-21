@@ -1,36 +1,36 @@
 <template>
   <div class="CheckboxIndicator d-flex align-items-center">
     <span>
-      <img :src="icon(iconName)" width="16" height="16" /> 
+      <img :src="icon(iconName)" width="16" height="16" />
     </span>
     <span>{{ label }}</span>
   </div>
 </template>
 
 <script>
-import { icon } from 'helper/assets'
+import { icon } from "helper/assets";
 
 export default {
-  name: 'CheckboxIndicator',
+  name: "CheckboxIndicator",
   props: {
     label: {
       type: String,
-      required: true
+      required: true,
     },
     value: {
       type: Boolean,
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     iconName() {
-      return this.value ? 'Check-icon.svg' : 'None-icon.svg'
-    }
+      return this.value ? "Check-icon.svg" : "None-icon.svg";
+    },
   },
   methods: {
-    icon
-  }
-}
+    icon,
+  },
+};
 </script>
 
 <style lang="scss">

@@ -9,33 +9,36 @@
 </template>
 
 <script>
-import { icon } from 'helper/assets'
-import { isDate } from 'helper/is'
-import { monthYearStringFromDate } from 'helper/date'
+import { icon } from "helper/assets";
+import { isDate } from "helper/is";
+import { monthYearStringFromDate } from "helper/date";
 
 export default {
   props: {
     date: {
       type: [String, Date],
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     boundDate() {
       if (isDate(this.date)) {
-        // return this.date.getDate() + ' - ' 
+        // return this.date.getDate() + ' - '
         //   + (this.date.getMonth() + 1) + ' - '
         //   + this.date.getFullYear();
-        return this.date.getDate() + ' ' 
-        + monthYearStringFromDate({ date: this.date });
+        return (
+          this.date.getDate() +
+          " " +
+          monthYearStringFromDate({ date: this.date })
+        );
       }
       return this.date;
-    }
+    },
   },
   methods: {
-    icon
-  }
-}
+    icon,
+  },
+};
 </script>
 
 <style lang="scss">
@@ -43,10 +46,10 @@ export default {
   font-size: 16px;
 
   span:first-child {
-    width: 30px
+    width: 30px;
   }
   span:nth-child(2) {
-    color: #8292A6;
+    color: #8292a6;
   }
   span:nth-child(3) {
     color: #354052;

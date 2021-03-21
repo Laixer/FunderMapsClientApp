@@ -1,71 +1,67 @@
 <template>
-  <div 
-    :class="statusClass"
-    class="ProgressIndicator">
-    <div class="ProgressIndicator__sphere d-flex align-items-center justify-content-center">
-      <img 
-        v-if="iconName"
-        :src="icon(iconName)" 
-        width="45" 
-        height="45" />
+  <div :class="statusClass" class="ProgressIndicator">
+    <div
+      class="ProgressIndicator__sphere d-flex align-items-center justify-content-center"
+    >
+      <img v-if="iconName" :src="icon(iconName)" width="45" height="45" />
     </div>
     <div class="ProgressIndicator__button"></div>
   </div>
 </template>
 
 <script>
-import { icon } from 'helper/assets'
+import { icon } from "helper/assets";
 
 export default {
-  name: 'ProgressIndicator',
+  name: "ProgressIndicator",
   props: {
     status: {
       type: String,
-      default: 'disabled',
+      default: "disabled",
       validator(value) {
-        return ['disabled', 'active', 'passed'].includes(value)
-      }
+        return ["disabled", "active", "passed"].includes(value);
+      },
     },
     clickable: {
       type: Boolean,
-      default: false
+      default: false,
     },
     step: {
       type: Number,
-      default: 1
+      default: 1,
     },
     iconName: {
-      type: [String,Boolean],
-      default: false
-    }
+      type: [String, Boolean],
+      default: false,
+    },
   },
   computed: {
     statusClass() {
-      let cls = {}
-      cls['ProgressIndicator--'+this.status] = true
-      return cls
-    }
+      let cls = {};
+      cls["ProgressIndicator--" + this.status] = true;
+      return cls;
+    },
   },
   methods: {
-    icon
-  }
-}
+    icon,
+  },
+};
 </script>
 
 <style lang="scss">
 .ProgressIndicator {
-
   &__sphere {
     position: relative;
     border-radius: 50%;
     width: 100px;
     height: 100px;
-    background: #CED0DA;
+    background: #ced0da;
   }
-  &--active, &--passed {
+  &--active,
+  &--passed {
     .ProgressIndicator {
       &__sphere {
-        background-color: #17A4EA;
+        background-color: #17a4ea;
       }
     }
   }
@@ -73,14 +69,14 @@ export default {
     .ProgressIndicator {
       &__sphere {
         &:after {
-          content: '';
+          content: "";
           position: absolute;
           width: 110px;
           height: 110px;
           top: -5px;
           left: -5px;
           border-radius: 50%;
-          border: 2px solid #17A4EA;
+          border: 2px solid #17a4ea;
         }
       }
     }

@@ -1,34 +1,33 @@
 
 <script>
-
-import { combineClassLists } from 'helper/render'
+import { combineClassLists } from "helper/render";
 
 export default {
-  name: 'Copyright',
+  name: "Copyright",
   functional: true,
   props: {
     company: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
   render(h, context) {
-    
-    return h('span', {
+    return h("span", {
       class: combineClassLists({
         classList: { copyright: true },
-        context
+        context,
       }),
       domProps: {
-        innerHTML: 
-          ('&copy; Copyright ' 
-          + new Date().getFullYear() 
-          + ' ' + context.props.company)
-          .trim()
-      }
-    })
-  }
-}
+        innerHTML: (
+          "&copy; Copyright " +
+          new Date().getFullYear() +
+          " " +
+          context.props.company
+        ).trim(),
+      },
+    });
+  },
+};
 </script>
 <style>
 .copyright {

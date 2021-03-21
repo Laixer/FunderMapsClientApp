@@ -1,9 +1,10 @@
 <template>
   <label class="switch">
-    <input 
-      :checked="value" 
-      type="checkbox" 
-      @change="$emit('input', $event.target.checked)">
+    <input
+      :checked="value"
+      type="checkbox"
+      @change="$emit('input', $event.target.checked)"
+    />
     <span class="slider round success"></span>
   </label>
 </template>
@@ -13,14 +14,13 @@ export default {
   props: {
     value: {
       type: Boolean,
-      default: true
-    }
-  }
-}
+      default: true,
+    },
+  },
+};
 </script>
 
 <style lang="scss">
-
 /* The switch - the box around the slider */
 .switch {
   position: relative;
@@ -43,8 +43,8 @@ export default {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 
   &:before {
     position: absolute;
@@ -54,13 +54,13 @@ export default {
     left: 2px;
     bottom: 2px;
     background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
   }
 
   /* Rounded sliders */
   &.round {
-    border-radius: 17px; 
+    border-radius: 17px;
 
     &:before {
       border-radius: 50%;
@@ -74,7 +74,7 @@ input {
       background-color: #444;
     }
     &.primary {
-      background-color: #2196F3;
+      background-color: #2196f3;
     }
     &.success {
       background-color: #8bc34a;
@@ -83,14 +83,14 @@ input {
       background-color: #3de0f5;
     }
     &.warning {
-      background-color: #FFC107;
+      background-color: #ffc107;
     }
     &.danger {
       background-color: #f44336;
     }
   }
   &:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
+    box-shadow: 0 0 1px #2196f3;
   }
   &:checked + .slider:before {
     transform: translateX(13px);

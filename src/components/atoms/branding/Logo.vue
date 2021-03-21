@@ -1,30 +1,30 @@
 
 <script>
-import { image } from 'helper/assets'
-import { combineClassLists } from 'helper/render'
+import { image } from "helper/assets";
+import { combineClassLists } from "helper/render";
 
 export default {
-  name: 'Logo',
+  name: "Logo",
   functional: true,
   props: {
     company: {
       type: String,
-      default: 'FunderMaps'
-    }
+      default: "FunderMaps",
+    },
   },
   render(h, context) {
-    return h('img', {
+    return h("img", {
       attrs: {
-        src: image('logo.svg')
+        src: image("logo.svg"),
       },
-      class: combineClassLists({ 
+      class: combineClassLists({
         classList: { Logo: true },
-        context
+        context,
       }),
       domProps: {
-        alt: (context.props.company + ' logo').trim()
-      }
-    })
-  }
-}
+        alt: (context.props.company + " logo").trim(),
+      },
+    });
+  },
+};
 </script>

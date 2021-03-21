@@ -5,7 +5,10 @@
     </div>
     <div v-if="hasActiveBundle" class="Legend mb-3">
       <div v-for="layer in activeLayers" :key="layer.id">
-        <div class="Legend__subtitle d-flex pl-3 ml-3 mt-2" @click="toggleVisibility(layer)">
+        <div
+          class="Legend__subtitle d-flex pl-3 ml-3 mt-2"
+          @click="toggleVisibility(layer)"
+        >
           <span class="px-2">
             <img
               :src="
@@ -53,7 +56,7 @@ export default {
     generateLegend,
     icon,
     toggleVisibility(layer) {
-      layer.visibility = layer.visibility == 'visible' ? 'none' : 'visible'
+      layer.visibility = layer.visibility == "visible" ? "none" : "visible";
 
       this.$store.map.setLayoutProperty(
         `${this.activeBundle.id}_${layer.id}`,
@@ -61,11 +64,11 @@ export default {
         layer.visibility
       );
       this.$forceUpdate();
-    }
+    },
   },
   computed: {
     ...mapGetters("map", ["hasActiveBundle", "activeBundle", "activeLayers"]),
-  }
+  },
 };
 </script>
 
