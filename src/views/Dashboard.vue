@@ -3,10 +3,6 @@
     <div v-if="areReviewersAvailable">
       <UploadArea />
     </div>
-    <div v-else>
-      <!-- TODO: Show an error page -->
-      Geen reviewers beschikbaar - upload wizard niet beschikbaar.
-    </div>
     <ReportTable
       title="Recente rapporten"
       :reports="latestReports({ limit: 5 })"
