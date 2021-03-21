@@ -20,13 +20,13 @@ export const verifyDateInput = (input) => {
   let y = matches[1];
   let composedDate = new Date(y, m, d);
   return composedDate.getDate() == d &&
-          composedDate.getMonth() == m &&
-          composedDate.getFullYear() == y;
+    composedDate.getMonth() == m &&
+    composedDate.getFullYear() == y;
 };
 
 
-export const monthYearStringFromDate = ({date, locale}) => {
-  date = date.toLocaleDateString(locale || 'nl-NL', {day: 'numeric', year: 'numeric', month: 'long'});
+export const monthYearStringFromDate = ({ date, locale }) => {
+  date = date.toLocaleDateString(locale || 'nl-NL', { day: 'numeric', year: 'numeric', month: 'long' });
   date = date.split(' ');
   return date[1] + ' ' + date[2];
 }

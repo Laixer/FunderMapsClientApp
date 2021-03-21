@@ -1,27 +1,24 @@
 <template>
   <div>
     <Feedback :feedback="feedback" />
-    <vue2Dropzone 
+    <vue2Dropzone
       id="dropzone"
-      v-if="canUserWrite()" 
+      v-if="canUserWrite()"
       ref="dropzone"
       :options="options"
       useCustomSlot
       @vdropzone-sending="addHeaderBeforeSending"
       @vdropzone-success="handleSuccess"
       @vdropzone-error="handleError"
-      class="UploadArea d-flex justify-content-center">
+      class="UploadArea d-flex justify-content-center"
+    >
       <div class="align-self-center">
-        <img 
-          alt="upload" 
-          :src="image('upload.svg')" />
+        <img alt="upload" :src="image('upload.svg')" />
         <p class="mb-0 mt-3">
-          <strong>
-            Slepen en neerzetten voor upload
-          </strong>
-          <br>
+          <strong> Slepen en neerzetten voor upload </strong>
+          <br />
           <span>
-            of 
+            of
             <span>bladeren</span>
             om een bestand te kiezen
           </span>
@@ -32,32 +29,33 @@
 </template>
 
 <script>
-import { image } from 'helper/assets'
-import vue2Dropzone from 'vue2-dropzone'
-import 'vue2-dropzone/dist/vue2Dropzone.min.css'
-import Feedback from 'atom/Feedback'
+import { image } from "helper/assets";
+import vue2Dropzone from "vue2-dropzone";
+import "vue2-dropzone/dist/vue2Dropzone.min.css";
+import Feedback from "atom/Feedback";
 
-import { authHeader, canUserWrite } from 'service/auth';
+import { authHeader, canUserWrite } from "service/auth";
 
 export default {
   components: {
-    vue2Dropzone, Feedback
+    vue2Dropzone,
+    Feedback,
   },
   data() {
     return {
       feedback: {
-        message: '',
-        variant: ''
+        message: "",
+        variant: "",
       },
       options: {
-        paramName: 'input',
+        paramName: "input",
         addRemoveLinks: true,
         maxFiles: 1,
         maxFilesize: 100,
-        acceptedFiles: 'application/pdf',
-        url: process.env.VUE_APP_API_BASE_URL + 'api/inquiry/upload-document'
-      }
-    }
+        acceptedFiles: "application/pdf",
+        url: process.env.VUE_APP_API_BASE_URL + "api/inquiry/upload-document",
+      },
+    };
   },
   methods: {
     image,
@@ -67,13 +65,13 @@ export default {
      */
     addHeaderBeforeSending(file, xhr) {
       this.feedback = {
-        message: '',
-        variant: ''
-      }
+        message: "",
+        variant: "",
+      };
 
       if (xhr.setRequestHeader) {
-        let header = authHeader()
-        xhr.setRequestHeader('Authorization', header.Authorization);
+        let header = authHeader();
+        xhr.setRequestHeader("Authorization", header.Authorization);
       }
     },
     /**
@@ -86,25 +84,26 @@ export default {
       //}
 
       this.$router.push({
-        name: 'new-report',
+        name: "new-report",
         params: {
           file: file,
-          documentFile: response.name
-        }
-      })
+          documentFile: response.name,
+        },
+      });
     },
-    handleError(file) { // error
+    handleError(file) {
+      // error
       if (file && this.$refs.dropzone) {
-        this.$refs.dropzone.removeFile(file)
+        this.$refs.dropzone.removeFile(file);
       }
-      
+
       this.feedback = {
-        message: 'Het bestand kon niet verwerkt worden.',
-        variant: 'danger'
-      }
-    }
-  }
-}
+        message: "Het bestand kon niet verwerkt worden.",
+        variant: "danger",
+      };
+    },
+  },
+};
 </script>
 
 <style lang="scss">
@@ -113,7 +112,7 @@ export default {
   height: 300px;
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.7);
-  border: 3px dashed #9EA9B8;
+  border: 3px dashed #9ea9b8;
   user-select: none;
   cursor: pointer;
 
@@ -126,11 +125,11 @@ export default {
 
     strong {
       font-size: 18px;
-      color: #373C41;
+      color: #373c41;
       font-weight: 600;
     }
     span span {
-      color: #1991EB;
+      color: #1991eb;
       font-weight: 600;
       text-decoration: underline;
       cursor: pointer;
@@ -142,14 +141,13 @@ export default {
     align-self: center;
   }
   &.vue-dropzone {
-    font-family: 'Gibson' !important;
+    font-family: "Gibson" !important;
   }
   &.vue-dropzone:hover {
     background-color: white;
   }
-  &.vue-dropzone>.dz-preview .dz-details {
-    background: #17A4EA;
+  &.vue-dropzone > .dz-preview .dz-details {
+    background: #17a4ea;
   }
 }
-
 </style>

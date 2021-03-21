@@ -1,9 +1,6 @@
 <template>
   <div>
-    <OrganizationTable
-      title="Alle organisaties"
-      class="mt-4 pt-2 mb-5"
-    />
+    <OrganizationTable title="Alle organisaties" class="mt-4 pt-2 mb-5" />
   </div>
 </template>
 
@@ -12,8 +9,8 @@ import OrganizationTable from "organism/OrganizationTable";
 
 export default {
   components: {
-    OrganizationTable
-  }
+    OrganizationTable,
+  },
 };
 </script>
 

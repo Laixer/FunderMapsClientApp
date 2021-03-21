@@ -4,12 +4,12 @@ import { generateAvatar } from 'utils/namedavatar';
 /**
  * Just a pretty wrapper for now
  */
-let AttributedUser = function ({user, role}) {
+let AttributedUser = function ({ user, role }) {
   Object.assign(this, user);
   this.role = role;
 }
 
-AttributedUser.prototype.getName = function() {
+AttributedUser.prototype.getName = function () {
   return this.firstName + ' ' + this.lastName;
 }
 // ****************************************************************************
@@ -19,7 +19,7 @@ AttributedUser.prototype.getName = function() {
 /**
  * Aim to get the most natural name by which to identify the user
  */
-AttributedUser.prototype.getUserName = function() {
+AttributedUser.prototype.getUserName = function () {
 
   // First try given and/or last name
   let name = '';
@@ -28,7 +28,7 @@ AttributedUser.prototype.getUserName = function() {
   }
   if (this.middleName) {
     name += ' ' + this.middleName
-  }  
+  }
   if (this.lastName) {
     name += ' ' + this.lastName
   }
@@ -43,12 +43,12 @@ AttributedUser.prototype.getUserName = function() {
   if (this.name) {
     return this.name
   }
-  
+
   // Resort to email
   return this.email;
 }
 
-AttributedUser.prototype.getRole = function() {
+AttributedUser.prototype.getRole = function () {
   return this.role;
 }
 
@@ -59,7 +59,7 @@ AttributedUser.prototype.getRole = function() {
 /**
  * Attributed users don't have an avatar prop, so straight to generated avatar
  */
-AttributedUser.prototype.getAvatar = function() {
+AttributedUser.prototype.getAvatar = function () {
   return generateAvatar({ name: this.getUserName() })
 }
 

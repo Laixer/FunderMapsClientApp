@@ -36,7 +36,7 @@ const store: StoreOptions<{}> = {
   mutations: {
   },
   actions: {
-    clearAll({ commit }){
+    clearAll({ commit }) {
       commit("address/reset")
       commit("org/reset")
       commit("reports/reset")

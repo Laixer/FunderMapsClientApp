@@ -1,6 +1,5 @@
 
 import authAPI from '../api/auth'
-import { organizationUserRoleClaimType, userClaimType } from '../config/claimTypes'
 import jwt_decode from "jwt-decode"
 import store from "@/store"
 

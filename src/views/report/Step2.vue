@@ -1,95 +1,89 @@
 <template>
   <div class="ReportForm">
     <ProgressSteps :steps="steps" />
-    <div 
-      v-if="activeReport"
-      class="ReportForm__form mt-5">
-
-      <ReportStepHeader 
-        :step="2"
-        :label="activeReport.documentName">
-        <b-button 
-          variant="light" 
+    <div v-if="activeReport" class="ReportForm__form mt-5">
+      <ReportStepHeader :step="2" :label="activeReport.documentName">
+        <b-button
+          variant="light"
           class="font-weight-bold d-flex align-items-center"
-          @click="handleAddSample">
-          <img :src='icon("Plus-icon.svg")' width="11" height="11" /> 
+          @click="handleAddSample"
+        >
+          <img :src="icon('Plus-icon.svg')" width="11" height="11" />
           <span class="ml-1">Adres toevoegen</span>
         </b-button>
       </ReportStepHeader>
 
-      <div>  
+      <div>
         <Feedback :feedback="feedback" />
-        <div 
-          v-if="samples.length !== 0" 
-          class="Report__samples">  
-
-          <Sample  
+        <div v-if="samples.length !== 0" class="Report__samples">
+          <Sample
             v-for="(sample, index) in samples"
-            :ref="'sample_'+index" 
-            :key="index + '-' + Date.now()" 
+            :ref="'sample_' + index"
+            :key="index + '-' + Date.now()"
             :sample="sample"
             :editMode="true"
-            @stored="handleStored" />
-
+            @stored="handleStored"
+          />
         </div>
-        <div 
-          v-else-if="nosamples"
-          class="text-center mt-4">
+        <div v-else-if="nosamples" class="text-center mt-4">
           Deze rapportage bevat nog geen adressen
         </div>
-        <div 
-          class="text-center mt-4"
-          v-else>
+        <div class="text-center mt-4" v-else>
           De addres gegevens worden geladen...
         </div>
       </div>
     </div>
 
-    <div 
-      v-if="!activeReport" 
-      class="d-flex w-100 h-100 align-items-center justify-content-center mt-5">
+    <div
+      v-if="!activeReport"
+      class="d-flex w-100 h-100 align-items-center justify-content-center mt-5"
+    >
       <span v-if="!feedback.message">
-        Het rapport wordt geladen. We halen het rapport hier opnieuw op 
-        om te voorkomen dat er gewerkt wordt met verouderde data.
+        Het rapport wordt geladen. We halen het rapport hier opnieuw op om te
+        voorkomen dat er gewerkt wordt met verouderde data.
       </span>
       <Feedback :feedback="feedback" />
     </div>
 
     <div class="d-flex align-items-center justify-content-center mt-4">
-      <BackButton 
+      <BackButton
         :disabled="isDisabled"
         :to="previousStep"
         class="mr-3"
-        label="Vorige" />
-      <PrimaryArrowButton 
+        label="Vorige"
+      />
+      <PrimaryArrowButton
         :disabled="isDisabled"
         @click="handleSaveSamplesAndNextStep"
-        label="Volgende" />
+        label="Volgende"
+      />
     </div>
-
   </div>
 </template>
 
 <script>
-import ProgressSteps from 'molecule/ProgressSteps'
-import ProgressStep from 'model/ProgressStep'
-import Feedback from 'atom/Feedback'
-import ReportStepHeader from 'atom/ReportStepHeader'
-import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
-import BackButton from 'atom/navigation/BackButton'
-import Sample from 'organism/Sample'
+import ProgressSteps from "molecule/ProgressSteps";
+import ProgressStep from "model/ProgressStep";
+import Feedback from "atom/Feedback";
+import ReportStepHeader from "atom/ReportStepHeader";
+import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
+import BackButton from "atom/navigation/BackButton";
+import Sample from "organism/Sample";
 
-import { mapActions, mapGetters } from 'vuex'
-import { icon } from 'helper/assets'
-import { isSuperUser, canWrite } from 'service/auth'
-import { EventBus } from 'utils/eventBus.js'
+import { mapActions, mapGetters } from "vuex";
+import { icon } from "helper/assets";
+import { isSuperUser, canWrite } from "service/auth";
+import { EventBus } from "utils/eventBus.js";
 
 export default {
-  name: 'Step2',
+  name: "Step2",
   components: {
-    Feedback, ProgressSteps, 
-    ReportStepHeader, PrimaryArrowButton,
-    Sample, BackButton
+    Feedback,
+    ProgressSteps,
+    ReportStepHeader,
+    PrimaryArrowButton,
+    Sample,
+    BackButton,
   },
   data() {
     return {
@@ -100,121 +94,121 @@ export default {
       isDisabled: false,
       steps: [
         new ProgressStep({
-          status: 'passed',  
+          status: "passed",
           step: 1,
-          icon: 'Step-create-icon.svg'
+          icon: "Step-create-icon.svg",
         }),
         new ProgressStep({
-          status: 'active',
+          status: "active",
           step: 2,
-          icon: 'Step-samples-icon.svg'
+          icon: "Step-samples-icon.svg",
         }),
         new ProgressStep({
-          status: 'disabled',
+          status: "disabled",
           step: 3,
-          icon: 'Step-verify-icon.svg'
-        })
-      ]
-    }
+          icon: "Step-verify-icon.svg",
+        }),
+      ],
+    };
   },
   computed: {
-    ...mapGetters('report', [
-      'activeReport'
-    ]),
-    ...mapGetters('samples', [
-      'samples'
-    ]),
+    ...mapGetters("report", ["activeReport"]),
+    ...mapGetters("samples", ["samples"]),
     previousStep() {
       // TODO When will activereport be null ever?
-      let report = this.activeReport ? this.activeReport : { id: 'id', documentName: 'documentName' }
-      return { 
-        name: 'edit-report-1', params: { 
-          id: report.id, 
-          documentName: report.documentName
-        } 
-      }
+      let report = this.activeReport
+        ? this.activeReport
+        : { id: "id", documentName: "documentName" };
+      return {
+        name: "edit-report-1",
+        params: {
+          id: report.id,
+          documentName: report.documentName,
+        },
+      };
     },
     nextStep() {
       // TODO When will activereport be null ever?
-      let report = this.activeReport ? this.activeReport : { id: 'id', documentName: 'documentName' }
-      return { 
-        name: 'edit-report-3', params: { 
-          id: report.id, 
-          documentName: report.documentName
-        } 
-      }
-    }
+      let report = this.activeReport
+        ? this.activeReport
+        : { id: "id", documentName: "documentName" };
+      return {
+        name: "edit-report-3",
+        params: {
+          id: report.id,
+          documentName: report.documentName,
+        },
+      };
+    },
   },
   async created() {
     try {
       if (!canWrite()) {
         await this.$router.push({
-          name: 'view-report',
-          params: this.$route.params
-        })
+          name: "view-report",
+          params: this.$route.params,
+        });
         return;
       }
 
       await this.getReportById({
-        id: this.$route.params.id
-      })
+        id: this.$route.params.id,
+      });
 
       if (
         (this.activeReport.isPendingReview() ||
-        this.activeReport.isApproved()) && 
+          this.activeReport.isApproved()) &&
         !isSuperUser()
       ) {
         await this.$router.push({
-          name: 'view-report',
-          params: this.$route.params
-        })
+          name: "view-report",
+          params: this.$route.params,
+        });
         return;
       }
-      
-      EventBus.$on('save-report', this.handleSaveSamplesAndNextStep)
 
-      await this.getSamples({ inquiryId: this.activeReport.id })
+      EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
+
+      await this.getSamples({ inquiryId: this.activeReport.id });
 
       if (this.samples.length === 0) {
-        this.nosamples = true
+        this.nosamples = true;
       }
-      
-    } catch(err) {
+    } catch (err) {
       this.feedback = {
-        variant: 'danger',
-        message: 'Het opgevraagde rapport kan niet gevonden worden'
-      }
+        variant: "danger",
+        message: "Het opgevraagde rapport kan niet gevonden worden",
+      };
     }
   },
   beforeDestroy() {
-    this.clearActiveReport()
-    this.clearSamples()
+    this.clearActiveReport();
+    this.clearSamples();
 
-    EventBus.$off('save-report', this.handleSaveSamplesAndNextStep)
+    EventBus.$off("save-report", this.handleSaveSamplesAndNextStep);
   },
   methods: {
     icon,
-    ...mapActions('report', [
-      'getReportById',
-      'clearActiveReport'
-    ]),
-    ...mapActions('samples', [
-      'getSamples',
-      'clearSamples',
-      'addUnsavedSample'
+    ...mapActions("report", ["getReportById", "clearActiveReport"]),
+    ...mapActions("samples", [
+      "getSamples",
+      "clearSamples",
+      "addUnsavedSample",
     ]),
     handleAddSample() {
-      this.countdownToNewSample = this.samples.length
+      this.countdownToNewSample = this.samples.length;
       if (this.countdownToNewSample === 0) {
-        this.addUnsavedSample()
+        this.addUnsavedSample();
       } else {
-        this.saveAllSamples() 
+        this.saveAllSamples();
       }
     },
     async saveAllSamples() {
-      return await Promise.all(this.samples.map( async (sample, index) => {
-        return await this.$refs['sample_'+index][0].save()
-      }))
+      return await Promise.all(
+        this.samples.map(async (sample, index) => {
+          return await this.$refs["sample_" + index][0].save();
+        })
+      );
     },
     handleSaveSamplesAndNextStep() {
       // TODO Is this in the right place?
@@ -223,40 +217,40 @@ export default {
       }
 
       // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
-      this.countdownToNextPage = this.samples.length
+      this.countdownToNextPage = this.samples.length;
 
       // No samples to store
       if (this.countdownToNextPage === 0) {
-        this.$router.push(this.nextStep)
+        this.$router.push(this.nextStep);
       } else {
-        this.saveAllSamples()
+        this.saveAllSamples();
       }
     },
     /**
-     * If we're counting down, and the submit event was a success, 
+     * If we're counting down, and the submit event was a success,
      * count down, until we reach the end and can go to the next page.
-     * 
+     *
      * One mistake and we cancel the countdown.
      */
     handleStored(payload) {
       if (this.countdownToNextPage !== false && payload.success) {
-        this.countdownToNextPage = this.countdownToNextPage - 1
+        this.countdownToNextPage = this.countdownToNextPage - 1;
         if (this.countdownToNextPage === 0) {
-          this.$router.push(this.nextStep)
+          this.$router.push(this.nextStep);
         }
       } else if (payload.success === false) {
-        this.countdownToNextPage = false
+        this.countdownToNextPage = false;
       }
 
       if (this.countdownToNewSample !== false && payload.success) {
-        this.countdownToNewSample = this.countdownToNewSample - 1
+        this.countdownToNewSample = this.countdownToNewSample - 1;
         if (this.countdownToNewSample === 0) {
-          this.addUnsavedSample()
+          this.addUnsavedSample();
         }
       } else if (payload.success === false) {
-        this.countdownToNewSample = false
+        this.countdownToNewSample = false;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

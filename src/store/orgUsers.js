@@ -34,17 +34,17 @@ const getters = {
   },
   getCreators: state => {
     return state.users
-    ? state.users.filter(user => {
-      return user.canCreate()
-    })
-    : null;
+      ? state.users.filter(user => {
+        return user.canCreate()
+      })
+      : null;
   },
-  getUserById: (state) => ({id}) => {
+  getUserById: (state) => ({ id }) => {
     return state.users.find(user => {
       return user.id === id
     })
   },
-  getUserByEmail: (state) => ({email}) => {
+  getUserByEmail: (state) => ({ email }) => {
     return state.users.find(user => {
       return user.email === email
     })
@@ -77,15 +77,15 @@ const actions = {
     }
   },
 
-    /**
-   * This calls getUsers() if we can't find the requested
-   * user id in our store. If we can find it, nothing will happen.
-   */
-     async getOrgUsersIfNotStored({ getters, dispatch }, { userId }) {
-      if (!getters.getUserById({ id: userId })) {
-        dispatch('getUsers');
-      }
-    },
+  /**
+ * This calls getUsers() if we can't find the requested
+ * user id in our store. If we can find it, nothing will happen.
+ */
+  async getOrgUsersIfNotStored({ getters, dispatch }, { userId }) {
+    if (!getters.getUserById({ id: userId })) {
+      dispatch('getUsers');
+    }
+  },
 
   /**
    * Updates an organization user, then triggers the getUsers
@@ -110,10 +110,10 @@ const actions = {
     return response;
   },
 
-    /**
-   * Updates an organization user role, then triggers the getUsers
-   * action to fetch the updated user. The result is then returned.
-   */
+  /**
+ * Updates an organization user role, then triggers the getUsers
+ * action to fetch the updated user. The result is then returned.
+ */
   async updateUserRole({ dispatch }, { userId, role }) {
     let response = await orgUserAPI.updateOrganizationUserRole({ userId, role })
     if (response.status === 204) {

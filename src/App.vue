@@ -10,8 +10,8 @@ import Layout from "./views/layouts/layouts.vue";
 
 @Component({
   components: {
-    Layout
-  }
+    Layout,
+  },
 })
 export default class App extends Vue {}
 </script>

@@ -1,7 +1,9 @@
 <template>
   <div class="LoginLayout d-flex justify-content-center">
     <FadedBackgroundCover image="login/background.png" />
-    <div class="LoginLayout__modal align-self-center d-flex flex-wrap justify-content-center">
+    <div
+      class="LoginLayout__modal align-self-center d-flex flex-wrap justify-content-center"
+    >
       <LoginBranding />
       <div class="LoginLayout__content p-5">
         <slot />
@@ -11,15 +13,16 @@
 </template>
 
 <script>
-import LoginBranding from 'molecule/LoginBranding'
-import FadedBackgroundCover from 'atom/FadedBackgroundCover'
+import LoginBranding from "molecule/LoginBranding";
+import FadedBackgroundCover from "atom/FadedBackgroundCover";
 
 export default {
-  name: 'login',
+  name: "login",
   components: {
-    LoginBranding, FadedBackgroundCover
-  }
-}
+    LoginBranding,
+    FadedBackgroundCover,
+  },
+};
 </script>
 
 <style lang="scss">

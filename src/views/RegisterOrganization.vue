@@ -4,21 +4,20 @@
     <p>Maak een beheerdersaccount aan om te beginnen</p>
 
     <Form @submit="handleSubmit">
-      
       <Feedback :feedback="feedback" />
 
-      <FormField 
-        v-model="fields.email.value"
-        v-bind="fields.email" />
-      <FormField 
+      <FormField v-model="fields.email.value" v-bind="fields.email" />
+      <FormField
         v-model="fields.password.value"
         v-bind="fields.password"
-        class="mt-2" />
-      
-      <button 
+        class="mt-2"
+      />
+
+      <button
         type="submit"
-        :disabled='isDisabled'
-        class="btn btn-success btn-lg btn-block rounded-pill font-weight-bold border-0 mt-3 p-3">
+        :disabled="isDisabled"
+        class="btn btn-success btn-lg btn-block rounded-pill font-weight-bold border-0 mt-3 p-3"
+      >
         Aanmaken
       </button>
     </Form>
@@ -26,24 +25,24 @@
 </template>
 
 <script>
-import { required, minLength, email } from 'vuelidate/lib/validators';
+import { required, minLength, email } from "vuelidate/lib/validators";
 
-import Feedback from 'atom/Feedback'
-import Form from 'molecule/form/Form'
-import FormField from 'molecule/form/FormField'
+import Feedback from "atom/Feedback";
+import Form from "molecule/form/Form";
+import FormField from "molecule/form/FormField";
 
-import { mapActions } from 'vuex'
+import { mapActions } from "vuex";
 
-import fields from 'mixin/fields'
+import fields from "mixin/fields";
 
 export default {
-  name: 'LoginForm',
+  name: "LoginForm",
   components: {
     Feedback,
     Form,
-    FormField
+    FormField,
   },
-  mixins: [ fields ],
+  mixins: [fields],
   data() {
     return {
       feedback: {},
@@ -54,67 +53,66 @@ export default {
           autocomplete: "username",
           type: "email",
           placeholder: "",
-          value: '',
+          value: "",
           validationRules: {
-            required, email
+            required,
+            email,
           },
-          disabled: false
+          disabled: false,
         },
         password: {
           label: "Wachtwoord",
           autocomplete: "new-password",
           type: "password",
-          value: '',
+          value: "",
           validationRules: {
             required,
-            minLength: minLength(7)
+            minLength: minLength(7),
           },
-          disabled: false
-        }
-      }
-    }
+          disabled: false,
+        },
+      },
+    };
   },
   methods: {
-    ...mapActions('org', [
-      'registerOrganization'
-    ]),
+    ...mapActions("org", ["registerOrganization"]),
     handleSubmit(e) {
       e.preventDefault();
-      
-      this.disableAllFields()
-      this.isDisabled = true
+
+      this.disableAllFields();
+      this.isDisabled = true;
       this.feedback = {
-        variant: 'info', 
-        message: 'Bezig met registeren...'
-      }
+        variant: "info",
+        message: "Bezig met registeren...",
+      };
 
       this.registerOrganization({
-        email:    this.fieldValue('email'), 
-        password: this.fieldValue('password'),
-        id:    this.$route.params.id
+        email: this.fieldValue("email"),
+        password: this.fieldValue("password"),
+        id: this.$route.params.id,
       })
         .then(() => {
-          this.$router.push({ name: 'login' })
+          this.$router.push({ name: "login" });
         })
         .catch((err) => {
-          this.enableAllFields()
-          this.isDisabled = false
+          this.enableAllFields();
+          this.isDisabled = false;
 
           if (err.response && err.response.status === 401) {
             this.feedback = {
-              variant: 'danger', 
-              message: 'Uw gegevens zijn ongeldig'
-            }
+              variant: "danger",
+              message: "Uw gegevens zijn ongeldig",
+            };
           } else {
             this.feedback = {
-              variant: 'danger', 
-              message: 'Onbekende fout. Probeer het later nog eens.'
-            }
+              variant: "danger",
+              message: "Onbekende fout. Probeer het later nog eens.",
+            };
           }
         });
     },
-  }
-}
+  },
+};
 </script>
 
 <style>

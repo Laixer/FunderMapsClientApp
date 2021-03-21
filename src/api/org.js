@@ -1,7 +1,7 @@
 
 import axios from '@/utils/axios'
 
-export default { 
+export default {
   /**
    * Gets the organization of the currently logged in user.
    */
@@ -65,7 +65,7 @@ export default {
    */
   createOrganization: ({ email, password, id }) => {
     return axios.post(`/api/organization/${id}/setup`, {
-      email, 
+      email,
       password
     })
   }

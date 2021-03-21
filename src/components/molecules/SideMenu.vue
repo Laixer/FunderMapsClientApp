@@ -1,28 +1,27 @@
 <template>
   <div class="list-group list-group-flush">
-    <router-link 
+    <router-link
       v-for="(item, index) in menuItems"
       :to="item.to"
       :key="index"
-      :class="{ 'active' : item.isActive() }"
-      class="list-group-item list-group-item-action d-flex 
-             justify-content-between align-items-center pl-3 py-3">
-      <span 
-        :class="{ 'px-3': !slim }">
-        <img 
+      :class="{ active: item.isActive() }"
+      class="list-group-item list-group-item-action d-flex justify-content-between align-items-center pl-3 py-3"
+    >
+      <span :class="{ 'px-3': !slim }">
+        <img
           v-if="item.hasIcon()"
-          :src="item.getIcon()" 
-          width="17" 
-          height="17" />
+          :src="item.getIcon()"
+          width="17"
+          height="17"
+        />
       </span>
-      <span 
-        v-if="!slim"
-        class="flex-grow-1">
+      <span v-if="!slim" class="flex-grow-1">
         {{ item.label }}
       </span>
-      <span 
-        v-if="item.notifications && !slim" 
-        class="badge badge-danger badge-pill ml-1">
+      <span
+        v-if="item.notifications && !slim"
+        class="badge badge-danger badge-pill ml-1"
+      >
         {{ item.notifications }}
       </span>
     </router-link>
@@ -36,26 +35,25 @@ export default {
   props: {
     items: {
       type: Array,
-      default: function() {
+      default: function () {
         return [];
-      }
+      },
     },
     slim: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     menuItems() {
       let currentRouteName = this.$route.name;
-      return this.items
-        .map(item => {
-          item.setActive(item.to.name && item.to.name === currentRouteName);
-          return item;
-        })
-    }
-  }
-}
+      return this.items.map((item) => {
+        item.setActive(item.to.name && item.to.name === currentRouteName);
+        return item;
+      });
+    },
+  },
+};
 </script>
 
 <style lang="scss">
@@ -67,25 +65,26 @@ export default {
     line-height: 1;
   }
   .list-group-item {
-    cursor: pointer
+    cursor: pointer;
   }
   .list-group-item.active {
     position: relative;
-    color: #17A4EA;
+    color: #17a4ea;
     background: white;
     border-color: rgba(0, 0, 0, 0.125);
     // font-weight: 600;
 
-    &:hover, &:focus {
-      background-color: #f8f9fa
+    &:hover,
+    &:focus {
+      background-color: #f8f9fa;
     }
     &:active {
       background-color: #e9ecef;
     }
     &:after {
-      content: '';
+      content: "";
       position: absolute;
-      background-color: #17A4EA;
+      background-color: #17a4ea;
       height: 100%;
       width: 5px;
       top: 0;

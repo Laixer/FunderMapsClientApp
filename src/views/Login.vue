@@ -6,13 +6,19 @@
       <Feedback :feedback="feedback" />
 
       <FormField v-model="fields.email.value" v-bind="fields.email" />
-      <FormField v-model="fields.password.value" v-bind="fields.password" class="mt-2" />
+      <FormField
+        v-model="fields.password.value"
+        v-bind="fields.password"
+        class="mt-2"
+      />
 
       <button
         type="submit"
         :disabled="isDisabled"
         class="btn btn-success btn-lg btn-block rounded-pill font-weight-bold border-0 mt-3 p-3"
-      >Aanmelden</button>
+      >
+        Aanmelden
+      </button>
     </Form>
 
     <div class="d-flex justify-content-center mt-5">
@@ -24,7 +30,7 @@
 <script>
 import { login, getLastUserEmail } from "service/auth";
 import PasswordResetLink from "atom/branding/PasswordResetLink";
-import store from "@/store"
+import store from "@/store";
 
 import { required, email } from "vuelidate/lib/validators";
 
@@ -40,7 +46,7 @@ export default {
     PasswordResetLink,
     Feedback,
     Form,
-    FormField
+    FormField,
   },
   mixins: [fields],
   data() {
@@ -56,9 +62,9 @@ export default {
           value: getLastUserEmail(),
           validationRules: {
             required,
-            email
+            email,
           },
-          disabled: false
+          disabled: false,
         },
         password: {
           label: "Wachtwoord",
@@ -66,11 +72,11 @@ export default {
           type: "password",
           value: "",
           validationRules: {
-            required
+            required,
           },
-          disabled: false
-        }
-      }
+          disabled: false,
+        },
+      },
     };
   },
   methods: {
@@ -82,10 +88,10 @@ export default {
         this.isDisabled = true;
         this.feedback = {
           variant: "info",
-          message: "Bezig met inloggen..."
+          message: "Bezig met inloggen...",
         };
         await login(this.fieldValue("email"), this.fieldValue("password"));
-        store.dispatch('clearAll');
+        store.dispatch("clearAll");
         await this.$router.push({ name: "dashboard" });
       } catch (err) {
         // FUTURE: BUG: Cannot throw empty exception.
@@ -99,16 +105,16 @@ export default {
           this.fields.password.value = null;
           this.feedback = {
             variant: "danger",
-            message: "Uw inlog gegevens zijn ongeldig"
+            message: "Uw inlog gegevens zijn ongeldig",
           };
         } else {
           this.feedback = {
             variant: "danger",
-            message: "Onbekende fout. Probeer het later nog eens."
+            message: "Onbekende fout. Probeer het later nog eens.",
           };
         }
       }
-    }
-  }
+    },
+  },
 };
 </script>

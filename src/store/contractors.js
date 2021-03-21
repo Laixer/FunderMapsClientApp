@@ -12,7 +12,7 @@ import contractorsAPI from 'api/contractors';
  * Declare Variable
  */
 const defaultState = {
-  contractors : []
+  contractors: []
 }
 
 const state = Object.assign({}, defaultState);

@@ -13,8 +13,8 @@ import loginLayout from "./login.vue";
     emptyLayout,
     defaultLayout,
     adminLayout,
-    loginLayout
-  }
+    loginLayout,
+  },
 })
 export default class Layouts extends Vue {
   render(createElement: any) {

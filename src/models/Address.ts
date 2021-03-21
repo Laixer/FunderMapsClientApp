@@ -24,11 +24,11 @@ class AddressModel {
     this.city = city;
   }
 
-  format() : string {
+  format(): string {
     return `${this.street} ${this.buildingNumberCleaned()}, ${this.postalCode} ${this.city}`
   }
 
-  buildingNumberCleaned() : string {
+  buildingNumberCleaned(): string {
     return this.buildingNumber.trim();
   }
 }

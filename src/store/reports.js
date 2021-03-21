@@ -12,7 +12,7 @@ import reportAPI from 'api/reports';
  * Declare Variable
  */
 const defaultState = {
-  reports : [],
+  reports: [],
   reportCount: 0
 }
 

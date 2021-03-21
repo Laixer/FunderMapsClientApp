@@ -12,35 +12,34 @@
 </template>
 
 <script>
-import SideMenu from 'molecule/SideMenu';
-import MapLegend from 'molecule/MapLegend'
-import { mapGetters } from 'vuex';
+import SideMenu from "molecule/SideMenu";
+import MapLegend from "molecule/MapLegend";
+import { mapGetters } from "vuex";
 
 export default {
   components: {
-    SideMenu, MapLegend
+    SideMenu,
+    MapLegend,
   },
   props: {
     menuItems: {
       type: Array,
       default: function () {
-        return []
-      }
+        return [];
+      },
     },
     slim: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
-    ...mapGetters('version', [
-      'version'
-    ]),
+    ...mapGetters("version", ["version"]),
     hasLegend() {
-      return this.$route.meta.layout === 'map'
-    }
-  }
-}
+      return this.$route.meta.layout === "map";
+    },
+  },
+};
 </script>
 
 <style lang="scss">

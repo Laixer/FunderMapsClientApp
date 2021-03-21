@@ -1,10 +1,10 @@
 
 import axios from '@/utils/axios'
 
-export default { 
+export default {
   login: ({ email, password }) => {
     return axios.post(
-      '/api/auth/signin', 
+      '/api/auth/signin',
       { email, password }
     )
   },

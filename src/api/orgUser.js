@@ -1,7 +1,7 @@
 
 import axios from '@/utils/axios'
 
-export default { 
+export default {
   /**
    * Gets all organization users for the organization to
    * which the current user belongs.
@@ -15,7 +15,7 @@ export default {
    * organization.
    */
   adminGetOrganizationUsers: ({ organizationId }) => {
-    return axios.get(`/api/admin/organization/${ organizationId }/user`)
+    return axios.get(`/api/admin/organization/${organizationId}/user`)
   },
 
   /**

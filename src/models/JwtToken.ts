@@ -3,11 +3,11 @@
  * TODO Expand for full functionality.
  */
 class JwtToken {
-    exp : number;
+    exp: number;
     cfor: string;
     role: string;
 
-    constructor(_exp : number, _cfor : string, _role : string) {
+    constructor(_exp: number, _cfor: string, _role: string) {
         this.exp = _exp;
         this.cfor = _cfor;
         this.role = _role;

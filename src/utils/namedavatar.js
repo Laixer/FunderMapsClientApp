@@ -3,7 +3,7 @@ import namedavatar from 'namedavatar'
 import avatarColors from 'config/avatarColors'
 
 export const config = () => {
-  namedavatar.config({ 
+  namedavatar.config({
     nameType: 'initials',
     backgroundColors: avatarColors
   })

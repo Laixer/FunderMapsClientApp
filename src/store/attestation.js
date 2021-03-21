@@ -14,7 +14,7 @@ import attestationAPI from 'api/attestation';
  * Declare Variable
  */
 const defaultState = {
-  users : null,
+  users: null,
   contractors: null
 }
 

@@ -5,23 +5,34 @@
       <SideBar :menu-items="menuItems" />
       <div class="flex-grow-1 d-flex flex-column">
         <HeaderBar />
-        <div :class="[isFullScreen ? 'flex-grow h-100 position-relative' : 'flex-grow p-3 m-3']">
+        <div
+          :class="[
+            isFullScreen
+              ? 'flex-grow h-100 position-relative'
+              : 'flex-grow p-3 m-3',
+          ]"
+        >
           <slot />
         </div>
       </div>
     </div>
   </div>
-  <div v-else class="d-flex flex-column justify-content-center align-items-center">
+  <div
+    v-else
+    class="d-flex flex-column justify-content-center align-items-center"
+  >
     <div v-if="hasLoadingDataFailed" class="text-center">
       Refreshing data failed
       <br />
-      <router-link :to="{ name: 'login'}">Please renew your authentication</router-link>
+      <router-link :to="{ name: 'login' }"
+        >Please renew your authentication</router-link
+      >
     </div>
     <div v-else>
       <div class="d-flex align-items-center">
         <div
           class="spinner-border ml-auto text-primary"
-          style="width: 3rem; height: 3rem;"
+          style="width: 3rem; height: 3rem"
           role="status"
           aria-hidden="true"
         ></div>
@@ -54,7 +65,7 @@ export default {
   components: {
     SideBar,
     NavBar,
-    HeaderBar
+    HeaderBar,
   },
   data() {
     return {
@@ -77,8 +88,8 @@ export default {
           { name: "map" },
           "Map-icon.svg",
           "Map-icon-active.svg"
-        )
-      ]
+        ),
+      ],
     };
   },
   computed: {
@@ -97,7 +108,7 @@ export default {
     },
     isFullScreen() {
       return this.$route.meta.layout === "map";
-    }
+    },
   },
   async created() {
     if (isSuperUser()) {
@@ -116,7 +127,7 @@ export default {
         this.getUser(),
         this.getOrganization(),
         this.getContractors(),
-        this.getVersion()
+        this.getVersion(),
       ]);
     } catch (err) {
       if (err.response && err.response.status === 401) {
@@ -130,7 +141,7 @@ export default {
     ...mapActions("user", ["getUser"]),
     ...mapActions("org", ["getOrganization"]),
     ...mapActions("version", ["getVersion"]),
-    ...mapActions("contractors", ["getContractors"])
-  }
+    ...mapActions("contractors", ["getContractors"]),
+  },
 };
 </script>

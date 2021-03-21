@@ -5,7 +5,6 @@
 </template>
 
 <script lang="ts">
-
 /**
  * The empty layout only loads the slot.
  *

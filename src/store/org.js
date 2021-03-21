@@ -14,7 +14,7 @@ import orgAPI from 'api/org';
  * Declare Variable
  */
 const defaultState = {
-  organization : null,
+  organization: null,
   // Admin
   organizations: [],
 

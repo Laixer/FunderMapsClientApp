@@ -1,10 +1,11 @@
 <template>
   <div class="d-flex flex-column justify-content-center">
-    <OrganizationProposalTable 
+    <OrganizationProposalTable
       v-if="areProposalsAvailable && proposals.length > 0"
       title="Alle organisatie voorstellen"
       :proposals="proposals"
-      class="mt-4 pt-2 mb-5" />
+      class="mt-4 pt-2 mb-5"
+    />
     <div v-else>
       <Feedback class="mb-5" :feedback="feedback" />
     </div>
@@ -12,53 +13,50 @@
       class="mx-auto"
       label="Nieuw voorstel"
       @click="handleClick"
-      :hasIcon="false" />
+      :hasIcon="false"
+    />
 
     <CreateProposalModal />
   </div>
 </template>
 
 <script>
-import Feedback from 'atom/Feedback'
-import PrimaryArrowButton from 'atom/navigation/PrimaryArrowButton'
-import OrganizationProposalTable from 'organism/OrganizationProposalTable'
-import CreateProposalModal from 'organism/CreateProposalModal'
+import Feedback from "atom/Feedback";
+import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
+import OrganizationProposalTable from "organism/OrganizationProposalTable";
+import CreateProposalModal from "organism/CreateProposalModal";
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   components: {
     Feedback,
     OrganizationProposalTable,
     PrimaryArrowButton,
-    CreateProposalModal
+    CreateProposalModal,
   },
   data() {
     return {
       feedback: {
-        show: true, 
-        variant: 'info',
-        message: "Er zijn geen uitstaande voorstellen waarmee organisaties zich kunnen aanmelden"
-      }
-    }
+        show: true,
+        variant: "info",
+        message:
+          "Er zijn geen uitstaande voorstellen waarmee organisaties zich kunnen aanmelden",
+      },
+    };
   },
   computed: {
-    ...mapGetters('org', [
-      'proposals',
-      'areProposalsAvailable'
-    ])
+    ...mapGetters("org", ["proposals", "areProposalsAvailable"]),
   },
   async created() {
-    await this.getProposals()
+    await this.getProposals();
   },
   methods: {
-    ...mapActions('org', [
-      'getProposals'
-    ]),
+    ...mapActions("org", ["getProposals"]),
     handleClick() {
-      this.$bvModal.show('modal-new-proposal')
-    }
-  }
-}
+      this.$bvModal.show("modal-new-proposal");
+    },
+  },
+};
 </script>
 

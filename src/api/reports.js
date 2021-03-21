@@ -3,7 +3,7 @@ import axios from '@/utils/axios'
 
 // Collection
 const getReports = ({ limit, offset }) => {
-  return axios.get('/api/inquiry', { 
+  return axios.get('/api/inquiry', {
     params: { limit, offset }
   });
 }
@@ -28,19 +28,19 @@ const updateReport = ({ id, data }) => {
 /**
  * Approve an inquiry.
  */
-const approveInquiry = ({ id,  message }) => {
+const approveInquiry = ({ id, message }) => {
   return axios.post(`/api/inquiry/${id}/status_approved`, { message });
 }
 /**
  * Reject an inquiry.
  */
-const rejectInquiry = ({ id,  message }) => {
+const rejectInquiry = ({ id, message }) => {
   return axios.post(`/api/inquiry/${id}/status_rejected`, { message });
 }
 /**
  * Submit an inquiry for review.
  */
-const submitForReview = ({id, message }) => {
+const submitForReview = ({ id, message }) => {
   return axios.post(`/api/inquiry/${id}/status_review`, { message });
 }
 const setStatusToTodo = ({ id, document }) => {
@@ -59,12 +59,12 @@ const getDownloadLink = ({ id }) => {
 const getReviewers = () => {
   // TODO Endpoint doesn't exist.
   console.log('Calling getReviewers(), endpoint doesnt exist');
-  
+
   return axios.get('/api/inquiry/reviewers')
 }
 
-export default { 
-  getReports, 
+export default {
+  getReports,
 
   getReport,
   getReportCount,

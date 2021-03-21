@@ -20,7 +20,7 @@ Axios.defaults.headers.common = Object.assign(
 );
 
 Axios.interceptors.request.use(function (config) {
-  
+
   // Add the authentication header, if available
   config.headers = Object.assign(
     config.headers,

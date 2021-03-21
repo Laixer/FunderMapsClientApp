@@ -26,7 +26,7 @@ export default {
       if (Array.isArray(fieldValues)) {
         fieldValues.forEach(this.setFieldValue);
       } else {
-        for (const key of  Object.keys(fieldValues)) {
+        for (const key of Object.keys(fieldValues)) {
           this.setFieldValue({ name: key, value: fieldValues[key] })
         }
       }

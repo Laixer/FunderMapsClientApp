@@ -1,11 +1,11 @@
 
 import axios from '@/utils/axios'
 
-export default { 
+export default {
   getUser: () => {
     return axios.get('/api/user')
   },
-  updateUser: ({ 
+  updateUser: ({
     givenName, lastName, avatar, jobTitle, phoneNumber, email
   }) => {
     return axios.put('/api/user', {
@@ -13,7 +13,7 @@ export default {
     })
   },
   // TODO: This is not the way to save the users password
-  updateUserPassword: ({ 
+  updateUserPassword: ({
     newPassword, oldPassword
   }) => {
     return axios.post('/api/user/change-password', {

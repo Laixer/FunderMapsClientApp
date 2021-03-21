@@ -6,13 +6,25 @@
 
       <Feedback :feedback="feedback" />
 
-      <ReportDetails :activeReport="activeReport" :showLastEdited="false" :showUsers="true" />
+      <ReportDetails
+        :activeReport="activeReport"
+        :showLastEdited="false"
+        :showUsers="true"
+      />
 
       <div v-if="samples.length !== 0" class="Report__samples">
-        <Sample v-for="(sample, index) in samples" :key="index" :sample="sample" />
+        <Sample
+          v-for="(sample, index) in samples"
+          :key="index"
+          :sample="sample"
+        />
       </div>
-      <div v-else-if="nosamples" class="text-center mt-4">Deze rapportage bevat nog geen samples</div>
-      <div class="text-center mt-4" v-else>De addres gegevens worden geladen...</div>
+      <div v-else-if="nosamples" class="text-center mt-4">
+        Deze rapportage bevat nog geen samples
+      </div>
+      <div class="text-center mt-4" v-else>
+        De addres gegevens worden geladen...
+      </div>
     </div>
 
     <div
@@ -20,14 +32,20 @@
       class="d-flex w-100 h-100 align-items-center justify-content-center mt-5"
     >
       <span v-if="!feedback.message">
-        Het rapport wordt geladen. We halen het rapport hier opnieuw op
-        om te voorkomen dat de controle uitgevoerd wordt op data die niet opgeslagen is.
+        Het rapport wordt geladen. We halen het rapport hier opnieuw op om te
+        voorkomen dat de controle uitgevoerd wordt op data die niet opgeslagen
+        is.
       </span>
       <Feedback :feedback="feedback" />
     </div>
 
     <div class="d-flex align-items-center justify-content-center mt-4">
-      <BackButton :disabled="isDisabled" :to="previousStep" class="mr-3" label="Vorige" />
+      <BackButton
+        :disabled="isDisabled"
+        :to="previousStep"
+        class="mr-3"
+        label="Vorige"
+      />
       <PrimaryArrowButton
         :disabled="isDisabled"
         label="Aanbieden ter review"
@@ -61,7 +79,7 @@ export default {
     ProgressSteps,
     ReportStepHeader,
     PrimaryArrowButton,
-    BackButton
+    BackButton,
   },
   data() {
     return {
@@ -71,19 +89,19 @@ export default {
         new ProgressStep({
           status: "passed",
           step: 1,
-          icon: "Step-create-icon.svg"
+          icon: "Step-create-icon.svg",
         }),
         new ProgressStep({
           status: "passed",
           step: 2,
-          icon: "Step-samples-icon.svg"
+          icon: "Step-samples-icon.svg",
         }),
         new ProgressStep({
           status: "active",
           step: 3,
-          icon: "Step-verify-icon.svg"
-        })
-      ]
+          icon: "Step-verify-icon.svg",
+        }),
+      ],
     };
   },
   computed: {
@@ -101,23 +119,23 @@ export default {
         name: "edit-report-2",
         params: {
           id: report.id,
-          fileName: report.fileName
-        }
+          fileName: report.fileName,
+        },
       };
-    }
+    },
   },
   async created() {
     if (!canWrite()) {
       this.$router.push({
         name: "view-report",
-        params: this.$route.params
+        params: this.$route.params,
       });
       return;
     }
 
     try {
       await this.getReportById({
-        id: this.$route.params.id
+        id: this.$route.params.id,
       });
 
       // TODO This is a fix for the change of format
@@ -128,7 +146,7 @@ export default {
       ) {
         this.$router.push({
           name: "view-report",
-          params: this.$route.params
+          params: this.$route.params,
         });
         return;
       }
@@ -143,7 +161,7 @@ export default {
     } catch (err) {
       this.feedback = {
         variant: "danger",
-        message: "Het opgevraagde rapport kan niet gevonden worden"
+        message: "Het opgevraagde rapport kan niet gevonden worden",
       };
     }
   },
@@ -157,7 +175,7 @@ export default {
     ...mapActions("report", [
       "getReportById",
       "clearActiveReport",
-      "submitForReview"
+      "submitForReview",
     ]),
     ...mapActions("samples", ["getSamples", "clearSamples"]),
     async handleToPendingReview() {
@@ -165,24 +183,23 @@ export default {
         this.feedback = {
           variant: "danger",
           message:
-            "Er is niets aangepast. Pas eerst uw data aan voordat een review mogelijk is."
+            "Er is niets aangepast. Pas eerst uw data aan voordat een review mogelijk is.",
         };
       }
 
-      this.isDisabled = true;
       await this.submitForReview().catch(() => {
         this.feedback = {
           variant: "danger",
           message:
-            "De actie kon niet uitgevoerd worden. Probeer het later nog eens."
+            "De actie kon niet uitgevoerd worden. Probeer het later nog eens.",
         };
       });
 
       this.$router.push({
-        name: "dashboard"
+        name: "dashboard",
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

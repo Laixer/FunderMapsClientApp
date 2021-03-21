@@ -11,11 +11,16 @@
       </div>
     </div>
   </div>
-  <div v-else class="d-flex flex-column justify-content-center align-items-center">
+  <div
+    v-else
+    class="d-flex flex-column justify-content-center align-items-center"
+  >
     <div v-if="hasLoadingDataFailed" class="text-center">
       Refreshing data failed
       <br />
-      <router-link :to="{ name: 'login'}">Please renew your authentication</router-link>
+      <router-link :to="{ name: 'login' }"
+        >Please renew your authentication</router-link
+      >
     </div>
     <div v-else>Refreshing data, please wait...</div>
   </div>
@@ -43,7 +48,7 @@ export default {
   components: {
     SideBar,
     NavBar,
-    HeaderBar
+    HeaderBar,
   },
   data() {
     return {
@@ -58,8 +63,8 @@ export default {
           "Aanmeldingen",
           { name: "admin-organization-proposals" },
           "Report-icon.svg"
-        )
-      ]
+        ),
+      ],
     };
   },
   computed: {
@@ -70,14 +75,14 @@ export default {
     },
     hasLoadingDataFailed() {
       return this.loadingDataFailed;
-    }
+    },
   },
   async created() {
     try {
       await Promise.all([
         this.getUser(),
         this.getOrganization(),
-        this.getVersion()
+        this.getVersion(),
       ]);
     } catch (err) {
       if (err.response && err.response.status === 401) {
@@ -90,7 +95,7 @@ export default {
   methods: {
     ...mapActions("user", ["getUser"]),
     ...mapActions("org", ["getOrganization"]),
-    ...mapActions("version", ["getVersion"])
-  }
+    ...mapActions("version", ["getVersion"]),
+  },
 };
 </script>

@@ -7,19 +7,46 @@
       <div class="ReportForm__pane p-5">
         <Feedback :feedback="feedback" />
 
-        <FormField v-model="fields.documentName.value" v-bind="fields.documentName" />
+        <FormField
+          v-model="fields.documentName.value"
+          v-bind="fields.documentName"
+        />
         <div class="form-row">
-          <FormField v-model="fields.type.value" v-bind="fields.type" class="col-md-6" />
-          <FormField v-model="fields.documentDate.value" v-bind="fields.documentDate" class="col-md-6" />
+          <FormField
+            v-model="fields.type.value"
+            v-bind="fields.type"
+            class="col-md-6"
+          />
+          <FormField
+            v-model="fields.documentDate.value"
+            v-bind="fields.documentDate"
+            class="col-md-6"
+          />
         </div>
         <div class="form-row">
-          <FormField v-model="fields.contractorId.value" v-bind="fields.contractorId" class="col-md-6" />
-          <FormField v-model="fields.reviewerId.value" v-bind="fields.reviewerId" class="col-md-6" />
+          <FormField
+            v-model="fields.contractorId.value"
+            v-bind="fields.contractorId"
+            class="col-md-6"
+          />
+          <FormField
+            v-model="fields.reviewerId.value"
+            v-bind="fields.reviewerId"
+            class="col-md-6"
+          />
         </div>
         <Divider />
         <div class="form-row">
-          <FormField v-model="fields.standardF3o.value" v-bind="fields.standardF3o" class="col-md-3" />
-          <FormField v-model="fields.inspection.value" v-bind="fields.inspection" class="col-md-3" />
+          <FormField
+            v-model="fields.standardF3o.value"
+            v-bind="fields.standardF3o"
+            class="col-md-3"
+          />
+          <FormField
+            v-model="fields.inspection.value"
+            v-bind="fields.inspection"
+            class="col-md-3"
+          />
           <FormField
             v-model="fields.jointMeasurement.value"
             v-bind="fields.jointMeasurement"
@@ -35,7 +62,11 @@
       </div>
     </Form>
     <div class="d-flex justify-content-center mt-4">
-      <PrimaryArrowButton :disabled="isDisabled" :to="nextStep" label="Volgende" />
+      <PrimaryArrowButton
+        :disabled="isDisabled"
+        :to="nextStep"
+        label="Volgende"
+      />
     </div>
   </div>
   <div v-else>
@@ -69,7 +100,7 @@ export default {
     ProgressSteps,
     Divider,
     PrimaryArrowButton,
-    ReportStepHeader
+    ReportStepHeader,
   },
   mixins: [fields],
   data() {
@@ -84,9 +115,9 @@ export default {
           value: "",
           validationRules: {
             required,
-            maxLength: maxLength(64)
+            maxLength: maxLength(64),
           },
-          disabled: false
+          disabled: false,
         },
         type: {
           label: "Type document",
@@ -95,20 +126,20 @@ export default {
           options: [
             {
               value: null,
-              text: "Selecteer een type"
-            }
+              text: "Selecteer een type",
+            },
           ].concat(
             typeOptions.map((option, index) => {
               return {
                 value: "" + index,
-                text: option.text
+                text: option.text,
               };
             })
           ),
           validationRules: {
-            required
+            required,
           },
-          disabled: false
+          disabled: false,
         },
         documentDate: {
           label: "Datum document",
@@ -116,19 +147,19 @@ export default {
           type: "datepicker",
           validationRules: {
             required,
-            min: value => value > new Date(1000, 1, 1),
-            max: value => value < new Date(2100, 1, 1)
+            min: (value) => value > new Date(1000, 1, 1),
+            max: (value) => value < new Date(2100, 1, 1),
           },
-          disabled: false
+          disabled: false,
         },
         contractorId: {
           label: "Uitvoerder",
           value: null,
           type: "select",
           validationRules: {
-            required
+            required,
           },
-          disabled: false
+          disabled: false,
         },
         reviewerId: {
           label: "Reviewer",
@@ -136,9 +167,9 @@ export default {
           type: "select",
           options: [],
           validationRules: {
-            required
+            required,
           },
-          disabled: false
+          disabled: false,
         },
         standardF3o: {
           label: "Conform F3O",
@@ -147,17 +178,17 @@ export default {
           options: [
             {
               value: true,
-              text: "ja"
+              text: "ja",
             },
             {
               value: false,
-              text: "nee"
-            }
+              text: "nee",
+            },
           ],
           validationRules: {
-            required
+            required,
           },
-          disabled: false
+          disabled: false,
         },
         inspection: {
           label: "Onderzoeksput",
@@ -166,17 +197,17 @@ export default {
           options: [
             {
               value: true,
-              text: "ja"
+              text: "ja",
             },
             {
               value: false,
-              text: "nee"
-            }
+              text: "nee",
+            },
           ],
           validationRules: {
-            required
+            required,
           },
-          disabled: false
+          disabled: false,
         },
         jointMeasurement: {
           label: "Lintvoegmetingen",
@@ -185,17 +216,17 @@ export default {
           options: [
             {
               value: true,
-              text: "ja"
+              text: "ja",
             },
             {
               value: false,
-              text: "nee"
-            }
+              text: "nee",
+            },
           ],
           validationRules: {
-            required
+            required,
           },
-          disabled: false
+          disabled: false,
         },
         floorMeasurement: {
           label: "Vloer Waterpas",
@@ -204,41 +235,41 @@ export default {
           options: [
             {
               value: true,
-              text: "ja"
+              text: "ja",
             },
             {
               value: false,
-              text: "nee"
-            }
+              text: "nee",
+            },
           ],
           validationRules: {
-            required
+            required,
           },
-          disabled: false
+          disabled: false,
         },
         note: {
           label: "Opmerking",
           value: "",
           type: "textarea",
           validationRules: {},
-          disabled: false
-        }
+          disabled: false,
+        },
       },
       steps: [
         new ProgressStep({
           status: "active",
           step: 1,
-          icon: "Step-create-icon.svg"
+          icon: "Step-create-icon.svg",
         }),
         new ProgressStep({
           step: 2,
-          icon: "Step-samples-icon.svg"
+          icon: "Step-samples-icon.svg",
         }),
         new ProgressStep({
           step: 3,
-          icon: "Step-verify-icon.svg"
-        })
-      ]
+          icon: "Step-verify-icon.svg",
+        }),
+      ],
     };
   },
   computed: {
@@ -247,13 +278,16 @@ export default {
     ...mapGetters("contractors", ["contractors"]),
     nextStep() {
       // TODO When will this.activeReport go to null ever?
-      let report = this.activeReport || { id: "id", documentName: "documentName" };
+      let report = this.activeReport || {
+        id: "id",
+        documentName: "documentName",
+      };
       return {
         name: "edit-report-2",
         params: {
           id: report.id,
-          documentName: report.documentName
-        }
+          documentName: report.documentName,
+        },
       };
     },
     headerLabel() {
@@ -264,15 +298,15 @@ export default {
         return [
           {
             value: null,
-            text: "Selecteer een reviewer"
-          }
+            text: "Selecteer een reviewer",
+          },
         ].concat(this.validReviewers.map(this.mapToUserOption));
       }
       return [
         {
           value: null,
-          text: "Er zijn geen reviewers beschikbaar"
-        }
+          text: "Er zijn geen reviewers beschikbaar",
+        },
       ];
     },
     getContractorOptions() {
@@ -280,17 +314,17 @@ export default {
         return [
           {
             value: null,
-            text: "Selecteer een uitvoerder"
-          }
+            text: "Selecteer een uitvoerder",
+          },
         ].concat(this.contractors.map(this.mapToOrgOption));
       }
       return [
         {
           value: null,
-          text: "Er zijn geen uitvoerders beschikbaar"
-        }
+          text: "Er zijn geen uitvoerders beschikbaar",
+        },
       ];
-    }
+    },
   },
   async created() {
     await this.getReviewers();
@@ -315,18 +349,20 @@ export default {
     if (to.name !== "edit-report-2" || this.stored === true) {
       next();
       // TODO Clean up this monstrosity.
-    } else if (to.name === 'edit-report-2'
-      && this.activeReport
-      && values.documentName === this.activeReport.documentName
-      && values.type === this.activeReport.type
-      && values.documentDate === this.activeReport.documentDate
-      && values.contractorId === this.activeReport.contractorId
-      && values.reviewerId === this.activeReport.reviewerId
-      && values.standardF3o === this.activeReport.standardF3o
-      && values.inspection === this.activeReport.inspection
-      && values.jointMeasurement === this.activeReport.jointMeasurement
-      && values.floorMeasurement === this.activeReport.floorMeasurement
-      && values.note === this.activeReport.note) {
+    } else if (
+      to.name === "edit-report-2" &&
+      this.activeReport &&
+      values.documentName === this.activeReport.documentName &&
+      values.type === this.activeReport.type &&
+      values.documentDate === this.activeReport.documentDate &&
+      values.contractorId === this.activeReport.contractorId &&
+      values.reviewerId === this.activeReport.reviewerId &&
+      values.standardF3o === this.activeReport.standardF3o &&
+      values.inspection === this.activeReport.inspection &&
+      values.jointMeasurement === this.activeReport.jointMeasurement &&
+      values.floorMeasurement === this.activeReport.floorMeasurement &&
+      values.note === this.activeReport.note
+    ) {
       // Skip form submit.
       next();
     } else {
@@ -340,7 +376,7 @@ export default {
       "getReportById",
       "updateReport",
       "createReport",
-      "clearActiveReport"
+      "clearActiveReport",
     ]),
     ...mapActions("reviewers", ["getReviewers"]),
     ...mapActions("contractors", ["getContractors"]),
@@ -384,7 +420,7 @@ export default {
       if (!canWrite()) {
         await this.$router.push({
           name: "view-report",
-          params: this.$route.params
+          params: this.$route.params,
         });
         return;
       }
@@ -394,7 +430,7 @@ export default {
       this.fields.contractorId.options = this.getContractorOptions;
 
       await this.getReportById({
-        id: this.$route.params.id
+        id: this.$route.params.id,
       });
 
       let report = this.activeReport;
@@ -402,7 +438,7 @@ export default {
       if ((report.isPendingReview() || report.isApproved()) && !isSuperUser()) {
         await this.$router.push({
           name: "view-report",
-          params: this.$route.params
+          params: this.$route.params,
         });
         return;
       }
@@ -421,7 +457,7 @@ export default {
         inspection: report.inspection,
         jointMeasurement: report.jointMeasurement,
         floorMeasurement: report.floorMeasurement,
-        note: report.note
+        note: report.note,
       });
     },
 
@@ -431,13 +467,13 @@ export default {
     mapToUserOption(user) {
       return {
         value: user.id,
-        text: user.getUserName()
+        text: user.getUserName(),
       };
     },
     mapToOrgOption(org) {
       return {
         value: org.id,
-        text: org.name
+        text: org.name,
       };
     },
     saveReport() {
@@ -455,7 +491,7 @@ export default {
       this.isDisabled = true;
       this.feedback = {
         variant: "info",
-        message: "Bezig met opslaan van rapport..."
+        message: "Bezig met opslaan van rapport...",
       };
 
       let values = this.allFieldValues();
@@ -465,7 +501,13 @@ export default {
         jointMeasurement: values.jointMeasurement,
         floorMeasurement: values.floorMeasurement,
         note: values.note,
-        documentDate: new Date(Date.UTC(values.documentDate.getFullYear(), values.documentDate.getMonth(), values.documentDate.getDate())).toISOString(),
+        documentDate: new Date(
+          Date.UTC(
+            values.documentDate.getFullYear(),
+            values.documentDate.getMonth(),
+            values.documentDate.getDate()
+          )
+        ).toISOString(),
         documentFile: this.documentFile,
         type: parseInt(values.type),
         standardF3o: values.standardF3o,
@@ -480,7 +522,7 @@ export default {
 
         await this.updateReport({
           id: this.$route.params.id,
-          data
+          data,
         })
           .then(this.handleSuccess)
           .catch(this.errorHandler);
@@ -496,8 +538,8 @@ export default {
         name: "edit-report-2",
         params: {
           id: this.activeReport.id,
-          document: this.activeReport.documentFile
-        }
+          document: this.activeReport.documentFile,
+        },
       });
     },
     errorHandler(err) {
@@ -507,16 +549,16 @@ export default {
       if (err.response && err.response.status === 401) {
         this.feedback = {
           variant: "danger",
-          message: "Uw sessie is verlopen"
+          message: "Uw sessie is verlopen",
         };
       } else {
         this.feedback = {
           variant: "danger",
-          message: "Onbekende fout. Probeer het later nog eens."
+          message: "Onbekende fout. Probeer het later nog eens.",
         };
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

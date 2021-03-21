@@ -10,7 +10,7 @@ let OrganizationProposalModel = function (org) {
   Object.assign(this, org);
 }
 
-OrganizationProposalModel.prototype.getId = function() {
+OrganizationProposalModel.prototype.getId = function () {
   return this.id;
 }
 

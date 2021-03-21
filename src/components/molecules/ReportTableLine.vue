@@ -1,68 +1,59 @@
 <template>
   <tr
     class="ReportTableLine d-flex align-items-center p-2 mb-2"
-    @click="openReport">
+    @click="openReport"
+  >
     <td scope="row">
       <div
-        :style="{ 'backgroundColor': report.statusColor() }"
-        class="ReportTableLine__status mx-auto"></div>
+        :style="{ backgroundColor: report.statusColor() }"
+        class="ReportTableLine__status mx-auto"
+      ></div>
     </td>
     <td>
       <strong>{{ report.label() }}</strong>
     </td>
-    <td>{{ ownerUserObject ? ownerUserObject.getUserName() : '-' }}</td>
-    <td>{{ reviewerUserObject ? reviewerUserObject.getUserName() : '-' }}</td>
+    <td>{{ ownerUserObject ? ownerUserObject.getUserName() : "-" }}</td>
+    <td>{{ reviewerUserObject ? reviewerUserObject.getUserName() : "-" }}</td>
     <td>{{ report.date() }}</td>
     <td>
-      <TypeTag
-        v-if="report.hasType()"
-        :type="report.getType()" />
+      <TypeTag v-if="report.hasType()" :type="report.getType()" />
     </td>
     <td class="d-flex justify-content-end">
-      <b-button
-        v-if="editable"
-        variant="light"
-        @click.stop="handleEdit">
+      <b-button v-if="editable" variant="light" @click.stop="handleEdit">
         Bewerk
       </b-button>
-      <b-button
-        v-else
-        variant="light">
-        Bekijk
-      </b-button>
+      <b-button v-else variant="light"> Bekijk </b-button>
     </td>
   </tr>
 </template>
 
 <script>
-import TypeTag from 'atom/TypeTag';
+import TypeTag from "atom/TypeTag";
 
-import { canWrite } from 'service/auth'
+import { canWrite } from "service/auth";
 
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 
-import ReportModel from 'model/Report'
+import ReportModel from "model/Report";
 
 export default {
-  name: 'ReportTableLine',
+  name: "ReportTableLine",
   components: {
-    TypeTag
+    TypeTag,
   },
   props: {
     report: {
       type: ReportModel,
-      default: function() {
-        return {}
-      }
-    }
+      default: function () {
+        return {};
+      },
+    },
   },
   computed: {
-    ...mapGetters('orgUsers', [
-      'getUserById'
-    ]),
+    ...mapGetters("orgUsers", ["getUserById"]),
     editable() {
       if (!canWrite()) {
-        return false
+        return false;
       }
       return this.report.isEditable();
 
@@ -70,42 +61,42 @@ export default {
       // support this functionality.
     },
     reviewerUserObject() {
-      return this.getUserById({ id: this.report.reviewerId })
+      return this.getUserById({ id: this.report.reviewerId });
     },
     ownerUserObject() {
-      return this.getUserById({ id: this.report.creatorId })
-    }
+      return this.getUserById({ id: this.report.creatorId });
+    },
   },
   methods: {
     openReport() {
       this.$router.push({
-        name: 'view-report',
+        name: "view-report",
         params: {
           id: this.report.id,
-          document: this.report.documentId
-        }
-      })
+          document: this.report.documentId,
+        },
+      });
     },
     handleEdit() {
       this.$router.push({
-        name: 'edit-report-1',
+        name: "edit-report-1",
         params: {
           id: this.report.id,
-          document: this.report.documentId
-        }
-      })
-    }
-  }
-}
+          document: this.report.documentId,
+        },
+      });
+    },
+  },
+};
 </script>
 
 <style lang="scss">
 .ReportTableLine {
   width: 100%;
   background: white;
-  border: 1px solid #DFE2E5;
+  border: 1px solid #dfe2e5;
   border-radius: 4px;
-  color: #7F8FA4;
+  color: #7f8fa4;
   line-height: 1;
   transition: all 0.15s;
   user-select: none;
@@ -128,10 +119,11 @@ export default {
   }
 
   .btn {
-    color: #7F8FA4;
+    color: #7f8fa4;
 
-    &:hover, &:active {
-      color: darken(#7F8FA4, 10%)
+    &:hover,
+    &:active {
+      color: darken(#7f8fa4, 10%);
     }
   }
 }

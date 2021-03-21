@@ -1,15 +1,14 @@
 <script>
-import { logout } from 'service/auth';
+import { logout } from "service/auth";
 
 export default {
-  name: 'Logout',
+  name: "Logout",
   created() {
-
-    logout()
-    this.$router.push({ name: 'login' })
+    logout();
+    this.$router.push({ name: "login" });
   },
   render(createElement) {
     return createElement();
   },
-}
+};
 </script>

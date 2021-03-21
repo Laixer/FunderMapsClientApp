@@ -1,14 +1,12 @@
 <template>
   <div>
     <h1 class="ml-2 mb-3 pb-1">
-      Organisatie Profiel<span v-if="organization">: {{ organization.name }}</span>
+      Organisatie Profiel<span v-if="organization"
+        >: {{ organization.name }}</span
+      >
     </h1>
     <div v-if="organization" class="d-flex">
-      <form
-        class="mr-4"
-        style="width: 570px"
-        @submit.prevent="handleUpdateOrg">
-
+      <form class="mr-4" style="width: 570px" @submit.prevent="handleUpdateOrg">
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Algemeen</h2>
 
@@ -18,33 +16,39 @@
             label="Naam"
             :editMode="editMode"
             :disabled="true"
-            v-model="organization.name" />
+            v-model="organization.name"
+          />
           <ProfileSetting
             label="Email"
             type="email"
             :editMode="editMode"
-            v-model="organization.email" />
+            v-model="organization.email"
+          />
           <ProfileSetting
             label="Telefoonnummer"
             type="tel"
             :editMode="editMode"
-            v-model="organization.phoneNumber" />
+            v-model="organization.phoneNumber"
+          />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Factuur informatie</h2>
           <ProfileSetting
             label="Naam"
             :editMode="editMode"
-            v-model="organization.invoiceName" />
+            v-model="organization.invoiceName"
+          />
           <ProfileSetting
             label="PO nummer"
             :editMode="editMode"
-            v-model="organization.invoicePoBox" />
+            v-model="organization.invoicePoBox"
+          />
           <ProfileSetting
             label="E-mail adres"
             type="email"
             :editMode="editMode"
-            v-model="organization.invoiceEmail" />
+            v-model="organization.invoiceEmail"
+          />
         </div>
 
         <div class="panel px-4 py-3 mb-2">
@@ -52,73 +56,89 @@
           <ProfileSetting
             label="Straat"
             :editMode="editMode"
-            v-model="organization.homeStreet" />
+            v-model="organization.homeStreet"
+          />
           <ProfileSetting
             label="Huisnummer"
             :editMode="editMode"
             :maxLength="6"
             type="number"
-            v-model="organization.homeAddressNumber" />
+            v-model="organization.homeAddressNumber"
+          />
           <ProfileSetting
             label="Toevoeging"
             :editMode="editMode"
-            v-model="organization.homeAddressNumberPostfix" />
+            v-model="organization.homeAddressNumberPostfix"
+          />
           <ProfileSetting
             label="Postbus"
             :editMode="editMode"
-            v-model="organization.homePostbox" />
+            v-model="organization.homePostbox"
+          />
           <ProfileSetting
             label="Stad"
             :editMode="editMode"
-            v-model="organization.homeCity" />
+            v-model="organization.homeCity"
+          />
           <ProfileSetting
             label="Postcode"
             :editMode="editMode"
-            v-model="organization.homeZipcode" />
+            v-model="organization.homeZipcode"
+          />
           <ProfileSetting
             label="Provincie"
             :editMode="editMode"
-            v-model="organization.homeState" />
+            v-model="organization.homeState"
+          />
           <ProfileSetting
             label="Land"
             :editMode="editMode"
-            v-model="organization.homeCountry" />
+            v-model="organization.homeCountry"
+          />
         </div>
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Post adres</h2>
           <ProfileSetting
             label="Straat"
             :editMode="editMode"
-            v-model="organization.postalStreet" />
+            v-model="organization.postalStreet"
+          />
           <ProfileSetting
             label="Huisnummer"
             :editMode="editMode"
             type="number"
-            v-model="organization.postalAddressNumber" />
+            v-model="organization.postalAddressNumber"
+          />
           <ProfileSetting
             label="Toevoeging"
             :editMode="editMode"
-            v-model="organization.postalAddressNumberPostfix" />
+            v-model="organization.postalAddressNumberPostfix"
+          />
           <ProfileSetting
             label="Postbus"
             :editMode="editMode"
-            v-model="organization.postalPostbox" />
+            v-model="organization.postalPostbox"
+          />
           <ProfileSetting
             label="Stad"
             :editMode="editMode"
-            v-model="organization.postalCity" />
+            v-model="organization.postalCity"
+          />
           <ProfileSetting
             label="Postcode"
             :editMode="editMode"
-            v-model="organization.postalZipcode" />
+            v-model="organization.postalZipcode"
+          />
           <ProfileSetting
             label="Provincie"
             :editMode="editMode"
-            v-model="organization.postalState" />
+            v-model="organization.postalState"
+          />
           <ProfileSetting
             label="Land"
             :editMode="editMode"
-            v-model="organization.postalCountry" />
+            v-model="organization.postalCountry"
+          />
         </div>
 
         <b-button
@@ -126,94 +146,90 @@
           variant="primary"
           class="SubmitButton font-weight-bold mt-4"
           size="lg"
-          pill>
-          <span class="d-inline-block my-2">
-            Bewaar instellingen
-          </span>
+          pill
+        >
+          <span class="d-inline-block my-2"> Bewaar instellingen </span>
         </b-button>
-
       </form>
 
       <TeamMembersPanel />
     </div>
-
   </div>
 </template>
 
 <script>
-import ProfileSetting from 'molecule/ProfileSetting'
-import TeamMembersPanel from 'organism/TeamMembersPanel'
-import Feedback from 'atom/Feedback'
+import ProfileSetting from "molecule/ProfileSetting";
+import TeamMembersPanel from "organism/TeamMembersPanel";
+import Feedback from "atom/Feedback";
 
-import { image } from 'helper/assets'
-import { isAdmin } from 'service/auth'
+import { image } from "helper/assets";
+import { isAdmin } from "service/auth";
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from "vuex";
 
 export default {
-  name: 'OrganisatieProfiel',
+  name: "OrganisatieProfiel",
 
   components: {
     ProfileSetting,
     TeamMembersPanel,
-    Feedback
+    Feedback,
   },
   data() {
     return {
       editMode: true,
       feedback: {},
-      organization: null
-    }
+      organization: null,
+    };
   },
   async created() {
     this.organization = isAdmin()
-     ? await this.getOrganizationById({ id: this.$route.params.id })
-     : await this.getOrganization()
+      ? await this.getOrganizationById({ id: this.$route.params.id })
+      : await this.getOrganization();
   },
   methods: {
     image,
-    ...mapActions('org', [
-      'updateOrganization',
-      'updateOrganizationAsAdmin',
-      'getOrganizationById',
-      'getOrganization'
+    ...mapActions("org", [
+      "updateOrganization",
+      "updateOrganizationAsAdmin",
+      "getOrganizationById",
+      "getOrganization",
     ]),
     async handleUpdateOrg() {
       try {
         this.feedback = {
-          variant: 'info',
-          message: 'Bezig met opslaan...'
-        }
+          variant: "info",
+          message: "Bezig met opslaan...",
+        };
 
         // Act according to user privileges.
         if (isAdmin()) {
           await this.updateOrganizationAsAdmin({
             organizationId: this.organization.id,
-            data: this.organization
+            data: this.organization,
           });
         } else {
           await this.updateOrganization({
-            data: this.organization
+            data: this.organization,
           });
         }
 
         this.feedback = {
-          variant: 'success',
-          message: 'Wijzigingen zijn opgeslagen'
-        }
-      } catch(err) {
+          variant: "success",
+          message: "Wijzigingen zijn opgeslagen",
+        };
+      } catch (err) {
         this.feedback = {
-          variant: 'danger',
-          message: 'Wijzigingen zijn niet opgeslagen'
-        }
+          variant: "danger",
+          message: "Wijzigingen zijn niet opgeslagen",
+        };
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
-
 h1 {
   font-size: 30px;
   color: #354052;
@@ -222,21 +238,18 @@ h1 {
 .panel {
   background: white;
   border-radius: 4px;
-  border: 1px solid #E6EAEE;
+  border: 1px solid #e6eaee;
 
   h2 {
     font-size: 22px;
     color: #354052;
   }
 }
-
 </style>
 <style lang="scss">
-
 // TODO: Rename?
 .SubmitButton {
   font-size: 18px;
   line-height: 1;
 }
-
 </style>

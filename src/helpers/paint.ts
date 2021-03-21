@@ -171,7 +171,7 @@ function changeColor(color: String): object {
 
 export function generateTooltipForFeature(layer: MapLayer, feature: any): string {
   const title = layer.name ? `<h5 class="card-title">${layer.name}</h5>` : '';
-  
+
   let html = "<div class='card box-shadow'>";
   let body = "";
 
