@@ -21,10 +21,9 @@
     </div>
     <b-button
       variant="primary"
-      class="SubmitButton font-weight-bold mt-4"
-      size="lg"
+      class="side__btn my-4 font-weight-bold align-items-center"
       @click="handleCreate"
-      pill
+      style="width: 300px"
     >
       <span class="d-inline-block my-2"> Gebruiker registreren </span>
     </b-button>
