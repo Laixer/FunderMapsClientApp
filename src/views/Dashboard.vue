@@ -8,7 +8,11 @@
       :reports="latestReports({ limit: 5 })"
       class="mt-4 pt-2 mb-5"
     />
-    <PrimaryArrowButton class="mx-auto" label="Alle rapporten" :to="{ name: 'reports' }" />
+    <PrimaryArrowButton
+      class="mx-auto"
+      label="Alle rapporten"
+      :to="{ name: 'reports' }"
+    />
   </div>
 </template>
 
@@ -26,7 +30,7 @@ export default {
   components: {
     ReportTable,
     UploadArea,
-    PrimaryArrowButton
+    PrimaryArrowButton,
   },
   computed: {
     ...mapGetters("reports", ["latestReports"]),
@@ -35,9 +39,12 @@ export default {
   async created() {
     try {
       await Promise.all([
-        this.syncReports(),
+        await this.getReports({
+          page: 1,
+          limit: 25,
+        }),
         this.getReviewers(),
-        this.getOrganization()
+        this.getOrganization(),
       ]);
     } catch (err) {
       if (err.response && err.response.status === 401) {
@@ -51,7 +58,7 @@ export default {
   methods: {
     ...mapActions("reports", ["getReports"]),
     ...mapActions("reviewers", ["getReviewers"]),
-    ...mapActions('org', ['getOrganization']),
-  }
+    ...mapActions("org", ["getOrganization"]),
+  },
 };
 </script>
