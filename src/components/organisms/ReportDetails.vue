@@ -3,7 +3,7 @@
     <header class="d-flex align-items-center justify-content-between">
       <div>
         <h3>
-          {{ activeReport.documentName }}
+          {{ activeReport.labelShort() }}
         </h3>
         <span v-if="showLastEdited && hasEditedDate">
           Laatst bewerkt: {{ lastEdited }}

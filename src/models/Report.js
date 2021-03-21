@@ -103,6 +103,11 @@ class ReportModel {
   label() {
     return this.documentName;
   }
+  labelShort() {
+    return this.documentName.length > 40
+      ? `${this.documentName.substring(0, 40)}...`
+      : this.documentName.length;
+  }
   /**
    * Formatted date
    */
