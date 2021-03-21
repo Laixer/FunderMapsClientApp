@@ -78,11 +78,6 @@
     </div>
 
     <div class="form-row">
-      <!-- <FormField
-        v-model="fields.baseMeasurementLevel.value"
-        v-bind="fields.baseMeasurementLevel"
-        class="col-md-3"
-      /> -->
       <FormField
         v-model="fields.woodLevel.value"
         v-bind="fields.woodLevel"
@@ -270,21 +265,6 @@ export default {
           ].concat(enforcementTermOptions),
           validationRules: {},
         },
-        // LINE 6
-        // baseMeasurementLevel: {
-        //   label: "Referentiestelsel",
-        //   type: "select",
-        //   value: "NAP",
-        //   options: [
-        //     {
-        //       value: null,
-        //       text: "Selecteer een optie"
-        //     }
-        //   ].concat(BaseMeasurementLevelOptions),
-        //   validationRules: {
-        //     required
-        //   }
-        // },
         woodLevel: {
           label: "Hoogte langshout",
           type: "text",
@@ -338,7 +318,6 @@ export default {
         id: this.sample.address,
       });
       this.fields.address.value = addressFetched.format();
-      this.fields.address.data = [addressFetched];
       this.fields.address.selected = addressFetched;
     }
 
@@ -473,17 +452,6 @@ export default {
         // Used internally, not by the API
         data.creationstamp = this.sample.creationstamp;
       }
-
-      // required by API
-      // if (data.baseMeasurementLevel === null) {
-      //   data.baseMeasurementLevel = 0; // NAP
-      // }
-      // if (data.damageCause === null) {
-      //   data.damageCause = 7; // Unknown
-      // }
-      // if (data.foundationType === null) {
-      //   data.foundationType = 15; // Unknown
-      // }
 
       // Assign address geocoder id from selected field
       data.address = this.fields.address.selected.id;
