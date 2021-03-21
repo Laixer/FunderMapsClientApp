@@ -31,25 +31,6 @@
             v-model="organization.phoneNumber"
           />
         </div>
-        <div class="panel px-4 py-3 mb-2">
-          <h2 class="font-weight-bold mt-1 mb-4">Factuur informatie</h2>
-          <ProfileSetting
-            label="Naam"
-            :editMode="editMode"
-            v-model="organization.invoiceName"
-          />
-          <ProfileSetting
-            label="PO nummer"
-            :editMode="editMode"
-            v-model="organization.invoicePoBox"
-          />
-          <ProfileSetting
-            label="E-mail adres"
-            type="email"
-            :editMode="editMode"
-            v-model="organization.invoiceEmail"
-          />
-        </div>
 
         <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Bezoek adres</h2>
@@ -71,11 +52,6 @@
             v-model="organization.homeAddressNumberPostfix"
           />
           <ProfileSetting
-            label="Postbus"
-            :editMode="editMode"
-            v-model="organization.homePostbox"
-          />
-          <ProfileSetting
             label="Stad"
             :editMode="editMode"
             v-model="organization.homeCity"
@@ -84,60 +60,6 @@
             label="Postcode"
             :editMode="editMode"
             v-model="organization.homeZipcode"
-          />
-          <ProfileSetting
-            label="Provincie"
-            :editMode="editMode"
-            v-model="organization.homeState"
-          />
-          <ProfileSetting
-            label="Land"
-            :editMode="editMode"
-            v-model="organization.homeCountry"
-          />
-        </div>
-        <div class="panel px-4 py-3 mb-2">
-          <h2 class="font-weight-bold mt-1 mb-4">Post adres</h2>
-          <ProfileSetting
-            label="Straat"
-            :editMode="editMode"
-            v-model="organization.postalStreet"
-          />
-          <ProfileSetting
-            label="Huisnummer"
-            :editMode="editMode"
-            type="number"
-            v-model="organization.postalAddressNumber"
-          />
-          <ProfileSetting
-            label="Toevoeging"
-            :editMode="editMode"
-            v-model="organization.postalAddressNumberPostfix"
-          />
-          <ProfileSetting
-            label="Postbus"
-            :editMode="editMode"
-            v-model="organization.postalPostbox"
-          />
-          <ProfileSetting
-            label="Stad"
-            :editMode="editMode"
-            v-model="organization.postalCity"
-          />
-          <ProfileSetting
-            label="Postcode"
-            :editMode="editMode"
-            v-model="organization.postalZipcode"
-          />
-          <ProfileSetting
-            label="Provincie"
-            :editMode="editMode"
-            v-model="organization.postalState"
-          />
-          <ProfileSetting
-            label="Land"
-            :editMode="editMode"
-            v-model="organization.postalCountry"
           />
         </div>
 
@@ -165,7 +87,7 @@ import Feedback from "atom/Feedback";
 import { image } from "helper/assets";
 import { isAdmin } from "service/auth";
 
-import { mapGetters, mapActions } from "vuex";
+import { mapActions } from "vuex";
 
 export default {
   name: "OrganisatieProfiel",
