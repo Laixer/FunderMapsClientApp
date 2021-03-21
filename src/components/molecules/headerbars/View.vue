@@ -75,7 +75,7 @@ import { icon } from "helper/assets";
 import { mapGetters, mapActions } from "vuex";
 import DisapproveModal from "organism/DisapproveModal";
 
-import { isSuperUser, canWrite, canApprove } from "service/auth";
+import { canWrite, isVerifier, canApprove } from "service/auth";
 
 export default {
   name: "ViewHeader",
@@ -110,7 +110,7 @@ export default {
       };
     },
     editable() {
-      if (!canWrite()) {
+      if (!canWrite() || isVerifier()) {
         return false;
       }
 
