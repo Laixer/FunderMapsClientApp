@@ -111,7 +111,7 @@ export default {
 .UploadArea {
   width: 100%;
   height: 300px;
-  border-radius: 15px;
+  border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.7);
   border: 3px dashed #9EA9B8;
   user-select: none;
