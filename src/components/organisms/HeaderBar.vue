@@ -6,7 +6,6 @@
 
 <script>
 import ViewHeader from "molecule/headerbars/View";
-import EditHeader from "molecule/headerbars/Edit";
 
 import { mapGetters } from "vuex";
 
@@ -14,7 +13,6 @@ export default {
   name: "HeaderBar",
   components: {
     ViewHeader,
-    EditHeader
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
@@ -22,19 +20,9 @@ export default {
       if (this.$route.name === "view-report") {
         return "ViewHeader";
       }
-      if (
-        [
-          "new-report",
-          "edit-report-1",
-          "edit-report-2",
-          "edit-report-3"
-        ].includes(this.$route.name)
-      ) {
-        return "EditHeader";
-      }
       return false;
-    }
-  }
+    },
+  },
 };
 </script>
 
