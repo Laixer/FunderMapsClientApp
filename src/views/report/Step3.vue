@@ -90,7 +90,7 @@ export default {
     ...mapGetters("report", ["activeReport"]),
     ...mapGetters("samples", ["samples"]),
     isDisabled() {
-      return this.activeReport ? this.activeReport.isPending() : true
+      return this.activeReport ? !this.activeReport.isPending() : false;
     },
     previousStep() {
       // TODO When is this ever useful?
