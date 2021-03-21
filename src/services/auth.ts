@@ -116,7 +116,7 @@ export function canWrite(): boolean {
  * Checks if a user can write. Being a superuser implies that you can.
  */
 export function canUserWrite(): boolean {
-  return getOrganizationRole() === 'superuser';
+  return isSuperUser() || isVerifier() || isWriter();
 }
 
 export function canRead(): boolean {
@@ -150,7 +150,7 @@ function getLastUserEmailFromStorage() {
 /**
  * Gets the stored access token.
  */
-function getAccessToken() : string | null {
+function getAccessToken(): string | null {
   return localStorage.getItem(access_token_key);
 }
 
@@ -192,7 +192,7 @@ function getOrganizationRole() {
  */
 function getUserRole() {
   try {
-    let tokenDecoded : any = getAccessTokenDecoded();
+    let tokenDecoded: any = getAccessTokenDecoded();
 
     return tokenDecoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'].toLowerCase();
   } catch (err) {

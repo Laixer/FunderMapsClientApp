@@ -11,16 +11,16 @@ import reviewersAPI from 'api/reviewers';
 import { isSuperUser, isWriter } from '../services/auth'
 
 const defaultState = {
-    /**
-   * Contains all reviewers. This will exclude the current
-   * user if the user has reviewing privileges.
-   */
-     validReviewers : [],
+  /**
+ * Contains all reviewers. This will exclude the current
+ * user if the user has reviewing privileges.
+ */
+  validReviewers: [],
 
-     /**
-      * Contains all reviewers for this users organization.
-      */
-     reviewers: [],
+  /**
+   * Contains all reviewers for this users organization.
+   */
+  reviewers: [],
 }
 
 /**
@@ -29,7 +29,7 @@ const defaultState = {
 const state = Object.assign({}, defaultState);
 
 const getters = {
-  areReviewersAvailable: state => state.validReviewers ? state.validReviewers.length > 0 : false,
+  areReviewersAvailable: state => state.validReviewers.length > 0,
   validReviewers: state => state.validReviewers,
   reviewers: state => state.reviewers,
   getUserById: state => ({ id }) => (state.reviewers)
@@ -75,16 +75,16 @@ const mutations = {
   /**
    * Writes the fetched reviewers to the store.
    */
-  set_reviewers(state , { reviewers }) {
+  set_reviewers(state, { reviewers }) {
     state.reviewers = reviewers.map(
       reviewer => new AttributedUser({ user: reviewer, role: 'Reviewer' })
     )
   },
-    /**
-   * Writes the fetched reviewers to the store. No filters
-   * are applied by this function.
-   */
-  set_valid_reviewers(state , { reviewers }) {
+  /**
+ * Writes the fetched reviewers to the store. No filters
+ * are applied by this function.
+ */
+  set_valid_reviewers(state, { reviewers }) {
     state.validReviewers = reviewers.map(
       reviewer => new AttributedUser({ user: reviewer, role: 'Reviewer' })
     )
