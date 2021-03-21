@@ -18,12 +18,12 @@ export default {
   // Provide a mechanism for field components to register themselves to the form
   provide: function () {
     return {
-      registerFormField: this.registerFormField
+      registerFormField: this.registerFormField,
     };
   },
   data() {
     return {
-      fields: []
+      fields: [],
     };
   },
   methods: {
@@ -41,14 +41,14 @@ export default {
      */
     validate() {
       for (const field of this.fields) {
-        field.validate()
+        field.validate();
       }
     },
     /**
      * Are all registered fields valid?
      */
     isValid() {
-      return this.fields.every(field => field.isValid());
+      return this.fields.every((field) => field.isValid());
     },
     /**
      * Reset the validation mechanism
@@ -57,7 +57,6 @@ export default {
       for (const field of this.fields) {
         field.resetValidation();
       }
-
     },
     /**
      * Allow the form to be submitted programmatically
@@ -79,7 +78,7 @@ export default {
       } else {
         this.$emit("error", e);
       }
-    }
-  }
+    },
+  },
 };
 </script>

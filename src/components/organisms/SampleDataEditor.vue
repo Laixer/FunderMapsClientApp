@@ -103,7 +103,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import {
   required,
   numeric,
@@ -118,7 +117,6 @@ import {
   enforcementTermOptions,
   substructureOptions,
   foundationDamageCauseOptions,
-  // BaseMeasurementLevelOptions
 } from "config/enums";
 
 import Divider from "atom/Divider";
@@ -130,11 +128,6 @@ import fields from "mixin/fields";
 
 import { mapGetters, mapActions } from "vuex";
 import SampleModel from "../../models/Sample";
-
-/**
- * Import API for address from geocoder.
- */
-import addressAPI from "api/address";
 
 export default {
   components: {
@@ -339,14 +332,6 @@ export default {
       };
     }
 
-    // // Required fields by API
-    // if (this.sample.baseMeasurementLevel === null) {
-    //   this.sample.baseMeasurementLevel = 0; // NAP
-    // }
-    // if (this.sample.damageCause === null) {
-    //   this.sample.damageCause = 7; // Unknown
-    // }
-
     // Explicitly set the address field.
     if (this.sample.address !== null) {
       let addressFetched = await this.getAddressById({
@@ -386,10 +371,6 @@ export default {
         options: enforcementTermOptions,
         name: "enforcementTerm",
       }),
-      // baseMeasurementLevel: this.optionValue({
-      //   options: BaseMeasurementLevelOptions,
-      //   name: "baseMeasurementLevel"
-      // }),
       woodLevel: this.sample.woodLevel,
       groundwaterLevelTemp: this.sample.groundwaterLevelTemp,
       groundLevel: this.sample.groundLevel,
