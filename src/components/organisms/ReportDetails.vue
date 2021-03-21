@@ -17,7 +17,7 @@
       v-if="showUsers"
       class="Report__users d-flex">
       <ReportUserRoleExplicit :userId="activeReport.creatorId" userRoleOverride="Verwerker"/>
-      <ReportUserRoleExplicit :userId="activeReport.reviewerId" />
+      <ReportUserRoleExplicit :userId="activeReport.reviewerId" userRoleOverride="Reviewer" />
     </div>
     <Divider v-if="showUsers" />
     <div class="Report__indicators d-flex flex-wrap">
