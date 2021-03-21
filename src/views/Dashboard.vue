@@ -62,23 +62,6 @@ export default {
     ...mapActions("reports", ["getReports"]),
     ...mapActions("reviewers", ["getReviewers"]),
     ...mapActions('org', ['getOrganization']),
-
-    // Update the report details on the dashboard every minute
-    async syncReports() {
-      this.loading = true;
-      if (timer !== null) {
-        clearTimeout(timer);
-      }
-
-      await this.getReports({
-        page: 1,
-        limit: 25
-      });
-
-      this.loading = false;
-
-      timer = setTimeout(this.syncReports, 60 * 5 * 1000); // every  5 minutes
-    }
   }
 };
 </script>
