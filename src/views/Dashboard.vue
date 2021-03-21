@@ -33,11 +33,6 @@ export default {
     UploadArea,
     PrimaryArrowButton
   },
-  data() {
-    return {
-      loading: true
-    };
-  },
   computed: {
     ...mapGetters("reports", ["latestReports"]),
     ...mapGetters("reviewers", ["areReviewersAvailable"]),
