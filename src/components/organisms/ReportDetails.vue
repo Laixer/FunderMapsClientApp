@@ -24,6 +24,13 @@
       />
     </div>
     <Divider v-if="showUsers" />
+    <div v-if="showUsers" class="Report__users d-flex">
+      <ReportOrgRoleExplicit
+        :organizationId="activeReport.contractorId"
+        organizationRoleOverride="Uitvoerder"
+      />
+    </div>
+    <Divider v-if="showUsers" />
     <div class="Report__indicators d-flex flex-wrap">
       <CheckboxIndicator
         :value="activeReport.standardF3o"
@@ -54,22 +61,20 @@
 <script>
 import ReportDate from "atom/review/ReportDate";
 import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
+import ReportOrgRoleExplicit from "atom/review/ReportOrgRoleExplicit";
 import Note from "atom/review/Note";
 import CheckboxIndicator from "atom/review/CheckboxIndicator";
 import TypeTag from "atom/TypeTag";
 import Divider from "atom/Divider";
 
-import {
-  convertDateStringToDate,
-  weekDayFromDate,
-  monthYearStringFromDate,
-} from "helper/date";
+import { weekDayFromDate, monthYearStringFromDate } from "helper/date";
 
 export default {
   components: {
     TypeTag,
     Divider,
     ReportUserRoleExplicit,
+    ReportOrgRoleExplicit,
     ReportDate,
     CheckboxIndicator,
     Note,
