@@ -53,7 +53,7 @@
         label="Vorige"
       />
       <PrimaryArrowButton
-        :disabled="isDisabled"
+        :disabled="isDisabledNext"
         @click="handleSaveSamplesAndNextStep"
         label="Volgende"
       />
@@ -139,6 +139,9 @@ export default {
           documentName: report.documentName,
         },
       };
+    },
+    isDisabledNext() {
+      return this.samples.length === 0;
     },
   },
   async created() {
