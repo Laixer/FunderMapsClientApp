@@ -5,7 +5,6 @@ import {
   substructureOptions,
   foundationDamageCauseOptions,
   enforcementTermOptions,
-  // BaseMeasurementLevelOptions,
   accessOptions
 } from 'config/enums'
 
@@ -29,7 +28,6 @@ let structure = {
   foundationDamageCause: null,
   builtYear: '',
   enforcementTerm: null,
-  baseMeasurementLevel: null,
   address: null,
   policy: 0,
   createDate: '',
@@ -74,10 +72,6 @@ export default class SampleModel {
   getEnforcementTerm() {
     return enforcementTermOptions[this.enforcementTerm] || null;
   }
-  // getBaseMeasurementLevel() {
-  //   // TODO This is a fix
-  //   return BaseMeasurementLevelOptions[0] || null;
-  // }
   getAccess() {
     return accessOptions[this.policy] || null;
   }

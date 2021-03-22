@@ -67,11 +67,11 @@ const actions = {
   async deleteSample({ commit }, { inquiryId, sampleId, creationstamp }) {
     if (sampleId === '') {
       // not stored in API yet
-      commit('delete_sample', { sampleId, creationstamp })
+      commit('delete_sample', { id: sampleId, creationstamp })
     } else {
       let response = await samplesAPI.deleteSample({ inquiryId, sampleId });
       if (response.status === 204) {
-        commit('delete_sample', { sampleId, creationstamp })
+        commit('delete_sample', { id: sampleId, creationstamp })
       }
     }
   }
@@ -145,7 +145,7 @@ const mutations = {
         (sample) => sample.creationstamp === creationstamp
       )
     }
-    if (index !== -1) {
+    else {
       Vue.delete(state.samples, index)
     }
   },

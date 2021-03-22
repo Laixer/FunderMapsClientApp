@@ -26,11 +26,6 @@ import SampleLine from "molecule/SampleLine";
 import SampleDataPresentation from "molecule/SampleDataPresentation";
 import SampleDataEditor from "organism/SampleDataEditor";
 
-/**
- * Import model.
- */
-import AddressModel from "../../models/Address.ts";
-
 export default {
   components: {
     SampleLine,
@@ -57,7 +52,7 @@ export default {
       };
     },
   },
-  data: function () {
+  data() {
     return {
       addressId: null,
     };
