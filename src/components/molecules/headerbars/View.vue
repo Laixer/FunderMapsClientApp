@@ -66,7 +66,7 @@
       <span class="ml-1">Sluiten</span>
     </b-button>
 
-    <DisapproveModal @disapprove="handleDisapprove" @hidden="onHidden" />
+    <DisapproveModal @disapprove="handleDisapprove" />
   </div>
 </template>
 
@@ -84,7 +84,6 @@ export default {
   },
   data() {
     return {
-      processing: false,
       /**
        * This can be true, false or null.
        * True indicates we have been approved by the user.
@@ -192,28 +191,21 @@ export default {
     ...mapActions("report", ["approveReport"]),
     // TODO: Update with call - Done ?
     async handleApprove() {
-      if (!this.isPendingReview || this.processing) {
+      if (!this.isPendingReview) {
         return;
       }
-      this.processing = true;
       await this.approveReport({ id: this.activeReport.id });
       this.approvedByUser = true;
-      this.processing = false;
     },
     handleDisapproveModal() {
-      if (!this.isPendingReview || this.processing) {
+      if (!this.isPendingReview) {
         return;
       }
 
-      this.processing = true;
       this.$bvModal.show("report-disapprove");
     },
     handleDisapprove() {
       this.approvedByUser = false;
-      this.processing = false;
-    },
-    onHidden() {
-      this.processing = false;
     },
   },
 };
