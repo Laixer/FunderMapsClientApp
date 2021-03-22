@@ -1,7 +1,16 @@
 <template>
   <div>
     <div v-if="(isSuperUser() || isAdmin()) && orgUsers">
-      <div class="panel px-4 py-3" style="width: 300px">
+      <b-button
+        variant="primary"
+        class="side__btn font-weight-bold align-items-center"
+        @click="handleCreate"
+        style="width: 300px"
+      >
+        <span class="d-inline-block my-2"> Gebruiker registreren </span>
+      </b-button>
+
+      <div class="panel px-4 py-3 my-4" style="width: 300px">
         <h2 class="font-weight-bold mt-1 mb-4">Teamleden</h2>
         <TeamMember
           v-for="(member, index) in orgUsers"
@@ -19,14 +28,6 @@
         :organizationId="organizationId"
       />
     </div>
-    <b-button
-      variant="primary"
-      class="side__btn my-4 font-weight-bold align-items-center"
-      @click="handleCreate"
-      style="width: 300px"
-    >
-      <span class="d-inline-block my-2"> Gebruiker registreren </span>
-    </b-button>
 
     <NewTeamMemberModal :organizationId="organizationId" />
   </div>
