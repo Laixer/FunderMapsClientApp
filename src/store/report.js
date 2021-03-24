@@ -52,7 +52,6 @@ const actions = {
   },
   async approveReport({ commit, state }, { message }) {
     if (!message) { message = 'Approving'; }
-
     let response = await reportAPI.approveInquiry({
       id: state.report.id,
       message: message
@@ -60,6 +59,15 @@ const actions = {
     if (response.status === 204) {
       commit('set_report_approved')
     }
+  },
+  async resetReport({ commit, state }) {
+    let response = await reportAPI.resetInquiry({ id: state.report.id })
+    if (response.status === 204) {
+      commit('set_report_reset')
+    }
+  },
+  async deleteReport({ commit, state }) {
+    await reportAPI.deleteInquiry({ id: state.report.id })
   },
   async rejectReport({ commit, state }, { message }) {
     let response = await reportAPI.rejectInquiry({
@@ -72,7 +80,6 @@ const actions = {
   },
   async submitForReview({ commit, state }, message) {
     if (!message) { message = 'Submitting for review'; }
-
     let response = await reportAPI.submitForReview({
       id: state.report.id,
       message: message,
@@ -81,7 +88,6 @@ const actions = {
       commit('set_report_pending_review')
     }
   },
-
   async getReviewers({ commit }) {
     let response = await reportAPI.getReviewers()
     if (response.status === 200 && response.data) {
@@ -100,6 +106,9 @@ const mutations = {
   },
   set_report_approved(state) {
     state.report.setStatus({ status: 2 })
+  },
+  set_report_reset(state) {
+    state.report.setStatus({ status: 1 })
   },
   set_report_rejected(state) {
     state.report.setStatus({ status: 5 })

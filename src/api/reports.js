@@ -32,6 +32,18 @@ const approveInquiry = ({ id, message }) => {
   return axios.post(`/api/inquiry/${id}/status_approved`, { message });
 }
 /**
+ * Reset an inquiry.
+ */
+const resetInquiry = ({ id }) => {
+  return axios.post(`/api/inquiry/${id}/reset`, {});
+}
+/**
+ * Delete an inquiry.
+ */
+const deleteInquiry = ({ id }) => {
+  return axios.delete(`/api/inquiry/${id}`);
+}
+/**
  * Reject an inquiry.
  */
 const rejectInquiry = ({ id, message }) => {
@@ -73,6 +85,8 @@ export default {
   updateReport,
 
   approveInquiry,
+  resetInquiry,
+  deleteInquiry,
   rejectInquiry,
   submitForReview,
   setStatusToTodo,

@@ -50,6 +50,14 @@
     <div class="flex-grow-1"></div>
 
     <b-button
+      v-if="resettable"
+      @click="handleReset"
+      variant="light"
+      class="font-weight-bold"
+    >
+      Heropenen
+    </b-button>
+    <b-button
       v-if="editable"
       :to="editRoute"
       variant="light"
@@ -58,12 +66,13 @@
       Bewerk
     </b-button>
     <b-button
-      :to="{ name: 'dashboard' }"
-      variant="primary"
+      v-if="deletable"
+      @click="handleDelete"
+      variant="danger"
       class="ml-2 mr-3 font-weight-bold d-flex align-items-center"
     >
       <img :src="icon('Close-icon.svg')" width="11" height="11" />
-      <span class="ml-1">Sluiten</span>
+      <span class="ml-1">Verwijderen</span>
     </b-button>
 
     <DisapproveModal @disapprove="handleDisapprove" />
@@ -75,7 +84,7 @@ import { icon } from "helper/assets";
 import { mapGetters, mapActions } from "vuex";
 import DisapproveModal from "organism/DisapproveModal";
 
-import { canWrite, isVerifier, canApprove } from "service/auth";
+import { canWrite, isVerifier, isSuperUser, canApprove } from "service/auth";
 
 export default {
   name: "ViewHeader",
@@ -117,9 +126,17 @@ export default {
         return this.activeReport.isEditable();
       }
 
-      // TODO This part was removed. Our API does not support this.
-      //|| isSuperUser()
       return false;
+    },
+    resettable() {
+      if (this.activeReport) {
+        return !this.activeReport.isPending() && isSuperUser();
+      }
+
+      return false;
+    },
+    deletable() {
+      return isSuperUser();
     },
     approved() {
       if (this.activeReport) {
@@ -146,9 +163,6 @@ export default {
       }
       return false;
     },
-
-    // TODO These if-statements are very ugly. Bind them in the future.
-
     disapprovedClasslist() {
       return {
         "ViewHeader__choice--active":
@@ -188,8 +202,7 @@ export default {
   },
   methods: {
     icon,
-    ...mapActions("report", ["approveReport"]),
-    // TODO: Update with call - Done ?
+    ...mapActions("report", ["approveReport", "resetReport", "deleteReport"]),
     async handleApprove() {
       if (!this.isPendingReview) {
         return;
@@ -197,11 +210,18 @@ export default {
       await this.approveReport({ id: this.activeReport.id });
       this.approvedByUser = true;
     },
+    async handleReset() {
+      await this.resetReport({ id: this.activeReport.id });
+      this.$router.go(0);
+    },
+    async handleDelete() {
+      await this.deleteReport({ id: this.activeReport.id });
+      this.$router.push({ name: "dashboard" });
+    },
     handleDisapproveModal() {
       if (!this.isPendingReview) {
         return;
       }
-
       this.$bvModal.show("report-disapprove");
     },
     handleDisapprove() {
