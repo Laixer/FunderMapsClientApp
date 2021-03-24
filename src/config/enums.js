@@ -70,6 +70,11 @@ export const typeOptions = [
     text: 'Grondwater onderzoek',
     color: 'white',
     bgColor: '#3D5372'
+  },
+  {
+    text: 'Grondonderzoek',
+    color: 'white',
+    bgColor: '#3D5372'
   }
 ]
 
