@@ -61,7 +61,7 @@
       v-if="editable"
       :to="editRoute"
       variant="light"
-      class="font-weight-bold"
+      class="ml-2 font-weight-bold"
     >
       Bewerk
     </b-button>
