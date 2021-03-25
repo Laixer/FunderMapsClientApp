@@ -14,8 +14,6 @@ import { authHeader } from "service/auth";
 
 import { mapGetters, mapMutations, mapActions } from "vuex";
 
-import mapAPI from "api/map";
-
 export default {
   data() {
     return {
@@ -216,6 +214,10 @@ export default {
 <style src='@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'></style>
 
 <style lang="scss">
+.mapboxgl-ctrl-geocoder {
+  min-width: 340px;
+}
+
 .mapboxgl-canvas-container,
 .mapboxgl-canvas {
   &:active,
