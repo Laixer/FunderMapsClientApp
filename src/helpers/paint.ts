@@ -27,7 +27,6 @@ function _generateFillOutlineColor(markup: LayerMarkup) {
 }
 
 function _generateFillOpacity(markup: LayerMarkup) {
-
   return [
     'case',
     ['==', ['get', 'is_active'], false],

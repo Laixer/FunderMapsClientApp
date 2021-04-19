@@ -58,10 +58,19 @@ export class LayerMarkup {
       case 'damage_cause': return { translatedKey: 'Schadeoorzaak', translatedValue: this.translatePropValue(propValue) }
       case 'category': return { translatedKey: 'Categorie', translatedValue: propValue }
       case 'incidents': return { translatedKey: 'Incidenten', translatedValue: propValue }
+      case 'restoration_costs': return { translatedKey: 'Herstelkosten', translatedValue: propValue }
+      case 'height': return { translatedKey: 'Gebouwhoogte', translatedValue: `${propValue} meter` }
+      case 'inquiry_type': return { translatedKey: 'Rapportage', translatedValue: propValue }
+      case 'drystand_risk': return { translatedKey: 'Risico droogstand', translatedValue: propValue }
+      case 'drystand_risk_reliability': return { translatedKey: 'Ontwateringsdiepte betrouwbaarheid', translatedValue: this.translatePropValue(propValue) }
+      case 'dewatering_depth_risk_reliability': return { translatedKey: 'bacteriele aantasting betrouwbaarheid', translatedValue: this.translatePropValue(propValue) }
+      case 'bio_infection_risk': return { translatedKey: 'Risico bacteriele aantasting', translatedValue: propValue }
+      case 'bio_infection_risk_reliability': return { translatedKey: 'Bacteriele aantasting betrouwbaarheid', translatedValue: this.translatePropValue(propValue) }
       case 'building_height': return { translatedKey: 'Gebouwhoogte', translatedValue: propValue }
       case 'foundation_risk': return { translatedKey: 'Funderingsrisico', translatedValue: this.translatePropValue(propValue) }
-      case 'built_year': return { translatedKey: 'Bouwjaar', translatedValue: propValue }
+      case 'construction_year': return { translatedKey: 'Bouwjaar', translatedValue: propValue }
       case 'foundation_type': return { translatedKey: 'Funderingstype', translatedValue: this.translatePropValue(propValue) }
+      case 'foundation_type_reliability': return { translatedKey: 'Betrouwbaarheid', translatedValue: this.translatePropValue(propValue) }
       case 'enforcement_term': return { translatedKey: 'Handhavingstermijn', translatedValue: `${propValue} jaar` }
       case 'velocity': return { translatedKey: 'Zakkingssnelheid', translatedValue: `${parseFloat(propValue).toFixed(2)}mm/jaar` }
       default: return { translatedKey: propKey.charAt(0).toUpperCase() + propKey.slice(1), translatedValue: this.translatePropValue(propValue) };
@@ -69,6 +78,8 @@ export class LayerMarkup {
   }
 
   private translatePropValue(propValue: any): string {
+    if (propValue === 'indicative') { return "Indicatief" }
+    if (propValue === 'established') { return "Vastgesteld" }
     switch (this.type) {
       case ValueType.Case: return (this.values as Case[]).find(val => val.match == propValue)?.label || propValue;
       case ValueType.Case_Multimatch: return (this.values as Case_Multimatch[]).find(val => val.match.includes(propValue))?.label || propValue;
