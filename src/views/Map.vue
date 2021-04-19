@@ -5,237 +5,88 @@
 <script>
 import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-
-// import {
-//   generatePaintStyleFromMarkup,
-//   generateTooltipForFeature,
-// } from "helper/paint";
-// import { authHeader } from "service/auth";
-
 import { mapGetters, mapMutations, mapActions } from "vuex";
 
 export default {
   data() {
     return {
-      mvt_base_url: process.env.VUE_APP_MVT_BASE_URL,
       accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
       mapStyle: process.env.VUE_APP_MAPBOX_STYLE,
-      popupFeature: null,
       map: null,
     };
   },
   computed: {
-    ...mapGetters("map", [
-      "mapBundles",
-      "mapLayers",
-      "activeBundle",
-      "activeLayers",
-      "hasMapData",
-      "isMapboxReady",
-    ]),
+    ...mapGetters("map", ["mapBundles", "activeBundle", "isMapboxReady"]),
     ...mapGetters("org", ["currentOrganization"]),
-    // ...mapGetters("org", ["organization"]),
-    // readyToLoadBundles() {
-    //   return this.isMapboxReady && this.hasMapData;
-    // },
   },
   watch: {
-    // async readyToLoadBundles(value) {
-    //   if (value) {
-    //     await this.addBundlesToMapbox();
-    //   }
-    // },
     activeBundle(value) {
       if (this.isMapboxReady) {
-        // this.panToActiveBundle();
-
-        // for (const bundle of this.mapBundles) {
-        //   for (const layer of this.mapLayers.filter((v) =>
-        //     bundle.layerConfiguration.layers.find((a) => a.layerId === v.id)
-        //   )) {
-        //     this.$store.map.setLayoutProperty(
-        //       `${bundle.id}_${layer.id}`,
-        //       "visibility",
-        //       bundle.id === this.activeBundle.id ? layer.visibility : "none"
-        //     );
-        //   }
-        // }
+        for (const bundle of this.mapBundles) {
+          for (let layer of bundle.layers) {
+            layer.visibility = "none";
+            this.$store.map.setLayoutProperty(
+              layer.slug,
+              "visibility",
+              layer.visibility
+            );
+          }
+        }
         this.$store.map.triggerRepaint();
       }
     },
   },
-  async mounted() {},
   async created() {
-    if (!this.hasMapData) {
-      try {
-        await this.getMapBundles();
+    try {
+      await this.getMapBundles();
 
-        mapboxgl.accessToken = this.accessToken;
+      mapboxgl.accessToken = this.accessToken;
 
-        this.map = new mapboxgl.Map({
-          container: "mapContainer",
-          style: this.mapStyle,
-          attributionControl: false,
-          antialias: true,
-          // transformRequest: this.transformRequest,
-          bearing: 0,
-          zoom: 14,
-          pitch: 45,
-          center: [
-            this.currentOrganization.centerX,
-            this.currentOrganization.centerY,
-          ],
-          maxBounds: [
-            [this.currentOrganization.xMin, this.currentOrganization.yMin],
-            [this.currentOrganization.xMax, this.currentOrganization.yMax],
-          ],
-        });
+      this.map = new mapboxgl.Map({
+        container: "mapContainer",
+        style: this.mapStyle,
+        attributionControl: false,
+        antialias: true,
+        bearing: 0,
+        zoom: 14,
+        pitch: 45,
+        center: [
+          this.currentOrganization.centerX,
+          this.currentOrganization.centerY,
+        ],
+        maxBounds: [
+          [this.currentOrganization.xMin, this.currentOrganization.yMin],
+          [this.currentOrganization.xMax, this.currentOrganization.yMax],
+        ],
+      });
+      this.map.addControl(
+        new MapboxGeocoder({
+          accessToken: this.accessToken,
+          mapboxgl: mapboxgl,
+        })
+      );
 
-// console.log(this.map.getStyle())
-        this.map.addControl(
-          new MapboxGeocoder({
-            accessToken: this.accessToken,
-            mapboxgl: mapboxgl,
-          })
-        );
+      this.map.addControl(new mapboxgl.GeolocateControl());
+      this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
+      this.map.addControl(new mapboxgl.FullscreenControl());
 
-        this.map.addControl(new mapboxgl.GeolocateControl());
-        this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
-        this.map.addControl(new mapboxgl.FullscreenControl());
-
-        this.map.on("load", this.onMapLoaded);
-
-      // this.$store.map.on("click", uniqueId, (e) => {
-      //   this.setPopupFeature(e.features[0]);
-      //   // const html = generateTooltipForFeature(layer, this.popupFeature);
-      //   new mapboxgl.Popup()
-      //     .setLngLat(this.popupFeature.geometry.coordinates[0][0])
-      //     .setHTML("<b>kaas</kaas>")
-      //     .addTo(this.$store.map);
-      // });
-          // this.map.on("mouseenter", uniqueId, () => {
-            // this.map.getCanvas().style.cursor = "pointer";
-          // });
-          // this.map.on("mouseleave", uniqueId, () => {
-          //   this.$store.map.getCanvas().style.cursor = "";
-          //   this.setPopupFeature(null);
-          // });
-
-
-      } catch (err) {
-        console.log(err);
-        if (err.response && err.response.status === 401) {
-          this.$router.push({ name: "login" });
-        }
+      this.map.on("load", this.onMapLoaded);
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        this.$router.push({ name: "login" });
       }
     }
   },
   beforeDestroy() {
-    // TODO: We may want to keep the map in memory for faster loading
     this.mapboxIsReady({ status: false });
   },
   methods: {
     ...mapActions("map", ["getMapBundles"]),
     ...mapMutations("map", ["mapboxIsReady"]),
-    // ...mapGetters("map", ["mapInfo"]),
     onMapLoaded(event) {
-      // NOTE: a reference to the map has to be stored in a non-reactive manner.
       this.$store.map = event.target;
-      // this.panToActiveBundle();
       this.mapboxIsReady({ status: true });
-      // console.log(this.$store.map.getStyle().layers)
     },
-    // transformRequest(url, resourceType) {
-    //   // TODO: This url matching trick is dangerous and should be replaced
-    //   if (
-    //     resourceType == "Source" &&
-    //     url.startsWith(process.env.VUE_APP_API_BASE_URL)
-    //   ) {
-    //     return {
-    //       url: url,
-    //       headers: authHeader(),
-    //     };
-    //   }
-    // },
-    // setPopupFeature(feature) {
-    //   this.popupFeature = feature;
-    // },
-    // async addBundlesToMapbox() {
-      // console.log('kaas')
-      // for (const bundle of this.mapBundles) {
-      //   const url = `${this.mvt_base_url}ORG${bundle.organizationId}/BND${bundle.id}/MVT/${bundle.id}/{z}/{x}/{y}.pbf`;
-      //   this.$store.map.addSource(bundle.id, {
-      //     type: "vector",
-      //     tiles: [url],
-      //   });
-      //   const layers = this.$store.map.getStyle().layers;
-      //   let firstSymbolLayerId = null;
-      //   for (var i = 0; i < layers.length; i++) {
-      //     if (layers[i].type === "symbol") {
-      //       firstSymbolLayerId = layers[i].id;
-      //       break;
-      //     }
-      //   }
-      //   for (const [index, layer] of this.mapLayers
-      //     .filter((layer) =>
-      //       bundle.layerConfiguration.layers.find(
-      //         (layerConfig) => layer.id === layerConfig.layerId
-      //       )
-      //     )
-      //     .entries()) {
-      //     layer.visibility = index == 0 ? "visible" : "none";
-      //     const uniqueId = `${bundle.id}_${layer.id}`;
-      //     this.$store.map.addLayer(
-      //       {
-      //         id: uniqueId,
-      //         type: "fill",
-      //         source: bundle.id,
-      //         "source-layer": layer.slug,
-      //         layout: {
-      //           visibility:
-      //             bundle.id == this.activeBundle.id ? layer.visibility : "none",
-      //         },
-      //         minzoom: bundle.metadata.minzoom || 1,
-      //         // maxzoom: bundle.metadata.maxzoom || 24,
-      //         paint: generatePaintStyleFromMarkup(layer.markup),
-      //       },
-      //       firstSymbolLayerId
-      //     );
-      // this.$store.map.on("click", uniqueId, (e) => {
-      //   this.setPopupFeature(e.features[0]);
-      //   // const html = generateTooltipForFeature(layer, this.popupFeature);
-      //   new mapboxgl.Popup()
-      //     .setLngLat(this.popupFeature.geometry.coordinates[0][0])
-      //     .setHTML("<b>kaas</kaas>")
-      //     .addTo(this.$store.map);
-      // });
-      //     this.$store.map.on("mouseenter", uniqueId, () => {
-      //       this.$store.map.getCanvas().style.cursor = "pointer";
-      //     });
-      //     this.$store.map.on("mouseleave", uniqueId, () => {
-      //       this.$store.map.getCanvas().style.cursor = "";
-      //       this.setPopupFeature(null);
-      //     });
-      //   }
-      // }
-    // },
-    // getBundleVisibility({ bundle }) {
-    //   return this.activeBundle && this.activeBundle.id === bundle.id
-    //     ? "visible"
-    //     : "none";
-    // },
-    // panToActiveBundle() {
-      // if (this.activeBundle) {
-      //   const split = this.activeBundle.metadata.center.split(",");
-      //   const center = [split[0], split[1]];
-      //   const zoom = split[2];
-      //   this.$store.map.flyTo({
-      //     center: center,
-      //     zoom: zoom,
-      //     speed: 1,
-      //   });
-      // }
-    // },
   },
 };
 </script>

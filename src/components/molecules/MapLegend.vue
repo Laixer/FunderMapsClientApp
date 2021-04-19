@@ -53,7 +53,7 @@ import { icon } from "helper/assets";
 import { generateLegend } from "helper/paint";
 
 import {
-  generatePaintStyleFromMarkup,
+  // generatePaintStyleFromMarkup,
   generateTooltipForFeature,
 } from "helper/paint";
 

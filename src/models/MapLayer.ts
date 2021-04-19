@@ -60,7 +60,7 @@ export class LayerMarkup {
       case 'incidents': return { translatedKey: 'Incidenten', translatedValue: propValue }
       case 'restoration_costs': return { translatedKey: 'Herstelkosten', translatedValue: propValue }
       case 'height': return { translatedKey: 'Gebouwhoogte', translatedValue: `${propValue} meter` }
-      case 'inquiry_type': return { translatedKey: 'Rapportage', translatedValue: propValue }
+      case 'inquiry_type': return { translatedKey: 'Rapportage', translatedValue: this.translatePropValue(propValue) }
       case 'drystand_risk': return { translatedKey: 'Risico droogstand', translatedValue: propValue }
       case 'drystand_risk_reliability': return { translatedKey: 'Ontwateringsdiepte betrouwbaarheid', translatedValue: this.translatePropValue(propValue) }
       case 'dewatering_depth_risk_reliability': return { translatedKey: 'bacteriele aantasting betrouwbaarheid', translatedValue: this.translatePropValue(propValue) }
