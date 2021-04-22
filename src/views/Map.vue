@@ -15,6 +15,7 @@ export default {
       accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
       mapStyle: process.env.VUE_APP_MAPBOX_STYLE,
       map: null,
+      marker: null,
     };
   },
   computed: {
@@ -23,6 +24,9 @@ export default {
   },
   watch: {
     activeBundle(value) {
+      if (this.marker !== null) {
+        this.marker.remove();
+      }
       if (this.isMapboxReady) {
         for (const bundle of this.mapBundles) {
           for (let layer of bundle.layers) {
@@ -98,7 +102,7 @@ export default {
           });
           this.$store.map.on("click", layer.slug, (e) => {
             const html = generateTooltipForFeature(layer, e.features[0]);
-            new mapboxgl.Popup()
+            this.marker = new mapboxgl.Popup()
               .setLngLat(e.features[0].geometry.coordinates[0][0])
               .setHTML(html)
               .addTo(this.$store.map);

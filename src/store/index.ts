@@ -47,7 +47,6 @@ const store: StoreOptions<{}> = {
       commit("samples/reset")
       commit("attestation/reset")
       commit("version/reset")
-      commit("map/reset")
       commit("contractors/reset")
       commit("reviewers/reset")
     }
