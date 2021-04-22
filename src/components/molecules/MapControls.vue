@@ -1,16 +1,5 @@
 <template>
   <li v-if="mapBundles.length" class="Bundles align-self-center mr-3">
-    <!-- <a :href="downloadUrl">
-      <b-button
-        variant="primary"
-        class="side__btn p-2 font-weight-bold"
-        target="_blank"
-      >
-        <img alt="arrow" :src="icon('Download-icon.svg')" width="14" />
-        <span>GeoPackage</span>
-      </b-button>
-    </a> -->
-
     <Form class="d-flex" @submit="() => null">
       <FormField
         class="mr-3"
@@ -44,9 +33,6 @@ export default {
   },
   computed: {
     ...mapGetters("map", ["mapBundles", "activeBundle"]),
-    // downloadUrl() {
-    //   return `${process.env.VUE_APP_MVT_BASE_URL}ORG${this.activeBundle.organizationId}/BND${this.activeBundle.id}/GPKG/${this.activeBundle.id}.gpkg`;
-    // },
     mapBundleOptions() {
       return [...this.mapBundles].map((bundle) => {
         return {
