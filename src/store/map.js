@@ -1,13 +1,7 @@
 /**
- * Import Dependency
- */
-
-/**
  * Import API
  */
 import { MapLayer } from "@/models/MapLayer";
-import mapAPI from "api/map";
-import axios from '../utils/axios'
 
 /**
  * Declare Variable
@@ -15,11 +9,7 @@ import axios from '../utils/axios'
 const defaultState = {
   mapboxIsReady: false,
   bundles: [],
-  layers: [],
-  mapinfo: null,
   activeBundle: null,
-  hasMapBundles: false,
-  hasMapLayers: false
 };
 
 const state = Object.assign({}, defaultState);
@@ -34,7 +24,6 @@ const getters = {
 
 const actions = {
   async getMapBundles({ dispatch, commit }) {
-
     const bundles = [
       {
         id: 'a',
@@ -76,11 +65,7 @@ const actions = {
         ]
       }
     ];
-
     commit("setBundles", { bundles: bundles });
-  },
-  clearMapState({ commit }) {
-    commit("reset");
   }
 };
 const mutations = {
@@ -89,25 +74,10 @@ const mutations = {
   },
   setActiveBundle(state, { id }) {
     state.activeBundle = state.bundles.find(bundle => bundle.id === id) || null;
-    // for (const bundle of state.bundles) {
-    //   console.log(bundle.layers)
-    //   //
-    // }
-    // bundles.f map(async bundle => {
-    //   return await dispatch("getMapLayers", bundle);
-    // })
   },
   setBundles(state, { bundles }) {
     state.bundles = bundles;
-    state.hasMapBundles = true
   },
-  // set_layers(state, { layers }) {
-  //   state.layers = layers;
-  //   state.hasMapLayers = true
-  // },
-  // reset(state) {
-  //   Object.assign(state, defaultState);
-  // }
 };
 
 /**
