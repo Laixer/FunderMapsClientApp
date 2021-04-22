@@ -5,7 +5,7 @@
 <script>
 import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-import { mapGetters, mapMutations, mapActions } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 
 import { generateTooltipForFeature } from "helper/paint";
 
@@ -42,52 +42,43 @@ export default {
       }
     },
   },
-  async created() {
-    try {
-      await this.getMapBundles();
+  mounted() {
+    mapboxgl.accessToken = this.accessToken;
 
-      mapboxgl.accessToken = this.accessToken;
+    this.map = new mapboxgl.Map({
+      container: "mapContainer",
+      style: this.mapStyle,
+      attributionControl: false,
+      antialias: true,
+      bearing: 0,
+      zoom: 14,
+      pitch: 45,
+      center: [
+        this.currentOrganization.centerX,
+        this.currentOrganization.centerY,
+      ],
+      maxBounds: [
+        [this.currentOrganization.xMin, this.currentOrganization.yMin],
+        [this.currentOrganization.xMax, this.currentOrganization.yMax],
+      ],
+    });
+    this.map.addControl(
+      new MapboxGeocoder({
+        accessToken: this.accessToken,
+        mapboxgl: mapboxgl,
+      })
+    );
 
-      this.map = new mapboxgl.Map({
-        container: "mapContainer",
-        style: this.mapStyle,
-        attributionControl: false,
-        antialias: true,
-        bearing: 0,
-        zoom: 14,
-        pitch: 45,
-        center: [
-          this.currentOrganization.centerX,
-          this.currentOrganization.centerY,
-        ],
-        maxBounds: [
-          [this.currentOrganization.xMin, this.currentOrganization.yMin],
-          [this.currentOrganization.xMax, this.currentOrganization.yMax],
-        ],
-      });
-      this.map.addControl(
-        new MapboxGeocoder({
-          accessToken: this.accessToken,
-          mapboxgl: mapboxgl,
-        })
-      );
+    this.map.addControl(new mapboxgl.GeolocateControl());
+    this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
+    this.map.addControl(new mapboxgl.FullscreenControl());
 
-      this.map.addControl(new mapboxgl.GeolocateControl());
-      this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
-      this.map.addControl(new mapboxgl.FullscreenControl());
-
-      this.map.on("load", this.onMapLoaded);
-    } catch (err) {
-      if (err.response && err.response.status === 401) {
-        this.$router.push({ name: "login" });
-      }
-    }
+    this.map.on("load", this.onMapLoaded);
   },
   beforeDestroy() {
     this.mapboxIsReady({ status: false });
   },
   methods: {
-    ...mapActions("map", ["getMapBundles"]),
     ...mapMutations("map", ["mapboxIsReady"]),
     onMapLoaded(event) {
       this.$store.map = event.target;

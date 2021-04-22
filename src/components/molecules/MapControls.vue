@@ -43,25 +43,12 @@ export default {
     },
     mapModel: {
       get() {
-        return this.activeBundle ? this.activeBundle.id : null;
+        return this.activeBundle.id;
       },
       set(value) {
         this.setActiveBundle({ id: value });
       },
     },
-  },
-  watch: {
-    mapBundles(value) {
-      if (value.length && !this.activeBundle) {
-        this.setActiveBundle({ id: value[0].id });
-      }
-    },
-  },
-  created() {
-    // If bundles are available, yet none is selected, select the first
-    if (this.mapBundles.size && !this.activeBundle) {
-      this.setActiveBundle({ id: this.mapBundles.values().next().value.id });
-    }
   },
   methods: {
     icon,
