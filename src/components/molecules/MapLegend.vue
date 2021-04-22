@@ -47,15 +47,9 @@
 </template>
 
 <script>
-import mapboxgl from "mapbox-gl";
 import { mapGetters } from "vuex";
 import { icon } from "helper/assets";
 import { generateLegend } from "helper/paint";
-
-import {
-  // generatePaintStyleFromMarkup,
-  generateTooltipForFeature,
-} from "helper/paint";
 
 export default {
   methods: {
@@ -63,32 +57,16 @@ export default {
     icon,
     toggleVisibility(layer) {
       layer.visibility = layer.visibility == "visible" ? "none" : "visible";
-
       this.$store.map.setLayoutProperty(
         layer.slug,
         "visibility",
         layer.visibility
       );
-      this.$store.map.on("mouseenter", layer.slug, () => {
-        this.$store.map.getCanvas().style.cursor = "pointer";
-      });
-      this.$store.map.on("mouseleave", layer.slug, () => {
-        this.$store.map.getCanvas().style.cursor = "";
-        // this.setPopupFeature(null);
-      });
-      this.$store.map.on("click", layer.slug, (e) => {
-        // this.setPopupFeature(e.features[0]);
-        const html = generateTooltipForFeature(layer, e.features[0]);
-        new mapboxgl.Popup()
-          .setLngLat(e.features[0].geometry.coordinates[0][0])
-          .setHTML(html)
-          .addTo(this.$store.map);
-      });
       this.$forceUpdate();
     },
   },
   computed: {
-    ...mapGetters("map", ["hasActiveBundle", "activeBundle", "activeLayers"]),
+    ...mapGetters("map", ["hasActiveBundle", "activeLayers"]),
   },
 };
 </script>

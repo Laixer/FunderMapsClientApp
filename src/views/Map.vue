@@ -7,6 +7,8 @@ import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import { mapGetters, mapMutations, mapActions } from "vuex";
 
+import { generateTooltipForFeature } from "helper/paint";
+
 export default {
   data() {
     return {
@@ -86,6 +88,23 @@ export default {
     onMapLoaded(event) {
       this.$store.map = event.target;
       this.mapboxIsReady({ status: true });
+      for (const bundle of this.mapBundles) {
+        for (let layer of bundle.layers) {
+          this.$store.map.on("mouseenter", layer.slug, () => {
+            this.$store.map.getCanvas().style.cursor = "pointer";
+          });
+          this.$store.map.on("mouseleave", layer.slug, () => {
+            this.$store.map.getCanvas().style.cursor = "";
+          });
+          this.$store.map.on("click", layer.slug, (e) => {
+            const html = generateTooltipForFeature(layer, e.features[0]);
+            new mapboxgl.Popup()
+              .setLngLat(e.features[0].geometry.coordinates[0][0])
+              .setHTML(html)
+              .addTo(this.$store.map);
+          });
+        }
+      }
     },
   },
 };
