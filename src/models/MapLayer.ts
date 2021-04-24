@@ -53,12 +53,18 @@ export class LayerMarkup {
   }
 
   translateProp(propKey: string, propValue: string): { translatedKey: string, translatedValue: string } {
+    let formatter = new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0,
+    });
+
     switch (propKey) {
       case 'overall_quality': return { translatedKey: 'Funderingskwaliteit', translatedValue: this.translatePropValue(propValue) }
       case 'damage_cause': return { translatedKey: 'Schadeoorzaak', translatedValue: this.translatePropValue(propValue) }
       case 'category': return { translatedKey: 'Categorie', translatedValue: propValue }
       case 'incidents': return { translatedKey: 'Incidenten', translatedValue: propValue }
-      case 'restoration_costs': return { translatedKey: 'Herstelkosten', translatedValue: propValue }
+      case 'restoration_costs': return { translatedKey: 'Herstelkosten', translatedValue: formatter.format(parseInt(propValue)) }
       case 'height': return { translatedKey: 'Gebouwhoogte', translatedValue: `${propValue} meter` }
       case 'inquiry_type': return { translatedKey: 'Rapportage', translatedValue: this.translatePropValue(propValue) }
       case 'drystand_risk': return { translatedKey: 'Risico droogstand', translatedValue: propValue }
