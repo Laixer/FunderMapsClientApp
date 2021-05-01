@@ -107,7 +107,7 @@ export default {
       return this.loadingDataFailed;
     },
     isFullScreen() {
-      return this.$route.meta.layout === "map";
+      return this.$route.meta.map;
     },
   },
   async created() {

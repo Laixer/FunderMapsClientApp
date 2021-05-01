@@ -39,7 +39,7 @@ export default {
       return this.menuItems.length > 0;
     },
     hasLegend() {
-      return this.$route.meta.layout === "map";
+      return this.$route.meta.map;
     },
   },
 };

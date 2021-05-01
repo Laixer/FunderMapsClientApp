@@ -95,9 +95,9 @@ const routes = [
     path: '/map',
     name: 'map',
     component: MapView,
-    // meta: {
-    //   layout: 'map'
-    // }
+    meta: {
+      map: true,
+    }
   },
   {
     path: '/map/cknycxq5h1f9a17pj578xieqj',
@@ -105,6 +105,7 @@ const routes = [
     component: Map2View,
     meta: {
       layout: 'map',
+      map: true,
       public: true
     }
   },

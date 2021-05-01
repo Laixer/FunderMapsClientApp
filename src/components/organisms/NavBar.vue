@@ -74,7 +74,7 @@ export default {
   computed: {
     ...mapGetters("user", ["user"]),
     hasMapControls() {
-      return this.$route.meta.layout === "map";
+      return this.$route.meta.map;
     },
   },
 };
