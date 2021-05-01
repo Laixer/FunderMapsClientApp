@@ -9,9 +9,10 @@
       <span class="ml-2">Funderingskaart voor beheerders</span>
     </p>
     <b-nav class="d-flex flex-row-reverse flex-grow-1">
-      <b-nav-item-dropdown class="align-self-center mr-3" right>
+      <b-nav-item-dropdown v-if="!public" class="align-self-center mr-3" right>
         <template slot="button-content">
           <img
+            v-if="user !== null"
             :src="user.getAvatar()"
             class="m1 rounded-circle"
             height="36"
@@ -46,6 +47,10 @@ export default {
   },
   props: {
     admin: {
+      type: Boolean,
+      default: false,
+    },
+    public: {
       type: Boolean,
       default: false,
     },

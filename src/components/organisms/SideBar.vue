@@ -1,6 +1,6 @@
 <template>
   <div :class="{ 'SideBar--slim': slim }" class="SideBar d-flex flex-column">
-    <div v-if="!slim" class="SideBar__title d-flex pl-3 ml-3">
+    <div v-if="!slim && hasMenuItems" class="SideBar__title d-flex pl-3 ml-3">
       <span class="align-self-center"> MENU </span>
     </div>
     <SideMenu class="SideBar__sidemenu" :items="menuItems" :slim="slim" />
@@ -35,6 +35,9 @@ export default {
   },
   computed: {
     ...mapGetters("version", ["version"]),
+    hasMenuItems() {
+      return this.menuItems.length > 0;
+    },
     hasLegend() {
       return this.$route.meta.layout === "map";
     },
