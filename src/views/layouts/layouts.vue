@@ -4,6 +4,7 @@ import emptyLayout from "./empty.vue";
 import defaultLayout from "./default.vue";
 import adminLayout from "./admin.vue";
 import loginLayout from "./login.vue";
+import mapLayout from "./map.vue";
 
 /**
  * Determines which layout to use based on the route meta data
@@ -14,6 +15,7 @@ import loginLayout from "./login.vue";
     defaultLayout,
     adminLayout,
     loginLayout,
+    mapLayout,
   },
 })
 export default class Layouts extends Vue {
@@ -30,6 +32,8 @@ export default class Layouts extends Vue {
         return createElement("adminLayout", this.$slots.default);
       case "empty":
         return createElement("emptyLayout", this.$slots.default);
+      case "map":
+        return createElement("mapLayout", this.$slots.default);
       default:
         return createElement("defaultLayout", this.$slots.default);
     }

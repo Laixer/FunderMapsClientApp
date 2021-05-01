@@ -36,6 +36,7 @@ import NotFound from '@/views/NotFound.vue'
 
 // Maps
 import MapView from '@/views/Map.vue'
+import Map2View from '@/views/Map2.vue'
 
 // Services
 import { isLoggedIn, isAdmin, logout } from '../services/auth'
@@ -94,8 +95,17 @@ const routes = [
     path: '/map',
     name: 'map',
     component: MapView,
+    // meta: {
+    //   layout: 'map'
+    // }
+  },
+  {
+    path: '/map/cknycxq5h1f9a17pj578xieqj',
+    name: 'map2',
+    component: Map2View,
     meta: {
-      layout: 'map'
+      layout: 'map',
+      public: true
     }
   },
 
