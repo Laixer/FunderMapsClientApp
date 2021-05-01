@@ -26,6 +26,10 @@ const mutations = {
   mapboxIsReady(state, { status }) {
     state.mapboxIsReady = status;
   },
+  setBundles(state, { bundles }) {
+    state.bundles = bundles;
+    state.activeBundle = bundles[0];
+  },
   setActiveBundle(state, { id }) {
     state.activeBundle = state.bundles.find(bundle => bundle.id === id);
   },
