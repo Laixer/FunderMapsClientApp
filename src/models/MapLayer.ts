@@ -18,7 +18,7 @@ export class MapLayer {
     this.markup = new LayerMarkup(_markup.type, _markup.column, _markup.values);
     this.name = name;
     this.slug = slug;
-    this.visibility = is_visible ? 'visible' : 'invisible';
+    this.visibility = is_visible ? 'visible' : 'none';
   }
 }
 

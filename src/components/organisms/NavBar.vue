@@ -5,9 +5,6 @@
         <Logo :company="company" />
       </router-link>
     </div>
-    <p class="NavBar__description align-self-center my-0 ml-3 pl-3">
-      <span class="ml-2">Funderingskaart voor beheerders</span>
-    </p>
     <b-nav class="d-flex flex-row-reverse flex-grow-1">
       <b-nav-item-dropdown v-if="!public" class="align-self-center mr-3" right>
         <template slot="button-content">

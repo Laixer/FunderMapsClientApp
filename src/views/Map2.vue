@@ -94,7 +94,7 @@ export default {
       attributionControl: false,
       antialias: true,
       bearing: 0,
-      zoom: 14,
+      zoom: 14.75,
       pitch: 45,
       center: [4.408, 51.918],
       maxBounds: [
@@ -125,6 +125,11 @@ export default {
       this.mapboxIsReady({ status: true });
       for (const bundle of this.mapBundles) {
         for (let layer of bundle.layers) {
+          this.$store.map.setLayoutProperty(
+            layer.slug,
+            "visibility",
+            layer.visibility
+          );
           this.$store.map.on("mouseenter", layer.slug, () => {
             this.$store.map.getCanvas().style.cursor = "pointer";
           });
