@@ -1,5 +1,71 @@
 <template>
-  <div id="mapContainer" />
+  <div id="mapContainer">
+    <div id="left" class="sidebar flex-center left collapsed">
+      <div class="sidebar-content rounded-rect">
+        <b>Uitleg Fundermaps</b><br />
+        Fundermaps toont u 2 kaarten. Deze zijn via een uitklapmenu rechts
+        bovenin te kiezen.<br /><br />
+
+        <b>Funderingskaart</b><br />
+
+        In de laag fundering kunt u van veel locaties het vastgestelde
+        funderingstype bekijken. Door op de locatie in de kaart te klikken, ziet
+        u aanvullende informatie. Daarnaast zijn alle bij ons bekende (partieel)
+        herstelde funderingslocaties in een aparte laag weergegeven.<br /><br />
+
+        <b>Monitoring & Incidentenkaart</b><br />
+
+        Met de tweede kaart krijgt u inzicht op welke locaties er in Schiedam op
+        dit moment monitoring en/of herstel van de fundering plaats vindt of
+        gaat vinden.<br /><br />
+
+        <b>Zoekfunctie</b><br />
+
+        Op de kaart kunt u rechts bovenin het scherm een adres invoeren.<br /><br />
+
+        <b>2D of 3D weergave</b><br />
+
+        Bij het openen wordt de kaart in 3D weergegeven. Door beide muistoetsen
+        in te drukken en de muis omlaag te bewegen, kantelt u de kaart naar een
+        plattegrond (2D) weergave.<br /><br />
+
+        <b>Vragen of aanvullingen?</b><br />
+
+        Heeft u vragen, opmerkingen en/of aanvullingen. Neemt u dan contact met
+        ons op: info@servicepuntwoningverbetering.nl.
+
+        <div
+          class="sidebar-toggle rounded-rect left"
+          @click="toggleSidebar('left')"
+        >
+          <img
+            height="28"
+            src="https://cdn4.iconfinder.com/data/icons/geomicons/32/672382-expand-512.png"
+          />
+        </div>
+      </div>
+    </div>
+    <b-modal
+      ok-only
+      id="modal-disclaimer"
+      centered
+      okTitle="Akkoord"
+      title="Disclaimer"
+      >Hoewel de gemeente Schiedam uiterste zorgvuldigheid heeft betracht bij
+      het verzamelen, rubriceren en actueel houden van de informatie die via
+      deze website wordt aangeboden en ontsloten, staat zij uitdrukkelijk niet
+      in voor de juistheid en/of volledigheid en/of actualiteit van de
+      informatie.<br /><br />
+      Er kunnen aan de informatie die via deze website wordt ontsloten geen
+      rechten worden ontleend en de gemeente Schiedam aanvaardt geen
+      aansprakelijkheid in verband met de eventuele onjuistheid en/of
+      onvolledigheid en/of gedateerdheid van de aangeboden en te raadplegen
+      informatie.<br /><br />De gemeente Schiedam wijst er voorts uitdrukkelijk
+      op dat bodemgesteldheid en de staat van de bodem en fundering dynamisch
+      zijn en wijst de raadpleger van de informatie via deze website erop zo
+      nodig zelf nader (bouwkundig) onderzoek te (laten) verrichten.</b-modal
+    >
+  </div>
 </template>
 
 <script>
@@ -113,6 +179,8 @@ export default {
     this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
     this.map.addControl(new mapboxgl.FullscreenControl());
 
+    this.$bvModal.show("modal-disclaimer");
+
     this.map.on("load", this.onMapLoaded);
   },
   beforeDestroy() {
@@ -120,9 +188,24 @@ export default {
   },
   methods: {
     ...mapMutations("map", ["mapboxIsReady", "setBundles"]),
+    toggleSidebar(id) {
+      const elem = document.getElementById(id);
+      // Add or remove the 'collapsed' CSS class from the sidebar element.
+      // Returns boolean "true" or "false" whether 'collapsed' is in the class list.
+      const collapsed = elem.classList.toggle("collapsed");
+      const padding = {};
+      // 'id' is 'right' or 'left'. When run at start, this object looks like: '{left: 300}';
+      padding[id] = collapsed ? 0 : 300; // 0 if collapsed, 300 px if not. This matches the width of the sidebars in the .sidebar CSS class.
+      // Use `map.easeTo()` with a padding option to adjust the map's center accounting for the position of sidebars.
+      this.$store.map.easeTo({
+        padding: padding,
+        duration: 1000, // In ms. This matches the CSS transition duration property.
+      });
+    },
     onMapLoaded(event) {
       this.$store.map = event.target;
       this.mapboxIsReady({ status: true });
+      this.toggleSidebar("left");
       for (const bundle of this.mapBundles) {
         for (let layer of bundle.layers) {
           this.$store.map.setLayoutProperty(
@@ -186,5 +269,60 @@ a.mapboxgl-ctrl-logo {
 
 .mapboxgl-ctrl-group {
   border-radius: 0;
+}
+
+.rounded-rect {
+  background: white;
+  // border-radius: 4px;
+  // box-shadow: 0 0 50px -25px black;
+  padding: 10px;
+}
+
+.flex-center {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-center.left {
+  left: 0px;
+}
+
+.sidebar-content {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  width: 2.6em;
+  height: 2.6em;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.sidebar-toggle.left {
+  right: -2.4em;
+}
+
+.sidebar-toggle:hover {
+  color: #0aa1cf;
+  cursor: pointer;
+}
+
+.sidebar {
+  transition: transform 1s;
+  z-index: 1;
+  width: 294px;
+  height: 100%;
+}
+
+.left.collapsed {
+  transform: translateX(-295px);
 }
 </style>
