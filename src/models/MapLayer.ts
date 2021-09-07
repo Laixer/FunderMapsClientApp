@@ -11,13 +11,14 @@ export class MapLayer {
   constructor(id: string,
     markup: string,
     name: string,
-    slug: string) {
+    slug: string,
+    is_visible: boolean = false) {
     const _markup = JSON.parse(markup);
     this.id = id;
     this.markup = new LayerMarkup(_markup.type, _markup.column, _markup.values);
     this.name = name;
     this.slug = slug;
-    this.visibility = 'invisible';
+    this.visibility = is_visible ? 'visible' : 'invisible';
   }
 }
 
