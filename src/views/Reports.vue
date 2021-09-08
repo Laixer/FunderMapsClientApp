@@ -27,7 +27,7 @@ export default {
   data() {
     return {
       page: 1,
-      reportsPerPage: 25, // TODO: set to higher number...
+      reportsPerPage: 25,
     };
   },
   computed: {

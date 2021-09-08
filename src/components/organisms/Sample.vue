@@ -91,6 +91,11 @@ export default {
       this.$emit("stored", payload);
     },
   },
+  watch: {
+    async sample() {
+      this.addressId = this.sample.address;
+    },
+  },
   created() {
     // TODO Is this correct?
     this.addressId = this.sample.address;

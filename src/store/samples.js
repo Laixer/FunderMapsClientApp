@@ -14,7 +14,8 @@ import samplesAPI from 'api/samples';
  * Declare Variable
  */
 const defaultState = {
-  samples: []
+  samples: [],
+  sampleCount: 0
 }
 
 const state = Object.assign({}, defaultState);
@@ -24,17 +25,30 @@ const getters = {
     return state.samples
   },
   sampleCount: state => {
-    return state.samples ? state.samples.length : 0
+    return state.sampleCount
   }
 }
 const actions = {
-  async getSamples({ commit }, { inquiryId }) {
-    let response = await samplesAPI.getSamples({ inquiryId });
-
+  async getSamples({ commit }, { inquiryId, limit, page }) {
+    let offset = limit * (page - 1);
+    let response = await samplesAPI.getSamples({ inquiryId, limit, offset });
     if (response.status === 200 && response.data.length > 0) {
       commit('set_samples', {
         samples: response.data
       })
+    }
+  },
+
+  /**
+   * Gets the total report count from the API.
+   */
+  async getSampleCount({ commit }, { inquiryId }) {
+    let response = await samplesAPI.getSampleCount({ inquiryId });
+
+    if (response.status === 200) {
+      commit('set_sample_count', {
+        sampleCount: response.data.count
+      });
     }
   },
   async clearSamples({ commit }) {
@@ -81,6 +95,9 @@ const mutations = {
     state.samples = samples.map(sample => {
       return new SampleModel({ sample, stored: true })
     })
+  },
+  set_sample_count(state, { sampleCount }) {
+    state.sampleCount = sampleCount;
   },
   clear_samples(state) {
     state.samples = [];

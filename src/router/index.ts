@@ -139,7 +139,7 @@ const routes = [
     component: Step3
   },
   {
-    path: '/inquiry/:id/',
+    path: '/inquiry/:id/:page?',
     name: 'view-report',
     component: ReportView
   },

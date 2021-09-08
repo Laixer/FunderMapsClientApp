@@ -2,9 +2,16 @@
 import axios from '@/utils/axios'
 
 // Collection
-const getSamples = ({ inquiryId }) => {
-  return axios.get(`/api/inquiry/${inquiryId}/sample?limit=200`)
+const getSamples = ({ inquiryId, limit, offset }) => {
+  return axios.get(`/api/inquiry/${inquiryId}/sample`, {
+    params: { limit, offset }
+  })
 }
+
+const getSampleCount = ({ inquiryId }) => {
+  return axios.get(`/api/inquiry/${inquiryId}/sample/stats`)
+}
+
 
 // Single
 const updateSample = ({ inquiryId, sampleId, data }) => {
@@ -19,6 +26,7 @@ const deleteSample = ({ inquiryId, sampleId }) => {
 
 export default {
   getSamples,
+  getSampleCount,
 
   updateSample,
   createSample,

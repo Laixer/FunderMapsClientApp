@@ -6,12 +6,19 @@
         :showLastEdited="true"
         :showUsers="false"
       />
-
       <div v-if="samples.length !== 0" class="Report__samples">
         <Sample
           v-for="(sample, index) in samples"
           :key="index"
           :sample="sample"
+        />
+        <div class="mb-5" />
+        <b-pagination-nav
+          v-if="pageCount > 1"
+          v-model="page"
+          :number-of-pages="pageCount"
+          :link-gen="pageLink"
+          align="center"
         />
       </div>
       <div v-else-if="nosamples" class="text-center mt-4">
@@ -90,22 +97,42 @@ export default {
     return {
       feedback: {},
       nosamples: false,
+      page: 1,
+      samplesPerPage: 25,
     };
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
-    ...mapGetters("samples", ["samples"]),
+    ...mapGetters("samples", ["samples", "sampleCount"]),
     ...mapGetters("user", ["user"]),
+    pageCount() {
+      return this.sampleCount > 0
+        ? Math.ceil(this.sampleCount / this.samplesPerPage)
+        : 1;
+    },
+  },
+  beforeRouteUpdate(to, from, next) {
+    this.getSamples({
+      inquiryId: this.activeReport.id,
+      page: to.params.page || 1,
+      limit: this.samplesPerPage,
+    });
+    next();
   },
   async created() {
+    this.page = this.$route.params.page || 1;
+
     try {
-      // TODO Promise.whenall
       await this.getReportById({
         id: this.$route.params.id,
       });
-
-      await this.getSamples({ inquiryId: this.activeReport.id });
-      if (this.samples.length === 0) {
+      await this.getSampleCount({ inquiryId: this.activeReport.id });
+      await this.getSamples({
+        inquiryId: this.activeReport.id,
+        page: this.page,
+        limit: this.samplesPerPage,
+      });
+      if (this.sampleCount === 0) {
         this.nosamples = true;
       }
 
@@ -123,11 +150,17 @@ export default {
   },
   methods: {
     ...mapActions("report", ["getReportById", "clearActiveReport"]),
-    ...mapActions("samples", ["getSamples", "clearSamples"]),
+    ...mapActions("samples", ["getSamples", "clearSamples", "getSampleCount"]),
     ...mapActions("contractors", ["getContractors"]),
     isAdmin,
     isSuperUser,
     icon,
+    pageLink(pageNum) {
+      return {
+        name: "view-report",
+        params: { page: pageNum },
+      };
+    },
     getReportDownloadLink() {
       try {
         reportsAPI
