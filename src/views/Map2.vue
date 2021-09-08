@@ -273,8 +273,6 @@ a.mapboxgl-ctrl-logo {
 
 .rounded-rect {
   background: white;
-  // border-radius: 4px;
-  // box-shadow: 0 0 50px -25px black;
   padding: 10px;
 }
 
