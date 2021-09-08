@@ -129,12 +129,12 @@ const routes = [
     component: Step1
   },
   {
-    path: '/inquiry/:id/edit/2',
+    path: '/inquiry/:id/edit/2/:page?',
     name: 'edit-report-2',
     component: Step2
   },
   {
-    path: '/inquiry/:id/edit/3',
+    path: '/inquiry/:id/edit/3/:page?',
     name: 'edit-report-3',
     component: Step3
   },

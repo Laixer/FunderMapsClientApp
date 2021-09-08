@@ -24,6 +24,14 @@
             :editMode="true"
             @stored="handleStored"
           />
+          <div class="mb-5" />
+          <b-pagination-nav
+            v-if="pageCount > 1"
+            v-model="page"
+            :number-of-pages="pageCount"
+            :link-gen="pageLink"
+            align="center"
+          />
         </div>
         <div v-else-if="nosamples" class="text-center mt-4">
           Deze rapportage bevat nog geen adressen
@@ -92,6 +100,8 @@ export default {
       feedback: {},
       nosamples: false,
       isDisabled: false,
+      page: 1,
+      samplesPerPage: 25,
       steps: [
         new ProgressStep({
           status: "passed",
@@ -113,7 +123,12 @@ export default {
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
-    ...mapGetters("samples", ["samples"]),
+    ...mapGetters("samples", ["samples", "sampleCount"]),
+    pageCount() {
+      return this.sampleCount > 0
+        ? Math.ceil(this.sampleCount / this.samplesPerPage)
+        : 1;
+    },
     previousStep() {
       // TODO When will activereport be null ever?
       let report = this.activeReport
@@ -144,7 +159,17 @@ export default {
       return this.samples.length === 0;
     },
   },
+  beforeRouteUpdate(to, from, next) {
+    this.getSamples({
+      inquiryId: this.activeReport.id,
+      page: to.params.page || 1,
+      limit: this.samplesPerPage,
+    });
+    next();
+  },
   async created() {
+    this.page = this.$route.params.page || 1;
+
     try {
       if (!canWrite()) {
         await this.$router.push({
@@ -172,9 +197,13 @@ export default {
 
       EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
 
-      await this.getSamples({ inquiryId: this.activeReport.id });
-
-      if (this.samples.length === 0) {
+      await this.getSampleCount({ inquiryId: this.activeReport.id });
+      await this.getSamples({
+        inquiryId: this.activeReport.id,
+        page: this.page,
+        limit: this.samplesPerPage,
+      });
+      if (this.sampleCount === 0) {
         this.nosamples = true;
       }
     } catch (err) {
@@ -195,6 +224,7 @@ export default {
     ...mapActions("report", ["getReportById", "clearActiveReport"]),
     ...mapActions("samples", [
       "getSamples",
+      "getSampleCount",
       "clearSamples",
       "addUnsavedSample",
     ]),
@@ -205,6 +235,12 @@ export default {
       } else {
         this.saveAllSamples();
       }
+    },
+    pageLink(pageNum) {
+      return {
+        name: "edit-report-2",
+        params: { page: pageNum },
+      };
     },
     async saveAllSamples() {
       return await Promise.all(

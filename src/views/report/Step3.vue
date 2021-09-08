@@ -18,6 +18,14 @@
           :key="index"
           :sample="sample"
         />
+        <div class="mb-5" />
+        <b-pagination-nav
+          v-if="pageCount > 1"
+          v-model="page"
+          :number-of-pages="pageCount"
+          :link-gen="pageLink"
+          align="center"
+        />
       </div>
       <div v-else-if="nosamples" class="text-center mt-4">
         Deze rapportage bevat nog geen samples
@@ -85,6 +93,8 @@ export default {
     return {
       feedback: {},
       nosamples: false,
+      page: 1,
+      samplesPerPage: 25,
       steps: [
         new ProgressStep({
           status: "passed",
@@ -106,7 +116,12 @@ export default {
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
-    ...mapGetters("samples", ["samples"]),
+    ...mapGetters("samples", ["samples", "sampleCount"]),
+    pageCount() {
+      return this.sampleCount > 0
+        ? Math.ceil(this.sampleCount / this.samplesPerPage)
+        : 1;
+    },
     isDisabled() {
       return this.activeReport ? !this.activeReport.isPending() : false;
     },
@@ -124,7 +139,17 @@ export default {
       };
     },
   },
+  beforeRouteUpdate(to, from, next) {
+    this.getSamples({
+      inquiryId: this.activeReport.id,
+      page: to.params.page || 1,
+      limit: this.samplesPerPage,
+    });
+    next();
+  },
   async created() {
+    this.page = this.$route.params.page || 1;
+
     if (!canWrite()) {
       this.$router.push({
         name: "view-report",
@@ -153,9 +178,13 @@ export default {
 
       EventBus.$on("save-report", this.handleToPendingReview);
 
-      await this.getSamples({ inquiryId: this.activeReport.id });
-
-      if (this.samples.length === 0) {
+      await this.getSampleCount({ inquiryId: this.activeReport.id });
+      await this.getSamples({
+        inquiryId: this.activeReport.id,
+        page: this.page,
+        limit: this.samplesPerPage,
+      });
+      if (this.sampleCount === 0) {
         this.nosamples = true;
       }
     } catch (err) {
@@ -177,7 +206,13 @@ export default {
       "clearActiveReport",
       "submitForReview",
     ]),
-    ...mapActions("samples", ["getSamples", "clearSamples"]),
+    ...mapActions("samples", ["getSamples", "clearSamples", "getSampleCount"]),
+    pageLink(pageNum) {
+      return {
+        name: "edit-report-3",
+        params: { page: pageNum },
+      };
+    },
     async handleToPendingReview() {
       if (this.activeReport.isPending() === false) {
         this.feedback = {
