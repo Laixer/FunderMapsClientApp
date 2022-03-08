@@ -1,73 +1,84 @@
 <template>
-  <div v-if="areReviewersAvailable" class="ReportForm">
+  <div v-if="areReviewersAvailable">
     <ProgressSteps :steps="steps" />
-    <Form ref="form" @submit="handleSubmit" class="ReportForm__form mt-5">
-      <ReportStepHeader :step="1" :label="headerLabel" />
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-11 offset-lg-1">
+          <Form ref="form" @submit="handleSubmit" class="ReportForm__form mt-5">
+            <!-- <ReportStepHeader :step="1" :label="headerLabel" /> -->
 
-      <div class="ReportForm__pane p-5">
-        <Feedback :feedback="feedback" />
+            <div class="ReportForm__pane p-5">
+              <Feedback :feedback="feedback" />
 
-        <FormField
-          v-model="fields.documentName.value"
-          v-bind="fields.documentName"
-        />
-        <div class="form-row">
-          <FormField
-            v-model="fields.type.value"
-            v-bind="fields.type"
-            class="col-md-6"
-          />
-          <FormField
-            v-model="fields.documentDate.value"
-            v-bind="fields.documentDate"
-            class="col-md-6"
-          />
+              <FormField
+                v-model="fields.documentName.value"
+                v-bind="fields.documentName"
+                placeholder="Naam van het document"
+              />
+              <div class="form-row">
+                <FormField
+                  v-model="fields.type.value"
+                  v-bind="fields.type"
+                  class="col-md-6"
+                />
+                <FormField
+                  v-model="fields.documentDate.value"
+                  v-bind="fields.documentDate"
+                  class="col-md-6"
+                />
+              </div>
+              <div class="form-row">
+                <FormField
+                  v-model="fields.contractorId.value"
+                  v-bind="fields.contractorId"
+                  class="col-md-6"
+                />
+                <FormField
+                  v-model="fields.reviewerId.value"
+                  v-bind="fields.reviewerId"
+                  class="col-md-6"
+                />
+              </div>
+              <Divider />
+              <div class="form-row">
+                <FormField
+                  v-model="fields.standardF3o.value"
+                  v-bind="fields.standardF3o"
+                  class="col-md-3"
+                />
+                <FormField
+                  v-model="fields.inspection.value"
+                  v-bind="fields.inspection"
+                  class="col-md-3"
+                />
+                <FormField
+                  v-model="fields.jointMeasurement.value"
+                  v-bind="fields.jointMeasurement"
+                  class="col-md-3"
+                />
+                <FormField
+                  v-model="fields.floorMeasurement.value"
+                  v-bind="fields.floorMeasurement"
+                  class="col-md-3"
+                />
+              </div>
+              <FormField v-model="fields.note.value" v-bind="fields.note" />
+            </div>
+          </Form>
+          <!-- <div class="d-flex justify-content-center mt-4">
+            <PrimaryArrowButton
+              :disabled="isDisabled"
+              :to="nextStep"
+              label="Volgende"
+            />
+          </div> -->
         </div>
-        <div class="form-row">
-          <FormField
-            v-model="fields.contractorId.value"
-            v-bind="fields.contractorId"
-            class="col-md-6"
-          />
-          <FormField
-            v-model="fields.reviewerId.value"
-            v-bind="fields.reviewerId"
-            class="col-md-6"
-          />
-        </div>
-        <Divider />
-        <div class="form-row">
-          <FormField
-            v-model="fields.standardF3o.value"
-            v-bind="fields.standardF3o"
-            class="col-md-3"
-          />
-          <FormField
-            v-model="fields.inspection.value"
-            v-bind="fields.inspection"
-            class="col-md-3"
-          />
-          <FormField
-            v-model="fields.jointMeasurement.value"
-            v-bind="fields.jointMeasurement"
-            class="col-md-3"
-          />
-          <FormField
-            v-model="fields.floorMeasurement.value"
-            v-bind="fields.floorMeasurement"
-            class="col-md-3"
-          />
-        </div>
-        <FormField v-model="fields.note.value" v-bind="fields.note" />
       </div>
-    </Form>
-    <div class="d-flex justify-content-center mt-4">
-      <PrimaryArrowButton
-        :disabled="isDisabled"
-        :to="nextStep"
-        label="Volgende"
-      />
     </div>
+
+    <div class="NavigationBar"></div>
+
+    <NavigationBar :prev="null" :next="nextStep" />
   </div>
   <div v-else>
     <!-- TODO: Show an error page -->
@@ -84,6 +95,7 @@ import Divider from "atom/Divider";
 import Feedback from "atom/Feedback";
 import ReportStepHeader from "atom/ReportStepHeader";
 import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
+import NavigationBar from "molecule/NavigationBar";
 
 import { required, maxLength } from "vuelidate/lib/validators";
 import { typeOptions } from "config/enums";
@@ -99,8 +111,9 @@ export default {
     Feedback,
     ProgressSteps,
     Divider,
-    PrimaryArrowButton,
-    ReportStepHeader,
+    NavigationBar,
+    // PrimaryArrowButton,
+    // ReportStepHeader,
   },
   mixins: [fields],
   data() {
@@ -147,8 +160,8 @@ export default {
           type: "datepicker",
           validationRules: {
             required,
-            min: (value) => value > new Date(1000, 1, 1),
-            max: (value) => value < new Date(2100, 1, 1),
+            min: value => value > new Date(1000, 1, 1),
+            max: value => value < new Date(2100, 1, 1),
           },
           disabled: false,
         },
@@ -260,14 +273,20 @@ export default {
           status: "active",
           step: 1,
           icon: "Step-create-icon.svg",
+          title: "Rapportinformatie",
+          to: "edit-report-1",
         }),
         new ProgressStep({
           step: 2,
           icon: "Step-samples-icon.svg",
+          title: "Funderingsgegevens",
+          to: "edit-report-2",
         }),
         new ProgressStep({
           step: 3,
           icon: "Step-verify-icon.svg",
+          title: "Controle overzicht",
+          to: "edit-report-3",
         }),
       ],
     };
@@ -344,6 +363,7 @@ export default {
    * If nothing was modified in the form, just go to the next step.
    */
   async beforeRouteLeave(to, from, next) {
+    console.log("check");
     let values = this.allFieldValues();
 
     if (to.name !== "edit-report-2" || this.stored === true) {
@@ -366,6 +386,7 @@ export default {
       // Skip form submit.
       next();
     } else {
+      console.log("trigger else");
       // Trigger form submit.
       await this.$refs.form.submit();
       next(false);

@@ -1,71 +1,88 @@
 <template>
-  <div class="ReportForm">
+  <div>
     <ProgressSteps :steps="steps" />
-    <div v-if="activeReport" class="ReportForm__form mt-5">
-      <ReportStepHeader :step="2" :label="activeReport.documentName">
-        <b-button
-          variant="light"
-          class="font-weight-bold d-flex align-items-center"
-          @click="handleAddSample"
-        >
-          <img :src="icon('Plus-icon.svg')" width="11" height="11" />
-          <span class="ml-1">Adres toevoegen</span>
-        </b-button>
-      </ReportStepHeader>
+    <div class="container mt-5">
+      <div class="row">
+        <div class="col-4">
+          <a href="#" @click="handleAddSample" class="btn btn-add"
+            >Adres toevoegen</a
+          >
+          <div class="SampleCardBar">
+            <div v-if="samples.length !== 0" class="">
+              <SampleCard
+                v-for="(sample, index) in samples"
+                :ref="'sample_' + index"
+                :key="index + '-' + Date.now()"
+                :sample="sample"
+                :editMode="true"
+                :class="{
+                  active: selectedSample && sample.id == selectedSample.id,
+                }"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="col-8">
+          <FormSteps ref="formSteps" v-if="selectedSample" />
 
-      <div>
-        <Feedback :feedback="feedback" />
-        <div v-if="samples.length !== 0" class="Report__samples">
-          <Sample
-            v-for="(sample, index) in samples"
-            :ref="'sample_' + index"
-            :key="index + '-' + Date.now()"
-            :sample="sample"
-            :editMode="true"
-            @stored="handleStored"
-          />
-          <div class="mb-5" />
-          <b-pagination-nav
-            v-if="pageCount > 1"
-            v-model="page"
-            :number-of-pages="pageCount"
-            :link-gen="pageLink"
-            align="center"
-          />
-        </div>
-        <div v-else-if="nosamples" class="text-center mt-4">
-          Deze rapportage bevat nog geen adressen
-        </div>
-        <div class="text-center mt-4" v-else>
-          De addres gegevens worden geladen...
+          <div v-if="activeReport">
+            <!-- <div>
+              <Feedback :feedback="feedback" />
+              <div v-if="samples.length !== 0" class="">
+                <Sample
+                  v-for="(sample, index) in samples"
+                  :ref="'sample_' + index"
+                  :key="index + '-' + Date.now()"
+                  :sample="sample"
+                  :editMode="true"
+                  @stored="handleStored"
+                />
+                <div class="mb-5" />
+                <b-pagination-nav
+                  v-if="pageCount > 1"
+                  v-model="page"
+                  :number-of-pages="pageCount"
+                  :link-gen="pageLink"
+                  align="center"
+                />
+              </div>
+              <div v-else-if="nosamples" class="text-center mt-4">
+                Deze rapportage bevat nog geen adressen
+              </div>
+              <div class="text-center mt-4" v-else>
+                De addres gegevens worden geladen...
+              </div>
+            </div> -->
+          </div>
+
+          <div
+            v-if="!activeReport"
+            class="d-flex w-100 h-100 align-items-center justify-content-center mt-5"
+          >
+            <span v-if="!feedback.message">
+              Het rapport wordt geladen. We halen het rapport hier opnieuw op om
+              te voorkomen dat er gewerkt wordt met verouderde data.
+            </span>
+            <Feedback :feedback="feedback" />
+          </div>
+
+          <!-- <div class="d-flex align-items-center justify-content-center mt-4">
+            <BackButton
+              :disabled="isDisabled"
+              :to="previousStep"
+              class="mr-3"
+              label="Vorige"
+            />
+            <PrimaryArrowButton
+              :disabled="isDisabledNext"
+              @click="handleSaveSamplesAndNextStep"
+              label="Volgende"
+            />
+          </div> -->
         </div>
       </div>
     </div>
-
-    <div
-      v-if="!activeReport"
-      class="d-flex w-100 h-100 align-items-center justify-content-center mt-5"
-    >
-      <span v-if="!feedback.message">
-        Het rapport wordt geladen. We halen het rapport hier opnieuw op om te
-        voorkomen dat er gewerkt wordt met verouderde data.
-      </span>
-      <Feedback :feedback="feedback" />
-    </div>
-
-    <div class="d-flex align-items-center justify-content-center mt-4">
-      <BackButton
-        :disabled="isDisabled"
-        :to="previousStep"
-        class="mr-3"
-        label="Vorige"
-      />
-      <PrimaryArrowButton
-        :disabled="isDisabledNext"
-        @click="handleSaveSamplesAndNextStep"
-        label="Volgende"
-      />
-    </div>
+    <!-- <NavigationBar :prev="null" :next="nextStep" /> -->
   </div>
 </template>
 
@@ -77,6 +94,8 @@ import ReportStepHeader from "atom/ReportStepHeader";
 import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
 import BackButton from "atom/navigation/BackButton";
 import Sample from "organism/Sample";
+import SampleCard from "organism/SampleCard";
+import FormSteps from "organism/FormSteps";
 
 import { mapActions, mapGetters } from "vuex";
 import { icon } from "helper/assets";
@@ -88,10 +107,12 @@ export default {
   components: {
     Feedback,
     ProgressSteps,
-    ReportStepHeader,
-    PrimaryArrowButton,
-    Sample,
-    BackButton,
+    // ReportStepHeader,
+    // PrimaryArrowButton,
+    // Sample,
+    // BackButton,
+    SampleCard,
+    FormSteps,
   },
   data() {
     return {
@@ -107,23 +128,29 @@ export default {
           status: "passed",
           step: 1,
           icon: "Step-create-icon.svg",
+          title: "Rapportinformatie",
+          to: "edit-report-1",
         }),
         new ProgressStep({
           status: "active",
           step: 2,
           icon: "Step-samples-icon.svg",
+          title: "Funderingsgegevens",
+          to: "edit-report-2",
         }),
         new ProgressStep({
           status: "disabled",
           step: 3,
           icon: "Step-verify-icon.svg",
+          title: "Controle overzicht",
+          to: "edit-report-3",
         }),
       ],
     };
   },
   computed: {
     ...mapGetters("report", ["activeReport"]),
-    ...mapGetters("samples", ["samples", "sampleCount"]),
+    ...mapGetters("samples", ["samples", "sampleCount", "selectedSample"]),
     pageCount() {
       return this.sampleCount > 0
         ? Math.ceil(this.sampleCount / this.samplesPerPage)
@@ -160,11 +187,19 @@ export default {
     },
   },
   beforeRouteUpdate(to, from, next) {
-    this.getSamples({
-      inquiryId: this.activeReport.id,
-      page: to.params.page || 1,
-      limit: this.samplesPerPage,
-    });
+    // if (from.params.step) {
+    //   this.$refs.formSteps.save(from.params.step);
+    // }
+
+    // console.log(to);
+    // console.log(from);
+
+    // console.log("------");
+    // this.getSamples({
+    //   inquiryId: this.activeReport.id,
+    //   page: to.params.page || 1,
+    //   limit: this.samplesPerPage,
+    // });
     next();
   },
   async created() {
@@ -195,7 +230,7 @@ export default {
         return;
       }
 
-      EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
+      // EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
 
       await this.getSampleCount({ inquiryId: this.activeReport.id });
       await this.getSamples({
@@ -213,12 +248,12 @@ export default {
       };
     }
   },
-  beforeDestroy() {
-    this.clearActiveReport();
-    this.clearSamples();
+  // beforeDestroy() {
+  //   this.clearActiveReport();
+  //   this.clearSamples();
 
-    EventBus.$off("save-report", this.handleSaveSamplesAndNextStep);
-  },
+  //   EventBus.$off("save-report", this.handleSaveSamplesAndNextStep);
+  // },
   methods: {
     icon,
     ...mapActions("report", ["getReportById", "clearActiveReport"]),
@@ -228,13 +263,15 @@ export default {
       "clearSamples",
       "addUnsavedSample",
     ]),
+
     handleAddSample() {
-      this.countdownToNewSample = this.samples.length;
-      if (this.countdownToNewSample === 0) {
-        this.addUnsavedSample();
-      } else {
-        this.saveAllSamples();
-      }
+      // this.countdownToNewSample = this.samples.length;
+      // if (this.countdownToNewSample === 0) {
+      //   this.addUnsavedSample();
+      // } else {
+      //   this.saveAllSamples();
+      // }
+      this.addUnsavedSample();
     },
     pageLink(pageNum) {
       return {
@@ -293,3 +330,28 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+@import "@/assets/scss/variables.scss";
+.SampleCardBar {
+  margin-top: 20px;
+  margin-right: 40px;
+
+  &::-webkit-scrollbar-track {
+    background: none;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar {
+    width: 36px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-left: 15px solid rgba(0, 0, 0, 0);
+    border-right: 15px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    height: 60px;
+    -webkit-border-radius: 10px;
+    background-color: $regent-gray;
+  }
+}
+</style>

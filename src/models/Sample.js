@@ -1,45 +1,44 @@
-
 import {
   foundationTypeOptions,
   foundationQualityOptions,
   substructureOptions,
   foundationDamageCauseOptions,
   enforcementTermOptions,
-  accessOptions
-} from 'config/enums'
+  accessOptions,
+} from "config/enums";
 
 /**
  * The SampleModel
  */
 
 let structure = {
-  id: '',
-  report: '',
+  id: "",
+  report: "",
   foundationType: null,
   foundationQuality: null,
   substructure: null,
-  monitoringWell: '',
-  cpt: '',
-  note: '',
+  monitoringWell: "",
+  cpt: "",
+  note: "",
   woodLevel: null,
   groundwaterLeveTemp: null,
   groundLevel: null,
   recoveryAdvised: false,
   foundationDamageCause: null,
-  builtYear: '',
+  builtYear: "",
   enforcementTerm: null,
   address: null,
   policy: 0,
-  createDate: '',
-  updateDate: '',
-  deleteDate: ''
-}
+  createDate: "",
+  updateDate: "",
+  deleteDate: "",
+};
 
 export default class SampleModel {
   constructor({ sample, stored, editorState }) {
     Object.assign(this, structure, sample);
     this.stored = stored;
-    this.editorState = editorState || 'close';
+    this.editorState = editorState || "close";
   }
   updateValues({ data }) {
     Object.assign(this, structure, data);
@@ -48,10 +47,10 @@ export default class SampleModel {
   //  Editor states
   // ****************************************************************************
   openEditor() {
-    this.editorState = 'open';
+    this.editorState = "open";
   }
   closeEditor() {
-    this.editorState = 'close';
+    this.editorState = "close";
   }
   // ****************************************************************************
   //  Dropdown values
@@ -76,4 +75,3 @@ export default class SampleModel {
     return accessOptions[this.policy] || null;
   }
 }
-
