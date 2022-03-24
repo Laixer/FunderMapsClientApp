@@ -37,14 +37,20 @@ const actions = {
     let offset = limit * (page - 1);
     let response = await samplesAPI.getSamples({ inquiryId, limit, offset });
     if (response.status === 200 && response.data.length > 0) {
-      const test = dispatch("address/getAddressById", {
-        id: sample.address,
-      });
+      var samples = response.data;
 
-      console.log(test);
+      await Promise.all(
+        samples.map(async sample => {
+          const address = await this.dispatch("address/getAddressById", {
+            id: sample.address,
+          });
+
+          sample.addressFormatted = address.format();
+        })
+      );
 
       commit("set_samples", {
-        samples: response.data,
+        samples: samples,
       });
     }
   },
@@ -128,12 +134,6 @@ const mutations = {
   },
   set_samples(state, { samples }) {
     state.samples = samples.map(sample => {
-      // const address = await this.getAddressById({
-      //   id: this.selectedSample.address,
-      // });
-
-      // sample.formatedAddress = address.format();
-
       return new SampleModel({ sample, stored: true });
     });
   },

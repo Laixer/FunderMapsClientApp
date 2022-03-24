@@ -1,7 +1,7 @@
 <template>
   <b-form-group class="FormField" :state="state">
     <!-- :label="label" -->
-    <template v-slot:label>
+    <template v-slot:label v-if="type != 'checkbox'">
       <span>{{ label }}</span>
       <span v-if="hasInfo" class="info ml-1" @click="openInfo">
         <img
@@ -51,6 +51,31 @@
       </b-form-radio>
     </div>
 
+    <div class="radio-images" v-else-if="type === 'radio-images'">
+      <div
+        class=""
+        v-for="option in options"
+        :key="option.value"
+        :state="state"
+        :disabled="isDisabled"
+      >
+        <input
+          type="radio"
+          v-model="fieldValue"
+          :value="option.value"
+          @input="handleInput($event.target.value)"
+          @blur="handleBlur"
+          :id="option.value"
+        />
+        <label class="radio-images__item" :for="option.value">
+          <img :src="icon(option.icon)" />
+
+          <span class="item-title">{{ option.text }}</span>
+          <span class="item-check"></span>
+        </label>
+      </div>
+    </div>
+
     <b-form-radio-group
       v-else-if="type === 'radio'"
       v-model="fieldValue"
@@ -62,6 +87,32 @@
       @input="handleInput"
       @blur="handleBlur"
     ></b-form-radio-group>
+
+    <div class="image-checkbox" v-else-if="type === 'checkbox'">
+      <!-- <b-form-checkbox
+        v-model="fieldValue"
+        :options="options"
+        :state="state"
+        :placeholder="placeholder"
+        :autocomplete="autocomplete"
+        :disabled="isDisabled"
+        @input="handleInput"
+        @blur="handleBlur"
+      >
+      </b-form-checkbox> -->
+      <input
+        type="checkbox"
+        v-model="fieldValue"
+        @change="handleInput($event.target.checked)"
+        @blur="handleBlur"
+        :id="label"
+      />
+      <label class="image-checkbox__item" :for="label">
+        <img :src="icon(image)" />
+        <span class="item-title">{{ label }}</span>
+        <span class="item-check"></span>
+      </label>
+    </div>
 
     <!-- <v-date-picker
       locale="nl"
@@ -160,7 +211,7 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import { icon } from "helper/assets";
+import { icon, image } from "helper/assets";
 
 // TODO: https://github.com/charliekassel/vuejs-datepicker
 // TODO: https://vue-multiselect.js.org
@@ -215,6 +266,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Used by checkbox
+    image: {
+      type: String,
+      default: null,
+    },
     // Used by `type === select & radio`
     options: {
       type: Array,
@@ -231,7 +287,7 @@ export default {
     },
     serializer: {
       type: Function,
-      default: d => d,
+      default: (d) => d,
     },
     // Used by `type === text`
     append: {
@@ -298,7 +354,7 @@ export default {
       // Go over the validation rules, and return the
       // name of the first rule that is broken
       let match = Object.keys(this.validationRules).find(
-        rule => !validator[rule]
+        (rule) => !validator[rule]
       );
       if (match === -1) {
         return ""; // apparently no rules are broken?
@@ -402,6 +458,7 @@ export default {
       this.blurred = true;
     },
     handleInput(value) {
+      console.log(value);
       if (this.blurred || this.type === "select") {
         this.validate();
       }
@@ -427,6 +484,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import "@/assets/scss/variables.scss";
+
 .FormField {
   font-size: 16px;
   position: relative;
@@ -482,6 +541,191 @@ export default {
     .cell:hover,
     .selected {
       border-radius: 0.25rem;
+    }
+  }
+
+  .image-checkbox {
+    input {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+
+      &:checked {
+        + label {
+          border-color: $shamrock;
+          background-color: rgba($shamrock, 0.1);
+
+          .item-check {
+            &::before {
+              transform: translate(0, 0);
+            }
+
+            &::after {
+              opacity: 1;
+            }
+          }
+        }
+      }
+    }
+
+    &__item {
+      background: $white;
+      padding: 15px 15px 40px;
+      text-align: center;
+      position: relative;
+      border: 1px solid $mischka;
+      cursor: pointer;
+      display: block;
+      margin-bottom: 0;
+
+      img {
+        display: block;
+        margin: auto;
+      }
+
+      .item-title {
+        position: absolute;
+        font-size: 14px;
+        margin-top: 0.5rem;
+        color: $raven;
+        text-transform: none;
+        left: 0;
+        width: 100%;
+      }
+
+      .item-check {
+        height: 40px;
+        // opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: opacity ease 0.28s;
+        width: 40px;
+
+        &::before,
+        &::after {
+          content: "";
+          display: block;
+          position: absolute;
+        }
+
+        &::before {
+          border-style: solid;
+          border-width: 0 40px 40px 0;
+          border-color: transparent $shamrock transparent transparent;
+          transition: transform ease 0.28s;
+          transform: translate(100%, -100%);
+          z-index: 1;
+        }
+
+        &::after {
+          background-image: url("data:image/svg+xml,%3Csvg height='9' viewBox='0 0 12 9' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m778.921953 293.707368-2.751221-2.65263-1.170732 1.13684 3.921953 3.808422 8.078047-7.84421-1.17073-1.15579z' fill='%23fff' fill-rule='evenodd' transform='translate(-775 -287)'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: center;
+          z-index: 2;
+          height: 9px;
+          right: 5px;
+          transition: opacity ease 0.28s 0.18s;
+          opacity: 0;
+          top: 6px;
+          width: 12px;
+        }
+      }
+    }
+  }
+
+  .radio-images {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+
+    input {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+
+      &:checked {
+        + label {
+          border-color: $shamrock;
+          background-color: rgba($shamrock, 0.1);
+
+          .item-check {
+            &::before {
+              transform: translate(0, 0);
+            }
+
+            &::after {
+              opacity: 1;
+            }
+          }
+        }
+      }
+    }
+
+    &__item {
+      background: $white;
+      padding: 15px 15px 40px;
+      text-align: center;
+      position: relative;
+      width: 100%;
+      border: 1px solid $mischka;
+      cursor: pointer;
+
+      img {
+        display: block;
+        margin: auto;
+      }
+
+      .item-title {
+        position: absolute;
+        font-size: 14px;
+        margin-top: 0.5rem;
+        color: $raven;
+        text-transform: none;
+        left: 0;
+        width: 100%;
+      }
+
+      .item-check {
+        height: 40px;
+        // opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: opacity ease 0.28s;
+        width: 40px;
+
+        &::before,
+        &::after {
+          content: "";
+          display: block;
+          position: absolute;
+        }
+
+        &::before {
+          border-style: solid;
+          border-width: 0 40px 40px 0;
+          border-color: transparent $shamrock transparent transparent;
+          transition: transform ease 0.28s;
+          transform: translate(100%, -100%);
+          z-index: 1;
+        }
+
+        &::after {
+          background-image: url("data:image/svg+xml,%3Csvg height='9' viewBox='0 0 12 9' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m778.921953 293.707368-2.751221-2.65263-1.170732 1.13684 3.921953 3.808422 8.078047-7.84421-1.17073-1.15579z' fill='%23fff' fill-rule='evenodd' transform='translate(-775 -287)'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: center;
+          z-index: 2;
+          height: 9px;
+          right: 5px;
+          transition: opacity ease 0.28s 0.18s;
+          opacity: 0;
+          top: 6px;
+          width: 12px;
+        }
+      }
     }
   }
 }

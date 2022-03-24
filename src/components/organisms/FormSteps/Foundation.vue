@@ -9,7 +9,7 @@
       :to="{ name: 'edit-report-2', params: { page: 1, step: step } }"
       class="FormStepDropdown"
     >
-      <h5 class="FormStep__title">Omgeving</h5>
+      <h5 class="FormStep__title">Fundering</h5>
 
       <span class="FormStepDropdown__indicator">
         <img :src="icon('Angle.svg')" />
@@ -19,38 +19,46 @@
     <div class="FormStepForm" v-if="active">
       <Form ref="form" @submit="handleSubmit">
         <Feedback :feedback="feedback" />
+
+        <FormField
+          v-model="fields.foundationTypeGroup.value"
+          v-bind="fields.foundationTypeGroup"
+          @input="handleFoundationChange()"
+        />
+        <div class="form-row mb-3" v-if="fields.foundationTypeGroup.value">
+          <FormField
+            v-model="fields.foundationType.value"
+            v-bind="fields.foundationType"
+            class="col-md-6"
+          />
+        </div>
+
+        <hr />
+
         <div class="form-row mb-3">
           <FormField
-            v-model="fields.cpt.value"
-            v-bind="fields.cpt"
+            v-model="fields.enforcementTerm.value"
+            v-bind="fields.enforcementTerm"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-model="fields.damageCharacteristics.value"
+            v-bind="fields.damageCharacteristics"
             class="col-md-6"
           />
         </div>
 
         <div class="form-row mb-3">
           <FormField
-            v-model="fields.groundLevel.value"
-            v-bind="fields.groundLevel"
+            v-model="fields.overallQuality.value"
+            v-bind="fields.overallQuality"
             class="col-md-6"
           />
 
           <FormField
-            v-model="fields.monitoringWell.value"
-            v-bind="fields.monitoringWell"
-            class="col-md-6"
-          />
-        </div>
-
-        <div class="form-row mb-3">
-          <FormField
-            v-model="fields.groundwaterLevelTemp.value"
-            v-bind="fields.groundwaterLevelTemp"
-            class="col-md-6"
-          />
-
-          <FormField
-            v-model="fields.groundwaterLevelNet.value"
-            v-bind="fields.groundwaterLevelNet"
+            v-model="fields.damageCause.value"
+            v-bind="fields.damageCause"
             class="col-md-6"
           />
         </div>
@@ -72,7 +80,13 @@ import {
   maxValue,
 } from "vuelidate/lib/validators";
 
-import { substructureOptions } from "config/enums";
+import {
+  foundationTypeOptions,
+  enforcementTermOptions,
+  foundationDamageCauseOptions,
+  damageCharacteristicsOptions,
+  foundationQualityOptions,
+} from "config/enums";
 import { mapGetters, mapActions } from "vuex";
 
 import Form from "molecule/form/Form";
@@ -111,58 +125,90 @@ export default {
       icon,
       changed: false,
       feedback: {},
+      test: foundationTypeOptions,
       fields: {
-        // address: {
-        //   label: "Adres",
-        //   type: "typeahead",
-        //   selected: null,
-        //   value: "",
-        //   data: [],
-        //   validationRules: {
-        //     required,
-        //     maxLength: maxLength(128),
-        //   },
-        // },
-        cpt: {
-          label: "Sondering",
-          type: "text",
-          value: "",
-          validationRules: {
-            maxLength: maxLength(32),
-          },
+        foundationTypeGroup: {
+          label: "Funderingstype",
+          type: "radio-images",
+          value: false,
+          options: [
+            {
+              value: "foundation-wooden-poles",
+              text: "Houten palen",
+              icon: "foundation-wooden-poles.svg",
+            },
+            {
+              value: "foundation-wooden-poles-2",
+              text: "Houten palen oplanger",
+              icon: "foundation-wooden-poles-2.svg",
+            },
+            {
+              value: "foundation-concrete-poles",
+              text: "Betonnen palen",
+              icon: "foundation-concrete-poles.svg",
+            },
+            {
+              value: "foundation-none",
+              text: "Niet onderheid",
+              icon: "foundation-none.svg",
+            },
+          ],
+          validationRules: {},
         },
-        groundLevel: {
-          label: "Maaiveldhoogte",
-          type: "text",
-          value: "",
-          validationRules: {
-            decimal,
-          },
+        foundationType: {
+          label: "",
+          type: "select",
+          value: null,
+          options: foundationTypeOptions,
+          validationRules: {},
         },
-        monitoringWell: {
-          label: "Peilbuis",
-          type: "text",
-          value: "",
-          validationRules: {
-            maxLength: maxLength(32),
-          },
+        enforcementTerm: {
+          label: "Handhavingstermijn",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(enforcementTermOptions),
+          validationRules: {},
         },
-        groundwaterLevelTemp: {
-          label: "Grondwaterniveau",
-          type: "text",
-          value: "",
-          validationRules: {
-            maxLength: maxLength(32),
-          },
+        damageCharacteristics: {
+          label: "Geconstateerde schade",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(damageCharacteristicsOptions),
+          validationRules: {},
         },
-
-        groundwaterLevelNet: {
-          label: "Grondwaterniveau bij ontgraving",
-          type: "text",
-          value: "",
-          validationRules: {
-            maxLength: maxLength(32),
-          },
+        overallQuality: {
+          label: "Algehele funderingskwaliteit",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(foundationQualityOptions),
+          validationRules: {},
+        },
+        damageCause: {
+          label: "Oorzaak funderingsschade",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(foundationDamageCauseOptions),
+          validationRules: {},
         },
       },
     };
@@ -171,11 +217,23 @@ export default {
   async created() {
     // Explicitly set the address field.
     this.setFieldValues({
-      cpt: this.sample.cpt,
-      groundLevel: this.sample.groundLevel,
-      monitoringWell: this.sample.monitoringWell,
-      groundwaterLevelTemp: this.sample.groundwaterLevelTemp,
-      groundwaterLevelNet: this.sample.groundwaterLevelNet,
+      //   cpt: this.sample.cpt,
+      damageCause: this.optionValue({
+        options: foundationDamageCauseOptions,
+        name: "damageCause",
+      }),
+      enforcementTerm: this.optionValue({
+        options: enforcementTermOptions,
+        name: "enforcementTerm",
+      }),
+      overallQuality: this.optionValue({
+        options: foundationQualityOptions,
+        name: "overallQuality",
+      }),
+      damageCharacteristics: this.optionValue({
+        options: damageCharacteristicsOptions,
+        name: "damageCharacteristics",
+      }),
     });
 
     this.$nextTick(() => {
@@ -198,6 +256,38 @@ export default {
 
   methods: {
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
+
+    handleFoundationChange() {
+      var value = this.fields.foundationTypeGroup.value;
+
+      this.fields.foundationType.value = null;
+
+      if (
+        value == "foundation-wooden-poles" ||
+        value == "foundation-wooden-poles-2"
+      ) {
+        this.fields.foundationType.options =
+          this.conditionalFoundationTypeOptions("wood");
+      } else if (value == "foundation-concrete-poles") {
+        this.fields.foundationType.options =
+          this.conditionalFoundationTypeOptions("concrete");
+      } else {
+        this.fields.foundationType.options =
+          this.conditionalFoundationTypeOptions("none");
+      }
+    },
+
+    conditionalFoundationTypeOptions(value) {
+      if (value) {
+        var filtered = foundationTypeOptions.filter((option) => {
+          return option.group == value || option.group == null;
+        });
+
+        return filtered;
+      } else {
+        return foundationTypeOptions;
+      }
+    },
 
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
@@ -225,14 +315,6 @@ export default {
       this.disableAllFields();
 
       let data = this.allFieldValues();
-
-      data.groundLevel = data.groundLevel ? Number(data.groundLevel) : null;
-      data.groundwaterLevelTemp = data.groundwaterLevelTemp
-        ? Number(data.groundwaterLevelTemp)
-        : null;
-      data.groundwaterLevelNet = data.groundwaterLevelNet
-        ? Number(data.groundwaterLevelNet)
-        : null;
 
       if (this.sample.id) {
         data.id = this.sample.id;

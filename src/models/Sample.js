@@ -32,6 +32,7 @@ let structure = {
   createDate: "",
   updateDate: "",
   deleteDate: "",
+  formattedAddress: null,
 };
 
 export default class SampleModel {

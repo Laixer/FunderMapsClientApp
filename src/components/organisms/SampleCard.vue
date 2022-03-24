@@ -1,9 +1,15 @@
 <template>
   <div class="SampleCard" @click="select()">
-    <span class="SampleCard__title">{{ sample.address }} (Sample: {{ sample.id }})</span>
+    <span class="SampleCard__title">{{ sample.addressFormatted }}</span>
     <span class="SampleCard__actions">
       <a href="#open" class="SampleCard__open">
-        <svg class="SampleCard__icon" height="10" viewBox="0 0 10 10" width="10" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          class="SampleCard__icon"
+          height="10"
+          viewBox="0 0 10 10"
+          width="10"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="m348.995316 24.9976582h-4.98829c-.281032 0-.519125.0975785-.714286.2927393-.195161.1951609-.29274.4332536-.29274.714286v4.9882907c0 .2810319.097579.5191247.29274.7142857s.433254.2927401.714286.2927401h4.98829c.281033 0 .519126-.0975791.714286-.2927401.195161-.195161.29274-.4332538.29274-.7142857v-4.9882907c0-.2810324-.097579-.5191251-.29274-.714286-.19516-.1951608-.433253-.2927393-.714286-.2927393zm2.997659-2.9976582h-4.988291c-.281032 0-.519124.0975784-.714285.2927393-.195162.1951609-.292741.4332536-.292741.714286v.9953158h4.004684c.273226 0 .507415.0975798.702576.2927406.195161.1951609.29274.42935.29274.7025765v4.0046836h.995317c.281032 0 .519125-.0975785.714286-.2927407.195161-.1951608.292739-.4332535.292739-.7142846v-4.9882912c0-.2810324-.097578-.5191251-.292739-.714286s-.433254-.2927393-.714286-.2927393z"
             fill=""
@@ -13,7 +19,13 @@
         </svg>
       </a>
       <a href="#open" class="SampleCard__delete">
-        <svg class="SampleCard__icon" xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8">
+        <svg
+          class="SampleCard__icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
+        >
           <path
             fill=""
             fill-rule="evenodd"
@@ -86,7 +98,8 @@ $progress: (
   border-radius: 5px;
   background-color: $aqua-haze;
   border: 1px solid $mischka;
-  transition: border-color ease-in-out 0.2s, box-shadow ease-in-out 0.1s, background-color ease-in-out 0.15s;
+  transition: border-color ease-in-out 0.2s, box-shadow ease-in-out 0.1s,
+    background-color ease-in-out 0.15s;
   cursor: pointer;
 
   &:hover {

@@ -5,6 +5,11 @@
     background-color: $white;
     border-radius: 5px;
     border: 1px solid $mischka;
+
+    .FormStep__title {
+      font-weight: 700;
+      color: $oxford-blue;
+    }
   }
 
   &__title {

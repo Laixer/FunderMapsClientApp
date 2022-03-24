@@ -9,7 +9,7 @@
       :to="{ name: 'edit-report-2', params: { page: 1, step: step } }"
       class="FormStepDropdown"
     >
-      <h5 class="FormStep__title">Algemeen</h5>
+      <h5 class="FormStep__title">Vervorming</h5>
 
       <span class="FormStepDropdown__indicator">
         <img :src="icon('Angle.svg')" />
@@ -17,38 +17,65 @@
     </router-link>
 
     <div class="FormStepForm" v-if="active">
-      <Form ref="form" @submit="handleSubmit" @error="handleFormError">
+      <Form ref="form" @submit="handleSubmit">
         <Feedback :feedback="feedback" />
+
         <div class="form-row mb-3">
           <FormField
-            v-model="fields.address.value"
-            v-bind="fields.address"
-            :serializer="addressSerializer"
-            class="col-9"
-            @input="getAddresses"
-            @hit="handleHit"
-          />
-
-          <FormField
-            v-model="fields.builtYear.value"
-            v-bind="fields.builtYear"
-            class="col-3"
-          />
-        </div>
-
-        <div class="form-row">
-          <FormField
-            v-model="fields.substructure.value"
-            v-bind="fields.substructure"
+            v-model="fields.deformedFacade.value"
+            v-bind="fields.deformedFacade"
             class="col-md-6"
           />
 
           <FormField
-            v-model="fields.recoveryAdvised.value"
-            v-bind="fields.recoveryAdvised"
+            v-model="fields.skewedFacade.value"
+            v-bind="fields.skewedFacade"
             class="col-md-6"
           />
         </div>
+
+        <div class="form-row mb-3">
+          <FormField
+            v-model="fields.skewedPerpendicular.value"
+            v-bind="fields.skewedPerpendicular"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-model="fields.skewedParallel.value"
+            v-bind="fields.skewedParallel"
+            class="col-md-6"
+          />
+        </div>
+
+        <div class="form-row mb-3">
+          <FormField
+            v-model="fields.thresholdFrontLevel.value"
+            v-bind="fields.thresholdFrontLevel"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-model="fields.thresholdBackLevel.value"
+            v-bind="fields.thresholdBackLevel"
+            class="col-md-6"
+          />
+        </div>
+
+        <div class="form-row mb-3">
+          <FormField
+            v-model="fields.skewedWindowFrame.value"
+            v-bind="fields.skewedWindowFrame"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-model="fields.settlementSpeed.value"
+            v-bind="fields.settlementSpeed"
+            class="col-md-6"
+          />
+        </div>
+
         <span @click="save()" class="btn btn-continue"
           >Opslaan &amp; verder</span
         >
@@ -67,7 +94,7 @@ import {
   maxValue,
 } from "vuelidate/lib/validators";
 
-import { substructureOptions } from "config/enums";
+import { rotationOptions } from "config/enums";
 import { mapGetters, mapActions } from "vuex";
 
 import Form from "molecule/form/Form";
@@ -75,7 +102,6 @@ import FormField from "molecule/form/FormField";
 import Feedback from "atom/Feedback";
 
 import fields from "mixin/fields";
-
 import { icon } from "helper/assets";
 
 export default {
@@ -102,82 +128,14 @@ export default {
     },
   },
 
-  async created() {
-    // Explicitly set the address field.
-    if (this.sample.address !== null) {
-      let addressFetched = await this.getAddressById({
-        id: this.sample.address,
-      });
-      this.fields.address.value = addressFetched.format();
-      this.fields.address.selected = addressFetched;
-    }
-
-    var substructure = this.optionValue({
-      options: substructureOptions,
-      name: "substructure",
-    });
-
-    var builtYear = this.sample.builtYear
-      ? new Date(this.sample.builtYear).getFullYear()
-      : null;
-
-    var recoveryAdvised = this.booleanValue({
-      name: "recoveryAdvised",
-    });
-
-    this.setFieldValues({
-      substructure: substructure,
-      builtYear: builtYear,
-      recoveryAdvised: recoveryAdvised,
-    });
-
-    this.$nextTick(() => {
-      this.changed = false;
-    });
-  },
-
   data() {
     return {
       icon,
       changed: false,
       feedback: {},
       fields: {
-        // LINE 1
-        address: {
-          label: "Adres",
-          type: "typeahead",
-          selected: null,
-          value: "",
-          data: [],
-          validationRules: {
-            required,
-            maxLength: maxLength(128),
-          },
-        },
-        builtYear: {
-          label: "Bouwjaar",
-          type: "text", // TODO: int
-          value: "",
-          validationRules: {
-            numeric,
-            minValue: minValue(1000),
-            maxValue: maxValue(2100),
-          },
-        },
-        substructure: {
-          label: "Onderbouw",
-          type: "select",
-          value: null,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(substructureOptions),
-          validationRules: {},
-        },
-        recoveryAdvised: {
-          label: "Funderingsherstel advies",
+        deformedFacade: {
+          label: "Gevel vervormd",
           type: "radio",
           value: null,
           options: [
@@ -192,8 +150,107 @@ export default {
           ],
           validationRules: {},
         },
+        skewedFacade: {
+          label: "Scheefstand",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(rotationOptions),
+          validationRules: {},
+        },
+        skewedPerpendicular: {
+          label: "Scheefstand voor naar achter",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
+        skewedParallel: {
+          label: "Scheefstand links naar rechts",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
+        thresholdFrontLevel: {
+          label: "Drempel voorgevel niveau",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
+        thresholdBackLevel: {
+          label: "Drempel achtergevel niveau",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
+        skewedWindowFrame: {
+          label: "Scheve deur- en/of raamkozijnen",
+          type: "radio",
+          value: null,
+          options: [
+            {
+              value: true,
+              text: "Ja",
+            },
+            {
+              value: false,
+              text: "Nee",
+            },
+          ],
+          validationRules: {},
+        },
+        settlementSpeed: {
+          label: "Pandzakkingssnelheid",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
       },
     };
+  },
+
+  async created() {
+    var deformedFacade = this.booleanValue({
+      name: "deformedFacade",
+    });
+
+    var skewedFacade = this.optionValue({
+      options: rotationOptions,
+      name: "skewedFacade",
+    });
+
+    var skewedWindowFrame = this.booleanValue({
+      name: "skewedWindowFrame",
+    });
+
+    // Explicitly set the address field.
+    this.setFieldValues({
+      deformedFacade: deformedFacade,
+      skewedFacade: skewedFacade,
+      skewedPerpendicular: this.sample.skewedPerpendicular,
+      skewedParallel: this.sample.skewedParallel,
+      thresholdFrontLevel: this.sample.thresholdFrontLevel,
+      thresholdBackLevel: this.sample.constructionLevel,
+      skewedWindowFrame: skewedWindowFrame,
+      settlementSpeed: this.sample.settlementSpeed,
+    });
+
+    this.$nextTick(() => {
+      this.changed = false;
+    });
   },
 
   watch: {
@@ -210,11 +267,8 @@ export default {
   },
 
   methods: {
-    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    addressSerializer(address) {
-      return address.weergavenaam;
-    },
+
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
         ? this.sample[name]
@@ -233,34 +287,7 @@ export default {
       }
     },
 
-    async getAddresses(query) {
-      // Only process if we have a substantial amount of characters to go by.
-      if (query.length < 4) {
-        return;
-      }
-
-      // TODO Race condition when we keep on typing.
-      let addresses = await this.getAddressSuggestions({ query: query });
-      this.fields.address.data = addresses;
-    },
-
-    async handleHit(address) {
-      const { response } = await fetch(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?fl=nummeraanduiding_id&id=${address.id}`
-      ).then((res) => {
-        if (!res.ok) throw new Error(res.statusText);
-        return res.json();
-      });
-
-      const _id = `NL.IMBAG.NUMMERAANDUIDING.${response.docs[0].nummeraanduiding_id}`;
-
-      let _address = await this.getAddressById({ id: _id });
-
-      this.fields.address.value = address.weergavenaam;
-      this.fields.address.selected = _address;
-
-      this.$emit("addressSelected", { addressId: _address.id });
-    },
+    handleFoundationBarChange() {},
 
     async handleSubmit() {
       if (this.isDisabled) {
@@ -268,12 +295,21 @@ export default {
       }
       this.isDisabled = true;
       this.disableAllFields();
-      this.feedback = {
-        variant: "info",
-        message: "Het adres wordt opgeslagen...",
-      };
 
       let data = this.allFieldValues();
+
+      data.skewedPerpendicular = data.skewedPerpendicular
+        ? Number(data.skewedPerpendicular)
+        : null;
+      data.skewedParallel = data.skewedParallel
+        ? Number(data.skewedParallel)
+        : null;
+      data.thresholdFrontLevel = data.thresholdFrontLevel
+        ? Number(data.thresholdFrontLevel)
+        : null;
+      data.thresholdBackLevel = data.thresholdBackLevel
+        ? Number(data.thresholdBackLevel)
+        : null;
 
       if (this.sample.id) {
         data.id = this.sample.id;
@@ -281,19 +317,8 @@ export default {
         // Used internally, not by the API
         data.creationstamp = this.sample.creationstamp;
       }
-
-      // Assign address geocoder id from selected field
-      data.address = this.fields.address.selected.id;
-      data.addressFormatted = this.fields.address.selected.format();
+      data.address = this.sample.address;
       data.report = this.activeReport.id;
-
-      // TODO These fields should be mapped automatically
-      data.builtYear = data.builtYear
-        ? new Date(data.builtYear, 1, 1, 0, 0, 0, 0)
-        : null;
-
-      console.log("save data:");
-      console.log(data);
 
       if (data.id) {
         await this.updateSample({
@@ -326,6 +351,7 @@ export default {
         },
       });
     },
+
     handleSuccess() {
       try {
         this.feedback = {

@@ -9,7 +9,7 @@
       :to="{ name: 'edit-report-2', params: { page: 1, step: step } }"
       class="FormStepDropdown"
     >
-      <h5 class="FormStep__title">Algemeen</h5>
+      <h5 class="FormStep__title">Niveau & kwaliteit</h5>
 
       <span class="FormStepDropdown__indicator">
         <img :src="icon('Angle.svg')" />
@@ -17,38 +17,61 @@
     </router-link>
 
     <div class="FormStepForm" v-if="active">
-      <Form ref="form" @submit="handleSubmit" @error="handleFormError">
+      <Form ref="form" @submit="handleSubmit">
         <Feedback :feedback="feedback" />
+
         <div class="form-row mb-3">
           <FormField
-            v-model="fields.address.value"
-            v-bind="fields.address"
-            :serializer="addressSerializer"
-            class="col-9"
-            @input="getAddresses"
-            @hit="handleHit"
-          />
-
-          <FormField
-            v-model="fields.builtYear.value"
-            v-bind="fields.builtYear"
-            class="col-3"
-          />
-        </div>
-
-        <div class="form-row">
-          <FormField
-            v-model="fields.substructure.value"
-            v-bind="fields.substructure"
+            v-model="fields.masonQuality.value"
+            v-bind="fields.masonQuality"
             class="col-md-6"
           />
 
           <FormField
-            v-model="fields.recoveryAdvised.value"
-            v-bind="fields.recoveryAdvised"
+            v-model="fields.masonLevel.value"
+            v-bind="fields.masonLevel"
             class="col-md-6"
           />
         </div>
+
+        <hr />
+
+        <div class="form-row mb-3">
+          <FormField
+            v-model="fields.foundationBar.value"
+            v-bind="fields.foundationBar"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-model="fields.constructionQuality.value"
+            v-bind="fields.constructionQuality"
+            class="col-md-6"
+          />
+        </div>
+
+        <div class="form-row mb-3">
+          <FormField
+            v-if="fields.foundationBar.value == 'wood'"
+            v-model="fields.woodLevel.value"
+            v-bind="fields.woodLevel"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-else-if="fields.foundationBar.value == 'concrete'"
+            v-model="fields.constructionPile.value"
+            v-bind="fields.constructionPile"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-model="fields.constructionLevel.value"
+            v-bind="fields.constructionLevel"
+            class="col-md-6"
+          />
+        </div>
+
         <span @click="save()" class="btn btn-continue"
           >Opslaan &amp; verder</span
         >
@@ -67,7 +90,7 @@ import {
   maxValue,
 } from "vuelidate/lib/validators";
 
-import { substructureOptions } from "config/enums";
+import { woodTypeOptions, qualityOptions } from "config/enums";
 import { mapGetters, mapActions } from "vuex";
 
 import Form from "molecule/form/Form";
@@ -75,7 +98,6 @@ import FormField from "molecule/form/FormField";
 import Feedback from "atom/Feedback";
 
 import fields from "mixin/fields";
-
 import { icon } from "helper/assets";
 
 export default {
@@ -102,70 +124,14 @@ export default {
     },
   },
 
-  async created() {
-    // Explicitly set the address field.
-    if (this.sample.address !== null) {
-      let addressFetched = await this.getAddressById({
-        id: this.sample.address,
-      });
-      this.fields.address.value = addressFetched.format();
-      this.fields.address.selected = addressFetched;
-    }
-
-    var substructure = this.optionValue({
-      options: substructureOptions,
-      name: "substructure",
-    });
-
-    var builtYear = this.sample.builtYear
-      ? new Date(this.sample.builtYear).getFullYear()
-      : null;
-
-    var recoveryAdvised = this.booleanValue({
-      name: "recoveryAdvised",
-    });
-
-    this.setFieldValues({
-      substructure: substructure,
-      builtYear: builtYear,
-      recoveryAdvised: recoveryAdvised,
-    });
-
-    this.$nextTick(() => {
-      this.changed = false;
-    });
-  },
-
   data() {
     return {
       icon,
       changed: false,
       feedback: {},
       fields: {
-        // LINE 1
-        address: {
-          label: "Adres",
-          type: "typeahead",
-          selected: null,
-          value: "",
-          data: [],
-          validationRules: {
-            required,
-            maxLength: maxLength(128),
-          },
-        },
-        builtYear: {
-          label: "Bouwjaar",
-          type: "text", // TODO: int
-          value: "",
-          validationRules: {
-            numeric,
-            minValue: minValue(1000),
-            maxValue: maxValue(2100),
-          },
-        },
-        substructure: {
-          label: "Onderbouw",
+        masonQuality: {
+          label: "Kwaliteit metselwerk",
           type: "select",
           value: null,
           options: [
@@ -173,27 +139,99 @@ export default {
               value: null,
               text: "Selecteer een optie",
             },
-          ].concat(substructureOptions),
+          ].concat(qualityOptions),
           validationRules: {},
         },
-        recoveryAdvised: {
-          label: "Funderingsherstel advies",
+        masonLevel: {
+          label: "Niveau onderkant metselwerk",
+          type: "text",
+          value: "",
+          validationRules: {},
+        },
+        foundationBar: {
+          label: "Funderingsbalk",
           type: "radio",
           value: null,
           options: [
             {
-              value: true,
-              text: "Ja",
+              value: "wood",
+              text: "Hout",
             },
             {
-              value: false,
-              text: "Nee",
+              value: "concrete",
+              text: "Beton",
             },
           ],
           validationRules: {},
         },
+        constructionQuality: {
+          label: "Kwaliteit funderingsbalk",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(qualityOptions),
+          validationRules: {},
+        },
+        woodLevel: {
+          label: "Niveau onderkant funderingsbalk",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
+        constructionPile: {
+          label: "Niveau onderkant funderingsbalk",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
+
+        constructionLevel: {
+          label: "Niveau bovenkant funderingsbalk",
+          type: "text",
+          value: "",
+          validationRules: {
+            maxLength: maxLength(32),
+          },
+        },
       },
     };
+  },
+
+  async created() {
+    var masonQuality = this.optionValue({
+      options: qualityOptions,
+      name: "masonQuality",
+    });
+
+    var foundationBar = null;
+
+    if (this.sample.woodLevel) {
+      foundationBar = "wood";
+    } else if (this.sample.constructionPile) {
+      foundationBar = "concrete";
+    }
+
+    // Explicitly set the address field.
+    this.setFieldValues({
+      masonQuality: masonQuality,
+      masonLevel: this.sample.masonLevel,
+      woodLevel: this.sample.woodLevel,
+      constructionPile: this.sample.constructionPile,
+      constructionLevel: this.sample.constructionLevel,
+      foundationBar: foundationBar,
+    });
+
+    this.$nextTick(() => {
+      this.changed = false;
+    });
   },
 
   watch: {
@@ -210,11 +248,8 @@ export default {
   },
 
   methods: {
-    ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
     ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-    addressSerializer(address) {
-      return address.weergavenaam;
-    },
+
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
         ? this.sample[name]
@@ -233,34 +268,7 @@ export default {
       }
     },
 
-    async getAddresses(query) {
-      // Only process if we have a substantial amount of characters to go by.
-      if (query.length < 4) {
-        return;
-      }
-
-      // TODO Race condition when we keep on typing.
-      let addresses = await this.getAddressSuggestions({ query: query });
-      this.fields.address.data = addresses;
-    },
-
-    async handleHit(address) {
-      const { response } = await fetch(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?fl=nummeraanduiding_id&id=${address.id}`
-      ).then((res) => {
-        if (!res.ok) throw new Error(res.statusText);
-        return res.json();
-      });
-
-      const _id = `NL.IMBAG.NUMMERAANDUIDING.${response.docs[0].nummeraanduiding_id}`;
-
-      let _address = await this.getAddressById({ id: _id });
-
-      this.fields.address.value = address.weergavenaam;
-      this.fields.address.selected = _address;
-
-      this.$emit("addressSelected", { addressId: _address.id });
-    },
+    handleFoundationBarChange() {},
 
     async handleSubmit() {
       if (this.isDisabled) {
@@ -268,12 +276,14 @@ export default {
       }
       this.isDisabled = true;
       this.disableAllFields();
-      this.feedback = {
-        variant: "info",
-        message: "Het adres wordt opgeslagen...",
-      };
 
       let data = this.allFieldValues();
+
+      //   data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
+      data.woodLevel = null;
+      data.constructionPile = data.constructionPile
+        ? Number(data.constructionPile)
+        : null;
 
       if (this.sample.id) {
         data.id = this.sample.id;
@@ -281,19 +291,8 @@ export default {
         // Used internally, not by the API
         data.creationstamp = this.sample.creationstamp;
       }
-
-      // Assign address geocoder id from selected field
-      data.address = this.fields.address.selected.id;
-      data.addressFormatted = this.fields.address.selected.format();
+      data.address = this.sample.address;
       data.report = this.activeReport.id;
-
-      // TODO These fields should be mapped automatically
-      data.builtYear = data.builtYear
-        ? new Date(data.builtYear, 1, 1, 0, 0, 0, 0)
-        : null;
-
-      console.log("save data:");
-      console.log(data);
 
       if (data.id) {
         await this.updateSample({
@@ -326,6 +325,7 @@ export default {
         },
       });
     },
+
     handleSuccess() {
       try {
         this.feedback = {
