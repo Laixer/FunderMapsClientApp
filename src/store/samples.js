@@ -22,13 +22,13 @@ const defaultState = {
 const state = Object.assign({}, defaultState);
 
 const getters = {
-  samples: state => {
+  samples: (state) => {
     return state.samples;
   },
-  selectedSample: state => {
+  selectedSample: (state) => {
     return state.selectedSample;
   },
-  sampleCount: state => {
+  sampleCount: (state) => {
     return state.sampleCount;
   },
 };
@@ -40,7 +40,7 @@ const actions = {
       var samples = response.data;
 
       await Promise.all(
-        samples.map(async sample => {
+        samples.map(async (sample) => {
           const address = await this.dispatch("address/getAddressById", {
             id: sample.address,
           });
@@ -77,20 +77,18 @@ const actions = {
     commit("set_selected_sample", payload);
   },
 
-  async updateSample({ commit, state }, { inquiryId, sampleId, data }) {
-    const current = await state.selectedSample;
+  async test({ commit, state }, { sampleId, data }) {
+    commit("update_sample", {
+      sampleId,
+      data,
+    });
+  },
 
-    const merge = Object.values(
-      []
-        .concat(current, data)
-        .reduce(
-          (r, c) => ((r[c.type] = Object.assign(r[c.type] || {}, c)), r),
-          {}
-        )
-    )[0];
+  async updateSelectedSample({ state, commit }, inquiryId) {
+    let data = state.selectedSample;
+    let sampleId = data.id;
 
-    data = merge;
-
+    console.log("idate selcaslkdjf sample");
     let response = await samplesAPI.updateSample({
       inquiryId,
       sampleId,
@@ -98,14 +96,24 @@ const actions = {
     });
 
     if (response.status === 204) {
-      commit("update_sample", {
-        sampleId,
-        data,
-      });
+      commit("set_selected_sample_stored", true);
+      return "succes";
     }
   },
+
+  async updateSample({ commit, state }, { inquiryId, sampleId, data }) {
+    const current = await state.selectedSample;
+
+    await samplesAPI.updateSample({
+      inquiryId,
+      sampleId,
+      current,
+    });
+  },
   // TODO: where does creationstamp come from?
-  async createSample({ commit }, { inquiryId, data }) {
+  async createSample({ commit, state }, { inquiryId }) {
+    let data = state.selectedSample;
+
     let response = await samplesAPI.createSample({ inquiryId, data });
     if (response.status === 200 && response.data) {
       commit("update_sample", {
@@ -130,10 +138,21 @@ const actions = {
 };
 const mutations = {
   set_selected_sample(state, selectedSample) {
+    if (state.selectedSample && state.selectedSample.stored == false) {
+      if (
+        confirm(
+          "Adres is nog niet opslagen. Weet je zeker dat je de pagina wilt verlaten?"
+        ) == false
+      ) {
+        return;
+      }
+    }
+
+    selectedSample.changes = false;
     state.selectedSample = selectedSample;
   },
   set_samples(state, { samples }) {
-    state.samples = samples.map(sample => {
+    state.samples = samples.map((sample) => {
       return new SampleModel({ sample, stored: true });
     });
   },
@@ -141,6 +160,7 @@ const mutations = {
     state.sampleCount = sampleCount;
   },
   clear_samples(state) {
+    state.selectedSample = null;
     state.samples = [];
   },
   /**
@@ -152,9 +172,9 @@ const mutations = {
         new SampleModel({ sample: {}, stored: false, editorState: "open" }),
       ];
     } else {
-      console.log("add unsaved hier");
       let sample = clonedeep(state.samples[0]);
-      sample.id = "";
+      // sample.id = "";
+      delete sample.id;
 
       // sample.address = address;
       //sample.address.buildingNumber = ''
@@ -162,8 +182,6 @@ const mutations = {
 
       // used as alternative to 'id' reference for newly created items
       sample.creationstamp = Date.now();
-
-      console.log(sample);
 
       state.samples.unshift(
         new SampleModel({
@@ -174,6 +192,10 @@ const mutations = {
       );
     }
   },
+
+  set_selected_sample_stored(state, { boolean }) {
+    state.selectedSample.stored = true;
+  },
   /**
    * Update sample data in store (after positive API response)
    */
@@ -181,28 +203,30 @@ const mutations = {
     let index = -1;
 
     if (sampleId) {
-      index = state.samples.findIndex(sample => sample.id === sampleId);
+      index = state.samples.findIndex((sample) => sample.id === sampleId);
     }
 
     // For new samples we depend on an internal timestamp
     if (index === -1) {
       index = state.samples.findIndex(
-        sample => sample.creationstamp === data.creationstamp
+        (sample) => sample.creationstamp === data.creationstamp
       );
+      state.samples[index].stored = true;
     }
 
     if (index !== -1) {
       state.samples[index].updateValues({ data });
-      state.samples[index].stored = true;
+      // state.samples[index].stored = true;
     }
   },
+
   // Delete sample.
   delete_sample(state, { id, creationstamp }) {
-    let index = state.samples.findIndex(sample => sample.id === id);
+    let index = state.samples.findIndex((sample) => sample.id === id);
     // For new samples we depend on an internal timestamp
     if (index === -1) {
       index = state.samples.findIndex(
-        sample => sample.creationstamp === creationstamp
+        (sample) => sample.creationstamp === creationstamp
       );
     } else {
       Vue.delete(state.samples, index);

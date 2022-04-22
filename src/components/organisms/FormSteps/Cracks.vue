@@ -29,10 +29,11 @@
             />
           </div>
 
-          <div class="col-9 pl-4">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
+                  v-show="false"
                   v-model="fields.crackIndoorSizeAmount.value"
                   v-bind="fields.crackIndoorSizeAmount"
                   class="col-5"
@@ -47,9 +48,10 @@
                 <FormField
                   v-for="index in fields.crackIndoorSizeAmount.value"
                   :key="index"
-                  :label="`Scheur ${index}`"
-                  v-model="fields.crackIndoorSize.value[index - 1]"
+                  :label="`Scheur`"
+                  v-model="fields.crackIndoorSize.value"
                   v-bind="fields.crackIndoorSize"
+                  class="col form-col"
                 />
               </div>
             </template>
@@ -67,10 +69,11 @@
             />
           </div>
 
-          <div class="col-9 pl-4">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
+                  v-show="false"
                   v-model="fields.crackFacadeFrontSizeAmount.value"
                   v-bind="fields.crackFacadeFrontSizeAmount"
                   class="col-5"
@@ -85,9 +88,10 @@
                 <FormField
                   v-for="index in fields.crackFacadeFrontSizeAmount.value"
                   :key="index"
-                  :label="`Scheur ${index}`"
-                  v-model="fields.crackFacadeFrontSize.value[index - 1]"
+                  :label="`Scheur`"
+                  v-model="fields.crackFacadeFrontSize.value"
                   v-bind="fields.crackFacadeFrontSize"
+                  class="col form-col"
                 />
               </div>
             </template>
@@ -105,10 +109,11 @@
             />
           </div>
 
-          <div class="col-9 pl-4">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
+                  v-show="false"
                   v-model="fields.crackFacadeBackSizeAmount.value"
                   v-bind="fields.crackFacadeBackSizeAmount"
                   class="col-5"
@@ -123,9 +128,10 @@
                 <FormField
                   v-for="index in fields.crackFacadeBackSizeAmount.value"
                   :key="index"
-                  :label="`Scheur ${index}`"
-                  v-model="fields.crackFacadeBackSize.value[index - 1]"
+                  :label="`Scheur`"
+                  v-model="fields.crackFacadeBackSize.value"
                   v-bind="fields.crackFacadeBackSize"
+                  class="col form-col"
                 />
               </div>
             </template>
@@ -143,10 +149,11 @@
             />
           </div>
 
-          <div class="col-9 pl-4">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
+                  v-show="false"
                   v-model="fields.crackFacadeLeftSizeAmount.value"
                   v-bind="fields.crackFacadeLeftSizeAmount"
                   class="col-5"
@@ -161,9 +168,10 @@
                 <FormField
                   v-for="index in fields.crackFacadeLeftSizeAmount.value"
                   :key="index"
-                  :label="`Scheur ${index}`"
-                  v-model="fields.crackFacadeLeftSize.value[index - 1]"
+                  :label="`Scheur`"
+                  v-model="fields.crackFacadeLeftSize.value"
                   v-bind="fields.crackFacadeLeftSize"
+                  class="col form-col"
                 />
               </div>
             </template>
@@ -180,10 +188,11 @@
             />
           </div>
 
-          <div class="col-9 pl-4">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
+                  v-show="false"
                   v-model="fields.crackFacadeRightSizeAmount.value"
                   v-bind="fields.crackFacadeRightSizeAmount"
                   class="col-5"
@@ -198,18 +207,17 @@
                 <FormField
                   v-for="index in fields.crackFacadeRightSizeAmount.value"
                   :key="index"
-                  :label="`Scheur ${index}`"
-                  v-model="fields.crackFacadeRightSize.value[index - 1]"
+                  :label="`Scheur`"
+                  v-model="fields.crackFacadeRightSize.value"
                   v-bind="fields.crackFacadeRightSize"
+                  class="col form-col"
                 />
               </div>
             </template>
           </div>
         </div>
 
-        <span @click="save()" class="btn btn-continue"
-          >Opslaan &amp; verder</span
-        >
+        <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
     </div>
   </div>
@@ -262,20 +270,21 @@ export default {
   data() {
     return {
       icon,
-      changed: false,
+      loaded: false,
       feedback: {},
       fields: {
         crackIndoorSizeCheck: {
           label: "Inpandage scheur",
           type: "checkbox",
-          value: true,
+          value: false,
+          disabled: true,
           image: "crack-indoor.svg",
           validationRules: {},
         },
         crackIndoorSizeAmount: {
           label: "Hoeveel scheuren",
           type: "select",
-          value: null,
+          value: 1,
           options: [
             {
               value: null,
@@ -302,7 +311,7 @@ export default {
         },
         crackIndoorSize: {
           type: "text",
-          value: [],
+          value: null,
           validationRules: {
             maxLength: decimal,
           },
@@ -310,14 +319,15 @@ export default {
         crackFacadeFrontSizeCheck: {
           label: "Voorgevel scheur",
           type: "checkbox",
-          value: true,
+          value: false,
+          disabled: true,
           image: "crack-facade-front.svg",
           validationRules: {},
         },
         crackFacadeFrontSizeAmount: {
           label: "Hoeveel scheuren",
           type: "select",
-          value: null,
+          value: 1,
           options: [
             {
               value: null,
@@ -344,7 +354,7 @@ export default {
         },
         crackFacadeFrontSize: {
           type: "text",
-          value: [],
+          value: null,
           validationRules: {
             maxLength: decimal,
           },
@@ -352,14 +362,15 @@ export default {
         crackFacadeBackSizeCheck: {
           label: "Achtergevel scheur",
           type: "checkbox",
-          value: true,
+          value: false,
+          disabled: true,
           image: "crack-facade-back.svg",
           validationRules: {},
         },
         crackFacadeBackSizeAmount: {
           label: "Hoeveel scheuren",
           type: "select",
-          value: null,
+          value: 1,
           options: [
             {
               value: null,
@@ -386,7 +397,7 @@ export default {
         },
         crackFacadeBackSize: {
           type: "text",
-          value: [],
+          value: null,
           validationRules: {
             maxLength: decimal,
           },
@@ -395,14 +406,15 @@ export default {
         crackFacadeLeftSizeCheck: {
           label: "Linkergevel scheur",
           type: "checkbox",
-          value: true,
+          value: false,
+          disabled: true,
           image: "crack-facade-left.svg",
           validationRules: {},
         },
         crackFacadeLeftSizeAmount: {
           label: "Hoeveel scheuren",
           type: "select",
-          value: null,
+          value: 1,
           options: [
             {
               value: null,
@@ -429,7 +441,7 @@ export default {
         },
         crackFacadeLeftSize: {
           type: "text",
-          value: [],
+          value: null,
           validationRules: {
             maxLength: decimal,
           },
@@ -437,14 +449,15 @@ export default {
         crackFacadeRightSizeCheck: {
           label: "Rechtergevel scheur",
           type: "checkbox",
-          value: true,
+          value: false,
+          disabled: true,
           image: "crack-facade-right.svg",
           validationRules: {},
         },
         crackFacadeRightSizeAmount: {
           label: "Hoeveel scheuren",
           type: "select",
-          value: null,
+          value: 1,
           options: [
             {
               value: null,
@@ -471,7 +484,7 @@ export default {
         },
         crackFacadeRightSize: {
           type: "text",
-          value: [],
+          value: null,
           validationRules: {
             maxLength: decimal,
           },
@@ -483,18 +496,29 @@ export default {
   async created() {
     // Explicitly set the address field.
     this.setFieldValues({
-      //   cpt: this.sample.cpt,
+      crackIndoorSize: this.sample.crackIndoorSize,
+      crackFacadeFrontSize: this.sample.crackFacadeFrontSize,
+      crackFacadeBackSize: this.sample.crackFacadeBackSize,
+      crackFacadeLeftSize: this.sample.crackFacadeLeftSize,
+      crackFacadeRightSize: this.sample.crackFacadeRightSize,
+      crackIndoorRestored: this.sample.crackIndoorRestored,
+      crackFacadeFrontRestored: this.sample.crackFacadeFrontRestored,
+      crackFacadeBackRestored: this.sample.crackFacadeBackRestored,
+      crackFacadeLeftRestored: this.sample.crackFacadeLeftRestored,
+      crackFacadeRightRestored: this.sample.crackFacadeRightRestored,
     });
 
     this.$nextTick(() => {
-      this.changed = false;
+      this.loaded = false;
     });
   },
 
   watch: {
     fields: {
       handler() {
-        this.changed = true;
+        if (this.loaded) {
+          this.sample.stored = false;
+        }
       },
       deep: true,
     },
@@ -505,8 +529,6 @@ export default {
   },
 
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
         ? this.sample[name]
@@ -517,20 +539,10 @@ export default {
       return options[key] ? options[key].value : null;
     },
 
-    save() {
-      if (this.changed) {
-        this.$refs.form.submit();
-      } else {
-        this.toNextStep();
-      }
-    },
-
     async handleSubmit() {
       if (this.isDisabled) {
         return;
       }
-      this.isDisabled = true;
-      this.disableAllFields();
 
       let data = this.allFieldValues();
 
@@ -543,28 +555,12 @@ export default {
       data.address = this.sample.address;
       data.report = this.activeReport.id;
 
-      if (data.id) {
-        await this.updateSample({
-          inquiryId: this.activeReport.id,
-          sampleId: data.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .then(() => {
-            this.toNextStep();
-          })
-          .catch(this.handleError);
-      } else {
-        await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      }
+      this.$emit("stored", data);
+
+      return true;
     },
 
-    toNextStep() {
+    next() {
       this.$router.push({
         name: "edit-report-2",
         params: {
@@ -575,28 +571,6 @@ export default {
       });
     },
 
-    handleSuccess() {
-      try {
-        this.feedback = {
-          variant: "success",
-          message: "De wijzigingen zijn opgeslagen",
-        };
-        this.enableAllFields();
-        this.isDisabled = false;
-        this.$refs.form.resetValidation();
-        this.changed = false;
-      } catch (err) {
-        //
-      }
-    },
-    handleError(err) {
-      this.feedback = {
-        variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen",
-      };
-      this.enableAllFields();
-      this.isDisabled = false;
-    },
     handleFormError() {
       this.feedback = {
         variant: "danger",
@@ -609,17 +583,14 @@ export default {
 
 <style lang="scss">
 @import "@/assets/scss/variables.scss";
-.FormStepForm {
-  padding: 30px 40px 30px 20px;
-  background-color: $catskill-white;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
 
 .cracks-wrapper {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  padding: 0 15px;
+  width: 100%;
+
+  .form-col {
+    padding: 0 5px;
+  }
 }
 
 // .cracks-step {

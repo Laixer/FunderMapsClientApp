@@ -1,0 +1,39 @@
+$font-family-base: "Gibson", sans-serif;
+
+$font-size-base: 1rem;
+$font-size-small: 14 / 16 + rem;
+
+$line-height-base: 26 / 16;
+$line-height-sm: 1.2;
+$line-height-lg: 1.5;
+
+$headings-margin-bottom: 1rem;
+$headings-line-height: 1.1;
+$font-family-base: "Gibson", sans-serif;
+$headings-font-weight: 600;
+
+$link-decoration: underline;
+$link-font-family: "Gibson", sans-serif;
+
+// $headings-color: $dark-blue;
+// $body-color: $dark-blue;
+
+$display1-size: 90 / 16 + rem;
+
+$h1-font-size: 34 / 16 + rem;
+$h2-font-size: 30 / 16 + rem;
+$h3-font-size: 24 / 16 + rem;
+$h4-font-size: 20 / 16 + rem;
+$h5-font-size: 18 / 16 + rem;
+$h6-font-size: 16 / 16 + rem;
+
+$font-sizes-mobile: (
+  "h1": 40 / 16 + rem,
+  "h2": 30 / 16 + rem,
+  "h3": 30 / 16 + rem,
+  "h4": 24 / 16 + rem,
+  "h5": 20 / 16 + rem,
+  "h6": 16 / 16 + rem,
+  "s": 15 / 16 + rem,
+  "xs": 14 / 16 + rem,
+);

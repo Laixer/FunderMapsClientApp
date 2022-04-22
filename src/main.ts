@@ -1,6 +1,5 @@
 // Bootstrap config
 // import "@/assets/sass/bootstrap.scss";
-import "@/assets/scss/main.scss";
 
 import Vue from "vue";
 import App from "./App.vue";
@@ -18,6 +17,8 @@ import { refreshLogin } from "./services/auth";
 import BootstrapVue from "bootstrap-vue";
 Vue.use(BootstrapVue);
 
+import "@/assets/scss/main.scss";
+
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
@@ -33,5 +34,5 @@ new Vue({
       refreshLogin();
     }, 60000 * 10);
   },
-  render: createElement => createElement(App),
+  render: (createElement) => createElement(App),
 }).$mount("#app");

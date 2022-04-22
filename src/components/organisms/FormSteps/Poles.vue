@@ -20,7 +20,7 @@
       <Form ref="form" @submit="handleSubmit">
         <Feedback :feedback="feedback" />
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.pileHeadLevel.value"
             v-bind="fields.pileHeadLevel"
@@ -34,7 +34,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.pileDiameterTop.value"
             v-bind="fields.pileDiameterTop"
@@ -48,7 +48,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.pileDistanceLength.value"
             v-bind="fields.pileDistanceLength"
@@ -64,7 +64,7 @@
 
         <hr />
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.woodType.value"
             v-bind="fields.woodType"
@@ -78,7 +78,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.woodPenetrationDepth.value"
             v-bind="fields.woodPenetrationDepth"
@@ -92,7 +92,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.woodQuality.value"
             v-bind="fields.woodQuality"
@@ -106,7 +106,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.pileWoodCapacityVerticalQuality.value"
             v-bind="fields.pileWoodCapacityVerticalQuality"
@@ -120,9 +120,7 @@
           />
         </div>
 
-        <span @click="save()" class="btn btn-continue"
-          >Opslaan &amp; verder</span
-        >
+        <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
     </div>
   </div>
@@ -138,7 +136,7 @@ import {
   maxValue,
 } from "vuelidate/lib/validators";
 
-import { woodTypeOptions, qualityOptions } from "config/enums";
+import { woodTypeOptions, qualityOptions, sizeOptions } from "config/enums";
 import { mapGetters, mapActions } from "vuex";
 
 import Form from "molecule/form/Form";
@@ -175,7 +173,7 @@ export default {
   data() {
     return {
       icon,
-      changed: false,
+      loaded: false,
       feedback: {},
       fields: {
         pileHeadLevel: {
@@ -276,7 +274,7 @@ export default {
               value: null,
               text: "Selecteer een optie",
             },
-          ].concat(qualityOptions),
+          ].concat(sizeOptions),
           validationRules: {},
         },
         woodQuality: {
@@ -312,7 +310,7 @@ export default {
               value: null,
               text: "Selecteer een optie",
             },
-          ].concat(qualityOptions),
+          ].concat(sizeOptions),
           validationRules: {},
         },
         woodCapacityHorizontalQuality: {
@@ -324,7 +322,7 @@ export default {
               value: null,
               text: "Selecteer een optie",
             },
-          ].concat(qualityOptions),
+          ].concat(sizeOptions),
           validationRules: {},
         },
       },
@@ -342,7 +340,7 @@ export default {
     });
 
     var woodEncroachement = this.optionValue({
-      options: qualityOptions,
+      options: sizeOptions,
       name: "woodEncroachement",
     });
 
@@ -357,12 +355,12 @@ export default {
     });
 
     var pileWoodCapacityVerticalQuality = this.optionValue({
-      options: qualityOptions,
+      options: sizeOptions,
       name: "pileWoodCapacityVerticalQuality",
     });
 
     var woodCapacityHorizontalQuality = this.optionValue({
-      options: qualityOptions,
+      options: sizeOptions,
       name: "woodCapacityHorizontalQuality",
     });
 
@@ -385,14 +383,16 @@ export default {
     });
 
     this.$nextTick(() => {
-      this.changed = false;
+      this.loaded = true;
     });
   },
 
   watch: {
     fields: {
       handler() {
-        this.changed = true;
+        if (this.loaded) {
+          this.sample.stored = false;
+        }
       },
       deep: true,
     },
@@ -403,8 +403,6 @@ export default {
   },
 
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
         ? this.sample[name]
@@ -415,20 +413,10 @@ export default {
       return options[key] ? options[key].value : null;
     },
 
-    save() {
-      if (this.changed) {
-        this.$refs.form.submit();
-      } else {
-        this.toNextStep();
-      }
-    },
-
     async handleSubmit() {
       if (this.isDisabled) {
         return;
       }
-      this.isDisabled = true;
-      this.disableAllFields();
 
       let data = this.allFieldValues();
 
@@ -441,28 +429,12 @@ export default {
       data.address = this.sample.address;
       data.report = this.activeReport.id;
 
-      if (data.id) {
-        await this.updateSample({
-          inquiryId: this.activeReport.id,
-          sampleId: data.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .then(() => {
-            this.toNextStep();
-          })
-          .catch(this.handleError);
-      } else {
-        await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      }
+      this.$emit("stored", data);
+
+      return true;
     },
 
-    toNextStep() {
+    next() {
       this.$router.push({
         name: "edit-report-2",
         params: {
@@ -473,28 +445,6 @@ export default {
       });
     },
 
-    handleSuccess() {
-      try {
-        this.feedback = {
-          variant: "success",
-          message: "De wijzigingen zijn opgeslagen",
-        };
-        this.enableAllFields();
-        this.isDisabled = false;
-        this.$refs.form.resetValidation();
-        this.changed = false;
-      } catch (err) {
-        //
-      }
-    },
-    handleError(err) {
-      this.feedback = {
-        variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen",
-      };
-      this.enableAllFields();
-      this.isDisabled = false;
-    },
     handleFormError() {
       this.feedback = {
         variant: "danger",
@@ -507,10 +457,4 @@ export default {
 
 <style lang="scss">
 @import "@/assets/scss/variables.scss";
-.FormStepForm {
-  padding: 30px 40px;
-  background-color: $catskill-white;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
 </style>

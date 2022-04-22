@@ -1,0 +1,21 @@
+.SampleCardBar {
+  margin-top: 20px;
+  margin-right: 40px;
+
+  &::-webkit-scrollbar-track {
+    background: none;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar {
+    width: 36px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-left: 15px solid rgba(0, 0, 0, 0);
+    border-right: 15px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    height: 60px;
+    -webkit-border-radius: 10px;
+    background-color: $regent-gray;
+  }
+}

@@ -1,71 +1,73 @@
 <template>
   <div :key="selectedSample.id">
-    <h1 class="h3">{{ selectedSample.addressFormatted }}</h1>
+    <div class="d-flex justify-content-between">
+      <h1 class="h3 FormSteps__title">{{ selectedSample.addressFormatted }}</h1>
 
-    <!-- <FormStep
-      v-if="selectedSample"
-      :sample="selectedSample"
-      :title="'Algemeen'"
-      :form="'Default'"
-      :active="selectedStep == 1"
-      :step="1"
-    />
+      <b-button
+        v-if="selectedSample.stored == false"
+        size="sm"
+        variant="outline-primary"
+        class="mr-3"
+        @click="save()"
+      >
+        opslaan
+      </b-button>
+    </div>
+    <div class="FormSteps">
+      <Default
+        ref="step-1"
+        :sample="selectedSample"
+        :step="1"
+        @stored="handleStored"
+        :active="selectedStep == 1"
+      />
+      <Surrounding
+        ref="step-2"
+        :sample="selectedSample"
+        :step="2"
+        @stored="handleStored"
+        :active="selectedStep == 2"
+      />
+      <Foundation
+        ref="step-3"
+        :sample="selectedSample"
+        :step="3"
+        @stored="handleStored"
+        :active="selectedStep == 3"
+      />
 
-    <FormStep
-      v-if="selectedSample"
-      :sample="selectedSample"
-      :title="'Omgeving'"
-      :form="'Surrounding'"
-      :active="selectedStep == 2"
-      :step="2"
-    /> -->
+      <Poles
+        ref="step-4"
+        :sample="selectedSample"
+        :step="4"
+        @stored="handleStored"
+        :active="selectedStep == 4"
+      />
 
-    <Default
-      ref="step-1"
-      :sample="selectedSample"
-      :step="1"
-      :active="selectedStep == 1"
-    />
-    <Surrounding
-      ref="step-2"
-      :sample="selectedSample"
-      :step="2"
-      :active="selectedStep == 2"
-    />
-    <Foundation
-      ref="step-2"
-      :sample="selectedSample"
-      :step="3"
-      :active="selectedStep == 3"
-    />
+      <Quality
+        ref="step-5"
+        :sample="selectedSample"
+        :step="5"
+        @stored="handleStored"
+        :active="selectedStep == 5"
+      />
+      <Cracks
+        ref="step-6"
+        :sample="selectedSample"
+        :step="6"
+        @stored="handleStored"
+        :active="selectedStep == 6"
+      />
 
-    <Poles
-      ref="step-2"
-      :sample="selectedSample"
-      :step="4"
-      :active="selectedStep == 4"
-    />
-
-    <Quality
-      ref="step-2"
-      :sample="selectedSample"
-      :step="5"
-      :active="selectedStep == 5"
-    />
-
-    <Cracks
-      ref="step-2"
-      :sample="selectedSample"
-      :step="6"
-      :active="selectedStep == 6"
-    />
-
-    <Deformation
-      ref="step-2"
-      :sample="selectedSample"
-      :step="7"
-      :active="selectedStep == 7"
-    />
+      <Deformation
+        ref="step-7"
+        :sample="selectedSample"
+        :step="7"
+        @stored="handleStored"
+        @save="save"
+        :active="selectedStep == 7"
+      />
+    </div>
   </div>
 </template>
 
@@ -91,11 +93,6 @@ export default {
     Cracks,
   },
 
-  beforeRouteUpdate(to, from, next) {
-    console.log("before route update");
-    next();
-  },
-
   async created() {
     this.selectedStep = this.$route.params.step;
   },
@@ -104,42 +101,58 @@ export default {
     return {
       selectedStep: 1,
       address: null,
+      checked: false,
     };
   },
 
   watch: {
     "$route.params.step": {
       handler: function (step) {
-        // console.log("save meee");
         this.selectedStep = step;
       },
     },
-    // selectedSample: {
-    //   handler: function(sample) {
-    //     // console.log("Sub: " + this.selectedSample.substructure);
-
-    //   },
-    //   immediate: true,
-    // },
   },
 
   computed: {
     ...mapGetters("samples", ["selectedSample"]),
-    // addressFormatted: function() {
-    //   console.log(this.address);
-    //   return this.address ? this.address.format() : "Nieuw adres";
-    // },
+    ...mapGetters("report", ["activeReport"]),
   },
 
   methods: {
-    // ...mapActions("address", ["getAddressById"]),
-    // save(step) {
-    //   this.$refs[`step-${step}`].save(false);
-    // },
+    ...mapActions("samples", ["test", "updateSelectedSample", "createSample"]),
+    async next(step) {
+      this.$refs[`step-${step}`].$refs.form.validate();
+
+      if (this.$refs[`step-${step}`].$refs.form.isValid()) {
+        return await this.$refs[`step-${step}`].handleSubmit();
+      } else {
+        return false;
+      }
+    },
+
+    async save() {
+      await this.next(this.selectedStep).then((valid) => {
+        if (valid && this.selectedSample.id) {
+          this.updateSelectedSample(this.activeReport.id);
+          return;
+        }
+
+        if (valid) {
+          this.createSample({ inquiryId: this.activeReport.id });
+        }
+      });
+    },
+
+    async handleStored(payload) {
+      await this.test({
+        sampleId: payload.id,
+        data: payload,
+      });
+    },
   },
 };
 </script>
 
 <style lang="scss">
-@import "@/assets/scss/form-step.scss";
+// @import "@/assets/scss/form-step.scss";
 </style>

@@ -22,8 +22,12 @@
             </div>
           </div>
         </div>
-        <div class="col-8">
-          <FormSteps ref="formSteps" v-if="selectedSample" />
+        <div class="col-8 px-0">
+          <FormSteps
+            ref="formSteps"
+            v-if="selectedSample"
+            @stored="handleStored"
+          />
 
           <div v-if="activeReport">
             <!-- <div>
@@ -82,7 +86,7 @@
         </div>
       </div>
     </div>
-    <!-- <NavigationBar :prev="null" :next="nextStep" /> -->
+    <NavigationBar :prev="previousStep" :next="nextStep" />
   </div>
 </template>
 
@@ -96,6 +100,7 @@ import BackButton from "atom/navigation/BackButton";
 import Sample from "organism/Sample";
 import SampleCard from "organism/SampleCard";
 import FormSteps from "organism/FormSteps";
+import NavigationBar from "molecule/NavigationBar";
 
 import { mapActions, mapGetters } from "vuex";
 import { icon } from "helper/assets";
@@ -113,6 +118,7 @@ export default {
     // BackButton,
     SampleCard,
     FormSteps,
+    NavigationBar,
   },
   data() {
     return {
@@ -157,10 +163,10 @@ export default {
         : 1;
     },
     previousStep() {
-      // TODO When will activereport be null ever?
       let report = this.activeReport
         ? this.activeReport
         : { id: "id", documentName: "documentName" };
+
       return {
         name: "edit-report-1",
         params: {
@@ -170,10 +176,10 @@ export default {
       };
     },
     nextStep() {
-      // TODO When will activereport be null ever?
       let report = this.activeReport
         ? this.activeReport
         : { id: "id", documentName: "documentName" };
+
       return {
         name: "edit-report-3",
         params: {
@@ -186,21 +192,34 @@ export default {
       return this.samples.length === 0;
     },
   },
-  beforeRouteUpdate(to, from, next) {
-    // if (from.params.step) {
-    //   this.$refs.formSteps.save(from.params.step);
-    // }
+  beforeRouteLeave(to, from, next) {
+    if (this.selectedSample.stored == false) {
+      if (
+        confirm(
+          "Adres is nog niet opslagen. Weet je zeker dat je de pagina wilt verlaten?"
+        ) == true
+      ) {
+        next();
+      }
+    } else {
+      next();
+    }
+  },
+  async beforeRouteUpdate(to, from, next) {
+    if (from.params.step && from.params.skip != true) {
+      var check = await this.$refs.formSteps.next(from.params.step);
+      if (check) {
+        next();
+      }
+    } else {
+      next();
+    }
 
-    // console.log(to);
-    // console.log(from);
-
-    // console.log("------");
     // this.getSamples({
     //   inquiryId: this.activeReport.id,
     //   page: to.params.page || 1,
     //   limit: this.samplesPerPage,
     // });
-    next();
   },
   async created() {
     this.page = this.$route.params.page || 1;
@@ -238,6 +257,13 @@ export default {
         page: this.page,
         limit: this.samplesPerPage,
       });
+
+      if (this.samples && this.samples[0]) {
+        this.setSelectedSample(this.samples[0]);
+      } else {
+        this.setSelectedSample(null);
+      }
+
       if (this.sampleCount === 0) {
         this.nosamples = true;
       }
@@ -248,12 +274,12 @@ export default {
       };
     }
   },
-  // beforeDestroy() {
-  //   this.clearActiveReport();
-  //   this.clearSamples();
+  beforeDestroy() {
+    this.clearActiveReport();
+    this.clearSamples();
 
-  //   EventBus.$off("save-report", this.handleSaveSamplesAndNextStep);
-  // },
+    //   EventBus.$off("save-report", this.handleSaveSamplesAndNextStep);
+  },
   methods: {
     icon,
     ...mapActions("report", ["getReportById", "clearActiveReport"]),
@@ -262,6 +288,7 @@ export default {
       "getSampleCount",
       "clearSamples",
       "addUnsavedSample",
+      "setSelectedSample",
     ]),
 
     handleAddSample() {
@@ -280,27 +307,25 @@ export default {
       };
     },
     async saveAllSamples() {
-      return await Promise.all(
-        this.samples.map(async (sample, index) => {
-          return await this.$refs["sample_" + index][0].save();
-        })
-      );
+      // return await Promise.all(
+      //   this.samples.map(async (sample, index) => {
+      //     return await this.$refs["sample_" + index][0].save();
+      //   })
+      // );
     },
     handleSaveSamplesAndNextStep() {
-      // TODO Is this in the right place?
-      if (this.samples.length === 0) {
-        return;
-      }
-
-      // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
-      this.countdownToNextPage = this.samples.length;
-
-      // No samples to store
-      if (this.countdownToNextPage === 0) {
-        this.$router.push(this.nextStep);
-      } else {
-        this.saveAllSamples();
-      }
+      // // TODO Is this in the right place?
+      // if (this.samples.length === 0) {
+      //   return;
+      // }
+      // // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
+      // this.countdownToNextPage = this.samples.length;
+      // // No samples to store
+      // if (this.countdownToNextPage === 0) {
+      //   this.$router.push(this.nextStep);
+      // } else {
+      //   this.saveAllSamples();
+      // }
     },
     /**
      * If we're counting down, and the submit event was a success,
@@ -309,49 +334,27 @@ export default {
      * One mistake and we cancel the countdown.
      */
     handleStored(payload) {
-      if (this.countdownToNextPage !== false && payload.success) {
-        this.countdownToNextPage = this.countdownToNextPage - 1;
-        if (this.countdownToNextPage === 0) {
-          this.$router.push(this.nextStep);
-        }
-      } else if (payload.success === false) {
-        this.countdownToNextPage = false;
-      }
-
-      if (this.countdownToNewSample !== false && payload.success) {
-        this.countdownToNewSample = this.countdownToNewSample - 1;
-        if (this.countdownToNewSample === 0) {
-          this.addUnsavedSample();
-        }
-      } else if (payload.success === false) {
-        this.countdownToNewSample = false;
-      }
+      // if (this.countdownToNextPage !== false && payload.success) {
+      //   this.countdownToNextPage = this.countdownToNextPage - 1;
+      //   if (this.countdownToNextPage === 0) {
+      //     this.$router.push(this.nextStep);
+      //   }
+      // } else if (payload.success === false) {
+      //   this.countdownToNextPage = false;
+      // }
+      // if (this.countdownToNewSample !== false && payload.success) {
+      //   this.countdownToNewSample = this.countdownToNewSample - 1;
+      //   if (this.countdownToNewSample === 0) {
+      //     this.addUnsavedSample();
+      //   }
+      // } else if (payload.success === false) {
+      //   this.countdownToNewSample = false;
+      // }
     },
   },
 };
 </script>
 
 <style lang="scss">
-@import "@/assets/scss/variables.scss";
-.SampleCardBar {
-  margin-top: 20px;
-  margin-right: 40px;
-
-  &::-webkit-scrollbar-track {
-    background: none;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar {
-    width: 36px;
-  }
-  &::-webkit-scrollbar-thumb {
-    border-left: 15px solid rgba(0, 0, 0, 0);
-    border-right: 15px solid rgba(0, 0, 0, 0);
-    background-clip: padding-box;
-    height: 60px;
-    -webkit-border-radius: 10px;
-    background-color: $regent-gray;
-  }
-}
+// @import "@/assets/scss/variables.scss";
 </style>

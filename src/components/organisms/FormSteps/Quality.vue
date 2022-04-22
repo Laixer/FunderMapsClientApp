@@ -20,7 +20,7 @@
       <Form ref="form" @submit="handleSubmit">
         <Feedback :feedback="feedback" />
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.masonQuality.value"
             v-bind="fields.masonQuality"
@@ -36,7 +36,7 @@
 
         <hr />
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.foundationBar.value"
             v-bind="fields.foundationBar"
@@ -50,7 +50,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-if="fields.foundationBar.value == 'wood'"
             v-model="fields.woodLevel.value"
@@ -72,9 +72,7 @@
           />
         </div>
 
-        <span @click="save()" class="btn btn-continue"
-          >Opslaan &amp; verder</span
-        >
+        <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
     </div>
   </div>
@@ -127,7 +125,7 @@ export default {
   data() {
     return {
       icon,
-      changed: false,
+      loaded: false,
       feedback: {},
       fields: {
         masonQuality: {
@@ -230,14 +228,16 @@ export default {
     });
 
     this.$nextTick(() => {
-      this.changed = false;
+      this.loaded = true;
     });
   },
 
   watch: {
     fields: {
       handler() {
-        this.changed = true;
+        if (this.loaded) {
+          this.sample.stored = false;
+        }
       },
       deep: true,
     },
@@ -248,8 +248,6 @@ export default {
   },
 
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
         ? this.sample[name]
@@ -260,30 +258,27 @@ export default {
       return options[key] ? options[key].value : null;
     },
 
-    save() {
-      if (this.changed) {
-        this.$refs.form.submit();
-      } else {
-        this.toNextStep();
-      }
-    },
-
     handleFoundationBarChange() {},
 
     async handleSubmit() {
       if (this.isDisabled) {
         return;
       }
-      this.isDisabled = true;
-      this.disableAllFields();
 
       let data = this.allFieldValues();
 
       //   data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
-      data.woodLevel = null;
-      data.constructionPile = data.constructionPile
-        ? Number(data.constructionPile)
-        : null;
+
+      if (data.foundationBar == "wood") {
+        data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
+        data.constructionPile = null;
+      } else if (data.foundationBar == "concrete") {
+        data.constructionPile = data.constructionPile
+          ? Number(data.constructionPile)
+          : null;
+
+        data.woodLevel = null;
+      }
 
       if (this.sample.id) {
         data.id = this.sample.id;
@@ -294,28 +289,12 @@ export default {
       data.address = this.sample.address;
       data.report = this.activeReport.id;
 
-      if (data.id) {
-        await this.updateSample({
-          inquiryId: this.activeReport.id,
-          sampleId: data.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .then(() => {
-            this.toNextStep();
-          })
-          .catch(this.handleError);
-      } else {
-        await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      }
+      this.$emit("stored", data);
+
+      return true;
     },
 
-    toNextStep() {
+    next() {
       this.$router.push({
         name: "edit-report-2",
         params: {
@@ -326,28 +305,6 @@ export default {
       });
     },
 
-    handleSuccess() {
-      try {
-        this.feedback = {
-          variant: "success",
-          message: "De wijzigingen zijn opgeslagen",
-        };
-        this.enableAllFields();
-        this.isDisabled = false;
-        this.$refs.form.resetValidation();
-        this.changed = false;
-      } catch (err) {
-        //
-      }
-    },
-    handleError(err) {
-      this.feedback = {
-        variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen",
-      };
-      this.enableAllFields();
-      this.isDisabled = false;
-    },
     handleFormError() {
       this.feedback = {
         variant: "danger",
@@ -360,10 +317,4 @@ export default {
 
 <style lang="scss">
 @import "@/assets/scss/variables.scss";
-.FormStepForm {
-  padding: 30px 40px;
-  background-color: $catskill-white;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
 </style>

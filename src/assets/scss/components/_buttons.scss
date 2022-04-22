@@ -1,6 +1,6 @@
 // @import "~bootstrap/scss/buttons";
-@import "colors";
-@import "fonts";
+// // @import "colors";
+// // @import "fonts";
 
 .btn {
   position: relative;
@@ -159,7 +159,7 @@
     padding: 9.5px 12px;
     background-color: $athens-gray;
     color: $regent-gray;
-    font-size: $font-size-small;
+    // font-size: $font-size-small;
     line-height: 15px;
     border-radius: 4px;
   }

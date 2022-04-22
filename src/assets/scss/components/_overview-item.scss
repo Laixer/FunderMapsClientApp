@@ -1,0 +1,50 @@
+.OverviewItem {
+  padding: 20px 40px;
+
+  & + & {
+    border-top: 1px solid $athens-gray;
+  }
+
+  &__text {
+    margin-bottom: 5px;
+
+    &.spacing {
+      margin-bottom: 20px;
+    }
+
+    svg {
+      margin-right: 10px;
+    }
+
+    &-label {
+      color: $ebony-clay;
+      margin-right: 3px;
+    }
+
+    &-correct {
+      color: $shamrock;
+      font-weight: 600;
+    }
+  }
+
+  &__label {
+    margin-right: 30px;
+  }
+
+  &__info {
+    color: $secondary;
+  }
+
+  &__input {
+    margin-left: 15px;
+
+    &--correct {
+      color: $shamrock;
+      font-family: $headings-font-family;
+    }
+    &--false {
+      color: $secondary;
+      font-family: $headings-font-family;
+    }
+  }
+}

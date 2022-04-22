@@ -35,9 +35,6 @@
         </svg>
       </a>
     </span>
-    <!-- <div class="SampleCard__progress"> -->
-    <!-- <div class="SampleCard__progress-indicator--2"></div> -->
-    <!-- </div> -->
   </div>
 </template>
 
@@ -64,19 +61,14 @@ export default {
   methods: {
     ...mapActions("samples", ["setSelectedSample"]),
     select() {
-      // console.log(this.sample);
       this.setSelectedSample(this.sample);
     },
-  },
-
-  created() {
-    // console.log(this.sample);
   },
 };
 </script>
 
 <style lang="scss">
-@import "@/assets/scss/variables.scss";
+// @import "@/assets/scss/variables.scss";
 
 $progress: (
   1: $secondary,

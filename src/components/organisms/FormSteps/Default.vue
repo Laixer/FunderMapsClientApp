@@ -16,10 +16,10 @@
       </span>
     </router-link>
 
-    <div class="FormStepForm" v-if="active">
+    <div class="FormStepForm" v-show="active">
       <Form ref="form" @submit="handleSubmit" @error="handleFormError">
         <Feedback :feedback="feedback" />
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.address.value"
             v-bind="fields.address"
@@ -40,18 +40,16 @@
           <FormField
             v-model="fields.substructure.value"
             v-bind="fields.substructure"
-            class="col-md-6"
+            class="col"
           />
 
           <FormField
             v-model="fields.recoveryAdvised.value"
             v-bind="fields.recoveryAdvised"
-            class="col-md-6"
+            class="col"
           />
         </div>
-        <span @click="save()" class="btn btn-continue"
-          >Opslaan &amp; verder</span
-        >
+        <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
     </div>
   </div>
@@ -132,19 +130,20 @@ export default {
     });
 
     this.$nextTick(() => {
-      this.changed = false;
+      this.loaded = true;
     });
   },
 
   data() {
     return {
       icon,
-      changed: false,
+      loaded: false,
+      stored: false,
       feedback: {},
       fields: {
         // LINE 1
         address: {
-          label: "Adres",
+          label: "Straatnaam + huisnummer",
           type: "typeahead",
           selected: null,
           value: "",
@@ -199,7 +198,9 @@ export default {
   watch: {
     fields: {
       handler() {
-        this.changed = true;
+        if (this.loaded) {
+          this.sample.stored = false;
+        }
       },
       deep: true,
     },
@@ -211,7 +212,6 @@ export default {
 
   methods: {
     ...mapActions("address", ["getAddressById", "getAddressSuggestions"]),
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
     addressSerializer(address) {
       return address.weergavenaam;
     },
@@ -225,12 +225,15 @@ export default {
       return options[key] ? options[key].value : null;
     },
 
-    save() {
-      if (this.changed) {
-        this.$refs.form.submit();
-      } else {
-        this.toNextStep();
-      }
+    next() {
+      this.$router.push({
+        name: "edit-report-2",
+        params: {
+          page: 2,
+          step: this.step + 1,
+          skip: false,
+        },
+      });
     },
 
     async getAddresses(query) {
@@ -266,13 +269,6 @@ export default {
       if (this.isDisabled) {
         return;
       }
-      this.isDisabled = true;
-      this.disableAllFields();
-      this.feedback = {
-        variant: "info",
-        message: "Het adres wordt opgeslagen...",
-      };
-
       let data = this.allFieldValues();
 
       if (this.sample.id) {
@@ -292,62 +288,11 @@ export default {
         ? new Date(data.builtYear, 1, 1, 0, 0, 0, 0)
         : null;
 
-      console.log("save data:");
-      console.log(data);
+      this.$emit("stored", data);
 
-      if (data.id) {
-        await this.updateSample({
-          inquiryId: this.activeReport.id,
-          sampleId: data.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .then(() => {
-            this.toNextStep();
-          })
-          .catch(this.handleError);
-      } else {
-        await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      }
+      return true;
     },
 
-    toNextStep() {
-      this.$router.push({
-        name: "edit-report-2",
-        params: {
-          page: 2,
-          step: this.step + 1,
-          save: false,
-        },
-      });
-    },
-    handleSuccess() {
-      try {
-        this.feedback = {
-          variant: "success",
-          message: "De wijzigingen zijn opgeslagen",
-        };
-        this.enableAllFields();
-        this.isDisabled = false;
-        this.$refs.form.resetValidation();
-        this.changed = false;
-      } catch (err) {
-        //
-      }
-    },
-    handleError(err) {
-      this.feedback = {
-        variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen",
-      };
-      this.enableAllFields();
-      this.isDisabled = false;
-    },
     handleFormError() {
       this.feedback = {
         variant: "danger",
@@ -360,10 +305,4 @@ export default {
 
 <style lang="scss">
 @import "@/assets/scss/variables.scss";
-.FormStepForm {
-  padding: 30px 40px;
-  background-color: $catskill-white;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
 </style>

@@ -24,18 +24,25 @@
           v-model="fields.foundationTypeGroup.value"
           v-bind="fields.foundationTypeGroup"
           @input="handleFoundationChange()"
+          class="mb-0"
         />
-        <div class="form-row mb-3" v-if="fields.foundationTypeGroup.value">
+        <div
+          class="form-row"
+          v-if="
+            fields.foundationTypeGroup.value &&
+            fields.foundationTypeGroup.value != 'woodCharger'
+          "
+        >
           <FormField
             v-model="fields.foundationType.value"
             v-bind="fields.foundationType"
-            class="col-md-6"
+            class="col-md-6 mb-0"
           />
         </div>
 
-        <hr />
+        <hr class="mb-4" />
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.enforcementTerm.value"
             v-bind="fields.enforcementTerm"
@@ -49,7 +56,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.overallQuality.value"
             v-bind="fields.overallQuality"
@@ -62,9 +69,7 @@
             class="col-md-6"
           />
         </div>
-        <span @click="save()" class="btn btn-continue"
-          >Opslaan &amp; verder</span
-        >
+        <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
     </div>
   </div>
@@ -123,9 +128,8 @@ export default {
   data() {
     return {
       icon,
-      changed: false,
+      loaded: false,
       feedback: {},
-      test: foundationTypeOptions,
       fields: {
         foundationTypeGroup: {
           label: "Funderingstype",
@@ -133,22 +137,22 @@ export default {
           value: false,
           options: [
             {
-              value: "foundation-wooden-poles",
+              value: "wood",
               text: "Houten palen",
               icon: "foundation-wooden-poles.svg",
             },
             {
-              value: "foundation-wooden-poles-2",
+              value: "woodCharger",
               text: "Houten palen oplanger",
               icon: "foundation-wooden-poles-2.svg",
             },
             {
-              value: "foundation-concrete-poles",
+              value: "concrete",
               text: "Betonnen palen",
               icon: "foundation-concrete-poles.svg",
             },
             {
-              value: "foundation-none",
+              value: "none",
               text: "Niet onderheid",
               icon: "foundation-none.svg",
             },
@@ -159,7 +163,13 @@ export default {
           label: "",
           type: "select",
           value: null,
-          options: foundationTypeOptions,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+              group: null,
+            },
+          ].concat(foundationTypeOptions),
           validationRules: {},
         },
         enforcementTerm: {
@@ -215,6 +225,19 @@ export default {
   },
 
   async created() {
+    // Todo make function
+    var selectedFoundationOption = foundationTypeOptions.filter((option) => {
+      return option.value == this.sample["foundationType"];
+    });
+
+    this.fields.foundationType.options = this.conditionalFoundationTypeOptions(
+      selectedFoundationOption[0].group
+    );
+
+    this.fields.foundationType.value = this.sample["foundationType"];
+    this.fields.foundationTypeGroup.value = selectedFoundationOption[0].group;
+    //End todo
+
     // Explicitly set the address field.
     this.setFieldValues({
       //   cpt: this.sample.cpt,
@@ -237,14 +260,16 @@ export default {
     });
 
     this.$nextTick(() => {
-      this.changed = false;
+      this.loaded = true;
     });
   },
 
   watch: {
     fields: {
       handler() {
-        this.changed = true;
+        if (this.loaded) {
+          this.sample.stored = false;
+        }
       },
       deep: true,
     },
@@ -255,20 +280,31 @@ export default {
   },
 
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
+    next() {
+      this.$router.push({
+        name: "edit-report-2",
+        params: {
+          page: 2,
+          step: this.step + 1,
+          skip: false,
+        },
+      });
+    },
 
     handleFoundationChange() {
       var value = this.fields.foundationTypeGroup.value;
 
       this.fields.foundationType.value = null;
 
-      if (
-        value == "foundation-wooden-poles" ||
-        value == "foundation-wooden-poles-2"
-      ) {
+      if (value == "wood") {
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("wood");
-      } else if (value == "foundation-concrete-poles") {
+        this.fields.foundationType.value = 0;
+      } else if (value == "woodCharger") {
+        this.fields.foundationType.options =
+          this.conditionalFoundationTypeOptions("woodCharger");
+        this.fields.foundationType.value = 10;
+      } else if (value == "concrete") {
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("concrete");
       } else {
@@ -299,20 +335,10 @@ export default {
       return options[key] ? options[key].value : null;
     },
 
-    save() {
-      if (this.changed) {
-        this.$refs.form.submit();
-      } else {
-        this.toNextStep();
-      }
-    },
-
     async handleSubmit() {
       if (this.isDisabled) {
         return;
       }
-      this.isDisabled = true;
-      this.disableAllFields();
 
       let data = this.allFieldValues();
 
@@ -325,65 +351,9 @@ export default {
       data.address = this.sample.address;
       data.report = this.activeReport.id;
 
-      if (data.id) {
-        await this.updateSample({
-          inquiryId: this.activeReport.id,
-          sampleId: data.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .then(() => {
-            this.toNextStep();
-          })
-          .catch(this.handleError);
-      } else {
-        await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      }
-    },
+      this.$emit("stored", data);
 
-    toNextStep() {
-      this.$router.push({
-        name: "edit-report-2",
-        params: {
-          page: 2,
-          step: this.step + 1,
-          save: false,
-        },
-      });
-    },
-
-    handleSuccess() {
-      try {
-        this.feedback = {
-          variant: "success",
-          message: "De wijzigingen zijn opgeslagen",
-        };
-        this.enableAllFields();
-        this.isDisabled = false;
-        this.$refs.form.resetValidation();
-        this.changed = false;
-      } catch (err) {
-        //
-      }
-    },
-    handleError(err) {
-      this.feedback = {
-        variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen",
-      };
-      this.enableAllFields();
-      this.isDisabled = false;
-    },
-    handleFormError() {
-      this.feedback = {
-        variant: "danger",
-        message: "Controleer a.u.b. de invoer",
-      };
+      return true;
     },
   },
 };
@@ -391,10 +361,4 @@ export default {
 
 <style lang="scss">
 @import "@/assets/scss/variables.scss";
-.FormStepForm {
-  padding: 30px 40px;
-  background-color: $catskill-white;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
 </style>

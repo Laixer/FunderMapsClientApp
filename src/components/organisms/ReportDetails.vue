@@ -2,9 +2,9 @@
   <div class="Report__details">
     <header class="d-flex align-items-center justify-content-between">
       <div>
-        <h3>
+        <h5>
           {{ activeReport.labelShort() }}
-        </h3>
+        </h5>
         <span v-if="showLastEdited && hasEditedDate">
           Laatst bewerkt: {{ lastEdited }}
         </span>
@@ -31,27 +31,65 @@
       />
     </div>
     <Divider v-if="showUsers" />
-    <div class="Report__indicators d-flex flex-wrap">
-      <CheckboxIndicator
-        :value="activeReport.standardF3o"
-        class="mb-1"
-        label="Conform F3O"
-      />
-      <CheckboxIndicator
-        :value="activeReport.jointMeasurement"
-        class="mb-1"
-        label="Lintvoegmeting"
-      />
-      <CheckboxIndicator
-        :value="activeReport.inspection"
-        class="mb-1"
-        label="Onderzoeksput"
-      />
-      <CheckboxIndicator
-        :value="activeReport.floorMeasurement"
-        class="mb-1"
-        label="Vloer waterpas"
-      />
+
+    <div class="container Report__users">
+      <div class="row">
+        <div class="col-6">
+          <table class="report-table">
+            <tr>
+              <td>Conform F30</td>
+              <td>
+                <strong
+                  v-if="activeReport.standardF3o"
+                  class="report-table-correct"
+                  >Ja</strong
+                >
+                <strong v-else>Nee</strong>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Onderzoeksput</td>
+              <td>
+                <strong
+                  v-if="activeReport.inspection"
+                  class="report-table-correct"
+                  >Ja</strong
+                >
+                <strong v-else>Nee</strong>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="col-6">
+          <table class="report-table">
+            <tr>
+              <td>Lintvoegmeting</td>
+              <td>
+                <strong
+                  v-if="activeReport.jointMeasurement"
+                  class="report-table-correct"
+                  >Ja</strong
+                >
+                <strong v-else>Nee</strong>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Vloer waterpas</td>
+              <td>
+                <strong
+                  v-if="activeReport.floorMeasurement"
+                  class="report-table-correct"
+                  >Ja</strong
+                >
+                <strong v-else>Nee</strong>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </div>
     <Divider v-if="activeReport.note" />
     <Note v-if="activeReport.note" :note="activeReport.note" />
@@ -63,7 +101,6 @@ import ReportDate from "atom/review/ReportDate";
 import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
 import ReportOrgRoleExplicit from "atom/review/ReportOrgRoleExplicit";
 import Note from "atom/review/Note";
-import CheckboxIndicator from "atom/review/CheckboxIndicator";
 import TypeTag from "atom/TypeTag";
 import Divider from "atom/Divider";
 
@@ -76,7 +113,6 @@ export default {
     ReportUserRoleExplicit,
     ReportOrgRoleExplicit,
     ReportDate,
-    CheckboxIndicator,
     Note,
   },
   props: {
@@ -124,6 +160,15 @@ export default {
   border: 1px solid #ced0da;
   overflow: hidden;
 
+  .report-table {
+    strong {
+      margin-left: 15px;
+    }
+    .report-table-correct {
+      color: #29cc8b;
+    }
+  }
+
   header {
     padding: 25px 30px;
     background: white;
@@ -131,8 +176,10 @@ export default {
     width: 100%;
     line-height: 1;
 
-    h3 {
+    h5 {
       margin: 0;
+      color: #354052;
+      font-weight: 600;
     }
     span {
       color: #7f8fa4;

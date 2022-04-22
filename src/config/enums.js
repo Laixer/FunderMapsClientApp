@@ -121,13 +121,31 @@ export const accessOptions = [
   },
 ];
 
+export const foundationGroupImages = [
+  {
+    value: "wood",
+    text: "Houten palen",
+    icon: "foundation-wooden-poles.svg",
+  },
+  {
+    value: "woodCharger",
+    text: "Houten palen oplanger",
+    icon: "foundation-wooden-poles-2.svg",
+  },
+  {
+    value: "concrete",
+    text: "Betonnen palen",
+    icon: "foundation-concrete-poles.svg",
+  },
+  {
+    value: "none",
+    text: "Niet onderheid",
+    icon: "foundation-none.svg",
+  },
+];
+
 // TODO Hardcoded, enums didn't map
 export const foundationTypeOptions = [
-  {
-    value: null,
-    text: "Selecteer een optie",
-    group: null,
-  },
   {
     //value: 'Wood',
     value: 0,
@@ -192,7 +210,7 @@ export const foundationTypeOptions = [
     //value: 'WoodCharger',
     value: 10,
     text: "Hout met oplanger",
-    group: "wood",
+    group: "woodCharger",
   },
   {
     //value: 'WeightedPile',
@@ -230,22 +248,22 @@ export const crackAmountOptions = [
     value: 1,
     text: "1",
   },
-  {
-    value: 2,
-    text: "2",
-  },
-  {
-    value: 3,
-    text: "3",
-  },
-  {
-    value: 4,
-    text: "4",
-  },
-  {
-    value: 5,
-    text: "5",
-  },
+  // {
+  //   value: 2,
+  //   text: "2",
+  // },
+  // {
+  //   value: 3,
+  //   text: "3",
+  // },
+  // {
+  //   value: 4,
+  //   text: "4",
+  // },
+  // {
+  //   value: 5,
+  //   text: "5",
+  // },
 ];
 
 export const rotationOptions = [
@@ -276,7 +294,7 @@ export const rotationOptions = [
   },
 ];
 
-export const qualityOptions = [
+export const sizeOptions = [
   {
     //value: 'Nihil',
     value: 0,
@@ -296,6 +314,40 @@ export const qualityOptions = [
     //value: 'Groot',
     value: 3,
     text: "Groot",
+  },
+];
+
+export const foundationBarOptions = [
+  {
+    value: "wood",
+    text: "Hout",
+  },
+  {
+    value: "concrete",
+    text: "Beton",
+  },
+];
+
+export const qualityOptions = [
+  {
+    //value: '',
+    value: 0,
+    text: "Slecht",
+  },
+  {
+    //value: '',
+    value: 1,
+    text: "Redelijk",
+  },
+  {
+    //value: '',
+    value: 2,
+    text: "Goed",
+  },
+  {
+    //value: '',
+    value: 3,
+    text: "Zeer goed",
   },
 ];
 

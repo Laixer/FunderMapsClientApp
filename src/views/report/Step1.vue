@@ -3,7 +3,7 @@
     <ProgressSteps :steps="steps" />
     <div class="container">
       <div class="row">
-        <div class="col-lg-11 offset-lg-1">
+        <div class="col-lg-10 offset-lg-1">
           <Form ref="form" @submit="handleSubmit" class="ReportForm__form mt-5">
             <!-- <ReportStepHeader :step="1" :label="headerLabel" /> -->
 
@@ -75,8 +75,6 @@
         </div>
       </div>
     </div>
-
-    <div class="NavigationBar"></div>
 
     <NavigationBar :prev="null" :next="nextStep" />
   </div>
@@ -160,8 +158,8 @@ export default {
           type: "datepicker",
           validationRules: {
             required,
-            min: value => value > new Date(1000, 1, 1),
-            max: value => value < new Date(2100, 1, 1),
+            min: (value) => value > new Date(1000, 1, 1),
+            max: (value) => value < new Date(2100, 1, 1),
           },
           disabled: false,
         },
@@ -306,6 +304,7 @@ export default {
         params: {
           id: report.id,
           documentName: report.documentName,
+          step: 1,
         },
       };
     },
@@ -363,7 +362,6 @@ export default {
    * If nothing was modified in the form, just go to the next step.
    */
   async beforeRouteLeave(to, from, next) {
-    console.log("check");
     let values = this.allFieldValues();
 
     if (to.name !== "edit-report-2" || this.stored === true) {
@@ -386,7 +384,6 @@ export default {
       // Skip form submit.
       next();
     } else {
-      console.log("trigger else");
       // Trigger form submit.
       await this.$refs.form.submit();
       next(false);

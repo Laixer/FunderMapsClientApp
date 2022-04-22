@@ -20,7 +20,7 @@
       <Form ref="form" @submit="handleSubmit">
         <Feedback :feedback="feedback" />
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.deformedFacade.value"
             v-bind="fields.deformedFacade"
@@ -34,7 +34,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.skewedPerpendicular.value"
             v-bind="fields.skewedPerpendicular"
@@ -48,7 +48,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.thresholdFrontLevel.value"
             v-bind="fields.thresholdFrontLevel"
@@ -62,7 +62,7 @@
           />
         </div>
 
-        <div class="form-row mb-3">
+        <div class="form-row">
           <FormField
             v-model="fields.skewedWindowFrame.value"
             v-bind="fields.skewedWindowFrame"
@@ -76,9 +76,7 @@
           />
         </div>
 
-        <span @click="save()" class="btn btn-continue"
-          >Opslaan &amp; verder</span
-        >
+        <span @click="save()" class="btn btn-continue">Opslaan</span>
       </Form>
     </div>
   </div>
@@ -131,7 +129,7 @@ export default {
   data() {
     return {
       icon,
-      changed: false,
+      loaded: false,
       feedback: {},
       fields: {
         deformedFacade: {
@@ -167,7 +165,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         skewedParallel: {
@@ -175,7 +173,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         thresholdFrontLevel: {
@@ -183,7 +181,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         thresholdBackLevel: {
@@ -191,7 +189,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         skewedWindowFrame: {
@@ -215,7 +213,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
       },
@@ -249,14 +247,16 @@ export default {
     });
 
     this.$nextTick(() => {
-      this.changed = false;
+      this.loaded = true;
     });
   },
 
   watch: {
     fields: {
       handler() {
-        this.changed = true;
+        if (this.loaded) {
+          this.sample.stored = false;
+        }
       },
       deep: true,
     },
@@ -267,8 +267,6 @@ export default {
   },
 
   methods: {
-    ...mapActions("samples", ["updateSample", "createSample", "deleteSample"]),
-
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
         ? this.sample[name]
@@ -279,23 +277,12 @@ export default {
       return options[key] ? options[key].value : null;
     },
 
-    save() {
-      if (this.changed) {
-        this.$refs.form.submit();
-      } else {
-        this.toNextStep();
-      }
-    },
-
     handleFoundationBarChange() {},
 
     async handleSubmit() {
       if (this.isDisabled) {
         return;
       }
-      this.isDisabled = true;
-      this.disableAllFields();
-
       let data = this.allFieldValues();
 
       data.skewedPerpendicular = data.skewedPerpendicular
@@ -320,60 +307,15 @@ export default {
       data.address = this.sample.address;
       data.report = this.activeReport.id;
 
-      if (data.id) {
-        await this.updateSample({
-          inquiryId: this.activeReport.id,
-          sampleId: data.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .then(() => {
-            this.toNextStep();
-          })
-          .catch(this.handleError);
-      } else {
-        await this.createSample({
-          inquiryId: this.activeReport.id,
-          data: data,
-        })
-          .then(this.handleSuccess)
-          .catch(this.handleError);
-      }
+      this.$emit("stored", data);
+
+      return true;
     },
 
-    toNextStep() {
-      this.$router.push({
-        name: "edit-report-2",
-        params: {
-          page: 2,
-          step: this.step + 1,
-          save: false,
-        },
-      });
+    save() {
+      this.$emit("save");
     },
 
-    handleSuccess() {
-      try {
-        this.feedback = {
-          variant: "success",
-          message: "De wijzigingen zijn opgeslagen",
-        };
-        this.enableAllFields();
-        this.isDisabled = false;
-        this.$refs.form.resetValidation();
-        this.changed = false;
-      } catch (err) {
-        //
-      }
-    },
-    handleError(err) {
-      this.feedback = {
-        variant: "danger",
-        message: "De wijzigingen zijn niet opgeslagen",
-      };
-      this.enableAllFields();
-      this.isDisabled = false;
-    },
     handleFormError() {
       this.feedback = {
         variant: "danger",
@@ -386,10 +328,4 @@ export default {
 
 <style lang="scss">
 @import "@/assets/scss/variables.scss";
-.FormStepForm {
-  padding: 30px 40px;
-  background-color: $catskill-white;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
 </style>

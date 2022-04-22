@@ -36,15 +36,14 @@ export default {
   props: {
     steps: {
       type: Array,
-      default: function() {
+      default: function () {
         return [];
       },
     },
   },
   computed: {
     step() {
-      console.log(this.steps);
-      return this.steps.findIndex(step => {
+      return this.steps.findIndex((step) => {
         return step.status === "active";
       });
     },

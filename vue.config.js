@@ -14,13 +14,13 @@ module.exports = {
   //   },
   //   themeColor: '#1da025'
   // },
-  // css: {
-  //   loaderOptions: {
-  //     sass: {
-  //       prependData: `@import "@/assets/sass/variables.scss"`,
-  //     },
-  //   },
-  // },
+  css: {
+    loaderOptions: {
+      scss: {
+        prependData: `@import "@/assets/scss/common/common.scss";`,
+      },
+    },
+  },
   configureWebpack: {
     resolve: {
       alias: {

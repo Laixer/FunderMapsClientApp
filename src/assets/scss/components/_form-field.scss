@@ -1,0 +1,233 @@
+.FormField {
+  position: relative;
+
+  label,
+  legend {
+    color: #7f8fa4;
+    text-transform: uppercase;
+    padding-bottom: 0;
+  }
+
+  // .invalid-feedback {
+  //   position: absolute;
+  //   top: -1.75rem;
+  //   text-align: right;
+  // }
+
+  .vdp-datepicker {
+    .form-control[readonly] {
+      background-color: #fff;
+    }
+    &__calendar,
+    .cell:hover,
+    .selected {
+      border-radius: 0.25rem;
+    }
+  }
+
+  .image-checkbox {
+    input {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+
+      &:checked {
+        + label {
+          border-color: $shamrock;
+          background-color: rgba($shamrock, 0.1);
+
+          .item-check {
+            &::before {
+              transform: translate(0, 0);
+            }
+
+            &::after {
+              opacity: 1;
+            }
+          }
+        }
+      }
+    }
+
+    &__item {
+      background: $white;
+      padding: 15px 15px 40px;
+      text-align: center;
+      position: relative;
+      border: 1px solid $mischka;
+      cursor: pointer;
+      display: block;
+      margin-bottom: 0;
+
+      img {
+        display: block;
+        margin: auto;
+      }
+
+      .item-title {
+        position: absolute;
+        font-size: 14px;
+        margin-top: 0.5rem;
+        color: $raven;
+        text-transform: none;
+        left: 0;
+        width: 100%;
+      }
+
+      .item-check {
+        height: 40px;
+        // opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: opacity ease 0.28s;
+        width: 40px;
+
+        &::before,
+        &::after {
+          content: "";
+          display: block;
+          position: absolute;
+        }
+
+        &::before {
+          border-style: solid;
+          border-width: 0 40px 40px 0;
+          border-color: transparent $shamrock transparent transparent;
+          transition: transform ease 0.28s;
+          transform: translate(100%, -100%);
+          z-index: 1;
+        }
+
+        &::after {
+          background-image: url("data:image/svg+xml,%3Csvg height='9' viewBox='0 0 12 9' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m778.921953 293.707368-2.751221-2.65263-1.170732 1.13684 3.921953 3.808422 8.078047-7.84421-1.17073-1.15579z' fill='%23fff' fill-rule='evenodd' transform='translate(-775 -287)'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: center;
+          z-index: 2;
+          height: 9px;
+          right: 5px;
+          transition: opacity ease 0.28s 0.18s;
+          opacity: 0;
+          top: 6px;
+          width: 12px;
+        }
+      }
+    }
+  }
+
+  .radio-images {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+
+    input {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+
+      &:checked {
+        + label {
+          border-color: $shamrock;
+          background-color: rgba($shamrock, 0.1);
+
+          .item-check {
+            &::before {
+              transform: translate(0, 0);
+            }
+
+            &::after {
+              opacity: 1;
+            }
+          }
+        }
+      }
+    }
+
+    &__item {
+      background: $white;
+      padding: 15px 15px 40px;
+      text-align: center;
+      position: relative;
+      width: 100%;
+      border: 1px solid $mischka;
+      cursor: pointer;
+
+      img {
+        display: block;
+        margin: auto;
+      }
+
+      .item-title {
+        position: absolute;
+        font-size: 14px;
+        margin-top: 0.5rem;
+        color: $raven;
+        text-transform: none;
+        left: 0;
+        width: 100%;
+      }
+
+      .item-check {
+        height: 40px;
+        // opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: opacity ease 0.28s;
+        width: 40px;
+
+        &::before,
+        &::after {
+          content: "";
+          display: block;
+          position: absolute;
+        }
+
+        &::before {
+          border-style: solid;
+          border-width: 0 40px 40px 0;
+          border-color: transparent $shamrock transparent transparent;
+          transition: transform ease 0.28s;
+          transform: translate(100%, -100%);
+          z-index: 1;
+        }
+
+        &::after {
+          background-image: url("data:image/svg+xml,%3Csvg height='9' viewBox='0 0 12 9' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m778.921953 293.707368-2.751221-2.65263-1.170732 1.13684 3.921953 3.808422 8.078047-7.84421-1.17073-1.15579z' fill='%23fff' fill-rule='evenodd' transform='translate(-775 -287)'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: center;
+          z-index: 2;
+          height: 9px;
+          right: 5px;
+          transition: opacity ease 0.28s 0.18s;
+          opacity: 0;
+          top: 6px;
+          width: 12px;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * The Toggle
+ */
+.custom-switch {
+  padding-left: 0 !important;
+}
+.custom-control-label {
+  padding-top: calc((1.25rem - 14px) / 2);
+  width: 100%;
+  font-size: 14px;
+  user-select: none;
+}
+.custom-switch .custom-control-label::after {
+  left: auto !important;
+  right: calc(0.75rem + 2px) !important;
+}
+.custom-switch .custom-control-label::before {
+  left: auto !important;
+  right: 0 !important;
+}

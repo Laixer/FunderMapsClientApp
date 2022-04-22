@@ -1,0 +1,27 @@
+.modal-header {
+  border-bottom: none !important;
+  padding-left: 2rem;
+}
+.modal-title {
+  font-weight: 600 !important;
+}
+.modal-body {
+  padding: 1rem 2rem;
+}
+.modal-footer {
+  border-top: 1px solid #ced0da;
+  background: #f0f3f8;
+}
+.modal-backdrop {
+  background-color: #354052 !important;
+}
+.modal-backdrop.show {
+  opacity: 0.8 !important;
+}
+.modal-open {
+  padding-right: 0px !important;
+}
+
+hr {
+  border-color: #e8eaf1;
+}
