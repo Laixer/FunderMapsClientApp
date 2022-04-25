@@ -70,8 +70,8 @@ const actions = {
   async clearSamples({ commit }) {
     commit("clear_samples");
   },
-  async addUnsavedSample({ commit }) {
-    commit("add_unsaved_sample");
+  async addUnsavedSample({ commit }, copyIndex) {
+    commit("add_unsaved_sample", copyIndex);
   },
   async setSelectedSample({ commit }, payload) {
     commit("set_selected_sample", payload);
@@ -88,7 +88,6 @@ const actions = {
     let data = state.selectedSample;
     let sampleId = data.id;
 
-    console.log("idate selcaslkdjf sample");
     let response = await samplesAPI.updateSample({
       inquiryId,
       sampleId,
@@ -113,6 +112,8 @@ const actions = {
   // TODO: where does creationstamp come from?
   async createSample({ commit, state }, { inquiryId }) {
     let data = state.selectedSample;
+
+    delete data.id;
 
     let response = await samplesAPI.createSample({ inquiryId, data });
     if (response.status === 200 && response.data) {
@@ -148,6 +149,12 @@ const mutations = {
       }
     }
 
+    if ([5, 6, 7, 8, 9].includes(selectedSample.foundationType)) {
+      selectedSample.foundationPiles = false;
+    } else {
+      selectedSample.foundationPiles = true;
+    }
+
     selectedSample.changes = false;
     state.selectedSample = selectedSample;
   },
@@ -166,15 +173,15 @@ const mutations = {
   /**
    * Copy new sample from top most sample
    */
-  add_unsaved_sample(state) {
+  add_unsaved_sample(state, copyIndex = 0) {
     if (state.samples.length === 0) {
       state.samples = [
         new SampleModel({ sample: {}, stored: false, editorState: "open" }),
       ];
     } else {
-      let sample = clonedeep(state.samples[0]);
-      // sample.id = "";
-      delete sample.id;
+      let sample = clonedeep(state.samples[copyIndex]);
+
+      sample.id = "";
 
       // sample.address = address;
       //sample.address.buildingNumber = ''

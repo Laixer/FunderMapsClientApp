@@ -6,13 +6,7 @@
       </h2>
       <div v-if="synchronizing" class="flex-grow-1 d-flex justify-content-end">
         <span
-          class="
-            badge badge-info badge-pill
-            text-uppercase
-            font-weight-bold
-            px-2
-            py-1
-          "
+          class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1"
         >
           Verversen van informatie ...
         </span>
@@ -22,7 +16,8 @@
       <thead>
         <tr class="d-flex p-2">
           <th scope="col" class="text-center">Status</th>
-          <th scope="col">Documentnaam</th>
+          <th scope="col">Document</th>
+          <th scope="col">Aantal adressen</th>
           <th scope="col">Verwerker</th>
           <th scope="col">Reviewer</th>
           <th scope="col">Rapportdatum</th>
@@ -117,10 +112,13 @@ export default {
         width: 150px;
       }
       &:nth-child(6) {
+        width: 150px;
+      }
+      &:nth-child(7) {
         // width: 295px
         width: 245px;
       }
-      &:nth-child(7) {
+      &:nth-child(8) {
         // width: 155px
         width: 75px;
       }

@@ -15,14 +15,14 @@
         <b-button
           v-if="member.id !== getUserId()"
           class="font-weight-bold"
-          variant="light"
+          variant="default"
           @click="$emit('remove', { id: member.id })"
         >
           Verwijderen
         </b-button>
         <b-button
           class="font-weight-bold"
-          variant="light"
+          variant="default"
           @click="$emit('edit', { id: member.id })"
         >
           Bewerk

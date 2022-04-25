@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div class="step-2">
     <ProgressSteps :steps="steps" />
-    <div class="container mt-5">
+    <div class="container step-2__wrapper">
       <div class="row">
         <div class="col-4">
-          <a href="#" @click="handleAddSample" class="btn btn-add"
+          <a href="#" @click="handleAddSample()" class="btn btn-add"
             >Adres toevoegen</a
           >
           <div class="SampleCardBar">
@@ -14,50 +14,35 @@
                 :ref="'sample_' + index"
                 :key="index + '-' + Date.now()"
                 :sample="sample"
+                :index="index"
                 :editMode="true"
                 :class="{
-                  active: selectedSample && sample.id == selectedSample.id,
+                  active:
+                    selectedSample &&
+                    ((sample.id != '' && sample.id == selectedSample.id) ||
+                      (sample.creationstamp &&
+                        sample.creationstamp == selectedSample.creationstamp)),
                 }"
+                @delete="handleDeleteSample"
+                @copy="handleAddSample"
               />
             </div>
+
+            <!-- <b-pagination-nav
+              v-if="pageCount > 1"
+              v-model="page"
+              :number-of-pages="pageCount"
+              :link-gen="pageLink"
+              align="center"
+            /> -->
           </div>
         </div>
         <div class="col-8 px-0">
           <FormSteps
             ref="formSteps"
             v-if="selectedSample"
-            @stored="handleStored"
+            :key="selectedSample.id"
           />
-
-          <div v-if="activeReport">
-            <!-- <div>
-              <Feedback :feedback="feedback" />
-              <div v-if="samples.length !== 0" class="">
-                <Sample
-                  v-for="(sample, index) in samples"
-                  :ref="'sample_' + index"
-                  :key="index + '-' + Date.now()"
-                  :sample="sample"
-                  :editMode="true"
-                  @stored="handleStored"
-                />
-                <div class="mb-5" />
-                <b-pagination-nav
-                  v-if="pageCount > 1"
-                  v-model="page"
-                  :number-of-pages="pageCount"
-                  :link-gen="pageLink"
-                  align="center"
-                />
-              </div>
-              <div v-else-if="nosamples" class="text-center mt-4">
-                Deze rapportage bevat nog geen adressen
-              </div>
-              <div class="text-center mt-4" v-else>
-                De addres gegevens worden geladen...
-              </div>
-            </div> -->
-          </div>
 
           <div
             v-if="!activeReport"
@@ -69,20 +54,6 @@
             </span>
             <Feedback :feedback="feedback" />
           </div>
-
-          <!-- <div class="d-flex align-items-center justify-content-center mt-4">
-            <BackButton
-              :disabled="isDisabled"
-              :to="previousStep"
-              class="mr-3"
-              label="Vorige"
-            />
-            <PrimaryArrowButton
-              :disabled="isDisabledNext"
-              @click="handleSaveSamplesAndNextStep"
-              label="Volgende"
-            />
-          </div> -->
         </div>
       </div>
     </div>
@@ -94,10 +65,6 @@
 import ProgressSteps from "molecule/ProgressSteps";
 import ProgressStep from "model/ProgressStep";
 import Feedback from "atom/Feedback";
-import ReportStepHeader from "atom/ReportStepHeader";
-import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
-import BackButton from "atom/navigation/BackButton";
-import Sample from "organism/Sample";
 import SampleCard from "organism/SampleCard";
 import FormSteps from "organism/FormSteps";
 import NavigationBar from "molecule/NavigationBar";
@@ -112,10 +79,6 @@ export default {
   components: {
     Feedback,
     ProgressSteps,
-    // ReportStepHeader,
-    // PrimaryArrowButton,
-    // Sample,
-    // BackButton,
     SampleCard,
     FormSteps,
     NavigationBar,
@@ -162,6 +125,7 @@ export default {
         ? Math.ceil(this.sampleCount / this.samplesPerPage)
         : 1;
     },
+
     previousStep() {
       let report = this.activeReport
         ? this.activeReport
@@ -249,8 +213,6 @@ export default {
         return;
       }
 
-      // EventBus.$on("save-report", this.handleSaveSamplesAndNextStep);
-
       await this.getSampleCount({ inquiryId: this.activeReport.id });
       await this.getSamples({
         inquiryId: this.activeReport.id,
@@ -277,8 +239,6 @@ export default {
   beforeDestroy() {
     this.clearActiveReport();
     this.clearSamples();
-
-    //   EventBus.$off("save-report", this.handleSaveSamplesAndNextStep);
   },
   methods: {
     icon,
@@ -289,16 +249,19 @@ export default {
       "clearSamples",
       "addUnsavedSample",
       "setSelectedSample",
+      "deleteSample",
     ]),
 
-    handleAddSample() {
-      // this.countdownToNewSample = this.samples.length;
-      // if (this.countdownToNewSample === 0) {
-      //   this.addUnsavedSample();
-      // } else {
-      //   this.saveAllSamples();
-      // }
-      this.addUnsavedSample();
+    handleDeleteSample(sample) {
+      this.deleteSample({
+        inquiryId: this.activeReport.id,
+        sampleId: sample.id,
+        creationstamp: sample.creationstamp,
+      });
+    },
+
+    handleAddSample(copyIndex = 0) {
+      this.addUnsavedSample(copyIndex);
     },
     pageLink(pageNum) {
       return {
@@ -306,55 +269,6 @@ export default {
         params: { page: pageNum },
       };
     },
-    async saveAllSamples() {
-      // return await Promise.all(
-      //   this.samples.map(async (sample, index) => {
-      //     return await this.$refs["sample_" + index][0].save();
-      //   })
-      // );
-    },
-    handleSaveSamplesAndNextStep() {
-      // // TODO Is this in the right place?
-      // if (this.samples.length === 0) {
-      //   return;
-      // }
-      // // For each saved sample we count down via an event handler (this.handleStored). Once this countdown hits 0, we navigate.
-      // this.countdownToNextPage = this.samples.length;
-      // // No samples to store
-      // if (this.countdownToNextPage === 0) {
-      //   this.$router.push(this.nextStep);
-      // } else {
-      //   this.saveAllSamples();
-      // }
-    },
-    /**
-     * If we're counting down, and the submit event was a success,
-     * count down, until we reach the end and can go to the next page.
-     *
-     * One mistake and we cancel the countdown.
-     */
-    handleStored(payload) {
-      // if (this.countdownToNextPage !== false && payload.success) {
-      //   this.countdownToNextPage = this.countdownToNextPage - 1;
-      //   if (this.countdownToNextPage === 0) {
-      //     this.$router.push(this.nextStep);
-      //   }
-      // } else if (payload.success === false) {
-      //   this.countdownToNextPage = false;
-      // }
-      // if (this.countdownToNewSample !== false && payload.success) {
-      //   this.countdownToNewSample = this.countdownToNewSample - 1;
-      //   if (this.countdownToNewSample === 0) {
-      //     this.addUnsavedSample();
-      //   }
-      // } else if (payload.success === false) {
-      //   this.countdownToNewSample = false;
-      // }
-    },
   },
 };
 </script>
-
-<style lang="scss">
-// @import "@/assets/scss/variables.scss";
-</style>

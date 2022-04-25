@@ -49,7 +49,7 @@
             <Feedback :feedback="feedback" />
           </div>
 
-          <div class="d-flex align-items-center justify-content-center mt-4">
+          <!-- <div class="d-flex align-items-center justify-content-center mt-4">
             <BackButton
               :disabled="isDisabled"
               :to="previousStep"
@@ -61,7 +61,13 @@
               label="Aanbieden ter review"
               @click="handleToPendingReview"
             />
-          </div>
+          </div> -->
+
+          <NavigationBar :prev="previousStep" :next="null">
+            <button @click="handleToPendingReview" class="btn btn-next">
+              Aanbieden ter review
+            </button>
+          </NavigationBar>
         </div>
       </div>
     </div>
@@ -84,15 +90,15 @@ import BackButton from "atom/navigation/BackButton";
 import { canWrite, isSuperUser } from "service/auth";
 import { EventBus } from "utils/eventBus.js";
 
+import NavigationBar from "molecule/NavigationBar";
+
 export default {
   components: {
     ReportDetails,
     SampleDetails,
     Feedback,
     ProgressSteps,
-    // ReportStepHeader,
-    PrimaryArrowButton,
-    BackButton,
+    NavigationBar,
   },
   data() {
     return {

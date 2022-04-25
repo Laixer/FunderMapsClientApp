@@ -33,10 +33,12 @@
         :sample="selectedSample"
         :step="3"
         @stored="handleStored"
+        @showStep4="handleShowStep4"
         :active="selectedStep == 3"
       />
 
       <Poles
+        v-if="showFoundationStep"
         ref="step-4"
         :sample="selectedSample"
         :step="4"
@@ -95,6 +97,10 @@ export default {
 
   async created() {
     this.selectedStep = this.$route.params.step;
+
+    this.$nextTick(() => {
+      this.showFoundationStep = this.selectedSample.foundationPiles;
+    });
   },
 
   data() {
@@ -102,6 +108,7 @@ export default {
       selectedStep: 1,
       address: null,
       checked: false,
+      showFoundationStep: true,
     };
   },
 
@@ -121,6 +128,9 @@ export default {
   methods: {
     ...mapActions("samples", ["test", "updateSelectedSample", "createSample"]),
     async next(step) {
+      if (!this.$refs[`step-${step}`]) {
+        return true;
+      }
       this.$refs[`step-${step}`].$refs.form.validate();
 
       if (this.$refs[`step-${step}`].$refs.form.isValid()) {
@@ -148,6 +158,10 @@ export default {
         sampleId: payload.id,
         data: payload,
       });
+    },
+
+    handleShowStep4(value) {
+      this.showFoundationStep = value;
     },
   },
 };

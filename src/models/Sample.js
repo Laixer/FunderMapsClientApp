@@ -68,11 +68,7 @@ export default class SampleModel {
   }
   getFoundationTypeImage() {
     const option = foundationTypeOptions[this.foundationType] || null;
-    console.log(foundationTypeOptions);
 
-    console.log(this.foundationType);
-
-    console.log(option);
     if (option.group == "wood") {
       return {
         icon: "foundation-wooden-poles.svg",
@@ -101,8 +97,6 @@ export default class SampleModel {
     return foundationQualityOptions[this.overallQuality] || null;
   }
   getSubstructure() {
-    console.log(substructureOptions);
-    console.log(this.substructure);
     return substructureOptions[this.substructure] || null;
   }
   getFoundationDamageCause() {

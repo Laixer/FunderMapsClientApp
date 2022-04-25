@@ -2,7 +2,7 @@
   <div class="SampleCard" @click="select()">
     <span class="SampleCard__title">{{ sample.addressFormatted }}</span>
     <span class="SampleCard__actions">
-      <a href="#open" class="SampleCard__open">
+      <a class="SampleCard__open" @click.stop="copySample">
         <svg
           class="SampleCard__icon"
           height="10"
@@ -18,7 +18,7 @@
           />
         </svg>
       </a>
-      <a href="#open" class="SampleCard__delete">
+      <a class="SampleCard__delete" @click.stop="deleteSample">
         <svg
           class="SampleCard__icon"
           xmlns="http://www.w3.org/2000/svg"
@@ -47,6 +47,10 @@ export default {
       type: Object,
       required: true,
     },
+    index: {
+      type: Number,
+      required: true,
+    },
     editMode: {
       type: Boolean,
       default: false,
@@ -63,22 +67,20 @@ export default {
     select() {
       this.setSelectedSample(this.sample);
     },
+
+    deleteSample() {
+      this.$emit("delete", this.sample);
+    },
+
+    copySample() {
+      this.$emit("copy", this.index);
+    },
   },
 };
 </script>
 
 <style lang="scss">
 // @import "@/assets/scss/variables.scss";
-
-$progress: (
-  1: $secondary,
-  2: $secondary,
-  3: $buttercup,
-  4: $buttercup,
-  5: $shamrock,
-  6: $shamrock,
-  7: $shamrock,
-);
 
 .SampleCard {
   position: relative;
@@ -125,23 +127,6 @@ $progress: (
     // @include text-ellipsis(1);
     color: $secondary;
     max-width: 85%;
-  }
-
-  &__progress {
-    margin-top: 15px;
-    height: 4px;
-    width: 100%;
-    background-color: $mischka;
-    border-radius: 15px;
-
-    @each $stage, $color in $progress {
-      &-indicator--#{$stage} {
-        width: calc((100% / 7) * #{$stage});
-        height: 4px;
-        border-radius: 10px;
-        background-color: $color;
-      }
-    }
   }
 
   &__actions {

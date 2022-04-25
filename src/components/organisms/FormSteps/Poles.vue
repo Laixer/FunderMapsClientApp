@@ -62,63 +62,65 @@
           />
         </div>
 
-        <hr />
+        <template v-if="[0, 1, 2, 10, 12, 14].includes(sample.foundationType)">
+          <hr />
 
-        <div class="form-row">
-          <FormField
-            v-model="fields.woodType.value"
-            v-bind="fields.woodType"
-            class="col-md-6"
-          />
+          <div class="form-row">
+            <FormField
+              v-model="fields.woodType.value"
+              v-bind="fields.woodType"
+              class="col-md-6"
+            />
 
-          <FormField
-            v-model="fields.woodQualityNecessity.value"
-            v-bind="fields.woodQualityNecessity"
-            class="col-md-6"
-          />
-        </div>
+            <FormField
+              v-model="fields.woodQualityNecessity.value"
+              v-bind="fields.woodQualityNecessity"
+              class="col-md-6"
+            />
+          </div>
 
-        <div class="form-row">
-          <FormField
-            v-model="fields.woodPenetrationDepth.value"
-            v-bind="fields.woodPenetrationDepth"
-            class="col-md-6"
-          />
+          <div class="form-row">
+            <FormField
+              v-model="fields.woodPenetrationDepth.value"
+              v-bind="fields.woodPenetrationDepth"
+              class="col-md-6"
+            />
 
-          <FormField
-            v-model="fields.woodEncroachement.value"
-            v-bind="fields.woodEncroachement"
-            class="col-md-6"
-          />
-        </div>
+            <FormField
+              v-model="fields.woodEncroachement.value"
+              v-bind="fields.woodEncroachement"
+              class="col-md-6"
+            />
+          </div>
 
-        <div class="form-row">
-          <FormField
-            v-model="fields.woodQuality.value"
-            v-bind="fields.woodQuality"
-            class="col-md-6"
-          />
+          <div class="form-row">
+            <FormField
+              v-model="fields.woodQuality.value"
+              v-bind="fields.woodQuality"
+              class="col-md-6"
+            />
 
-          <FormField
-            v-model="fields.carryingCapacityQuality.value"
-            v-bind="fields.carryingCapacityQuality"
-            class="col-md-6"
-          />
-        </div>
+            <FormField
+              v-model="fields.carryingCapacityQuality.value"
+              v-bind="fields.carryingCapacityQuality"
+              class="col-md-6"
+            />
+          </div>
 
-        <div class="form-row">
-          <FormField
-            v-model="fields.pileWoodCapacityVerticalQuality.value"
-            v-bind="fields.pileWoodCapacityVerticalQuality"
-            class="col-md-6"
-          />
+          <div class="form-row">
+            <FormField
+              v-model="fields.pileWoodCapacityVerticalQuality.value"
+              v-bind="fields.pileWoodCapacityVerticalQuality"
+              class="col-md-6"
+            />
 
-          <FormField
-            v-model="fields.woodCapacityHorizontalQuality.value"
-            v-bind="fields.woodCapacityHorizontalQuality"
-            class="col-md-6"
-          />
-        </div>
+            <FormField
+              v-model="fields.woodCapacityHorizontalQuality.value"
+              v-bind="fields.woodCapacityHorizontalQuality"
+              class="col-md-6"
+            />
+          </div>
+        </template>
 
         <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
@@ -438,7 +440,7 @@ export default {
       this.$router.push({
         name: "edit-report-2",
         params: {
-          page: 2,
+          page: this.$route.params.page,
           step: this.step + 1,
           save: false,
         },

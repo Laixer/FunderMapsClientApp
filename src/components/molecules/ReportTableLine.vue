@@ -12,6 +12,7 @@
     <td>
       <strong>{{ report.label() }}</strong>
     </td>
+    <td>4 adressen</td>
     <td>{{ ownerUserObject ? ownerUserObject.getUserName() : "-" }}</td>
     <td>{{ reviewerUserObject ? reviewerUserObject.getUserName() : "-" }}</td>
     <td>{{ report.date() }}</td>
@@ -19,10 +20,10 @@
       <TypeTag v-if="report.hasType()" :type="report.getType()" />
     </td>
     <td class="d-flex justify-content-end">
-      <b-button v-if="editable" variant="light" @click.stop="handleEdit">
+      <b-button v-if="editable" variant="default" @click.stop="handleEdit">
         Bewerk
       </b-button>
-      <b-button v-else variant="light"> Bekijk </b-button>
+      <b-button v-else variant="default"> Bekijk </b-button>
     </td>
   </tr>
 </template>
@@ -52,6 +53,8 @@ export default {
   computed: {
     ...mapGetters("orgUsers", ["getUserById"]),
     editable() {
+      console.log(this.report);
+
       if (!canWrite()) {
         return false;
       }

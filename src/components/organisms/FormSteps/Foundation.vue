@@ -281,11 +281,17 @@ export default {
 
   methods: {
     next() {
+      let step = this.step + 1;
+
+      if ([5, 6, 7, 8, 9].includes(this.fields.foundationType.value)) {
+        step = this.step + 2;
+      }
+
       this.$router.push({
         name: "edit-report-2",
         params: {
-          page: 2,
-          step: this.step + 1,
+          page: this.$route.params.page,
+          step: step,
           skip: false,
         },
       });
@@ -297,17 +303,21 @@ export default {
       this.fields.foundationType.value = null;
 
       if (value == "wood") {
+        this.$emit("showStep4", true);
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("wood");
         this.fields.foundationType.value = 0;
+        this.$emit("showStep4", true);
       } else if (value == "woodCharger") {
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("woodCharger");
         this.fields.foundationType.value = 10;
       } else if (value == "concrete") {
+        this.$emit("showStep4", true);
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("concrete");
       } else {
+        this.$emit("showStep4", false);
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("none");
       }

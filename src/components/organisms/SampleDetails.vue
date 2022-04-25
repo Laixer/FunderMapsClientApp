@@ -49,10 +49,6 @@ export default {
     };
   },
 
-  created() {
-    console.log(this.sample);
-  },
-
   computed: {
     sampleData() {
       return [

@@ -229,7 +229,7 @@ export default {
       this.$router.push({
         name: "edit-report-2",
         params: {
-          page: 2,
+          page: this.$route.params.page,
           step: this.step + 1,
           skip: false,
         },

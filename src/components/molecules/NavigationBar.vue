@@ -7,8 +7,11 @@
             >Vorige</router-link
           >
         </div>
-        <div class="col-6 text-left">
+        <div class="col-6 text-left" v-if="next">
           <router-link :to="next" class="btn btn-next">Volgende</router-link>
+        </div>
+        <div v-else class="col-6 text-left">
+          <slot></slot>
         </div>
       </div>
     </div>
@@ -21,13 +24,13 @@ export default {
   props: {
     prev: {
       type: [Object, String],
-      default: function() {
+      default: function () {
         return "";
       },
     },
     next: {
       type: [Object, String],
-      default: function() {
+      default: function () {
         return "";
       },
     },

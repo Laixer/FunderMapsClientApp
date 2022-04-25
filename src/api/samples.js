@@ -13,7 +13,6 @@ const getSampleCount = ({ inquiryId }) => {
 
 // Single
 const updateSample = ({ inquiryId, sampleId, data }) => {
-  console.log("I am updated");
   return axios.put(`/api/inquiry/${inquiryId}/sample/${sampleId}`, data);
 };
 const createSample = ({ inquiryId, data }) => {
