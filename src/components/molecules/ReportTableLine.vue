@@ -53,8 +53,6 @@ export default {
   computed: {
     ...mapGetters("orgUsers", ["getUserById"]),
     editable() {
-      console.log(this.report);
-
       if (!canWrite()) {
         return false;
       }

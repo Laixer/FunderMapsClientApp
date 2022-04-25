@@ -44,6 +44,8 @@
             :key="selectedSample.id"
           />
 
+          <div v-else>Nog geen adres geselecteerd.</div>
+
           <div
             v-if="!activeReport"
             class="d-flex w-100 h-100 align-items-center justify-content-center mt-5"
@@ -157,7 +159,7 @@ export default {
     },
   },
   beforeRouteLeave(to, from, next) {
-    if (this.selectedSample.stored == false) {
+    if (this.selectedSample && this.selectedSample.stored == false) {
       if (
         confirm(
           "Adres is nog niet opslagen. Weet je zeker dat je de pagina wilt verlaten?"
@@ -222,8 +224,6 @@ export default {
 
       if (this.samples && this.samples[0]) {
         this.setSelectedSample(this.samples[0]);
-      } else {
-        this.setSelectedSample(null);
       }
 
       if (this.sampleCount === 0) {

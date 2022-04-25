@@ -1,5 +1,5 @@
 <template>
-  <div :key="selectedSample.id">
+  <div>
     <div class="d-flex justify-content-between">
       <h1 class="h3 FormSteps__title">{{ selectedSample.addressFormatted }}</h1>
 

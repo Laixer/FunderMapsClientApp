@@ -225,18 +225,21 @@ export default {
   },
 
   async created() {
-    // Todo make function
-    var selectedFoundationOption = foundationTypeOptions.filter((option) => {
-      return option.value == this.sample["foundationType"];
-    });
+    if (this.sample["foundationType"]) {
+      // Todo make function
+      var selectedFoundationOption = foundationTypeOptions.filter((option) => {
+        return option.value == this.sample["foundationType"];
+      });
 
-    this.fields.foundationType.options = this.conditionalFoundationTypeOptions(
-      selectedFoundationOption[0].group
-    );
+      this.fields.foundationType.options =
+        this.conditionalFoundationTypeOptions(
+          selectedFoundationOption[0].group
+        );
 
-    this.fields.foundationType.value = this.sample["foundationType"];
-    this.fields.foundationTypeGroup.value = selectedFoundationOption[0].group;
-    //End todo
+      this.fields.foundationType.value = this.sample["foundationType"];
+      this.fields.foundationTypeGroup.value = selectedFoundationOption[0].group;
+      //End todo
+    }
 
     // Explicitly set the address field.
     this.setFieldValues({

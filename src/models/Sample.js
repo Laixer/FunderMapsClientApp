@@ -34,7 +34,8 @@ let structure = {
   // foundationDamageCause: null,
   // builtYear: "",
   // enforcementTerm: null,
-  // address: null,
+  address: null,
+  // addressFormatted: null,
   // policy: 0,
   // createDate: "",
   // updateDate: "",
@@ -49,7 +50,7 @@ export default class SampleModel {
     this.editorState = editorState || "close";
   }
   updateValues({ data }) {
-    Object.assign(this, structure, data);
+    Object.assign(this, data);
   }
   // ****************************************************************************
   //  Editor states

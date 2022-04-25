@@ -1,6 +1,8 @@
 <template>
   <div class="SampleCard" @click="select()">
-    <span class="SampleCard__title">{{ sample.addressFormatted }}</span>
+    <span class="SampleCard__title" :label="sample.address">{{
+      sample.addressFormatted
+    }}</span>
     <span class="SampleCard__actions">
       <a class="SampleCard__open" @click.stop="copySample">
         <svg

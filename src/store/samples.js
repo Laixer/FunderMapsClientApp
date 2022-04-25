@@ -9,6 +9,7 @@ import clonedeep from "lodash.clonedeep";
  * Import API
  */
 import samplesAPI from "api/samples";
+// import { stat } from "fs";
 
 /**
  * Declare Variable
@@ -121,6 +122,7 @@ const actions = {
         id: response.data.id,
         data: Object.assign(response.data, {
           creationstamp: data.creationstamp,
+          addressFormatted: data.addressFormatted,
         }),
       });
     }
@@ -175,9 +177,14 @@ const mutations = {
    */
   add_unsaved_sample(state, copyIndex = 0) {
     if (state.samples.length === 0) {
-      state.samples = [
-        new SampleModel({ sample: {}, stored: false, editorState: "open" }),
-      ];
+      let sample = new SampleModel({
+        sample: {},
+        stored: false,
+        editorState: "open",
+      });
+      state.samples = [sample];
+
+      state.selectedSample = sample;
     } else {
       let sample = clonedeep(state.samples[copyIndex]);
 
@@ -218,7 +225,7 @@ const mutations = {
       index = state.samples.findIndex(
         (sample) => sample.creationstamp === data.creationstamp
       );
-      state.samples[index].stored = true;
+      // state.samples[index].stored = true;
     }
 
     if (index !== -1) {
@@ -236,6 +243,9 @@ const mutations = {
         (sample) => sample.creationstamp === creationstamp
       );
     } else {
+      if (state.samples[index].id == state.selectedSample.id) {
+        state.selectedSample = null;
+      }
       Vue.delete(state.samples, index);
     }
   },
