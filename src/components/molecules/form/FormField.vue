@@ -1,7 +1,7 @@
 <template>
   <b-form-group class="FormField" :state="state">
     <!-- :label="label" -->
-    <template v-slot:label>
+    <template v-slot:label v-if="type != 'checkbox'">
       <span>{{ label }}</span>
       <span v-if="hasInfo" class="info ml-1" @click="openInfo">
         <img
@@ -51,6 +51,31 @@
       </b-form-radio>
     </div>
 
+    <div class="radio-images" v-else-if="type === 'radio-images'">
+      <div
+        class=""
+        v-for="option in options"
+        :key="option.value"
+        :state="state"
+        :disabled="isDisabled"
+      >
+        <input
+          type="radio"
+          v-model="fieldValue"
+          :value="option.value"
+          @input="handleInput($event.target.value)"
+          @blur="handleBlur"
+          :id="option.value"
+        />
+        <label class="radio-images__item" :for="option.value">
+          <img :src="icon(option.icon)" />
+
+          <span class="item-title">{{ option.text }}</span>
+          <span class="item-check"></span>
+        </label>
+      </div>
+    </div>
+
     <b-form-radio-group
       v-else-if="type === 'radio'"
       v-model="fieldValue"
@@ -62,6 +87,33 @@
       @input="handleInput"
       @blur="handleBlur"
     ></b-form-radio-group>
+
+    <div class="image-checkbox" v-else-if="type === 'checkbox'">
+      <!-- <b-form-checkbox
+        v-model="fieldValue"
+        :options="options"
+        :state="state"
+        :placeholder="placeholder"
+        :autocomplete="autocomplete"
+        :disabled="isDisabled"
+        @input="handleInput"
+        @blur="handleBlur"
+      >
+      </b-form-checkbox> -->
+      <input
+        type="checkbox"
+        v-model="fieldValue"
+        @change="handleInput($event.target.checked)"
+        @blur="handleBlur"
+        :disabled="isDisabled"
+        :id="label"
+      />
+      <label class="image-checkbox__item" :for="label">
+        <img :src="icon(image)" />
+        <span class="item-title">{{ label }}</span>
+        <span class="item-check"></span>
+      </label>
+    </div>
 
     <!-- <v-date-picker
       locale="nl"
@@ -160,7 +212,7 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import { icon } from "helper/assets";
+import { icon, image } from "helper/assets";
 
 // TODO: https://github.com/charliekassel/vuejs-datepicker
 // TODO: https://vue-multiselect.js.org
@@ -214,6 +266,11 @@ export default {
     novalidate: {
       type: Boolean,
       default: false,
+    },
+    // Used by checkbox
+    image: {
+      type: String,
+      default: null,
     },
     // Used by `type === select & radio`
     options: {
@@ -425,64 +482,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss">
-.FormField {
-  font-size: 16px;
-  position: relative;
-
-  input {
-    color: rgba(53, 64, 82, 0.5);
-  }
-  input:disabled {
-    color: #495057 !important;
-  }
-
-  label,
-  legend {
-    color: #7f8fa4;
-    text-transform: uppercase;
-    padding-bottom: 0;
-  }
-
-  // .invalid-feedback {
-  //   position: absolute;
-  //   top: -1.75rem;
-  //   text-align: right;
-  // }
-
-  &--choice {
-    height: 33px;
-
-    .custom-control-input:checked ~ .custom-control-label::before {
-      border-color: transparent;
-      background-color: transparent;
-    }
-    .custom-radio.check
-      .custom-control-input:checked
-      ~ .custom-control-label::after {
-      background-color: white;
-      background-image: url("../../../assets/icons/Check-icon.svg");
-      background-size: cover;
-    }
-    .custom-radio.none
-      .custom-control-input:checked
-      ~ .custom-control-label::after {
-      background-color: white;
-      background-image: url("../../../assets/icons/None-icon.svg");
-      background-size: cover;
-    }
-  }
-
-  .vdp-datepicker {
-    .form-control[readonly] {
-      background-color: #fff;
-    }
-    &__calendar,
-    .cell:hover,
-    .selected {
-      border-radius: 0.25rem;
-    }
-  }
-}
-</style>

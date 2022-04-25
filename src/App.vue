@@ -20,8 +20,7 @@ export default class App extends Vue {}
 html,
 body {
   height: 100%;
-  font-family: "Gibson" !important;
-  font-size: 14px;
+  // font-size: 14px;
 }
 html {
   overflow-y: scroll;

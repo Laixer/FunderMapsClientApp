@@ -1,28 +1,26 @@
-
-import axios from '@/utils/axios'
+import axios from "@/utils/axios";
 
 // Collection
 const getSamples = ({ inquiryId, limit, offset }) => {
   return axios.get(`/api/inquiry/${inquiryId}/sample`, {
-    params: { limit, offset }
-  })
-}
+    params: { limit, offset },
+  });
+};
 
 const getSampleCount = ({ inquiryId }) => {
-  return axios.get(`/api/inquiry/${inquiryId}/sample/stats`)
-}
-
+  return axios.get(`/api/inquiry/${inquiryId}/sample/stats`);
+};
 
 // Single
 const updateSample = ({ inquiryId, sampleId, data }) => {
-  return axios.put(`/api/inquiry/${inquiryId}/sample/${sampleId}`, data)
-}
+  return axios.put(`/api/inquiry/${inquiryId}/sample/${sampleId}`, data);
+};
 const createSample = ({ inquiryId, data }) => {
-  return axios.post(`/api/inquiry/${inquiryId}/sample`, data)
-}
+  return axios.post(`/api/inquiry/${inquiryId}/sample`, data);
+};
 const deleteSample = ({ inquiryId, sampleId }) => {
-  return axios.delete(`/api/inquiry/${inquiryId}/sample/${sampleId}`)
-}
+  return axios.delete(`/api/inquiry/${inquiryId}/sample/${sampleId}`);
+};
 
 export default {
   getSamples,
@@ -30,5 +28,5 @@ export default {
 
   updateSample,
   createSample,
-  deleteSample
-}
+  deleteSample,
+};

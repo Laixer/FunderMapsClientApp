@@ -1,11 +1,12 @@
 <template>
-  <div :class="statusClass" class="ProgressIndicator">
-    <div
-      class="ProgressIndicator__sphere d-flex align-items-center justify-content-center"
-    >
-      <img v-if="iconName" :src="icon(iconName)" width="45" height="45" />
+  <div style="display: contents">
+    <div class="ProgressIndicator" :class="statusClass">
+      <router-link :to="{ name: to }" class="ProgressIndicator__link">
+        <img v-if="iconName" :src="icon(iconName)" />
+        <span class="h6 ProgressIndicator__title">{{ title }}</span>
+      </router-link>
     </div>
-    <div class="ProgressIndicator__button"></div>
+    <div v-if="!last" class="ProgressSpacer"></div>
   </div>
 </template>
 
@@ -30,8 +31,18 @@ export default {
       type: Number,
       default: 1,
     },
+    title: {
+      type: String,
+      default: "",
+    },
     iconName: {
       type: [String, Boolean],
+      default: false,
+    },
+    last: {
+      default: false,
+    },
+    to: {
       default: false,
     },
   },
@@ -49,37 +60,5 @@ export default {
 </script>
 
 <style lang="scss">
-.ProgressIndicator {
-  &__sphere {
-    position: relative;
-    border-radius: 50%;
-    width: 100px;
-    height: 100px;
-    background: #ced0da;
-  }
-  &--active,
-  &--passed {
-    .ProgressIndicator {
-      &__sphere {
-        background-color: #17a4ea;
-      }
-    }
-  }
-  &--active {
-    .ProgressIndicator {
-      &__sphere {
-        &:after {
-          content: "";
-          position: absolute;
-          width: 110px;
-          height: 110px;
-          top: -5px;
-          left: -5px;
-          border-radius: 50%;
-          border: 2px solid #17a4ea;
-        }
-      }
-    }
-  }
-}
+@import "@/assets/scss/variables.scss";
 </style>

@@ -1,0 +1,54 @@
+$navbar-dark-toggler-icon-bg: none;
+$navbar-light-toggler-icon-bg: none;
+
+@import "~bootstrap/scss/variables";
+
+@import "fonts";
+@import "colors";
+@import "buttons";
+
+$form-group-margin-bottom: 30px;
+$form-grid-gutter-width: 40px;
+
+$label-margin-bottom: 5px;
+
+// Input Text
+$input-color: $body-color;
+$input-focus-color: $body-color;
+$input-focus-border-color: $picton-blue;
+$input-focus-box-shadow: none;
+$input-padding-y: 6px;
+$input-padding-x: 15px;
+$input-height: 40px;
+
+// Custom select
+$custom-select-height: $input-height;
+$custom-select-color: $input-color;
+
+$custom-select-bg: url("data:image/svg+xml,%3Csvg height='12' viewBox='0 0 8 12' width='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m8 8.07927724-4 3.92072276-4-3.92072276zm-4-8.07927724 4 3.92072276h-8z' fill='%233d5372' fill-rule='evenodd'/%3E%3C/svg%3E")
+    8px 12px no-repeat,
+  linear-gradient(0deg, #f2f4f7 0%, #ffffff 100%);
+$custom-select-background: center;
+
+$custom-control-indicator-focus-box-shadow: none;
+$custom-control-indicator-focus-border-color: inherit;
+$custom-control-indicator-border-color: $mischka;
+$custom-control-indicator-bg: transparent;
+$custom-control-indicator-size: 1.25rem;
+
+$custom-control-indicator-checked-bg: $shamrock;
+$custom-control-indicator-checked-border-color: $shamrock;
+
+$enable-shadows: false;
+
+$custom-control-indicator-active-bg: $custom-control-indicator-checked-bg;
+$custom-control-indicator-active-border-color: $custom-control-indicator-checked-border-color;
+$custom-control-indicator-active-box-shadow: none;
+
+$custom-select-focus-border-color: $picton-blue;
+$custom-select-focus-box-shadow: none;
+
+.custom-select {
+  background-position: calc(100% - 15px) !important;
+  color: transparentize($color: $secondary, $amount: 0.5) !important;
+}

@@ -22,11 +22,11 @@ export default class TypeTag extends Vue {
 .TypeTag {
   display: inline-block;
   border-radius: 3px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   line-height: 1;
-  padding: 7px 8px 4px;
+  padding: 6px 7px;
   user-select: none;
 }
 </style>

@@ -1,14 +1,25 @@
 <template>
-  <div class="ProgressSteps d-flex justify-content-between">
-    <ProgressLine :steps="steps.length - 1" :step="step" />
-    <ProgressIndicator
-      v-for="(step, index) in steps"
-      :key="index"
-      :status="step.status"
-      :iconName="step.iconName"
-      :clickable="step.clickable"
-      :step="step.step"
-    />
+  <div class="ProgressWrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+          <div class="ProgressSteps">
+            <!-- <ProgressLine :steps="steps.length - 1" :step="step" /> -->
+            <ProgressIndicator
+              v-for="(step, index) in steps"
+              :key="index"
+              :status="step.status"
+              :iconName="step.iconName"
+              :title="step.title"
+              :clickable="step.clickable"
+              :step="step.step"
+              :last="index == steps.length - 1"
+              :to="step.to"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -20,7 +31,7 @@ export default {
   name: "ProgressSteps",
   components: {
     ProgressIndicator,
-    ProgressLine,
+    // ProgressLine,
   },
   props: {
     steps: {
@@ -41,12 +52,19 @@ export default {
 </script>
 
 <style lang="scss">
+@import "@/assets/scss/variables.scss";
+
+.ProgressWrapper {
+  border-top: 1px solid $mischka;
+  border-bottom: 1px solid $mischka;
+  background-color: $white;
+}
+
 .ProgressSteps {
   position: relative;
-  margin: 0 30px;
-
-  .ProgressLine {
-    position: absolute;
-  }
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  margin: 0;
 }
 </style>

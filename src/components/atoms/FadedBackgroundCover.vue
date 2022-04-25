@@ -1,4 +1,3 @@
-
 <script>
 // TODO: Unused for now
 import { image } from "helper/assets";
@@ -26,7 +25,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "@/assets/sass/variables.scss";
+@import "@/assets/scss/variables.scss";
 
 .FadedBackgroundCover {
   position: absolute;

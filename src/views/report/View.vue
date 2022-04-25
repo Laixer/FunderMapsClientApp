@@ -7,11 +7,12 @@
         :showUsers="false"
       />
       <div v-if="samples.length !== 0" class="Report__samples">
-        <Sample
+        <SampleDetails
           v-for="(sample, index) in samples"
           :key="index"
           :sample="sample"
         />
+        <div class="mb-5" />
         <div class="mb-5" />
         <b-pagination-nav
           v-if="pageCount > 1"
@@ -80,6 +81,7 @@ import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
 import ReportOrgRoleExplicit from "atom/review/ReportOrgRoleExplicit";
 import Feedback from "atom/Feedback";
 import Sample from "organism/Sample";
+import SampleDetails from "organism/SampleDetails";
 
 import { icon } from "helper/assets";
 import reportsAPI from "api/reports";
@@ -90,7 +92,7 @@ export default {
     ReportUserRoleExplicit,
     ReportDetails,
     ReportOrgRoleExplicit,
-    Sample,
+    SampleDetails,
     Feedback,
   },
   data() {

@@ -1,0 +1,68 @@
+// @import "variables";
+
+.SampleDetail {
+  margin-top: 11px;
+
+  &--active {
+    border: 1px solid $mischka;
+    border-radius: 5px;
+
+    .SampleDetail__dropdown {
+      border: none;
+      border-bottom: 1px solid $mischka;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .SampleDetail__title {
+      font-family: $headings-font-family;
+      font-weight: 600;
+      color: $secondary;
+    }
+
+    .SampleDetail__indicator {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__indicator {
+    // transition: 200ms all ease;
+  }
+
+  &__dropdown {
+    position: relative;
+    display: inline-flex;
+    margin-bottom: 0;
+    width: 100%;
+    text-decoration: none;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 40px;
+    background-color: #fff;
+    border: 1px solid #ced0da;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  &__title {
+    display: inline-block;
+    margin-bottom: 0;
+    line-height: 26px;
+    font-family: $font-family-base;
+    font-weight: 400;
+    color: $regent-gray;
+    text-transform: capitalize;
+    font-size: 1rem;
+  }
+
+  &__overview {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background-color: $catskill-white;
+    padding-bottom: 20px;
+  }
+
+  &__change {
+    padding-left: 40px;
+  }
+}

@@ -1,13 +1,13 @@
 /**
  * Import model.
  */
-import AddressModel from 'model/Address.ts'
-import PDOKAddressSuggestion from 'model/PDOKAddressSuggestion'
+import AddressModel from "model/Address.ts";
+import PDOKAddressSuggestion from "model/PDOKAddressSuggestion";
 
 /**
  * Import API.
  */
-import addressAPI from 'api/address';
+import addressAPI from "api/address";
 
 /**
  * Declare store variables.
@@ -15,8 +15,8 @@ import addressAPI from 'api/address';
  */
 const defaultState = {
   // TODO Not used.
-  addressCollection: []
-}
+  addressCollection: [],
+};
 
 const state = Object.assign({}, defaultState);
 
@@ -29,8 +29,8 @@ const getters = {
   },
   getAddressByIdFromCollection: state => ({ id }) => {
     return state.addressCollection[id];
-  }
-}
+  },
+};
 
 /**
  * Declare actions.
@@ -42,20 +42,20 @@ const actions = {
    */
   async getAddressById({ commit, getters }, { id }) {
     if (!id) {
-      throw new Error('Address id cannot be null');
+      throw new Error("Address id cannot be null");
     }
     let _id = null;
 
     // Check if we have the address already in our store, if so return it
     if (state.addressCollection[id]) {
-      return getters.getAddressByIdFromCollection({ id: id })
+      return getters.getAddressByIdFromCollection({ id: id });
     }
 
     let response = await addressAPI.getAddressById(id);
     if (response.status === 200) {
       _id = response.data.id;
-      commit('add_address_to_collection', {
-        address: response.data
+      commit("add_address_to_collection", {
+        address: response.data,
       });
     } else {
       throw new Error($`Could not find address with id ${id}`);
@@ -68,23 +68,24 @@ const actions = {
    */
   async getAddressSuggestions({ commit }, { query }) {
     if (!query) {
-      throw new Error('Query cannot be null');
+      throw new Error("Query cannot be null");
     }
 
     let response = await addressAPI.getAddressSuggestions(query);
     if (response.status === 200) {
-      return response.data.response.docs.map(suggestion =>
-        new PDOKAddressSuggestion(
-          suggestion.id,
-          suggestion.type,
-          suggestion.weergavenaam,
-          suggestion.score,
-          response.data.highlighting[suggestion.id].suggest[0]
-        )
-      )
+      return response.data.response.docs.map(
+        suggestion =>
+          new PDOKAddressSuggestion(
+            suggestion.id,
+            suggestion.type,
+            suggestion.weergavenaam,
+            suggestion.score,
+            response.data.highlighting[suggestion.id].suggest[0]
+          )
+      );
     }
-  }
-}
+  },
+};
 const mutations = {
   /**
    * Adds an address to the state address collection.
@@ -102,8 +103,8 @@ const mutations = {
   },
   reset(state) {
     Object.assign(state, defaultState);
-  }
-}
+  },
+};
 
 /**
  * Export
@@ -113,5 +114,5 @@ export default {
   state,
   getters,
   actions,
-  mutations
-}
+  mutations,
+};

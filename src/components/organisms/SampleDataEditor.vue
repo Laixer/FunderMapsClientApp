@@ -7,7 +7,7 @@
   >
     <Feedback :feedback="feedback" />
 
-    <div class="form-row mb-3">
+    <div class="form-row">
       <FormField
         v-model="fields.address.value"
         v-bind="fields.address"
@@ -18,7 +18,7 @@
       />
     </div>
 
-    <div class="form-row mb-3">
+    <div class="form-row">
       <FormField
         v-model="fields.foundationType.value"
         v-bind="fields.foundationType"
@@ -51,7 +51,7 @@
 
     <Divider />
 
-    <div class="form-row mb-3">
+    <div class="form-row">
       <FormField
         v-model="fields.overallQuality.value"
         v-bind="fields.overallQuality"
@@ -64,7 +64,7 @@
       />
     </div>
 
-    <div class="form-row mb-3">
+    <div class="form-row">
       <FormField
         v-model="fields.damageCause.value"
         v-bind="fields.damageCause"
