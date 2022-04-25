@@ -19,6 +19,7 @@
                 v-for="(sample, index) in samples"
                 :key="index"
                 :sample="sample"
+                :readOnly="false"
               />
               <div class="mb-5" />
               <b-pagination-nav

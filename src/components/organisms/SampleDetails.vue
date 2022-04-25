@@ -15,7 +15,7 @@
         :group="group"
       />
 
-      <div class="SampleDetail__change">
+      <div v-if="!readOnly" class="SampleDetail__change">
         <router-link :to="{ name: 'edit-report-2' }" class="btn btn-submit"
           >Bewerken</router-link
         >
@@ -35,6 +35,10 @@ export default {
     sample: {
       type: SampleModel,
       required: true,
+    },
+    readOnly: {
+      required: false,
+      default: true,
     },
   },
   components: {
