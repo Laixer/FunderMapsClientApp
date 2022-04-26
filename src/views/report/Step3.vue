@@ -1,7 +1,7 @@
 <template>
   <div>
     <ProgressSteps :steps="steps" />
-    <div class="container">
+    <div class="container spacing-bottom">
       <div class="row">
         <div class="col-lg-10 offset-lg-1">
           <div v-if="activeReport" class="Report mt-5 mr-0">

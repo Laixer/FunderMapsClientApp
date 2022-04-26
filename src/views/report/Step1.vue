@@ -1,7 +1,7 @@
 <template>
   <div v-if="areReviewersAvailable">
     <ProgressSteps :steps="steps" />
-    <div class="container">
+    <div class="container spacing-bottom">
       <div class="row">
         <div class="col-lg-10 offset-lg-1">
           <Form ref="form" @submit="handleSubmit" class="ReportForm__form mt-5">
