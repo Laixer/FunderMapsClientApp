@@ -42,7 +42,7 @@ export default {
 @import "@/assets/scss/variables.scss";
 .NavigationBar {
   position: fixed;
-  padding: 38px 0;
+  padding: 20px 0;
   bottom: 0;
   left: 0;
   width: calc(100% - 250px);

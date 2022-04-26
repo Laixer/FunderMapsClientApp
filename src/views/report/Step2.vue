@@ -1,7 +1,7 @@
 <template>
   <div class="step-2">
     <ProgressSteps :steps="steps" />
-    <div class="container step-2__wrapper">
+    <div class="container step-2__wrapper spacing-bottom">
       <div class="row">
         <div class="col-4">
           <a href="#" @click="handleAddSample()" class="btn btn-add"
