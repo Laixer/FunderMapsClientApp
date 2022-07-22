@@ -164,6 +164,7 @@ export default {
           label: "Scheefstand voor naar achter",
           type: "text",
           value: "",
+          info: "mm/m",
           validationRules: {
             decimal,
           },
@@ -172,6 +173,7 @@ export default {
           label: "Scheefstand links naar rechts",
           type: "text",
           value: "",
+          info: "mm/m",
           validationRules: {
             decimal,
           },
@@ -180,6 +182,7 @@ export default {
           label: "Drempel voorgevel niveau",
           type: "text",
           value: "",
+          info: "m t.o.v. NAP",
           validationRules: {
             decimal,
           },
@@ -188,6 +191,7 @@ export default {
           label: "Drempel achtergevel niveau",
           type: "text",
           value: "",
+          info: "m t.o.v. NAP",
           validationRules: {
             decimal,
           },
@@ -212,6 +216,7 @@ export default {
           label: "Pandzakkingssnelheid",
           type: "text",
           value: "",
+          info: "mm/jaar",
           validationRules: {
             decimal,
           },

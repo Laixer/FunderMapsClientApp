@@ -126,11 +126,16 @@ export default {
   },
 
   methods: {
-    ...mapActions("samples", ["test", "updateSelectedSample", "createSample"]),
+    ...mapActions("samples", [
+      "updateSampleWithoutStoring",
+      "updateSelectedSample",
+      "createSample",
+    ]),
     async next(step) {
       if (!this.$refs[`step-${step}`]) {
         return true;
       }
+
       this.$refs[`step-${step}`].$refs.form.validate();
 
       if (this.$refs[`step-${step}`].$refs.form.isValid()) {
@@ -154,7 +159,8 @@ export default {
     },
 
     async handleStored(payload) {
-      await this.test({
+      console.log("handle storeddd");
+      await this.updateSampleWithoutStoring({
         sampleId: payload.id,
         data: payload,
       });

@@ -3,13 +3,8 @@
     <!-- :label="label" -->
     <template v-slot:label v-if="type != 'checkbox'">
       <span>{{ label }}</span>
-      <span v-if="hasInfo" class="info ml-1" @click="openInfo">
-        <img
-          style="margin-top: -2px; cursor: pointer"
-          :src="icon('info-circle-light.svg')"
-          width="16"
-          height="16"
-        />
+      <span v-if="hasInfo" v-b-tooltip.hover :title="info" class="explanation">
+        <span>?</span>
       </span>
     </template>
 
@@ -344,6 +339,12 @@ export default {
       if (this.novalidate) {
         return null;
       }
+      // console.log(this.label + " = " + this.fieldValue);
+      // console.log(this.$v);
+      // console.log(
+      //   this.$v.fieldValue.$dirty ? !this.$v.fieldValue.$error : null
+      // );
+
       return this.$v.fieldValue.$dirty ? !this.$v.fieldValue.$error : null;
     },
     isDisabled() {

@@ -225,11 +225,13 @@ export default {
   },
 
   async created() {
-    if (this.sample["foundationType"]) {
+    if (this.sample["foundationType"] != null) {
       // Todo make function
       var selectedFoundationOption = foundationTypeOptions.filter((option) => {
         return option.value == this.sample["foundationType"];
       });
+
+      console.log("in here");
 
       this.fields.foundationType.options =
         this.conditionalFoundationTypeOptions(

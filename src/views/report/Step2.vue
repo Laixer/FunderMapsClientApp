@@ -223,7 +223,14 @@ export default {
       });
 
       if (this.samples && this.samples[0]) {
-        this.setSelectedSample(this.samples[0]);
+        let index = 0;
+        if (this.$route.params.sampleId) {
+          index = this.samples.findIndex(
+            (sample) => sample.id === this.$route.params.sampleId
+          );
+        }
+
+        this.setSelectedSample(this.samples[index]);
       }
 
       if (this.sampleCount === 0) {
@@ -262,6 +269,13 @@ export default {
 
     handleAddSample(copyIndex = 0) {
       this.addUnsavedSample(copyIndex);
+
+      if (this.$route.params.step != 1) {
+        this.$router.push({
+          name: "edit-report-2",
+          params: { page: 1, step: 1 },
+        });
+      }
     },
     pageLink(pageNum) {
       return {

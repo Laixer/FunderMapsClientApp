@@ -48,7 +48,9 @@ export default {
      * Are all registered fields valid?
      */
     isValid() {
-      return this.fields.every((field) => field.isValid());
+      return this.fields.every((field) => {
+        return field.isValid();
+      });
     },
     /**
      * Reset the validation mechanism

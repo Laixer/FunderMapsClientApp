@@ -67,59 +67,61 @@
 
           <div class="form-row">
             <FormField
-              v-model="fields.woodType.value"
-              v-bind="fields.woodType"
-              class="col-md-6"
-            />
-
-            <FormField
               v-model="fields.woodQualityNecessity.value"
               v-bind="fields.woodQualityNecessity"
               class="col-md-6"
             />
-          </div>
-
-          <div class="form-row">
-            <FormField
-              v-model="fields.woodPenetrationDepth.value"
-              v-bind="fields.woodPenetrationDepth"
-              class="col-md-6"
-            />
 
             <FormField
-              v-model="fields.woodEncroachement.value"
-              v-bind="fields.woodEncroachement"
+              v-if="fields.woodQualityNecessity.value"
+              v-model="fields.woodType.value"
+              v-bind="fields.woodType"
               class="col-md-6"
             />
           </div>
+          <template v-if="fields.woodQualityNecessity.value">
+            <div class="form-row">
+              <FormField
+                v-model="fields.woodPenetrationDepth.value"
+                v-bind="fields.woodPenetrationDepth"
+                class="col-md-6"
+              />
 
-          <div class="form-row">
-            <FormField
-              v-model="fields.woodQuality.value"
-              v-bind="fields.woodQuality"
-              class="col-md-6"
-            />
+              <FormField
+                v-model="fields.woodEncroachement.value"
+                v-bind="fields.woodEncroachement"
+                class="col-md-6"
+              />
+            </div>
 
-            <FormField
-              v-model="fields.carryingCapacityQuality.value"
-              v-bind="fields.carryingCapacityQuality"
-              class="col-md-6"
-            />
-          </div>
+            <div class="form-row">
+              <FormField
+                v-model="fields.woodQuality.value"
+                v-bind="fields.woodQuality"
+                class="col-md-6"
+              />
 
-          <div class="form-row">
-            <FormField
-              v-model="fields.pileWoodCapacityVerticalQuality.value"
-              v-bind="fields.pileWoodCapacityVerticalQuality"
-              class="col-md-6"
-            />
+              <FormField
+                v-model="fields.carryingCapacityQuality.value"
+                v-bind="fields.carryingCapacityQuality"
+                class="col-md-6"
+              />
+            </div>
 
-            <FormField
-              v-model="fields.woodCapacityHorizontalQuality.value"
-              v-bind="fields.woodCapacityHorizontalQuality"
-              class="col-md-6"
-            />
-          </div>
+            <div class="form-row">
+              <FormField
+                v-model="fields.pileWoodCapacityVerticalQuality.value"
+                v-bind="fields.pileWoodCapacityVerticalQuality"
+                class="col-md-6"
+              />
+
+              <FormField
+                v-model="fields.woodCapacityHorizontalQuality.value"
+                v-bind="fields.woodCapacityHorizontalQuality"
+                class="col-md-6"
+              />
+            </div>
+          </template>
         </template>
 
         <span @click="next()" class="btn btn-continue">Verder</span>
@@ -183,7 +185,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         pileTipLevel: {
@@ -199,7 +201,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         pileDiameterBottom: {
@@ -207,7 +209,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
 
@@ -216,7 +218,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         concreteChargerLength: {
@@ -224,7 +226,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         woodType: {
@@ -262,6 +264,7 @@ export default {
         woodPenetrationDepth: {
           label: "Inslagdiepte",
           type: "text",
+          info: "mm",
           value: "",
           validationRules: {
             maxLength: maxLength(32),

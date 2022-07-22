@@ -1,5 +1,5 @@
 <template>
-  <div class="CheckedImage" :class="{ classes: classes }">
+  <div v-if="value.icon" class="CheckedImage" :class="{ classes: classes }">
     <label class="CheckedImage__inner">
       <img :src="icon(value.icon)" />
 
@@ -20,7 +20,7 @@ export default {
   },
   props: {
     value: {
-      type: Object,
+      default: false,
     },
     classes: {
       default: null,

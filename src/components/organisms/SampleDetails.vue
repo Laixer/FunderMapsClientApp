@@ -14,9 +14,13 @@
         :key="index"
         :group="group"
       />
-
       <div v-if="!readOnly" class="SampleDetail__change">
-        <router-link :to="{ name: 'edit-report-2' }" class="btn btn-submit"
+        <router-link
+          :to="{
+            name: 'edit-report-2',
+            params: { sampleId: sample.id, step: 1 },
+          }"
+          class="btn btn-submit"
           >Bewerken</router-link
         >
       </div>

@@ -50,27 +50,29 @@
           />
         </div>
 
-        <div class="form-row">
-          <FormField
-            v-if="fields.foundationBar.value == 'wood'"
-            v-model="fields.woodLevel.value"
-            v-bind="fields.woodLevel"
-            class="col-md-6"
-          />
+        <template v-if="fields.foundationBar.value">
+          <div class="form-row">
+            <FormField
+              v-if="fields.foundationBar.value == 'wood'"
+              v-model="fields.woodLevel.value"
+              v-bind="fields.woodLevel"
+              class="col-md-6"
+            />
 
-          <FormField
-            v-else-if="fields.foundationBar.value == 'concrete'"
-            v-model="fields.constructionPile.value"
-            v-bind="fields.constructionPile"
-            class="col-md-6"
-          />
+            <FormField
+              v-else-if="fields.foundationBar.value == 'concrete'"
+              v-model="fields.constructionPile.value"
+              v-bind="fields.constructionPile"
+              class="col-md-6"
+            />
 
-          <FormField
-            v-model="fields.constructionLevel.value"
-            v-bind="fields.constructionLevel"
-            class="col-md-6"
-          />
-        </div>
+            <FormField
+              v-model="fields.constructionLevel.value"
+              v-bind="fields.constructionLevel"
+              class="col-md-6"
+            />
+          </div>
+        </template>
 
         <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
@@ -179,7 +181,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
         constructionPile: {
@@ -187,7 +189,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
 
@@ -196,7 +198,7 @@ export default {
           type: "text",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
           },
         },
       },
@@ -207,6 +209,11 @@ export default {
     var masonQuality = this.optionValue({
       options: qualityOptions,
       name: "masonQuality",
+    });
+
+    var constructionQuality = this.optionValue({
+      options: qualityOptions,
+      name: "constructionQuality",
     });
 
     var foundationBar = null;
@@ -225,6 +232,7 @@ export default {
       constructionPile: this.sample.constructionPile,
       constructionLevel: this.sample.constructionLevel,
       foundationBar: foundationBar,
+      constructionQuality: constructionQuality,
     });
 
     this.$nextTick(() => {
@@ -266,6 +274,8 @@ export default {
       }
 
       let data = this.allFieldValues();
+
+      console.log(data);
 
       //   data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
 

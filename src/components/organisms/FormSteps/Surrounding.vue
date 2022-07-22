@@ -127,7 +127,7 @@ export default {
           },
         },
         monitoringWell: {
-          label: "Peilbuis",
+          label: "Peilbuisnummer",
           type: "text",
           value: "",
           validationRules: {

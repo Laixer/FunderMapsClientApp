@@ -70,6 +70,8 @@ export default class SampleModel {
   getFoundationTypeImage() {
     const option = foundationTypeOptions[this.foundationType] || null;
 
+    if (!option) return false;
+
     if (option.group == "wood") {
       return {
         icon: "foundation-wooden-poles.svg",

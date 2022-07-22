@@ -78,7 +78,7 @@ const actions = {
     commit("set_selected_sample", payload);
   },
 
-  async test({ commit, state }, { sampleId, data }) {
+  async updateSampleWithoutStoring({ commit, state }, { sampleId, data }) {
     commit("update_sample", {
       sampleId,
       data,
@@ -180,7 +180,6 @@ const mutations = {
       let sample = new SampleModel({
         sample: {},
         stored: false,
-        editorState: "open",
       });
       state.samples = [sample];
 
@@ -201,7 +200,6 @@ const mutations = {
         new SampleModel({
           sample,
           stored: false,
-          editorState: "open",
         })
       );
     }

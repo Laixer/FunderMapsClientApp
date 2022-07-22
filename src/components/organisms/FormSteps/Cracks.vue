@@ -29,22 +29,16 @@
             />
           </div>
 
-          <div class="col-9">
+          <div class="col-9" v-show="fields.crackIndoorSizeCheck.value">
             <template>
               <div class="form-row">
-                <FormField
-                  v-show="false"
-                  v-model="fields.crackIndoorSizeAmount.value"
-                  v-bind="fields.crackIndoorSizeAmount"
-                  class="col-5"
-                />
                 <FormField
                   v-model="fields.crackIndoorRestored.value"
                   v-bind="fields.crackIndoorRestored"
                   class="col-7"
                 />
               </div>
-              <div class="form-row cracks-wrapper">
+              <div class="form-row">
                 <FormField
                   v-for="index in fields.crackIndoorSizeAmount.value"
                   :key="index"
@@ -69,22 +63,16 @@
             />
           </div>
 
-          <div class="col-9">
+          <div class="col-9" v-show="fields.crackFacadeFrontSizeCheck.value">
             <template>
               <div class="form-row">
-                <FormField
-                  v-show="false"
-                  v-model="fields.crackFacadeFrontSizeAmount.value"
-                  v-bind="fields.crackFacadeFrontSizeAmount"
-                  class="col-5"
-                />
                 <FormField
                   v-model="fields.crackFacadeFrontRestored.value"
                   v-bind="fields.crackFacadeFrontRestored"
                   class="col-7"
                 />
               </div>
-              <div class="form-row cracks-wrapper">
+              <div class="form-row">
                 <FormField
                   v-for="index in fields.crackFacadeFrontSizeAmount.value"
                   :key="index"
@@ -109,22 +97,16 @@
             />
           </div>
 
-          <div class="col-9">
+          <div class="col-9" v-show="fields.crackFacadeBackSizeCheck.value">
             <template>
               <div class="form-row">
-                <FormField
-                  v-show="false"
-                  v-model="fields.crackFacadeBackSizeAmount.value"
-                  v-bind="fields.crackFacadeBackSizeAmount"
-                  class="col-5"
-                />
                 <FormField
                   v-model="fields.crackFacadeBackRestored.value"
                   v-bind="fields.crackFacadeBackRestored"
                   class="col-7"
                 />
               </div>
-              <div class="form-row cracks-wrapper">
+              <div class="form-row">
                 <FormField
                   v-for="index in fields.crackFacadeBackSizeAmount.value"
                   :key="index"
@@ -149,22 +131,16 @@
             />
           </div>
 
-          <div class="col-9">
+          <div class="col-9" v-show="fields.crackFacadeLeftSizeCheck.value">
             <template>
               <div class="form-row">
-                <FormField
-                  v-show="false"
-                  v-model="fields.crackFacadeLeftSizeAmount.value"
-                  v-bind="fields.crackFacadeLeftSizeAmount"
-                  class="col-5"
-                />
                 <FormField
                   v-model="fields.crackFacadeLeftRestored.value"
                   v-bind="fields.crackFacadeLeftRestored"
                   class="col-7"
                 />
               </div>
-              <div class="form-row cracks-wrapper">
+              <div class="form-row">
                 <FormField
                   v-for="index in fields.crackFacadeLeftSizeAmount.value"
                   :key="index"
@@ -188,22 +164,16 @@
             />
           </div>
 
-          <div class="col-9">
+          <div class="col-9" v-show="fields.crackFacadeRightSizeCheck.value">
             <template>
               <div class="form-row">
-                <FormField
-                  v-show="false"
-                  v-model="fields.crackFacadeRightSizeAmount.value"
-                  v-bind="fields.crackFacadeRightSizeAmount"
-                  class="col-5"
-                />
                 <FormField
                   v-model="fields.crackFacadeRightRestored.value"
                   v-bind="fields.crackFacadeRightRestored"
                   class="col-7"
                 />
               </div>
-              <div class="form-row cracks-wrapper">
+              <div class="form-row">
                 <FormField
                   v-for="index in fields.crackFacadeRightSizeAmount.value"
                   :key="index"
@@ -231,6 +201,7 @@ import {
   maxLength,
   minValue,
   maxValue,
+  requiredIf,
 } from "vuelidate/lib/validators";
 
 import { crackAmountOptions } from "config/enums";
@@ -277,7 +248,6 @@ export default {
           label: "Inpandage scheur",
           type: "checkbox",
           value: false,
-          disabled: true,
           image: "crack-indoor.svg",
           validationRules: {},
         },
@@ -294,9 +264,9 @@ export default {
           validationRules: {},
         },
         crackIndoorRestored: {
-          label: "Hersteld",
+          label: "Hersteld 1",
           type: "radio",
-          value: null,
+          value: false,
           options: [
             {
               value: true,
@@ -307,20 +277,27 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {},
+          validationRules: {
+            required: requiredIf(() => {
+              return this.fields.crackIndoorSizeCheck.value;
+            }),
+          },
         },
         crackIndoorSize: {
-          type: "text",
+          type: "number",
           value: null,
+          info: "mm",
           validationRules: {
-            maxLength: decimal,
+            decimal,
+            required: requiredIf(() => {
+              return this.fields.crackIndoorSizeCheck.value;
+            }),
           },
         },
         crackFacadeFrontSizeCheck: {
           label: "Voorgevel scheur",
           type: "checkbox",
           value: false,
-          disabled: true,
           image: "crack-facade-front.svg",
           validationRules: {},
         },
@@ -339,7 +316,7 @@ export default {
         crackFacadeFrontRestored: {
           label: "Hersteld",
           type: "radio",
-          value: null,
+          value: false,
           options: [
             {
               value: true,
@@ -350,20 +327,20 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {},
         },
         crackFacadeFrontSize: {
           type: "text",
           value: null,
+          info: "mm",
           validationRules: {
-            maxLength: decimal,
+            // decimal,
+            // required,
           },
         },
         crackFacadeBackSizeCheck: {
           label: "Achtergevel scheur",
           type: "checkbox",
           value: false,
-          disabled: true,
           image: "crack-facade-back.svg",
           validationRules: {},
         },
@@ -393,13 +370,21 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {},
+          validationRules: {
+            required: requiredIf(() => {
+              return this.fields.crackFacadeBackSizeCheck.value;
+            }),
+          },
         },
         crackFacadeBackSize: {
           type: "text",
           value: null,
+          info: "mm",
           validationRules: {
-            maxLength: decimal,
+            decimal,
+            required: requiredIf(() => {
+              return this.fields.crackFacadeBackSizeCheck.value;
+            }),
           },
         },
 
@@ -407,7 +392,6 @@ export default {
           label: "Linkergevel scheur",
           type: "checkbox",
           value: false,
-          disabled: true,
           image: "crack-facade-left.svg",
           validationRules: {},
         },
@@ -437,20 +421,27 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {},
+          validationRules: {
+            required: requiredIf(() => {
+              return this.fields.crackFacadeLeftSizeCheck.value;
+            }),
+          },
         },
         crackFacadeLeftSize: {
           type: "text",
           value: null,
+          info: "mm",
           validationRules: {
-            maxLength: decimal,
+            decimal,
+            required: requiredIf(() => {
+              return this.fields.crackFacadeLeftSizeCheck.value;
+            }),
           },
         },
         crackFacadeRightSizeCheck: {
           label: "Rechtergevel scheur",
           type: "checkbox",
           value: false,
-          disabled: true,
           image: "crack-facade-right.svg",
           validationRules: {},
         },
@@ -467,7 +458,7 @@ export default {
           validationRules: {},
         },
         crackFacadeRightRestored: {
-          label: "Hersteld",
+          label: "Herstelds",
           type: "radio",
           value: null,
           options: [
@@ -480,13 +471,21 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {},
+          validationRules: {
+            required: requiredIf(() => {
+              return this.fields.crackFacadeRightSizeCheck.value;
+            }),
+          },
         },
         crackFacadeRightSize: {
           type: "text",
           value: null,
+          info: "mm",
           validationRules: {
-            maxLength: decimal,
+            decimal,
+            required: requiredIf(() => {
+              return this.fields.crackFacadeRightSizeCheck.value;
+            }),
           },
         },
       },
@@ -496,10 +495,19 @@ export default {
   async created() {
     // Explicitly set the address field.
     this.setFieldValues({
+      crackIndoorSizeCheck: this.sample.crackIndoorSize ? true : false,
       crackIndoorSize: this.sample.crackIndoorSize,
+      crackFacadeFrontSizeCheck: this.sample.crackFacadeFrontSize
+        ? true
+        : false,
       crackFacadeFrontSize: this.sample.crackFacadeFrontSize,
+      crackFacadeBackSizeCheck: this.sample.crackFacadeBackSize ? true : false,
       crackFacadeBackSize: this.sample.crackFacadeBackSize,
+      crackFacadeLeftSizeCheck: this.sample.crackFacadeLeftSize ? true : false,
       crackFacadeLeftSize: this.sample.crackFacadeLeftSize,
+      crackFacadeRightSizeCheck: this.sample.crackFacadeRightSize
+        ? true
+        : false,
       crackFacadeRightSize: this.sample.crackFacadeRightSize,
       crackIndoorRestored: this.sample.crackIndoorRestored,
       crackFacadeFrontRestored: this.sample.crackFacadeFrontRestored,
@@ -509,7 +517,7 @@ export default {
     });
 
     this.$nextTick(() => {
-      this.loaded = false;
+      this.loaded = true;
     });
   },
 
@@ -546,6 +554,31 @@ export default {
 
       let data = this.allFieldValues();
 
+      if (data.crackIndoorSizeCheck == false) {
+        data.crackIndoorRestored = null;
+        data.crackIndoorSize = null;
+      }
+
+      if (data.crackFacadeFrontSizeCheck == false) {
+        data.crackFacadeFrontRestored = null;
+        data.crackFacadeFrontSize = null;
+      }
+
+      if (data.crackFacadeBackSizeCheck == false) {
+        data.crackFacadeBackRestored = null;
+        data.crackFacadeBackSize = null;
+      }
+
+      if (data.crackFacadeLeftSizeCheck == false) {
+        data.crackFacadeLeftRestored = null;
+        data.crackFacadeLeftSize = null;
+      }
+
+      if (data.crackFacadeRightSizeCheck == false) {
+        data.crackFacadeRightRestored = null;
+        data.crackFacadeRightSize = null;
+      }
+
       if (this.sample.id) {
         data.id = this.sample.id;
       } else {
@@ -556,6 +589,8 @@ export default {
       data.report = this.activeReport.id;
 
       this.$emit("stored", data);
+
+      this.$refs.form.resetValidation();
 
       return true;
     },
