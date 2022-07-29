@@ -93,7 +93,7 @@ export default {
       nosamples: false,
       isDisabled: false,
       page: 1,
-      samplesPerPage: 25,
+      samplesPerPage: 200,
       steps: [
         new ProgressStep({
           status: "passed",
@@ -159,6 +159,8 @@ export default {
     },
   },
   beforeRouteLeave(to, from, next) {
+    console.log(this.selectedSample);
+
     if (this.selectedSample && this.selectedSample.stored == false) {
       if (
         confirm(
@@ -172,7 +174,7 @@ export default {
     }
   },
   async beforeRouteUpdate(to, from, next) {
-    if (from.params.step && from.params.skip != true) {
+    if (from.params.step) {
       var check = await this.$refs.formSteps.next(from.params.step);
       if (check) {
         next();
@@ -181,11 +183,13 @@ export default {
       next();
     }
 
-    // this.getSamples({
-    //   inquiryId: this.activeReport.id,
-    //   page: to.params.page || 1,
-    //   limit: this.samplesPerPage,
-    // });
+    // if (from.params.page != to.params.page) {
+    //   this.getSamples({
+    //     inquiryId: this.activeReport.id,
+    //     page: to.params.page || 1,
+    //     limit: this.samplesPerPage,
+    //   });
+    // }
   },
   async created() {
     this.page = this.$route.params.page || 1;
@@ -280,7 +284,7 @@ export default {
     pageLink(pageNum) {
       return {
         name: "edit-report-2",
-        params: { page: pageNum },
+        params: { page: pageNum, step: this.$route.params.step },
       };
     },
   },

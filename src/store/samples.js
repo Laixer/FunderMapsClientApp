@@ -114,8 +114,6 @@ const actions = {
   async createSample({ commit, state }, { inquiryId }) {
     let data = state.selectedSample;
 
-    delete data.id;
-
     let response = await samplesAPI.createSample({ inquiryId, data });
     if (response.status === 200 && response.data) {
       commit("update_sample", {
@@ -123,12 +121,13 @@ const actions = {
         data: Object.assign(response.data, {
           creationstamp: data.creationstamp,
           addressFormatted: data.addressFormatted,
+          stored: true,
         }),
       });
     }
   },
   async deleteSample({ commit }, { inquiryId, sampleId, creationstamp }) {
-    if (sampleId === "") {
+    if (sampleId === "" || sampleId == 0) {
       // not stored in API yet
       commit("delete_sample", { id: sampleId, creationstamp });
     } else {
@@ -187,7 +186,7 @@ const mutations = {
     } else {
       let sample = clonedeep(state.samples[copyIndex]);
 
-      sample.id = "";
+      sample.id = 0;
 
       // sample.address = address;
       //sample.address.buildingNumber = ''
@@ -241,7 +240,10 @@ const mutations = {
         (sample) => sample.creationstamp === creationstamp
       );
     } else {
-      if (state.samples[index].id == state.selectedSample.id) {
+      if (
+        state.selectedSample &&
+        state.samples[index].id == state.selectedSample.id
+      ) {
         state.selectedSample = null;
       }
       Vue.delete(state.samples, index);

@@ -231,7 +231,6 @@ export default {
         params: {
           page: this.$route.params.page,
           step: this.step + 1,
-          skip: false,
         },
       });
     },

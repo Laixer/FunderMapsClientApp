@@ -1,10 +1,11 @@
 <template>
-  <div class="SampleCard" @click="select()">
+  <div class="SampleCard" :class="{ copy: sample.id == 0 }" @click="select()">
     <span class="SampleCard__title" :label="sample.address">{{
       sample.addressFormatted
     }}</span>
+
     <span class="SampleCard__actions">
-      <a class="SampleCard__open" @click.stop="copySample">
+      <a v-if="sample.id" class="SampleCard__open" @click.stop="copySample">
         <svg
           class="SampleCard__icon"
           height="10"
@@ -108,6 +109,10 @@ export default {
         fill: $primary;
       }
     }
+  }
+
+  &.copy {
+    opacity: 0.6;
   }
 
   & + & {

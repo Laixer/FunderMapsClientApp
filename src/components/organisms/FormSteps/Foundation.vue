@@ -297,7 +297,6 @@ export default {
         params: {
           page: this.$route.params.page,
           step: step,
-          skip: false,
         },
       });
     },
