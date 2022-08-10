@@ -144,9 +144,11 @@ export default {
         },
         masonLevel: {
           label: "Niveau onderkant metselwerk",
-          type: "text",
+          type: "number",
           value: "",
-          validationRules: {},
+          validationRules: {
+            decimal,
+          },
         },
         foundationBar: {
           label: "Funderingsbalk",
@@ -178,7 +180,7 @@ export default {
         },
         woodLevel: {
           label: "Niveau onderkant funderingsbalk",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -186,7 +188,7 @@ export default {
         },
         constructionPile: {
           label: "Niveau onderkant funderingsbalk",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -195,7 +197,7 @@ export default {
 
         constructionLevel: {
           label: "Niveau bovenkant funderingsbalk",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,

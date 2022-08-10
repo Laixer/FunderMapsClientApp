@@ -377,7 +377,7 @@ export default {
           },
         },
         crackFacadeBackSize: {
-          type: "text",
+          type: "number",
           value: null,
           info: "mm",
           validationRules: {
@@ -428,7 +428,7 @@ export default {
           },
         },
         crackFacadeLeftSize: {
-          type: "text",
+          type: "number",
           value: null,
           info: "mm",
           validationRules: {
@@ -478,7 +478,7 @@ export default {
           },
         },
         crackFacadeRightSize: {
-          type: "text",
+          type: "number",
           value: null,
           info: "mm",
           validationRules: {

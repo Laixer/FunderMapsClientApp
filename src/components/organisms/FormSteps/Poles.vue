@@ -182,7 +182,7 @@ export default {
       fields: {
         pileHeadLevel: {
           label: "Paalkop niveau",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -190,7 +190,7 @@ export default {
         },
         pileTipLevel: {
           label: "Paalpunt niveau",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -198,7 +198,7 @@ export default {
         },
         pileDiameterTop: {
           label: "Paalkop diameter",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -206,7 +206,7 @@ export default {
         },
         pileDiameterBottom: {
           label: "Paalpunt diameter",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -215,7 +215,7 @@ export default {
 
         pileDistanceLength: {
           label: "Hart-op-hart afstand",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -223,7 +223,7 @@ export default {
         },
         concreteChargerLength: {
           label: "Oplanger lengte",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
