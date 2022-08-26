@@ -162,7 +162,7 @@ export default {
         },
         skewedPerpendicular: {
           label: "Scheefstand voor naar achter",
-          type: "text",
+          type: "number",
           value: "",
           info: "mm/m",
           validationRules: {
@@ -171,7 +171,7 @@ export default {
         },
         skewedParallel: {
           label: "Scheefstand links naar rechts",
-          type: "text",
+          type: "number",
           value: "",
           info: "mm/m",
           validationRules: {
@@ -180,7 +180,7 @@ export default {
         },
         thresholdFrontLevel: {
           label: "Drempel voorgevel niveau",
-          type: "text",
+          type: "number",
           value: "",
           info: "m t.o.v. NAP",
           validationRules: {
@@ -189,7 +189,7 @@ export default {
         },
         thresholdBackLevel: {
           label: "Drempel achtergevel niveau",
-          type: "text",
+          type: "number",
           value: "",
           info: "m t.o.v. NAP",
           validationRules: {
@@ -214,7 +214,7 @@ export default {
         },
         settlementSpeed: {
           label: "Pandzakkingssnelheid",
-          type: "text",
+          type: "number",
           value: "",
           info: "mm/jaar",
           validationRules: {

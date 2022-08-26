@@ -120,7 +120,7 @@ export default {
         },
         groundLevel: {
           label: "Maaiveldhoogte",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -136,7 +136,7 @@ export default {
         },
         groundwaterLevelTemp: {
           label: "Grondwaterniveau",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
@@ -146,7 +146,7 @@ export default {
 
         groundwaterLevelNet: {
           label: "Grondwaterniveau bij ontgraving",
-          type: "text",
+          type: "number",
           value: "",
           validationRules: {
             decimal,
