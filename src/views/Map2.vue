@@ -145,6 +145,14 @@ export default {
             );
           }
         }
+        for (let layer of this.activeBundle.layers) {
+          layer.visibility = "visible";
+          this.$store.map.setLayoutProperty(
+            layer.slug,
+            "visibility",
+            layer.visibility
+          );
+        }
         this.$store.map.triggerRepaint();
       }
     },
