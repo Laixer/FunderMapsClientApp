@@ -69,7 +69,15 @@ export default {
       })
     );
 
-    this.map.addControl(new mapboxgl.GeolocateControl());
+    this.map.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true,
+        },
+        trackUserLocation: true,
+        showUserHeading: true,
+      })
+    );
     this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
     this.map.addControl(new mapboxgl.FullscreenControl());
 
