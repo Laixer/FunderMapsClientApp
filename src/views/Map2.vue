@@ -120,7 +120,7 @@ const bundles = [
 export default {
   data() {
     return {
-      accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
+      accessToken: 'pk.eyJ1IjoibGFpeGVyIiwiYSI6ImNsN3ZyenhsczA2M2ozdW51bHJycmN6MnEifQ.OJ3E-t5Y7N_VZYHRhO_7Aw',
       mapStyle: "mapbox://styles/laixer/cknycxq5h1f9a17pj578xieqj",
       map: null,
       popup: null,
