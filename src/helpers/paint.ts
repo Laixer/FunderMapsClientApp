@@ -51,3 +51,34 @@ export function propToHtml(key: string, value: any, markup: LayerMarkup) {
     default: return `<p class='card-text'><b>${translatedKey}:</b> ${translatedValue}</p>`
   }
 }
+
+export function generateTooltipForFeature2(layer: MapLayer, feature: any): string {
+  const title = layer.name ? `<h5 class="card-title">${layer.name}</h5>` : '';
+
+  let html = "<div class='card box-shadow'>";
+  let body = "";
+
+  for (const [key, value] of Object.entries(feature.properties).sort(([k1, v1], [k2, v2]) => k1 == 'inquiry_id' ? 1 : -1)) {
+    body += propToHtml2(key, value, layer.markup);
+  }
+
+  if (body == "") {
+    body = "Geen informatie beschikbaar."
+  }
+
+  html += "<div class='card-body'>"
+  html += title;
+  html += body;
+  html += "</div></div>"
+  return html;
+}
+
+export function propToHtml2(key: string, value: any, markup: LayerMarkup) {
+  const { translatedKey, translatedValue } = markup.translateProp(key, value);
+
+  switch (key) {
+    case 'construction_year': return `<p class='card-text'><b>${translatedKey}:</b> ${translatedValue}</p>`;
+    case 'foundation_type': return `<p class='card-text'><b>${translatedKey}:</b> ${translatedValue}</p>`;
+    default: return ''
+  }
+}

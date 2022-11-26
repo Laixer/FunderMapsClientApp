@@ -74,7 +74,7 @@ import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import { MapLayer } from "@/models/MapLayer";
 import { mapGetters, mapMutations } from "vuex";
 
-import { generateTooltipForFeature } from "helper/paint";
+import { generateTooltipForFeature2 } from "helper/paint";
 
 const bundles = [
   {
@@ -236,7 +236,7 @@ export default {
             this.$store.map.getCanvas().style.cursor = "";
           });
           this.$store.map.on("click", layer.slug, (e) => {
-            const html = generateTooltipForFeature(layer, e.features[0]);
+            const html = generateTooltipForFeature2(layer, e.features[0]);
             this.popup = new mapboxgl.Popup()
               .setLngLat(e.features[0].geometry.coordinates[0][0])
               .setHTML(html)
