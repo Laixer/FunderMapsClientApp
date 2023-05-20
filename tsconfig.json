@@ -5,6 +5,7 @@
     "sourceMap": true,
     "strict": true,
     "noImplicitReturns": true,
+    "noImplicitAny": false,
     "module": "esnext",
     "allowJs": true,
     "moduleResolution": "node",
