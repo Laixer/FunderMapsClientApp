@@ -69,6 +69,7 @@
             <FormField
               v-model="fields.woodQualityNecessity.value"
               v-bind="fields.woodQualityNecessity"
+              @input="handleWoodQualityNecessityChange()"
               class="col-md-6"
             />
 
@@ -398,15 +399,6 @@ export default {
         if (this.loaded) {
           this.sample.stored = false;
         }
-        if (!this.fields.woodQualityNecessity.value) {
-          this.fields.woodType.value = null;
-          this.fields.woodPenetrationDepth.value = null;
-          this.fields.woodEncroachement.value = null;
-          this.fields.woodQuality.value = null;
-          this.fields.carryingCapacityQuality.value = null;
-          this.fields.pileWoodCapacityVerticalQuality.value = null;
-          this.fields.woodCapacityHorizontalQuality.value = null;
-        }
       },
       deep: true,
     },
@@ -446,6 +438,20 @@ export default {
       this.$emit("stored", data);
 
       return true;
+    },
+
+    handleWoodQualityNecessityChange() {
+      let woodQualityNecessity = this.fields.woodQualityNecessity;
+
+      if (woodQualityNecessity && !woodQualityNecessity.value) {
+        this.fields.woodType.value = null;
+        this.fields.woodPenetrationDepth.value = null;
+        this.fields.woodEncroachement.value = null;
+        this.fields.woodQuality.value = null;
+        this.fields.carryingCapacityQuality.value = null;
+        this.fields.pileWoodCapacityVerticalQuality.value = null;
+        this.fields.woodCapacityHorizontalQuality.value = null;
+      }
     },
 
     next() {
