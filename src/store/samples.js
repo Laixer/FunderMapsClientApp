@@ -175,15 +175,12 @@ const mutations = {
    * Copy new sample from top most sample
    */
   add_unsaved_sample(state, copyIndex = 0) {
-    if (state.samples.length === 0) {
-      let sample = new SampleModel({
-        sample: {},
-        stored: false,
-      });
-      state.samples = [sample];
+    let sample_new = new SampleModel({
+      sample: {},
+      stored: false,
+    });
 
-      state.selectedSample = sample;
-    } else {
+    if (state.samples.length !== 0 && copyIndex !== -1) {
       let sample = clonedeep(state.samples[copyIndex]);
 
       sample.id = 0;
@@ -195,13 +192,14 @@ const mutations = {
       // used as alternative to 'id' reference for newly created items
       sample.creationstamp = Date.now();
 
-      state.samples.unshift(
-        new SampleModel({
-          sample,
-          stored: false,
-        })
-      );
+      sample_new = new SampleModel({
+        sample,
+        stored: false,
+      })
     }
+
+    state.samples.unshift(sample_new);
+    state.selectedSample = sample_new;
   },
 
   set_selected_sample_stored(state, { boolean }) {

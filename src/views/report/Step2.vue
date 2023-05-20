@@ -24,7 +24,7 @@
                         sample.creationstamp == selectedSample.creationstamp)),
                 }"
                 @delete="handleDeleteSample"
-                @copy="handleAddSample"
+                @copy="handleCopySample"
               />
             </div>
 
@@ -271,7 +271,17 @@ export default {
       });
     },
 
-    handleAddSample(copyIndex = 0) {
+    handleAddSample() {
+      this.addUnsavedSample(-1);
+
+      if (this.$route.params.step != 1) {
+        this.$router.push({
+          name: "edit-report-2",
+          params: { page: 1, step: 1 },
+        });
+      }
+    },
+    handleCopySample(copyIndex = 0) {
       this.addUnsavedSample(copyIndex);
 
       if (this.$route.params.step != 1) {
