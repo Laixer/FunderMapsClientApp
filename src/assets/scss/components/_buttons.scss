@@ -114,9 +114,9 @@
 
   &-continue {
     background-color: $athens-gray;
-    font-size: 12 / 16 + rem;
+    font-size: calc(12 / 16) + rem;
     border-radius: 3px;
-    line-height: 12 / 16 + rem;
+    line-height: calc(12 / 16) + rem;
     padding: 10px 22px 10px 10px;
 
     &::after {
@@ -144,9 +144,9 @@
 
   &-submit {
     background-color: $athens-gray;
-    font-size: 12 / 16 + rem;
+    font-size: calc(12 / 16) + rem;
     border-radius: 3px;
-    line-height: 12 / 16 + rem;
+    line-height: calc(12 / 16) + rem;
     padding: 10px;
 
     &:hover {
