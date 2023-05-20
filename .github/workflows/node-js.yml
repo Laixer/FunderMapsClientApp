@@ -10,16 +10,16 @@ on:
     branches: '*'
 
 env:
-  NODEJS_VERSION: '14.x'
+  NODEJS_VERSION: '16.x'
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v2
-      
+
     - uses: actions/setup-node@v1
       with:
         node-version: ${{ env.NODEJS_VERSION }}
