@@ -398,6 +398,15 @@ export default {
         if (this.loaded) {
           this.sample.stored = false;
         }
+        if (!this.fields.woodQualityNecessity.value) {
+          this.fields.woodType.value = null;
+          this.fields.woodPenetrationDepth.value = null;
+          this.fields.woodEncroachement.value = null;
+          this.fields.woodQuality.value = null;
+          this.fields.carryingCapacityQuality.value = null;
+          this.fields.pileWoodCapacityVerticalQuality.value = null;
+          this.fields.woodCapacityHorizontalQuality.value = null;
+        }
       },
       deep: true,
     },

@@ -159,7 +159,6 @@ export default {
     },
 
     async handleStored(payload) {
-      console.log("handle storeddd");
       await this.updateSampleWithoutStoring({
         sampleId: payload.id,
         data: payload,
