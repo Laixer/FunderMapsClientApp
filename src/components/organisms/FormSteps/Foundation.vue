@@ -311,8 +311,8 @@ export default {
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("wood");
         this.fields.foundationType.value = 0;
-        this.$emit("showStep4", true);
       } else if (value == "woodCharger") {
+        this.$emit("showStep4", true);
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("woodCharger");
         this.fields.foundationType.value = 10;
@@ -320,6 +320,7 @@ export default {
         this.$emit("showStep4", true);
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("concrete");
+        this.fields.foundationType.value = 3;
       } else {
         this.$emit("showStep4", false);
         this.fields.foundationType.options =
