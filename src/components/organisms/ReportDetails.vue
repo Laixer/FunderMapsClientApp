@@ -39,24 +39,16 @@
             <tr>
               <td>Conform F30</td>
               <td>
-                <strong
-                  v-if="activeReport.standardF3o"
-                  class="report-table-correct"
-                  >Ja</strong
-                >
-                <strong v-else>Nee</strong>
+                <span v-if="activeReport.standardF3o">Ja</span>
+                <span v-else>Nee</span>
               </td>
             </tr>
 
             <tr>
               <td>Onderzoeksput</td>
               <td>
-                <strong
-                  v-if="activeReport.inspection"
-                  class="report-table-correct"
-                  >Ja</strong
-                >
-                <strong v-else>Nee</strong>
+                <span v-if="activeReport.inspection">Ja</span>
+                <span v-else>Nee</span>
               </td>
             </tr>
           </table>
@@ -67,24 +59,16 @@
             <tr>
               <td>Lintvoegmeting</td>
               <td>
-                <strong
-                  v-if="activeReport.jointMeasurement"
-                  class="report-table-correct"
-                  >Ja</strong
-                >
-                <strong v-else>Nee</strong>
+                <span v-if="activeReport.jointMeasurement">Ja</span>
+                <span v-else>Nee</span>
               </td>
             </tr>
 
             <tr>
               <td>Vloer waterpas</td>
               <td>
-                <strong
-                  v-if="activeReport.floorMeasurement"
-                  class="report-table-correct"
-                  >Ja</strong
-                >
-                <strong v-else>Nee</strong>
+                <span v-if="activeReport.floorMeasurement">Ja</span>
+                <span v-else>Nee</span>
               </td>
             </tr>
           </table>

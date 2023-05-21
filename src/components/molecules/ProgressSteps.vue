@@ -55,7 +55,6 @@ export default {
 @import "@/assets/scss/variables.scss";
 
 .ProgressWrapper {
-  border-top: 1px solid $mischka;
   border-bottom: 1px solid $mischka;
   background-color: $white;
 }

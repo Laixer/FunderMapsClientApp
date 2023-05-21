@@ -6,7 +6,6 @@
         <span class="h6 ProgressIndicator__title">{{ title }}</span>
       </router-link>
     </div>
-    <div v-if="!last" class="ProgressSpacer"></div>
   </div>
 </template>
 
