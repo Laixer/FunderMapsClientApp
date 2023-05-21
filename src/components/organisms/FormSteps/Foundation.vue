@@ -325,6 +325,7 @@ export default {
         this.$emit("showStep4", false);
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("none");
+          this.fields.foundationType.value = 4;
       }
     },
 
