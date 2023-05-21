@@ -26,13 +26,7 @@
           @input="handleFoundationChange()"
           class="mb-0"
         />
-        <div
-          class="form-row"
-          v-if="
-            fields.foundationTypeGroup.value &&
-            fields.foundationTypeGroup.value != 'woodCharger'
-          "
-        >
+        <div class="form-row" v-if="fields.foundationTypeGroup.value">
           <FormField
             v-model="fields.foundationType.value"
             v-bind="fields.foundationType"
@@ -231,8 +225,6 @@ export default {
         return option.value == this.sample["foundationType"];
       });
 
-      console.log("in here");
-
       this.fields.foundationType.options =
         this.conditionalFoundationTypeOptions(
           selectedFoundationOption[0].group
@@ -288,7 +280,7 @@ export default {
     next() {
       let step = this.step + 1;
 
-      if ([5, 6, 7, 8, 9].includes(this.fields.foundationType.value)) {
+      if (this.fields.foundationTypeGroup.value == "none") {
         step = this.step + 2;
       }
 
@@ -325,7 +317,7 @@ export default {
         this.$emit("showStep4", false);
         this.fields.foundationType.options =
           this.conditionalFoundationTypeOptions("none");
-          this.fields.foundationType.value = 4;
+        this.fields.foundationType.value = 4;
       }
     },
 
