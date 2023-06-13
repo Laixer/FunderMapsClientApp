@@ -465,42 +465,52 @@ export const foundationDamageCauseOptions = [
   {
     //value: 'FungusInfection',
     value: 8,
-    text: "Bacterien en schimmels aantasting",
+    text: "Schimmel aantasting",
   },
   {
-    //value: 'foundationFlaw',
+    //value: 'BioFungusInfection',
     value: 9,
+    text: "Bacterien en schimmel aantasting",
+  },
+  {
+    //value: 'FoundationFlaw',
+    value: 10,
     text: "Funderings fouten",
   },
   {
-    //value: 'constructionHeave',
-    value: 10,
+    //value: 'ConstructionHeave',
+    value: 11,
     text: "Afglijden fundering",
   },
   {
-    //value: 'subsidence',
-    value: 11,
+    //value: 'Subsidence',
+    value: 12,
     text: "Bodemdaling",
   },
   {
-    //value: 'vegetation',
-    value: 12,
+    //value: 'Vegetation',
+    value: 13,
     text: "Aantasting (planten)wortels",
   },
   {
-    //value: 'gas',
-    value: 13,
+    //value: 'Gas',
+    value: 14,
     text: "Gaswinning",
   },
   {
-    //value: 'vibrations',
-    value: 14,
+    //value: 'Vibrations',
+    value: 15,
     text: "Trillingen",
   },
   {
-    //value: 'partial_foundation_recovery',
-    value: 15,
+    //value: 'PartialFoundationRecovery',
+    value: 16,
     text: "Funderingsherstel naastgelegen pand",
+  },
+  {
+    //value: 'JapanseKnotweed',
+    value: 17,
+    text: "Japanse duizendknoop",
   },
 ];
 
