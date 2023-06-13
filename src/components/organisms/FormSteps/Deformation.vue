@@ -246,7 +246,7 @@ export default {
       skewedPerpendicular: this.sample.skewedPerpendicular,
       skewedParallel: this.sample.skewedParallel,
       thresholdFrontLevel: this.sample.thresholdFrontLevel,
-      thresholdBackLevel: this.sample.constructionLevel,
+      thresholdBackLevel: this.sample.thresholdBackLevel,
       skewedWindowFrame: skewedWindowFrame,
       settlementSpeed: this.sample.settlementSpeed,
     });
