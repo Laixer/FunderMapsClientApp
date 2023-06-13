@@ -570,12 +570,39 @@ export const enforcementTermOptions = [
 
 export const damageCharacteristicsOptions = [
   {
-    text: "Scheuren",
+    //value: 'JammingDoorWindow',
+    text: "Klemmende deuren en ramen",
     value: 0,
   },
   {
-    text: "Ingestord",
+    //value: 'Crack',
+    text: "Scheuren",
     value: 1,
+  },
+  {
+    //value: 'Skewed',
+    text: "Scheefstand",
+    value: 2,
+  },
+  {
+    //value: 'CrawlspaceFlooding',
+    text: "Water in kruipruimte",
+    value: 3,
+  },
+  {
+    //value: 'ThresholdAboveSubsurface',
+    text: "Drempel boven maaiveld",
+    value: 4,
+  },
+  {
+    //value: 'ThresholdBelowSubsurface',
+    text: "Drempel onder maaiveld",
+    value: 5,
+  },
+  {
+    //value: 'CrookedFloorWall',
+    text: "Scheve vloer of wand",
+    value: 6,
   },
 ];
 
