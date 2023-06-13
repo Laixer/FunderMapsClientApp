@@ -40,7 +40,11 @@
               </div>
               <div class="form-row">
                 <FormField
-                  v-for="index in fields.crackIndoorSizeAmount.value"
+                  v-model="fields.crackIndoorType.value"
+                  v-bind="fields.crackIndoorType"
+                  class="col form-col"
+                />
+                <FormField
                   :key="index"
                   :label="`Scheur`"
                   v-model="fields.crackIndoorSize.value"
@@ -74,7 +78,11 @@
               </div>
               <div class="form-row">
                 <FormField
-                  v-for="index in fields.crackFacadeFrontSizeAmount.value"
+                  v-model="fields.crackFacadeFrontType.value"
+                  v-bind="fields.crackFacadeFrontType"
+                  class="col form-col"
+                />
+                <FormField
                   :key="index"
                   :label="`Scheur`"
                   v-model="fields.crackFacadeFrontSize.value"
@@ -108,7 +116,11 @@
               </div>
               <div class="form-row">
                 <FormField
-                  v-for="index in fields.crackFacadeBackSizeAmount.value"
+                  v-model="fields.crackFacadeBackType.value"
+                  v-bind="fields.crackFacadeBackType"
+                  class="col form-col"
+                />
+                <FormField
                   :key="index"
                   :label="`Scheur`"
                   v-model="fields.crackFacadeBackSize.value"
@@ -142,7 +154,11 @@
               </div>
               <div class="form-row">
                 <FormField
-                  v-for="index in fields.crackFacadeLeftSizeAmount.value"
+                  v-model="fields.crackFacadeLeftType.value"
+                  v-bind="fields.crackFacadeLeftType"
+                  class="col form-col"
+                />
+                <FormField
                   :key="index"
                   :label="`Scheur`"
                   v-model="fields.crackFacadeLeftSize.value"
@@ -175,7 +191,11 @@
               </div>
               <div class="form-row">
                 <FormField
-                  v-for="index in fields.crackFacadeRightSizeAmount.value"
+                  v-model="fields.crackFacadeRightType.value"
+                  v-bind="fields.crackFacadeRightType"
+                  class="col form-col"
+                />
+                <FormField
                   :key="index"
                   :label="`Scheur`"
                   v-model="fields.crackFacadeRightSize.value"
@@ -245,24 +265,24 @@ export default {
       feedback: {},
       fields: {
         crackIndoorSizeCheck: {
-          label: "Inpandage scheur",
+          label: "Inpandige scheur",
           type: "checkbox",
           value: false,
           image: "crack-indoor.svg",
         },
-        crackIndoorSizeAmount: {
-          label: "Hoeveel scheuren",
-          type: "select",
-          value: 1,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(crackAmountOptions),
-        },
+        // crackIndoorSizeAmount: {
+        //   label: "Hoeveel scheuren",
+        //   type: "select",
+        //   value: 1,
+        //   options: [
+        //     {
+        //       value: null,
+        //       text: "Selecteer een optie",
+        //     },
+        //   ].concat(crackAmountOptions),
+        // },
         crackIndoorRestored: {
-          label: "Hersteld 1",
+          label: "Hersteld",
           type: "radio",
           value: false,
           options: [
@@ -276,30 +296,55 @@ export default {
             },
           ],
         },
+        crackIndoorType: {
+          label: "Type",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat([{
+              value: 0,
+              text: "Zeer klein",
+            },
+            {
+              value: 1,
+              text: "Klein",
+            },
+            {
+              value: 2,
+              text: "Matig",
+            },
+            {
+              value: 3,
+              text: "Groot",
+            }]),
+          validationRules: {},
+        },
         crackIndoorSize: {
           type: "number",
           value: null,
           info: "mm",
         },
-
-
         crackFacadeFrontSizeCheck: {
           label: "Voorgevel scheur",
           type: "checkbox",
           value: false,
           image: "crack-facade-front.svg",
         },
-        crackFacadeFrontSizeAmount: {
-          label: "Hoeveel scheuren",
-          type: "select",
-          value: 1,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(crackAmountOptions),
-        },
+        // crackFacadeFrontSizeAmount: {
+        //   label: "Hoeveel scheuren",
+        //   type: "select",
+        //   value: 1,
+        //   options: [
+        //     {
+        //       value: null,
+        //       text: "Selecteer een optie",
+        //     },
+        //   ].concat(crackAmountOptions),
+        // },
         crackFacadeFrontRestored: {
           label: "Hersteld",
           type: "radio",
@@ -315,30 +360,55 @@ export default {
             },
           ],
         },
+        crackFacadeFrontType: {
+          label: "Type",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+            ].concat([{
+              value: 0,
+              text: "Zeer klein",
+            },
+            {
+              value: 1,
+              text: "Klein",
+            },
+            {
+              value: 2,
+              text: "Matig",
+            },
+            {
+              value: 3,
+              text: "Groot",
+            }]),
+          validationRules: {},
+        },
         crackFacadeFrontSize: {
           type: "number",
           value: null,
           info: "mm",
         },
-
-
         crackFacadeBackSizeCheck: {
           label: "Achtergevel scheur",
           type: "checkbox",
           value: false,
           image: "crack-facade-back.svg",
         },
-        crackFacadeBackSizeAmount: {
-          label: "Hoeveel scheuren",
-          type: "select",
-          value: 1,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(crackAmountOptions),
-        },
+        // crackFacadeBackSizeAmount: {
+        //   label: "Hoeveel scheuren",
+        //   type: "select",
+        //   value: 1,
+        //   options: [
+        //     {
+        //       value: null,
+        //       text: "Selecteer een optie",
+        //     },
+        //   ].concat(crackAmountOptions),
+        // },
         crackFacadeBackRestored: {
           label: "Hersteld",
           type: "radio",
@@ -354,29 +424,55 @@ export default {
             },
           ],
         },
+        crackFacadeBackType: {
+          label: "Type",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+            ].concat([{
+              value: 0,
+              text: "Zeer klein",
+            },
+            {
+              value: 1,
+              text: "Klein",
+            },
+            {
+              value: 2,
+              text: "Matig",
+            },
+            {
+              value: 3,
+              text: "Groot",
+            }]),
+          validationRules: {},
+        },
         crackFacadeBackSize: {
           type: "number",
           value: null,
           info: "mm",
         },
-
         crackFacadeLeftSizeCheck: {
           label: "Linkergevel scheur",
           type: "checkbox",
           value: false,
           image: "crack-facade-left.svg",
         },
-        crackFacadeLeftSizeAmount: {
-          label: "Hoeveel scheuren",
-          type: "select",
-          value: 1,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(crackAmountOptions),
-        },
+        // crackFacadeLeftSizeAmount: {
+        //   label: "Hoeveel scheuren",
+        //   type: "select",
+        //   value: 1,
+        //   options: [
+        //     {
+        //       value: null,
+        //       text: "Selecteer een optie",
+        //     },
+        //   ].concat(crackAmountOptions),
+        // },
         crackFacadeLeftRestored: {
           label: "Hersteld",
           type: "radio",
@@ -392,6 +488,33 @@ export default {
             },
           ],
         },
+        crackFacadeLeftType: {
+          label: "Type",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+            ].concat([{
+              value: 0,
+              text: "Zeer klein",
+            },
+            {
+              value: 1,
+              text: "Klein",
+            },
+            {
+              value: 2,
+              text: "Matig",
+            },
+            {
+              value: 3,
+              text: "Groot",
+            }]),
+          validationRules: {},
+        },
         crackFacadeLeftSize: {
           type: "number",
           value: null,
@@ -404,19 +527,19 @@ export default {
           value: false,
           image: "crack-facade-right.svg",
         },
-        crackFacadeRightSizeAmount: {
-          label: "Hoeveel scheuren",
-          type: "select",
-          value: 1,
-          options: [
-            {
-              value: null,
-              text: "Selecteer een optie",
-            },
-          ].concat(crackAmountOptions),
-        },
+        // crackFacadeRightSizeAmount: {
+        //   label: "Hoeveel scheuren",
+        //   type: "select",
+        //   value: 1,
+        //   options: [
+        //     {
+        //       value: null,
+        //       text: "Selecteer een optie",
+        //     },
+        //   ].concat(crackAmountOptions),
+        // },
         crackFacadeRightRestored: {
-          label: "Herstelds",
+          label: "Hersteld",
           type: "radio",
           value: null,
           options: [
@@ -429,6 +552,33 @@ export default {
               text: "Nee",
             },
           ],
+        },
+        crackFacadeRightType: {
+          label: "Type",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+            ].concat([{
+              value: 0,
+              text: "Zeer klein",
+            },
+            {
+              value: 1,
+              text: "Klein",
+            },
+            {
+              value: 2,
+              text: "Matig",
+            },
+            {
+              value: 3,
+              text: "Groot",
+            }]),
+          validationRules: {},
         },
         crackFacadeRightSize: {
           type: "number",
@@ -456,6 +606,11 @@ export default {
         ? true
         : false,
       crackFacadeRightSize: this.sample.crackFacadeRightSize,
+      crackIndoorType: this.sample.crackIndoorType,
+      crackFacadeFrontType: this.sample.crackFacadeFrontType,
+      crackFacadeBackType: this.sample.crackFacadeBackType,
+      crackFacadeLeftType: this.sample.crackFacadeLeftType,
+      crackFacadeRightType: this.sample.crackFacadeRightType,
       crackIndoorRestored: this.sample.crackIndoorRestored,
       crackFacadeFrontRestored: this.sample.crackFacadeFrontRestored,
       crackFacadeBackRestored: this.sample.crackFacadeBackRestored,
@@ -503,26 +658,31 @@ export default {
 
       if (data.crackIndoorSizeCheck == false) {
         data.crackIndoorRestored = null;
+        data.crackIndoorType = null;
         data.crackIndoorSize = null;
       }
 
       if (data.crackFacadeFrontSizeCheck == false) {
         data.crackFacadeFrontRestored = null;
+        data.crackFacadeFrontType = null;
         data.crackFacadeFrontSize = null;
       }
 
       if (data.crackFacadeBackSizeCheck == false) {
         data.crackFacadeBackRestored = null;
+        data.crackFacadeBackType = null;
         data.crackFacadeBackSize = null;
       }
 
       if (data.crackFacadeLeftSizeCheck == false) {
         data.crackFacadeLeftRestored = null;
+        data.crackFacadeLeftType = null;
         data.crackFacadeLeftSize = null;
       }
 
       if (data.crackFacadeRightSizeCheck == false) {
         data.crackFacadeRightRestored = null;
+        data.crackFacadeRightType = null;
         data.crackFacadeRightSize = null;
       }
 
