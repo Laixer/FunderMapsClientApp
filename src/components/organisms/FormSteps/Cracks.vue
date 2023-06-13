@@ -592,19 +592,15 @@ export default {
   async created() {
     // Explicitly set the address field.
     this.setFieldValues({
-      crackIndoorSizeCheck: this.sample.crackIndoorSize ? true : false,
+      crackIndoorSizeCheck: this.sample.crackIndoorSize !== null || this.sample.crackIndoorRestored !== null || this.sample.crackIndoorType !== null ? true : false,
       crackIndoorSize: this.sample.crackIndoorSize,
-      crackFacadeFrontSizeCheck: this.sample.crackFacadeFrontSize
-        ? true
-        : false,
+      crackFacadeFrontSizeCheck: this.sample.crackFacadeFrontSize !== null || this.sample.crackFacadeFrontRestored !== null || this.sample.crackFacadeFrontType !== null ? true : false,
       crackFacadeFrontSize: this.sample.crackFacadeFrontSize,
-      crackFacadeBackSizeCheck: this.sample.crackFacadeBackSize ? true : false,
+      crackFacadeBackSizeCheck: this.sample.crackFacadeBackSize !== null || this.sample.crackFacadeBackRestored !== null || this.sample.crackFacadeBackType !== null ? true : false,
       crackFacadeBackSize: this.sample.crackFacadeBackSize,
-      crackFacadeLeftSizeCheck: this.sample.crackFacadeLeftSize ? true : false,
+      crackFacadeLeftSizeCheck: this.sample.crackFacadeLeftSize !== null || this.sample.crackFacadeLeftRestored !== null || this.sample.crackFacadeLeftType !== null ? true : false,
       crackFacadeLeftSize: this.sample.crackFacadeLeftSize,
-      crackFacadeRightSizeCheck: this.sample.crackFacadeRightSize
-        ? true
-        : false,
+      crackFacadeRightSizeCheck: this.sample.crackFacadeRightSize !== null || this.sample.crackFacadeRightRestored !== null || this.sample.crackFacadeRightType !== null ? true : false,
       crackFacadeRightSize: this.sample.crackFacadeRightSize,
       crackIndoorType: this.sample.crackIndoorType,
       crackFacadeFrontType: this.sample.crackFacadeFrontType,
@@ -637,7 +633,6 @@ export default {
   computed: {
     ...mapGetters("report", ["activeReport"]),
   },
-
   methods: {
     booleanValue({ name }) {
       return this.sample[name] === true || this.sample[name] === false
@@ -648,7 +643,6 @@ export default {
       let key = this.sample[name];
       return options[key] ? options[key].value : null;
     },
-
     async handleSubmit() {
       if (this.isDisabled) {
         return;

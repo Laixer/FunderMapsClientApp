@@ -281,9 +281,7 @@ export default {
       let key = this.sample[name];
       return options[key] ? options[key].value : null;
     },
-
     handleFoundationBarChange() {},
-
     async handleSubmit() {
       if (this.isDisabled) {
         return;
@@ -316,11 +314,9 @@ export default {
 
       return true;
     },
-
     save() {
       this.$emit("save");
     },
-
     handleFormError() {
       this.feedback = {
         variant: "danger",
