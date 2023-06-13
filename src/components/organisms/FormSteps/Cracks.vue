@@ -10,10 +10,6 @@
       class="FormStepDropdown"
     >
       <h5 class="FormStep__title">Scheuren</h5>
-
-      <span class="FormStepDropdown__indicator">
-        <img :src="icon('Angle.svg')" />
-      </span>
     </router-link>
 
     <div class="FormStepForm cracks-step" v-if="active">
@@ -45,7 +41,6 @@
                   class="col form-col"
                 />
                 <FormField
-                  :key="index"
                   :label="`Scheur`"
                   v-model="fields.crackIndoorSize.value"
                   v-bind="fields.crackIndoorSize"

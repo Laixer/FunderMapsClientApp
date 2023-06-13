@@ -10,10 +10,6 @@
       class="FormStepDropdown"
     >
       <h5 class="FormStep__title">Fundering</h5>
-
-      <span class="FormStepDropdown__indicator">
-        <img :src="icon('Angle.svg')" />
-      </span>
     </router-link>
 
     <div class="FormStepForm" v-if="active">
@@ -70,15 +66,6 @@
 </template>
 
 <script>
-import {
-  required,
-  numeric,
-  decimal,
-  maxLength,
-  minValue,
-  maxValue,
-} from "vuelidate/lib/validators";
-
 import {
   foundationTypeOptions,
   enforcementTermOptions,

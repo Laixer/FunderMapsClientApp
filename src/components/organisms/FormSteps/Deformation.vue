@@ -10,10 +10,6 @@
       class="FormStepDropdown"
     >
       <h5 class="FormStep__title">Vervorming</h5>
-
-      <span class="FormStepDropdown__indicator">
-        <img :src="icon('Angle.svg')" />
-      </span>
     </router-link>
 
     <div class="FormStepForm" v-if="active">
