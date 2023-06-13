@@ -266,6 +266,25 @@ export const crackAmountOptions = [
   // },
 ];
 
+export const crackTypeOptions = [
+  {
+    value: 0,
+    text: "Zeer klein",
+  },
+  {
+    value: 1,
+    text: "Klein",
+  },
+  {
+    value: 2,
+    text: "Matig",
+  },
+  {
+    value: 3,
+    text: "Groot",
+  }
+];
+
 export const rotationOptions = [
   {
     //value: 'Nihil',
