@@ -163,6 +163,13 @@ export default {
         sampleId: payload.id,
         data: payload,
       });
+
+      if (this.selectedSample.id) {
+          await this.updateSelectedSample(this.activeReport.id);
+          return
+      }
+
+      await this.createSample({ inquiryId: this.activeReport.id });
     },
 
     handleShowStep4(value) {
