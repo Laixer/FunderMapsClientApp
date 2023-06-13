@@ -52,25 +52,11 @@
 
         <template v-if="fields.foundationBar.value">
           <div class="form-row">
-            <FormField
-              v-if="fields.foundationBar.value == 'wood'"
-              v-model="fields.woodLevel.value"
-              v-bind="fields.woodLevel"
-              class="col-md-6"
-            />
+            <FormField v-if="fields.foundationBar.value == 'wood'" v-model="fields.woodLevel.value"
+              v-bind="fields.woodLevel" class="col-md-6" />
 
-            <FormField
-              v-else-if="fields.foundationBar.value == 'concrete'"
-              v-model="fields.constructionPile.value"
-              v-bind="fields.constructionPile"
-              class="col-md-6"
-            />
-
-            <FormField
-              v-model="fields.constructionLevel.value"
-              v-bind="fields.constructionLevel"
-              class="col-md-6"
-            />
+            <FormField v-else-if="fields.foundationBar.value == 'concrete'" v-model="fields.constructionLevel.value"
+              v-bind="fields.constructionLevel" class="col-md-6" />
           </div>
         </template>
 
@@ -186,17 +172,8 @@ export default {
             decimal,
           },
         },
-        constructionPile: {
-          label: "Niveau onderkant funderingsbalk",
-          type: "number",
-          value: "",
-          validationRules: {
-            decimal,
-          },
-        },
-
         constructionLevel: {
-          label: "Niveau bovenkant funderingsbalk",
+          label: "Niveau onderkant funderingsbalk",
           type: "number",
           value: "",
           validationRules: {
@@ -222,16 +199,14 @@ export default {
 
     if (this.sample.woodLevel) {
       foundationBar = "wood";
-    } else if (this.sample.constructionPile) {
+    } else if (this.sample.constructionLevel) {
       foundationBar = "concrete";
     }
-
     // Explicitly set the address field.
     this.setFieldValues({
       masonQuality: masonQuality,
       masonLevel: this.sample.masonLevel,
       woodLevel: this.sample.woodLevel,
-      constructionPile: this.sample.constructionPile,
       constructionLevel: this.sample.constructionLevel,
       foundationBar: foundationBar,
       constructionQuality: constructionQuality,
@@ -277,18 +252,13 @@ export default {
 
       let data = this.allFieldValues();
 
-      console.log(data);
-
-      //   data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
-
       if (data.foundationBar == "wood") {
         data.woodLevel = data.woodLevel ? Number(data.woodLevel) : null;
-        data.constructionPile = null;
+        data.constructionLevel = null;
       } else if (data.foundationBar == "concrete") {
-        data.constructionPile = data.constructionPile
-          ? Number(data.constructionPile)
+        data.constructionLevel = data.constructionLevel
+          ? Number(data.constructionLevel)
           : null;
-
         data.woodLevel = null;
       }
 
