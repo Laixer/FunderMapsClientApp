@@ -237,7 +237,7 @@ export default {
               },
               {
                 label: "Funderingsbalk",
-                value: this.sample.woodLevel ? "Hout" : "Beton",
+                value: this.sample.woodLevel ? "Hout" : this.sample.constructionLevel ? "Beton" : null,
               },
               {
                 label: "Niveau onderkant funderingsbalk",
