@@ -249,7 +249,6 @@ export default {
           type: "checkbox",
           value: false,
           image: "crack-indoor.svg",
-          validationRules: {},
         },
         crackIndoorSizeAmount: {
           label: "Hoeveel scheuren",
@@ -261,7 +260,6 @@ export default {
               text: "Selecteer een optie",
             },
           ].concat(crackAmountOptions),
-          validationRules: {},
         },
         crackIndoorRestored: {
           label: "Hersteld 1",
@@ -277,29 +275,19 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {
-            required: requiredIf(() => {
-              return this.fields.crackIndoorSizeCheck.value;
-            }),
-          },
         },
         crackIndoorSize: {
           type: "number",
           value: null,
           info: "mm",
-          validationRules: {
-            decimal,
-            required: requiredIf(() => {
-              return this.fields.crackIndoorSizeCheck.value;
-            }),
-          },
         },
+
+
         crackFacadeFrontSizeCheck: {
           label: "Voorgevel scheur",
           type: "checkbox",
           value: false,
           image: "crack-facade-front.svg",
-          validationRules: {},
         },
         crackFacadeFrontSizeAmount: {
           label: "Hoeveel scheuren",
@@ -311,7 +299,6 @@ export default {
               text: "Selecteer een optie",
             },
           ].concat(crackAmountOptions),
-          validationRules: {},
         },
         crackFacadeFrontRestored: {
           label: "Hersteld",
@@ -329,20 +316,17 @@ export default {
           ],
         },
         crackFacadeFrontSize: {
-          type: "text",
+          type: "number",
           value: null,
           info: "mm",
-          validationRules: {
-            // decimal,
-            // required,
-          },
         },
+
+
         crackFacadeBackSizeCheck: {
           label: "Achtergevel scheur",
           type: "checkbox",
           value: false,
           image: "crack-facade-back.svg",
-          validationRules: {},
         },
         crackFacadeBackSizeAmount: {
           label: "Hoeveel scheuren",
@@ -354,7 +338,6 @@ export default {
               text: "Selecteer een optie",
             },
           ].concat(crackAmountOptions),
-          validationRules: {},
         },
         crackFacadeBackRestored: {
           label: "Hersteld",
@@ -370,22 +353,11 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {
-            required: requiredIf(() => {
-              return this.fields.crackFacadeBackSizeCheck.value;
-            }),
-          },
         },
         crackFacadeBackSize: {
           type: "number",
           value: null,
           info: "mm",
-          validationRules: {
-            decimal,
-            required: requiredIf(() => {
-              return this.fields.crackFacadeBackSizeCheck.value;
-            }),
-          },
         },
 
         crackFacadeLeftSizeCheck: {
@@ -393,7 +365,6 @@ export default {
           type: "checkbox",
           value: false,
           image: "crack-facade-left.svg",
-          validationRules: {},
         },
         crackFacadeLeftSizeAmount: {
           label: "Hoeveel scheuren",
@@ -405,7 +376,6 @@ export default {
               text: "Selecteer een optie",
             },
           ].concat(crackAmountOptions),
-          validationRules: {},
         },
         crackFacadeLeftRestored: {
           label: "Hersteld",
@@ -421,29 +391,18 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {
-            required: requiredIf(() => {
-              return this.fields.crackFacadeLeftSizeCheck.value;
-            }),
-          },
         },
         crackFacadeLeftSize: {
           type: "number",
           value: null,
           info: "mm",
-          validationRules: {
-            decimal,
-            required: requiredIf(() => {
-              return this.fields.crackFacadeLeftSizeCheck.value;
-            }),
-          },
         },
+
         crackFacadeRightSizeCheck: {
           label: "Rechtergevel scheur",
           type: "checkbox",
           value: false,
           image: "crack-facade-right.svg",
-          validationRules: {},
         },
         crackFacadeRightSizeAmount: {
           label: "Hoeveel scheuren",
@@ -455,7 +414,6 @@ export default {
               text: "Selecteer een optie",
             },
           ].concat(crackAmountOptions),
-          validationRules: {},
         },
         crackFacadeRightRestored: {
           label: "Herstelds",
@@ -471,22 +429,11 @@ export default {
               text: "Nee",
             },
           ],
-          validationRules: {
-            required: requiredIf(() => {
-              return this.fields.crackFacadeRightSizeCheck.value;
-            }),
-          },
         },
         crackFacadeRightSize: {
           type: "number",
           value: null,
           info: "mm",
-          validationRules: {
-            decimal,
-            required: requiredIf(() => {
-              return this.fields.crackFacadeRightSizeCheck.value;
-            }),
-          },
         },
       },
     };
