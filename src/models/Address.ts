@@ -25,7 +25,12 @@ class AddressModel {
   }
 
   format(): string {
-    return `${this.street} ${this.buildingNumberCleaned()}, ${this.postalCode} ${this.city}`
+    let buildingNumberCleaned = `${this.street} ${this.buildingNumberCleaned()}, `
+    if (this.postalCode) {
+      buildingNumberCleaned += `${this.postalCode} `
+    }
+    buildingNumberCleaned += `${this.city}`
+    return buildingNumberCleaned
   }
 
   buildingNumberCleaned(): string {
