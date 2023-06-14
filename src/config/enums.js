@@ -75,6 +75,11 @@ export const typeOptions = [
     color: "white",
     bgColor: "#3D5372",
   },
+  {
+    text: "Gevelscan",
+    color: "white",
+    bgColor: "#3D5372",
+  }
 ];
 
 export const statusOptions = [
