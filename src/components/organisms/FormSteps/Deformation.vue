@@ -145,7 +145,7 @@ export default {
           validationRules: {},
         },
         skewedFacade: {
-          label: "Scheefstand",
+          label: "Beoordeling lintvoegmeting",
           type: "select",
           value: null,
           options: [
@@ -157,19 +157,19 @@ export default {
           validationRules: {},
         },
         skewedPerpendicular: {
-          label: "Scheefstand voor naar achter",
+          label: "Loodmeting",
           type: "number",
           value: "",
-          info: "mm/m",
+          info: "mm/m (voor naar achter)",
           validationRules: {
             decimal,
           },
         },
         skewedParallel: {
-          label: "Scheefstand links naar rechts",
+          label: "Lintvoegmeting",
           type: "number",
           value: "",
-          info: "mm/m",
+          info: "mm/m (links naar rechts)",
           validationRules: {
             decimal,
           },
