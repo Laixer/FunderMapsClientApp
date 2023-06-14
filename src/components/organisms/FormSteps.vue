@@ -139,6 +139,13 @@ export default {
       this.$refs[`step-${step}`].$refs.form.validate();
 
       if (this.$refs[`step-${step}`].$refs.form.isValid()) {
+
+        if (this.selectedSample.id) {
+          this.updateSelectedSample(this.activeReport.id);
+        } else if (this.activeReport.id) {
+          this.createSample({ inquiryId: this.activeReport.id });
+        }
+
         return await this.$refs[`step-${step}`].handleSubmit();
       } else {
         return false;
@@ -147,14 +154,14 @@ export default {
 
     async save() {
       await this.next(this.selectedStep).then((valid) => {
-        if (valid && this.selectedSample.id) {
-          this.updateSelectedSample(this.activeReport.id);
-          return;
-        }
+        // if (valid && this.selectedSample.id) {
+        //   this.updateSelectedSample(this.activeReport.id);
+        //   return;
+        // }
 
-        if (valid) {
-          this.createSample({ inquiryId: this.activeReport.id });
-        }
+        // if (valid) {
+        //   this.createSample({ inquiryId: this.activeReport.id });
+        // }
       });
     },
 
@@ -164,12 +171,13 @@ export default {
         data: payload,
       });
 
-      if (this.selectedSample.id) {
-          await this.updateSelectedSample(this.activeReport.id);
-          return
-      }
 
-      await this.createSample({ inquiryId: this.activeReport.id });
+      // if (this.selectedSample.id) {
+      //     await this.updateSelectedSample(this.activeReport.id);
+      //     return
+      // }
+
+      // await this.createSample({ inquiryId: this.activeReport.id });
     },
 
     handleShowStep4(value) {
