@@ -25,7 +25,7 @@
             />
           </div>
 
-          <div class="col-9" v-show="fields.crackIndoorSizeCheck.value">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
@@ -62,7 +62,7 @@
             />
           </div>
 
-          <div class="col-9" v-show="fields.crackFacadeFrontSizeCheck.value">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
@@ -99,7 +99,7 @@
             />
           </div>
 
-          <div class="col-9" v-show="fields.crackFacadeBackSizeCheck.value">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
@@ -136,7 +136,7 @@
             />
           </div>
 
-          <div class="col-9" v-show="fields.crackFacadeLeftSizeCheck.value">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
@@ -172,7 +172,7 @@
             />
           </div>
 
-          <div class="col-9" v-show="fields.crackFacadeRightSizeCheck.value">
+          <div class="col-9">
             <template>
               <div class="form-row">
                 <FormField
@@ -249,6 +249,7 @@ export default {
           label: "Inpandige scheur",
           type: "checkbox",
           value: false,
+          disabled: true,
           image: "crack-indoor.svg",
         },
         crackIndoorRestored: {
@@ -287,6 +288,7 @@ export default {
           label: "Voorgevel scheur",
           type: "checkbox",
           value: false,
+          disabled: true,
           image: "crack-facade-front.svg",
         },
         crackFacadeFrontRestored: {
@@ -325,6 +327,7 @@ export default {
           label: "Achtergevel scheur",
           type: "checkbox",
           value: false,
+          disabled: true,
           image: "crack-facade-back.svg",
         },
         crackFacadeBackRestored: {
@@ -363,6 +366,7 @@ export default {
           label: "Linkergevel scheur",
           type: "checkbox",
           value: false,
+          disabled: true,
           image: "crack-facade-left.svg",
         },
         crackFacadeLeftRestored: {
@@ -402,6 +406,7 @@ export default {
           label: "Rechtergevel scheur",
           type: "checkbox",
           value: false,
+          disabled: true,
           image: "crack-facade-right.svg",
         },
         crackFacadeRightRestored: {
