@@ -160,7 +160,7 @@ export default {
           label: "Loodmeting",
           type: "number",
           value: "",
-          info: "mm/m (voor naar achter)",
+          info: "1:XXX (positief helt naar voren, negatief helt naar achteren)",
           validationRules: {
             decimal,
           },
@@ -169,7 +169,7 @@ export default {
           label: "Lintvoegmeting",
           type: "number",
           value: "",
-          info: "mm/m (links naar rechts)",
+          info: "1:XXX (positief verloopt naar links, negatief verloopt naar rechts)",
           validationRules: {
             decimal,
           },
