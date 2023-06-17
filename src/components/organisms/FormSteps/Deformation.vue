@@ -17,15 +17,26 @@
         <Feedback :feedback="feedback" />
 
         <div class="form-row">
+
           <FormField
             v-model="fields.deformedFacade.value"
             v-bind="fields.deformedFacade"
             class="col-md-6"
           />
 
+        </div>
+
+        <div class="form-row">
+          
           <FormField
-            v-model="fields.skewedFacade.value"
-            v-bind="fields.skewedFacade"
+            v-model="fields.skewedPerpendicularFacade.value"
+            v-bind="fields.skewedPerpendicularFacade"
+            class="col-md-6"
+          />
+
+          <FormField
+            v-model="fields.skewedParallelFacade.value"
+            v-bind="fields.skewedParallelFacade"
             class="col-md-6"
           />
         </div>
@@ -144,7 +155,19 @@ export default {
           ],
           validationRules: {},
         },
-        skewedFacade: {
+        skewedPerpendicularFacade: {
+          label: "Beoordeling loodmeting",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(rotationOptions),
+          validationRules: {},
+        },
+        skewedParallelFacade: {
           label: "Beoordeling lintvoegmeting",
           type: "select",
           value: null,
@@ -226,9 +249,14 @@ export default {
       name: "deformedFacade",
     });
 
-    var skewedFacade = this.optionValue({
+    var skewedPerpendicularFacade = this.optionValue({
       options: rotationOptions,
-      name: "skewedFacade",
+      name: "skewedPerpendicularFacade",
+    });
+
+    var skewedParallelFacade = this.optionValue({
+      options: rotationOptions,
+      name: "skewedParallelFacade",
     });
 
     var skewedWindowFrame = this.booleanValue({
@@ -238,7 +266,8 @@ export default {
     // Explicitly set the address field.
     this.setFieldValues({
       deformedFacade: deformedFacade,
-      skewedFacade: skewedFacade,
+      skewedPerpendicularFacade: skewedPerpendicularFacade,
+      skewedParallelFacade: skewedParallelFacade,
       skewedPerpendicular: this.sample.skewedPerpendicular,
       skewedParallel: this.sample.skewedParallel,
       thresholdFrontLevel: this.sample.thresholdFrontLevel,

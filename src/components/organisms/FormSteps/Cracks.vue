@@ -448,15 +448,10 @@ export default {
   async created() {
     // Explicitly set the address field.
     this.setFieldValues({
-      // crackIndoorSizeCheck: this.sample.crackIndoorSize !== null || this.sample.crackIndoorRestored !== null || this.sample.crackIndoorType !== null ? true : false,
       crackIndoorSize: this.sample.crackIndoorSize,
-      // crackFacadeFrontSizeCheck: this.sample.crackFacadeFrontSize !== null || this.sample.crackFacadeFrontRestored !== null || this.sample.crackFacadeFrontType !== null ? true : false,
       crackFacadeFrontSize: this.sample.crackFacadeFrontSize,
-      // crackFacadeBackSizeCheck: this.sample.crackFacadeBackSize !== null || this.sample.crackFacadeBackRestored !== null || this.sample.crackFacadeBackType !== null ? true : false,
       crackFacadeBackSize: this.sample.crackFacadeBackSize,
-      // crackFacadeLeftSizeCheck: this.sample.crackFacadeLeftSize !== null || this.sample.crackFacadeLeftRestored !== null || this.sample.crackFacadeLeftType !== null ? true : false,
       crackFacadeLeftSize: this.sample.crackFacadeLeftSize,
-      // crackFacadeRightSizeCheck: this.sample.crackFacadeRightSize !== null || this.sample.crackFacadeRightRestored !== null || this.sample.crackFacadeRightType !== null ? true : false,
       crackFacadeRightSize: this.sample.crackFacadeRightSize,
       crackIndoorType: this.sample.crackIndoorType,
       crackFacadeFrontType: this.sample.crackFacadeFrontType,
@@ -505,36 +500,6 @@ export default {
       }
 
       let data = this.allFieldValues();
-
-      // if (data.crackIndoorSizeCheck == false) {
-      //   data.crackIndoorRestored = null;
-      //   data.crackIndoorType = null;
-      //   data.crackIndoorSize = null;
-      // }
-
-      // if (data.crackFacadeFrontSizeCheck == false) {
-      //   data.crackFacadeFrontRestored = null;
-      //   data.crackFacadeFrontType = null;
-      //   data.crackFacadeFrontSize = null;
-      // }
-
-      // if (data.crackFacadeBackSizeCheck == false) {
-      //   data.crackFacadeBackRestored = null;
-      //   data.crackFacadeBackType = null;
-      //   data.crackFacadeBackSize = null;
-      // }
-
-      // if (data.crackFacadeLeftSizeCheck == false) {
-      //   data.crackFacadeLeftRestored = null;
-      //   data.crackFacadeLeftType = null;
-      //   data.crackFacadeLeftSize = null;
-      // }
-
-      // if (data.crackFacadeRightSizeCheck == false) {
-      //   data.crackFacadeRightRestored = null;
-      //   data.crackFacadeRightType = null;
-      //   data.crackFacadeRightSize = null;
-      // }
 
       if (this.sample.id) {
         data.id = this.sample.id;
