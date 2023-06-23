@@ -462,7 +462,7 @@ export default {
                 value: this.sample.deformedFacade,
               },
               {
-                label: "Lintvoegmeting beoodeling",
+                label: "Lintvoegmeting beoordeling",
                 value: this.sample.getSkewedParallelFacade(),
               },
               {
@@ -484,7 +484,7 @@ export default {
                 value: this.sample.skewedFacade,
               },
               {
-                label: "Loodmeting beoodeling",
+                label: "Loodmeting beoordeling",
                 value: this.sample.getSkewedPerpendicularFacade(),
               },
               {
