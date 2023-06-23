@@ -279,20 +279,23 @@ export default {
             ],
             [
               {
-                label: "Hoeveel scheuren",
-                value: 1,
-                classes: "spacing",
+                label: "Hersteld",
+                value: this.sample.crackIndoorRestored,
               },
               {
-                label: "Scheur 1",
-                value: this.sample.crackIndoorSize,
+                label: "Type",
+                value: this.sample.getCrackIndoorType(),
               },
             ],
             [
+              // {
+              //   label: "Hoeveel scheuren",
+              //   value: 1,
+              //   classes: "spacing",
+              // },
               {
-                label: "Hersteld",
-                value: this.sample.crackIndoorRestored,
-                classes: "spacing",
+                label: "Scheur (mm)",
+                value: this.sample.crackIndoorSize,
               },
             ],
           ],
@@ -314,20 +317,23 @@ export default {
             ],
             [
               {
-                label: "Hoeveel scheuren",
-                value: 1,
-                classes: "spacing",
+                label: "Hersteld",
+                value: this.sample.crackFacadeFrontRestored,
               },
               {
-                label: "Scheur 1",
-                value: this.sample.crackFacadeFrontSize,
+                label: "Type",
+                value: this.sample.getCrackFacadeFrontType(),
               },
             ],
             [
+              // {
+              //   label: "Hoeveel scheuren",
+              //   value: 1,
+              //   classes: "spacing",
+              // },
               {
-                label: "Hersteld",
-                value: this.sample.crackFacadeFrontRestored,
-                classes: "spacing",
+                label: "Scheur (mm)",
+                value: this.sample.crackFacadeFrontSize,
               },
             ],
           ],
@@ -349,20 +355,23 @@ export default {
             ],
             [
               {
-                label: "Hoeveel scheuren",
-                value: 1,
-                classes: "spacing",
+                label: "Hersteld",
+                value: this.sample.crackFacadeBackRestored,
               },
               {
-                label: "Scheur 1",
-                value: this.sample.crackFacadeBackSize,
+                label: "Type",
+                value: this.sample.getCrackFacadeBackType(),
               },
             ],
             [
+              // {
+              //   label: "Hoeveel scheuren",
+              //   value: 1,
+              //   classes: "spacing",
+              // },
               {
-                label: "Hersteld",
-                value: this.sample.crackFacadeBackRestored,
-                classes: "spacing",
+                label: "Scheur (mm)",
+                value: this.sample.crackFacadeBackSize,
               },
             ],
           ],
@@ -384,20 +393,23 @@ export default {
             ],
             [
               {
-                label: "Hoeveel scheuren",
-                value: 1,
-                classes: "spacing",
+                label: "Hersteld",
+                value: this.sample.crackFacadeLeftRestored,
               },
               {
-                label: "Scheur 1",
-                value: this.sample.crackFacadeLeftSize,
+                label: "Type",
+                value: this.sample.getCrackFacadeLeftType(),
               },
             ],
             [
+              // {
+              //   label: "Hoeveel scheuren",
+              //   value: 1,
+              //   classes: "spacing",
+              // },
               {
-                label: "Hersteld",
-                value: this.sample.crackFacadeLeftRestored,
-                classes: "spacing",
+                label: "Scheur (mm)",
+                value: this.sample.crackFacadeLeftSize,
               },
             ],
           ],
@@ -419,20 +431,23 @@ export default {
             ],
             [
               {
-                label: "Hoeveel scheuren",
-                value: 1,
-                classes: "spacing",
+                label: "Hersteld",
+                value: this.sample.crackFacadeRightRestored,
               },
               {
-                label: "Scheur 1",
-                value: this.sample.crackFacadeRightSize,
+                label: "Type",
+                value: this.sample.getCrackFacadeRightType(),
               },
             ],
             [
+              // {
+              //   label: "Hoeveel scheuren",
+              //   value: 1,
+              //   classes: "spacing",
+              // },
               {
-                label: "Hersteld",
-                value: this.sample.crackFacadeRightRestored,
-                classes: "spacing",
+                label: "Scheur (mm)",
+                value: this.sample.crackFacadeRightSize,
               },
             ],
           ],
@@ -447,8 +462,12 @@ export default {
                 value: this.sample.deformedFacade,
               },
               {
-                label: "Scheefstand van voor naar achter",
-                value: this.sample.skewedPerpendicular,
+                label: "Lintvoegmeting beoodeling",
+                value: this.sample.getSkewedParallelFacade(),
+              },
+              {
+                label: "Lintvoegmeting",
+                value: this.sample.skewedParallel,
               },
               {
                 label: "Drempel voorgevel niveau",
@@ -465,8 +484,12 @@ export default {
                 value: this.sample.skewedFacade,
               },
               {
-                label: "Scheefstand van links naar rechts",
-                value: this.sample.skewedParallel,
+                label: "Loodmeting beoodeling",
+                value: this.sample.getSkewedPerpendicularFacade(),
+              },
+              {
+                label: "Loodmeting",
+                value: this.sample.skewedPerpendicular,
               },
               {
                 label: "Drempel achtergevel niveau",

@@ -12,6 +12,8 @@ import {
   qualityOptions,
   foundationBarOptions,
   foundationGroupImages,
+  rotationOptions,
+  crackTypeOptions
 } from "config/enums";
 
 /**
@@ -141,5 +143,26 @@ export default class SampleModel {
   }
   getAccess() {
     return accessOptions[this.policy] || null;
+  }
+  getCrackIndoorType() {
+    return crackTypeOptions[this.crackIndoorType] || null;
+  }
+  getCrackFacadeFrontType() {
+    return crackTypeOptions[this.crackFacadeFrontType] || null;
+  }
+  getCrackFacadeBackType() {
+    return crackTypeOptions[this.crackFacadeBackType] || null;
+  }
+  getCrackFacadeLeftType() {
+    return crackTypeOptions[this.crackFacadeLeftType] || null;
+  }
+  getCrackFacadeRightType() {
+    return crackTypeOptions[this.crackFacadeRightType] || null;
+  }
+  getSkewedPerpendicularFacade() {
+    return rotationOptions[this.skewedPerpendicularFacade] || null;
+  }
+  getSkewedParallelFacade() {
+    return rotationOptions[this.skewedParallelFacade] || null;
   }
 }
