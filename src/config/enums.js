@@ -345,6 +345,24 @@ export const sizeOptions = [
   },
 ];
 
+export const woodEncroachementOptions = [
+  {
+    //value: fungus_infection
+    value: 0,
+    text: "Schimmelaantasting",
+  },
+  {
+    //value: bio_fungus_infection
+    value: 1,
+    text: "Bacteriele-,schimmelaantasting",
+  },
+  {
+    //value: bio_infection
+    value: 2,
+    text: "Bacteriele aantasting",
+  },
+]
+
 export const foundationBarOptions = [
   {
     value: "wood",

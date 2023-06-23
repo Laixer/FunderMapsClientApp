@@ -137,7 +137,7 @@ import {
   maxValue,
 } from "vuelidate/lib/validators";
 
-import { woodTypeOptions, qualityOptions, sizeOptions } from "config/enums";
+import { woodTypeOptions, qualityOptions, sizeOptions, woodEncroachementOptions } from "config/enums";
 import { mapGetters, mapActions } from "vuex";
 
 import Form from "molecule/form/Form";
@@ -276,7 +276,7 @@ export default {
               value: null,
               text: "Selecteer een optie",
             },
-          ].concat(sizeOptions),
+          ].concat(woodEncroachementOptions),
           validationRules: {},
         },
         woodQuality: {
@@ -342,7 +342,7 @@ export default {
     });
 
     var woodEncroachement = this.optionValue({
-      options: sizeOptions,
+      options: woodEncroachementOptions,
       name: "woodEncroachement",
     });
 

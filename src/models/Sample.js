@@ -13,7 +13,8 @@ import {
   foundationBarOptions,
   foundationGroupImages,
   rotationOptions,
-  crackTypeOptions
+  crackTypeOptions,
+  woodEncroachementOptions,
 } from "config/enums";
 
 /**
@@ -126,7 +127,7 @@ export default class SampleModel {
     return sizeOptions[this.woodCapacityHorizontalQuality] || null;
   }
   getWoodEncroachement() {
-    return sizeOptions[this.woodEncroachement] || null;
+    return woodEncroachementOptions[this.woodEncroachement] || null;
   }
   // Note: returns an object {text, value}
   getEnforcementTerm() {
