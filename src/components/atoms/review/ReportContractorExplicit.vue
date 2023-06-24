@@ -1,33 +1,21 @@
 <template>
-  <div
-    v-if="hasOrganization"
-    class="ReportOrgRole d-flex align-items-center mt-4"
-  >
-    <img
-      :src="organization.getAvatar()"
-      width="32"
-      height="32"
-      class="rounded-circle"
-    />
+  <div v-if="hasOrganization" class="ReportOrgRole d-flex align-items-center">
+    <img :src="organization.getAvatar()" width="32" height="32" class="rounded-circle" />
     <div class="ml-3">
       <div class="ReportOrgRole__name">{{ organization.name }}</div>
-      <div class="ReportOrgRole__role">{{ organizationRole }}</div>
+      <div class="ReportOrgRole__role">Uitvoerder</div>
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters } from "vuex";
 
 export default {
   props: {
     organizationId: {
       type: Number,
       required: true,
-    },
-    organizationRoleOverride: {
-      type: String,
-      required: false,
     },
   },
   computed: {
@@ -56,6 +44,7 @@ export default {
     font-size: 16px;
     line-height: 1;
   }
+
   &__role {
     color: #7f8fa4;
     line-height: 1;
