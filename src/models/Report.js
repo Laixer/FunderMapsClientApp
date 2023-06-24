@@ -2,7 +2,6 @@
 import AttributedUser from 'model/AttributedUser'
 
 import { typeOptions, statusOptions, accessOptions } from 'config/enums'
-import AttributedOrganisation from './AttributedOrganisation'
 
 /**
  * The Report model
@@ -26,7 +25,10 @@ class ReportModel {
     owner,
     accessPolicy,
     createDate,
-    updateDate
+    updateDate,
+    attribution,
+    access,
+    state
   }) {
     if (!id) {
       throw "Missing identifier";
@@ -50,52 +52,40 @@ class ReportModel {
     this.standardF3o = standardF3o;
 
     // Attribution
-    this.reviewerId = reviewer;
-    this.contractorId = contractor;
-    this.creatorId = creator;
-    this.ownerId = owner;
+    if (attribution) {
+      this.reviewerId = attribution.reviewer;
+      this.contractorId = attribution.contractor;
+      this.creatorId = attribution.creator;
+      this.ownerId = attribution.owner;
+    } else {
+      this.reviewerId = reviewer;
+      this.contractorId = contractor;
+      this.creatorId = creator;
+      this.ownerId = owner;
+    }
 
-    this.accessPolicy = accessOptions[accessPolicy] ? accessOptions[accessPolicy] : 'Invalid';
     this.createDate = new Date(createDate);
     this.updateDate = updateDate ? new Date(updateDate) : null;
 
+    if (accessPolicy) {
+      this.accessPolicy = accessOptions[accessPolicy] ? accessOptions[accessPolicy] : 'Invalid';
+    } else if (access) {
+      this.accessPolicy = accessOptions[access.accessPolicy] ? accessOptions[access.accessPolicy] : 'Invalid';
+    }
 
     // Samples are set / added / removed 
     this.samples = [];
 
     // Status of process
-    this.setStatus({ auditStatus });
-
-    // TODO There is no attribution returned by the new API
-    // Attribution 
-    // let user = attribution && attribution.creator ? attribution.creator : null;
-    // if (typeof user === 'string') {
-    //   user = {
-    //     id: user
-    //   };
-    // }
-    // this.creator = user
-    //   ? new AttributedUser({ user, role: 'Verwerker' })
-    //   : null;
-    // user = attribution && attribution.reviewer ? attribution.reviewer : null;
-    // if (typeof user === 'string') {
-    //   user = {
-    //     id: user
-    //   };
-    // }
+    if (auditStatus) {
+      this.setStatus({ auditStatus });
+    } else if (state) {
+      let auditStatus = state.auditStatus;
+      this.setStatus({ auditStatus });
+    }
 
     // TODO Made user null, this might break stuff
     this.reviewer = new AttributedUser({ undefined, role: 'Reviewer' });
-
-    // let orgContractor = attribution && attribution.contractor ? attribution.contractor : null;
-    // if (typeof orgContractor === 'string') {
-    //   this.contractor = new AttributedOrganisation(orgContractor, 'Uitvoerder');
-    // }
-
-    // let orgOwner = attribution && attribution.owner ? attribution.owner : null;
-    // if (typeof orgOwner === 'string') {
-    //   this.owner = new AttributedOrganisation(orgOwner, 'Eigenaar');
-    // }
   }
   /**
    * Document ID / Label
