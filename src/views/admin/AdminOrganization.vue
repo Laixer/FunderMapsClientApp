@@ -24,15 +24,15 @@
             :editMode="editMode"
             v-model="organization.email"
           />
-          <ProfileSetting
+          <!-- <ProfileSetting
             label="Telefoonnummer"
             type="tel"
             :editMode="editMode"
             v-model="organization.phoneNumber"
-          />
+          /> -->
         </div>
 
-        <div class="panel px-4 py-3 mb-2">
+        <!-- <div class="panel px-4 py-3 mb-2">
           <h2 class="font-weight-bold mt-1 mb-4">Bezoek adres</h2>
           <ProfileSetting
             label="Straat"
@@ -61,7 +61,7 @@
             :editMode="editMode"
             v-model="organization.homeZipcode"
           />
-        </div>
+        </div> -->
 
         <b-button
           type="submit"
