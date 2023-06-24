@@ -55,7 +55,6 @@
 import {
   required,
   numeric,
-  decimal,
   maxLength,
   minValue,
   maxValue,

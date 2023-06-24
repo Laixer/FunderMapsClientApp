@@ -69,9 +69,6 @@ const getDownloadLink = ({ id }) => {
 // Input options
 
 const getReviewers = () => {
-  // TODO Endpoint doesn't exist.
-  console.log('Calling getReviewers(), endpoint doesnt exist');
-
   return axios.get('/api/inquiry/reviewers')
 }
 

@@ -90,17 +90,10 @@
 </template>
 
 <script>
-import {
-  required,
-  numeric,
-  decimal,
-  maxLength,
-  minValue,
-  maxValue,
-} from "vuelidate/lib/validators";
+import { decimal } from "vuelidate/lib/validators";
 
 import { rotationOptions } from "config/enums";
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters } from "vuex";
 
 import Form from "molecule/form/Form";
 import FormField from "molecule/form/FormField";

@@ -91,8 +91,6 @@ import ProgressSteps from "molecule/ProgressSteps";
 import ProgressStep from "model/ProgressStep";
 import Divider from "atom/Divider";
 import Feedback from "atom/Feedback";
-import ReportStepHeader from "atom/ReportStepHeader";
-import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
 import NavigationBar from "molecule/NavigationBar";
 
 import { required, maxLength } from "vuelidate/lib/validators";
@@ -110,8 +108,6 @@ export default {
     ProgressSteps,
     Divider,
     NavigationBar,
-    // PrimaryArrowButton,
-    // ReportStepHeader,
   },
   mixins: [fields],
   data() {

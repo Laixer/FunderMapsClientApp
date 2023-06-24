@@ -339,12 +339,6 @@ export default {
       if (this.novalidate) {
         return null;
       }
-      // console.log(this.label + " = " + this.fieldValue);
-      // console.log(this.$v);
-      // console.log(
-      //   this.$v.fieldValue.$dirty ? !this.$v.fieldValue.$error : null
-      // );
-
       return this.$v.fieldValue.$dirty ? !this.$v.fieldValue.$error : null;
     },
     isDisabled() {

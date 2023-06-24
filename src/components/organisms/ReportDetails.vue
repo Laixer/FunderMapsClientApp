@@ -32,7 +32,7 @@
     </div>
     <Divider v-if="showUsers" />
 
-    <div class="container Report__users">
+    <div class="container Report__users mb-4">
       <div class="row">
         <div class="col-6">
           <table class="report-table">
@@ -83,7 +83,6 @@
 <script>
 import ReportDate from "atom/review/ReportDate";
 import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
-import ReportOrgRoleExplicit from "atom/review/ReportOrgRoleExplicit";
 import ReportContractorExplicit from "atom/review/ReportContractorExplicit";
 import Note from "atom/review/Note";
 import TypeTag from "atom/TypeTag";
@@ -96,7 +95,6 @@ export default {
     TypeTag,
     Divider,
     ReportUserRoleExplicit,
-    // ReportOrgRoleExplicit,
     ReportContractorExplicit,
     ReportDate,
     Note,

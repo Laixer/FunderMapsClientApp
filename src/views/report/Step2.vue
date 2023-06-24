@@ -74,7 +74,6 @@ import NavigationBar from "molecule/NavigationBar";
 import { mapActions, mapGetters } from "vuex";
 import { icon } from "helper/assets";
 import { isSuperUser, canWrite } from "service/auth";
-import { EventBus } from "utils/eventBus.js";
 
 export default {
   name: "Step2",
@@ -159,8 +158,6 @@ export default {
     },
   },
   beforeRouteLeave(to, from, next) {
-    console.log(this.selectedSample);
-
     if (this.selectedSample && this.selectedSample.stored == false) {
       if (
         confirm(

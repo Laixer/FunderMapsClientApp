@@ -81,7 +81,6 @@ import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
 import ReportOrgRoleExplicit from "atom/review/ReportOrgRoleExplicit";
 import ReportContractorExplicit from "atom/review/ReportContractorExplicit";
 import Feedback from "atom/Feedback";
-import Sample from "organism/Sample";
 import SampleDetails from "organism/SampleDetails";
 
 import { icon } from "helper/assets";
