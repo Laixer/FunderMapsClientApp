@@ -45,7 +45,7 @@
           :organizationId="activeReport.ownerId"
           organizationRoleOverride="Eigenaar"
         />
-        <ReportOrgRoleExplicit
+        <ReportContractorExplicit
           :organizationId="activeReport.contractorId"
           organizationRoleOverride="Uitvoerder"
         />
@@ -79,6 +79,7 @@ import { mapGetters, mapActions } from "vuex";
 import ReportDetails from "organism/ReportDetails";
 import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
 import ReportOrgRoleExplicit from "atom/review/ReportOrgRoleExplicit";
+import ReportContractorExplicit from "atom/review/ReportContractorExplicit";
 import Feedback from "atom/Feedback";
 import Sample from "organism/Sample";
 import SampleDetails from "organism/SampleDetails";
@@ -92,6 +93,7 @@ export default {
     ReportUserRoleExplicit,
     ReportDetails,
     ReportOrgRoleExplicit,
+    ReportContractorExplicit,
     SampleDetails,
     Feedback,
   },

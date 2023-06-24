@@ -25,7 +25,7 @@
     </div>
     <Divider v-if="showUsers" />
     <div v-if="showUsers" class="Report__users d-flex">
-      <ReportOrgRoleExplicit
+      <ReportContractorExplicit
         :organizationId="activeReport.contractorId"
         organizationRoleOverride="Uitvoerder"
       />
@@ -84,6 +84,7 @@
 import ReportDate from "atom/review/ReportDate";
 import ReportUserRoleExplicit from "atom/review/ReportUserRoleExplicit";
 import ReportOrgRoleExplicit from "atom/review/ReportOrgRoleExplicit";
+import ReportContractorExplicit from "atom/review/ReportContractorExplicit";
 import Note from "atom/review/Note";
 import TypeTag from "atom/TypeTag";
 import Divider from "atom/Divider";
@@ -95,7 +96,8 @@ export default {
     TypeTag,
     Divider,
     ReportUserRoleExplicit,
-    ReportOrgRoleExplicit,
+    // ReportOrgRoleExplicit,
+    ReportContractorExplicit,
     ReportDate,
     Note,
   },
