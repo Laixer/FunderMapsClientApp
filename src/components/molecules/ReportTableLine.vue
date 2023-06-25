@@ -12,7 +12,7 @@
     <td>
       <strong>{{ report.label() }}</strong>
     </td>
-    <td>4 adressen</td>
+    <td></td>
     <td>{{ ownerUserObject ? ownerUserObject.getUserName() : "-" }}</td>
     <td>{{ reviewerUserObject ? reviewerUserObject.getUserName() : "-" }}</td>
     <td>{{ report.date() }}</td>

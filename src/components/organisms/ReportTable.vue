@@ -17,7 +17,7 @@
         <tr class="d-flex p-2">
           <th scope="col" class="text-center">Status</th>
           <th scope="col">Document</th>
-          <th scope="col">Aantal adressen</th>
+          <th scope="col"></th>
           <th scope="col">Verwerker</th>
           <th scope="col">Reviewer</th>
           <th scope="col">Rapportdatum</th>
