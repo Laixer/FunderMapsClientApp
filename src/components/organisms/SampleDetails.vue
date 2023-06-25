@@ -265,7 +265,7 @@ export default {
         {
           title: "Scheuren",
           col: 3,
-          show: this.sample.crackIndoorSize ? true : false,
+          show: this.sample.crackIndoorRestored !== null || this.sample.getCrackIndoorType() !==null || this.sample.crackIndoorSize !== null,
           columns: [
             [
               {
@@ -303,7 +303,7 @@ export default {
         {
           title: null,
           col: 3,
-          show: this.sample.crackFacadeFrontSize ? true : false,
+          show: this.sample.crackFacadeFrontRestored !== null || this.sample.getCrackFacadeFrontType() !== null || this.sample.crackFacadeFrontSize !== null,
           columns: [
             [
               {
@@ -341,7 +341,7 @@ export default {
         {
           title: null,
           col: 3,
-          show: this.sample.crackFacadeBackSize ? true : false,
+          show: this.sample.crackFacadeBackRestored !== null || this.sample.getCrackFacadeBackType() !== null || this.sample.crackFacadeBackSize !== null,
           columns: [
             [
               {
@@ -379,7 +379,7 @@ export default {
         {
           title: null,
           col: 3,
-          show: this.sample.crackFacadeLeftSize ? true : false,
+          show: this.sample.crackFacadeLeftRestored !== null || this.sample.getCrackFacadeLeftType() !== null || this.sample.crackFacadeLeftSize !== null,
           columns: [
             [
               {
@@ -417,7 +417,7 @@ export default {
         {
           title: null,
           col: 3,
-          show: this.sample.crackFacadeRightSize ? true : false,
+          show: this.sample.crackFacadeRightRestored !== null || this.sample.getCrackFacadeRightType() !== null || this.sample.crackFacadeRightSize !== null,
           columns: [
             [
               {

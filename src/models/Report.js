@@ -28,7 +28,8 @@ class ReportModel {
     updateDate,
     attribution,
     access,
-    state
+    state,
+    record
   }) {
     if (!id) {
       throw "Missing identifier";
@@ -66,6 +67,11 @@ class ReportModel {
 
     this.createDate = new Date(createDate);
     this.updateDate = updateDate ? new Date(updateDate) : null;
+
+    if (record) {
+      this.createDate = new Date(record.createDate);
+      this.updateDate = record.updateDate ? new Date(record.updateDate) : null;
+    }
 
     if (accessPolicy) {
       this.accessPolicy = accessOptions[accessPolicy] ? accessOptions[accessPolicy] : 'Invalid';
