@@ -104,7 +104,7 @@ export default class SampleModel {
     return substructureOptions[this.substructure] || null;
   }
   getFoundationDamageCause() {
-    return foundationDamageCauseOptions[this.damageCause] || null;
+    return foundationDamageCauseOptions.find(item => item.value === this.damageCause) || null;
   }
   getcarryingCapacityQuality() {
     return qualityOptions[this.carryingCapacityQuality] || null;

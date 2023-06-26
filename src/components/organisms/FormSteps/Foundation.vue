@@ -327,7 +327,8 @@ export default {
     },
     optionValue({ options, name }) {
       let key = this.sample[name];
-      return options[key] ? options[key].value : null;
+      const foundItem = options.find(item => item.value === key);
+      return foundItem ? foundItem.value : null;
     },
 
     async handleSubmit() {

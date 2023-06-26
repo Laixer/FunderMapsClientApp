@@ -503,11 +503,6 @@ export const foundationDamageCauseOptions = [
     value: 6,
     text: "Bacteriele aantasting",
   },
-  // {
-  //   //value: 'Unknown',
-  //   value: 7,
-  //   text: 'Niet vermeld'
-  // },
   {
     //value: 'FungusInfection',
     value: 8,
