@@ -243,7 +243,7 @@ export default {
                 label: "Niveau onderkant funderingsbalk",
                 value: this.sample.woodLevel
                   ? this.sample.woodLevel
-                  : this.sample.constructionPile,
+                  : this.sample.constructionLevel,
               },
             ],
             [
@@ -254,10 +254,6 @@ export default {
               {
                 label: "Kwaliteit funderingsbalk",
                 value: this.sample.getConstructionQuality(),
-              },
-              {
-                label: "Niveau bovenkant funderingsbalk",
-                value: this.sample.constructionLevel,
               },
             ],
           ],
