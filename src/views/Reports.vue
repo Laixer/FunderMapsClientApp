@@ -1,17 +1,8 @@
 <template>
   <div>
-    <ReportTable
-      title="Alle rapporten"
-      :reports="reports"
-      class="mt-4 pt-2 mb-5"
-    />
-    <b-pagination-nav
-      v-if="pageCount > 1"
-      v-model="page"
-      :number-of-pages="pageCount"
-      :link-gen="pageLink"
-      align="center"
-    />
+    <ReportTable title="Alle rapporten" :reports="reports" class="mt-4 pt-2 mb-5" />
+    <b-pagination-nav v-if="pageCount > 1" v-model="page" :number-of-pages="pageCount" :link-gen="pageLink"
+      align="center" />
   </div>
 </template>
 
@@ -58,11 +49,24 @@ export default {
         }),
         this.getReportCount(),
       ]);
+      this.timer = setInterval(
+        async () => {
+          await Promise.all([
+            this.getReports({
+              page: this.page,
+              limit: this.reportsPerPage,
+            }),
+            this.getReportCount(),
+          ]);
+        }, 2 * 60 * 1000);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         this.$router.push({ name: "login" });
       }
     }
+  },
+  destroyed() {
+    clearInterval(this.timer);
   },
   methods: {
     ...mapActions("reports", ["getReports", "getReportCount"]),

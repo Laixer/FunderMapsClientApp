@@ -3,16 +3,8 @@
     <div v-if="areReviewersAvailable">
       <UploadArea />
     </div>
-    <ReportTable
-      title="Recente rapporten"
-      :reports="latestReports({ limit: 5 })"
-      class="mt-4 pt-2 mb-5"
-    />
-    <PrimaryArrowButton
-      class="mx-auto"
-      label="Alle rapporten"
-      :to="{ name: 'reports' }"
-    />
+    <ReportTable title="Recente rapporten" :reports="latestReports({ limit: 5 })" class="mt-4 pt-2 mb-5" />
+    <PrimaryArrowButton class="mx-auto" label="Alle rapporten" :to="{ name: 'reports' }" />
   </div>
 </template>
 
@@ -22,8 +14,6 @@ import ReportTable from "organism/ReportTable";
 import UploadArea from "molecule/UploadArea";
 
 import { mapGetters, mapActions } from "vuex";
-
-let timer = null;
 
 export default {
   name: "Dashboard",
@@ -46,6 +36,13 @@ export default {
         this.getReviewers(),
         this.getOrganization(),
       ]);
+      this.timer = setInterval(
+        async () => {
+          await this.getReports({
+            page: 1,
+            limit: 25,
+          });
+        }, 2 * 60 * 1000);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         await this.$router.push({ name: "login" });
@@ -53,7 +50,7 @@ export default {
     }
   },
   destroyed() {
-    clearTimeout(timer);
+    clearInterval(this.timer);
   },
   methods: {
     ...mapActions("reports", ["getReports"]),
