@@ -63,7 +63,12 @@
 </template>
 
 <script>
-import { decimal } from "vuelidate/lib/validators";
+import {
+  decimal,
+  maxLength,
+  minValue,
+  maxValue,
+} from "vuelidate/lib/validators";
 
 import { qualityOptions } from "config/enums";
 import { mapGetters } from "vuex";
@@ -123,6 +128,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         foundationBar: {
@@ -159,6 +166,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         constructionLevel: {
@@ -167,6 +176,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
       },

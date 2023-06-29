@@ -90,7 +90,14 @@
 </template>
 
 <script>
-import { decimal } from "vuelidate/lib/validators";
+import {
+  required,
+  numeric,
+  decimal,
+  maxLength,
+  minValue,
+  maxValue,
+} from "vuelidate/lib/validators";
 
 import { rotationOptions } from "config/enums";
 import { mapGetters } from "vuex";
@@ -179,6 +186,8 @@ export default {
           info: "1:XXX (positief helt naar voren, negatief helt naar achteren)",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         skewedParallel: {
@@ -188,6 +197,8 @@ export default {
           info: "1:XXX (positief verloopt naar links, negatief verloopt naar rechts)",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         thresholdFrontLevel: {
@@ -197,6 +208,8 @@ export default {
           info: "m t.o.v. NAP",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         thresholdBackLevel: {
@@ -206,6 +219,8 @@ export default {
           info: "m t.o.v. NAP",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         skewedWindowFrame: {

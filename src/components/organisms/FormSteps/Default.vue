@@ -154,7 +154,7 @@ export default {
           value: "",
           validationRules: {
             numeric,
-            minValue: minValue(1000),
+            minValue: minValue(901),
             maxValue: maxValue(2100),
           },
         },

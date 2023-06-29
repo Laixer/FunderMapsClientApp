@@ -183,6 +183,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         pileTipLevel: {
@@ -191,6 +193,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         pileDiameterTop: {
@@ -199,6 +203,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         pileDiameterBottom: {
@@ -207,15 +213,18 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
-
         pileDistanceLength: {
           label: "Hart-op-hart afstand",
           type: "number",
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         concreteChargerLength: {
@@ -224,6 +233,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         woodType: {
@@ -260,11 +271,13 @@ export default {
         },
         woodPenetrationDepth: {
           label: "Inslagdiepte",
-          type: "text",
+          type: "number",
           info: "mm",
           value: "",
           validationRules: {
-            maxLength: maxLength(32),
+            decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         woodEncroachement: {

@@ -60,6 +60,7 @@
 import {
   decimal,
   maxLength,
+  minValue,
   maxValue,
 } from "vuelidate/lib/validators";
 
@@ -116,6 +117,8 @@ export default {
           value: "",
           validationRules: {
             decimal,
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
         monitoringWell: {
@@ -132,17 +135,18 @@ export default {
           value: "",
           validationRules: {
             decimal,
-            maxValue: maxValue(999),
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
-
         groundwaterLevelNet: {
           label: "Grondwaterniveau bij ontgraving",
           type: "number",
           value: "",
           validationRules: {
             decimal,
-            maxValue: maxValue(999),
+            minValue: minValue(0),
+            maxValue: maxValue(999.99),
           },
         },
       },
