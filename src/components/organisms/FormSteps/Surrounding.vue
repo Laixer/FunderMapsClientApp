@@ -115,6 +115,7 @@ export default {
           label: "Maaiveldhoogte",
           type: "number",
           value: "",
+          info: "m t.o.v. NAP",
           validationRules: {
             decimal,
             minValue: minValue(0),
@@ -133,6 +134,7 @@ export default {
           label: "Grondwaterniveau",
           type: "number",
           value: "",
+          info: "m t.o.v. NAP",
           validationRules: {
             decimal,
             minValue: minValue(0),
@@ -143,6 +145,7 @@ export default {
           label: "Grondwaterniveau bij ontgraving",
           type: "number",
           value: "",
+          info: "m t.o.v. NAP",
           validationRules: {
             decimal,
             minValue: minValue(0),

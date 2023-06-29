@@ -126,6 +126,7 @@ export default {
           label: "Niveau onderkant metselwerk",
           type: "number",
           value: "",
+          info: "m t.o.v. NAP",
           validationRules: {
             decimal,
             minValue: minValue(0),
@@ -164,6 +165,7 @@ export default {
           label: "Niveau onderkant funderingsbalk",
           type: "number",
           value: "",
+          info: "m t.o.v. NAP",
           validationRules: {
             decimal,
             minValue: minValue(0),

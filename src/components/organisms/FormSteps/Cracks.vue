@@ -205,6 +205,15 @@
 </template>
 
 <script>
+import {
+  required,
+  numeric,
+  decimal,
+  maxLength,
+  minValue,
+  maxValue,
+} from "vuelidate/lib/validators";
+
 import { crackTypeOptions } from "config/enums";
 import { mapGetters } from "vuex";
 
@@ -283,6 +292,11 @@ export default {
           type: "number",
           value: null,
           info: "mm",
+          validationRules: {
+            numeric,
+            minValue: minValue(0),
+            maxValue: maxValue(999),
+          },
         },
         crackFacadeFrontSizeCheck: {
           label: "Voorgevel scheur",
@@ -322,6 +336,11 @@ export default {
           type: "number",
           value: null,
           info: "mm",
+          validationRules: {
+            numeric,
+            minValue: minValue(0),
+            maxValue: maxValue(999),
+          },
         },
         crackFacadeBackSizeCheck: {
           label: "Achtergevel scheur",
@@ -361,6 +380,11 @@ export default {
           type: "number",
           value: null,
           info: "mm",
+          validationRules: {
+            numeric,
+            minValue: minValue(0),
+            maxValue: maxValue(999),
+          },
         },
         crackFacadeLeftSizeCheck: {
           label: "Linkergevel scheur",
@@ -400,8 +424,12 @@ export default {
           type: "number",
           value: null,
           info: "mm",
+          validationRules: {
+            numeric,
+            minValue: minValue(0),
+            maxValue: maxValue(999),
+          },
         },
-
         crackFacadeRightSizeCheck: {
           label: "Rechtergevel scheur",
           type: "checkbox",
@@ -440,6 +468,11 @@ export default {
           type: "number",
           value: null,
           info: "mm",
+          validationRules: {
+            numeric,
+            minValue: minValue(0),
+            maxValue: maxValue(999),
+          },
         },
       },
     };

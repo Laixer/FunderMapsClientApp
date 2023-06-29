@@ -201,6 +201,7 @@ export default {
           label: "Paalkop diameter",
           type: "number",
           value: "",
+          info: "mm",
           validationRules: {
             decimal,
             minValue: minValue(0),
@@ -211,6 +212,7 @@ export default {
           label: "Paalpunt diameter",
           type: "number",
           value: "",
+          info: "mm",
           validationRules: {
             decimal,
             minValue: minValue(0),
@@ -221,6 +223,7 @@ export default {
           label: "Hart-op-hart afstand",
           type: "number",
           value: "",
+          info: "m",
           validationRules: {
             decimal,
             minValue: minValue(0),
@@ -231,6 +234,7 @@ export default {
           label: "Oplanger lengte",
           type: "number",
           value: "",
+          info: "m",
           validationRules: {
             decimal,
             minValue: minValue(0),
@@ -272,8 +276,8 @@ export default {
         woodPenetrationDepth: {
           label: "Inslagdiepte",
           type: "number",
-          info: "mm",
           value: "",
+          info: "mm",
           validationRules: {
             decimal,
             minValue: minValue(0),
