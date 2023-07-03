@@ -208,7 +208,7 @@ export default {
           info: "m t.o.v. NAP",
           validationRules: {
             decimal,
-            minValue: minValue(0),
+            minValue: minValue(-999.99),
             maxValue: maxValue(999.99),
           },
         },
@@ -219,7 +219,7 @@ export default {
           info: "m t.o.v. NAP",
           validationRules: {
             decimal,
-            minValue: minValue(0),
+            minValue: minValue(-999.99),
             maxValue: maxValue(999.99),
           },
         },

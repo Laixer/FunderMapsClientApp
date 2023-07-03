@@ -183,7 +183,7 @@ export default {
           value: "",
           validationRules: {
             decimal,
-            minValue: minValue(0),
+            minValue: minValue(-999.99),
             maxValue: maxValue(999.99),
           },
         },
@@ -193,7 +193,7 @@ export default {
           value: "",
           validationRules: {
             decimal,
-            minValue: minValue(0),
+            minValue: minValue(-999.99),
             maxValue: maxValue(999.99),
           },
         },
