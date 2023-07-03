@@ -134,7 +134,7 @@ export default {
           },
         },
         foundationBar: {
-          label: "Funderingsbalk",
+          label: "Niveau funderingsbalk",
           type: "radio",
           value: null,
           options: [
