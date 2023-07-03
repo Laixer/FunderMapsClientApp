@@ -1,14 +1,8 @@
 <template>
-  <div
-    class="FormStep"
-    :class="{
-      'FormStep--active': active == 1,
-    }"
-  >
-    <router-link
-      :to="{ name: 'edit-report-2', params: { page: 1, step: step } }"
-      class="FormStepDropdown"
-    >
+  <div class="FormStep" :class="{
+    'FormStep--active': active == 1,
+  }">
+    <router-link :to="{ name: 'edit-report-2', params: { page: 1, step: step } }" class="FormStepDropdown">
       <h5 class="FormStep__title">Algemeen</h5>
     </router-link>
 
@@ -16,34 +10,16 @@
       <Form ref="form" @submit="handleSubmit" @error="handleFormError">
         <Feedback :feedback="feedback" />
         <div class="form-row">
-          <FormField
-            v-model="fields.address.value"
-            v-bind="fields.address"
-            :serializer="addressSerializer"
-            class="col-9"
-            @input="getAddresses"
-            @hit="handleHit"
-          />
+          <FormField v-model="fields.address.value" v-bind="fields.address" :serializer="addressSerializer" class="col-9"
+            @input="getAddresses" @hit="handleHit" />
 
-          <FormField
-            v-model="fields.builtYear.value"
-            v-bind="fields.builtYear"
-            class="col-3"
-          />
+          <FormField v-model="fields.builtYear.value" v-bind="fields.builtYear" class="col-3" />
         </div>
 
         <div class="form-row">
-          <FormField
-            v-model="fields.substructure.value"
-            v-bind="fields.substructure"
-            class="col"
-          />
+          <FormField v-model="fields.substructure.value" v-bind="fields.substructure" class="col" />
 
-          <FormField
-            v-model="fields.recoveryAdvised.value"
-            v-bind="fields.recoveryAdvised"
-            class="col"
-          />
+          <FormField v-model="fields.recoveryAdvised.value" v-bind="fields.recoveryAdvised" class="col" />
         </div>
         <span @click="next()" class="btn btn-continue">Verder</span>
       </Form>
@@ -155,7 +131,7 @@ export default {
           validationRules: {
             numeric,
             minValue: minValue(901),
-            maxValue: maxValue(2100),
+            maxValue: maxValue(2099),
           },
         },
         substructure: {
