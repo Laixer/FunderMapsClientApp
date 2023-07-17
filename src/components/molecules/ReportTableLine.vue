@@ -62,10 +62,10 @@ export default {
       // support this functionality.
     },
     reviewerUserObject() {
-      return this.getUserById({ id: this.report.reviewerId });
+      return this.getUserById({ id: this.report.attribution.reviewer });
     },
     ownerUserObject() {
-      return this.getUserById({ id: this.report.creatorId });
+      return this.getUserById({ id: this.report.attribution.creator });
     },
   },
   methods: {

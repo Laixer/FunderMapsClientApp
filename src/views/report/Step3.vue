@@ -50,20 +50,6 @@
             <Feedback :feedback="feedback" />
           </div>
 
-          <!-- <div class="d-flex align-items-center justify-content-center mt-4">
-            <BackButton
-              :disabled="isDisabled"
-              :to="previousStep"
-              class="mr-3"
-              label="Vorige"
-            />
-            <PrimaryArrowButton
-              :disabled="isDisabled"
-              label="Aanbieden ter review"
-              @click="handleToPendingReview"
-            />
-          </div> -->
-
           <NavigationBar :prev="previousStep" :next="null">
             <button @click="handleToPendingReview" class="btn btn-next">
               Aanbieden ter review

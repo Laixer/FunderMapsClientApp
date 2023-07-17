@@ -369,8 +369,8 @@ export default {
       values.documentName === this.activeReport.documentName &&
       values.type === this.activeReport.type &&
       values.documentDate === this.activeReport.documentDate &&
-      values.contractorId === this.activeReport.contractorId &&
-      values.reviewerId === this.activeReport.reviewerId &&
+      values.contractorId === this.activeReport.attribution.contractor &&
+      values.reviewerId === this.activeReport.attribution.reviewer &&
       values.standardF3o === this.activeReport.standardF3o &&
       values.inspection === this.activeReport.inspection &&
       values.jointMeasurement === this.activeReport.jointMeasurement &&
@@ -465,8 +465,8 @@ export default {
         type: report.type,
         documentName: report.documentName,
         documentDate: report.documentDate,
-        contractorId: report.contractorId ? report.contractorId : null,
-        reviewerId: report.reviewerId ? report.reviewerId : null,
+        contractorId: report.attribution.contractor ? report.attribution.contractor : null,
+        reviewerId: report.attribution.reviewer ? report.attribution.reviewer : null,
         standardF3o: report.standardF3o,
         inspection: report.inspection,
         jointMeasurement: report.jointMeasurement,
@@ -526,8 +526,12 @@ export default {
         type: parseInt(values.type),
         standardF3o: values.standardF3o,
         auditStatus: values.status,
-        reviewer: values.reviewerId,
-        contractor: values.contractorId,
+        attribution: {
+          reviewer: values.reviewerId,
+          contractor: values.contractorId,
+        }
+        // attribution.reviewer: values.reviewerId,
+        // attribution.contractor: values.contractorId,
         // TODO Access policy?
       };
 
@@ -557,6 +561,8 @@ export default {
       });
     },
     errorHandler(err) {
+      console.log(err);
+
       this.enableAllFields();
       this.isDisabled = false;
 

@@ -1,9 +1,7 @@
 <template>
   <div class="LoginLayout d-flex justify-content-center">
     <FadedBackgroundCover image="login/background.png" />
-    <div
-      class="LoginLayout__modal align-self-center d-flex flex-wrap justify-content-center"
-    >
+    <div class="LoginLayout__modal align-self-center d-flex flex-wrap justify-content-center">
       <LoginBranding />
       <div class="LoginLayout__content p-5">
         <slot />
@@ -36,6 +34,7 @@ export default {
     border-radius: 5px;
     overflow: hidden;
   }
+
   &__content {
     background: white;
     width: 480px;

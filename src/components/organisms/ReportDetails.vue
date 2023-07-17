@@ -15,18 +15,18 @@
     <Divider />
     <div v-if="showUsers" class="Report__users d-flex">
       <ReportUserRoleExplicit
-        :userId="activeReport.creatorId"
+        :userId="activeReport.attribution.creator"
         userRoleOverride="Verwerker"
       />
       <ReportUserRoleExplicit
-        :userId="activeReport.reviewerId"
+        :userId="activeReport.attribution.reviewer"
         userRoleOverride="Reviewer"
       />
     </div>
     <Divider v-if="showUsers" />
     <div v-if="showUsers" class="Report__users d-flex">
       <ReportContractorExplicit
-        :organizationId="activeReport.contractorId"
+        :organizationId="activeReport.attribution.contractor"
         organizationRoleOverride="Uitvoerder"
       />
     </div>
@@ -117,7 +117,7 @@ export default {
     // IN: "2019-04-28T21:55:02.09066+00:00"
     // OUT: vrijdag 30 oktober 2020 - 10:31
     lastEdited() {
-      const date = this.activeReport.updateDate;
+      const date = this.activeReport.record.updateDate;
       return (
         weekDayFromDate({ date }) +
         " " +
@@ -131,7 +131,7 @@ export default {
       );
     },
     hasEditedDate() {
-      return this.activeReport.updateDate !== null;
+      return this.activeReport.record.updateDate !== null;
     },
   },
 };

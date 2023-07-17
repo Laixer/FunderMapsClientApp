@@ -23,7 +23,7 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   props: {
     organizationId: {
-      type: String,
+      type: Number,
       required: true,
     },
     organizationRoleOverride: {

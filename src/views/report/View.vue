@@ -42,22 +42,22 @@
       <div class="side p-3 mt-3">
         <h3>Organisaties</h3>
         <ReportOrgRoleExplicit
-          :organizationId="activeReport.ownerId"
+          :organizationId="activeReport.attribution.id"
           organizationRoleOverride="Eigenaar"
         />
         <ReportContractorExplicit
-          :organizationId="activeReport.contractorId"
+          :organizationId="activeReport.attribution.contractor"
           organizationRoleOverride="Uitvoerder"
         />
       </div>
       <div class="side p-3 mt-3">
         <h3>Betrokken personen</h3>
         <ReportUserRoleExplicit
-          :userId="activeReport.creatorId"
+          :userId="activeReport.attribution.creator"
           userRoleOverride="Verwerker"
         />
         <ReportUserRoleExplicit
-          :userId="activeReport.reviewerId"
+          :userId="activeReport.attribution.reviewer"
           userRoleOverride="Reviewer"
         />
       </div>

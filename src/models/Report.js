@@ -19,13 +19,6 @@ class ReportModel {
     type,
     standardF3o,
     auditStatus,
-    reviewer,
-    contractor,
-    creator,
-    owner,
-    accessPolicy,
-    createDate,
-    updateDate,
     attribution,
     access,
     state,
@@ -51,33 +44,12 @@ class ReportModel {
     this.documentFile = documentFile;
     this.type = type;
     this.standardF3o = standardF3o;
+    this.attribution = attribution;
+    this.record = record;
+    this.access = access;
 
-    // Attribution
-    if (attribution) {
-      this.reviewerId = attribution.reviewer;
-      this.contractorId = attribution.contractor;
-      this.creatorId = attribution.creator;
-      this.ownerId = attribution.owner;
-    } else {
-      this.reviewerId = reviewer;
-      this.contractorId = contractor;
-      this.creatorId = creator;
-      this.ownerId = owner;
-    }
-
-    this.createDate = new Date(createDate);
-    this.updateDate = updateDate ? new Date(updateDate) : null;
-
-    if (record) {
-      this.createDate = new Date(record.createDate);
-      this.updateDate = record.updateDate ? new Date(record.updateDate) : null;
-    }
-
-    if (accessPolicy) {
-      this.accessPolicy = accessOptions[accessPolicy] ? accessOptions[accessPolicy] : 'Invalid';
-    } else if (access) {
-      this.accessPolicy = accessOptions[access.accessPolicy] ? accessOptions[access.accessPolicy] : 'Invalid';
-    }
+    this.record.createDate = this.record.createDate ? new Date(this.record.createDate) : null;
+    this.record.updateDate = this.record.updateDate ? new Date(this.record.updateDate) : null;
 
     // Samples are set / added / removed 
     this.samples = [];
@@ -91,7 +63,7 @@ class ReportModel {
     }
 
     // TODO Made user null, this might break stuff
-    this.reviewer = new AttributedUser({ undefined, role: 'Reviewer' });
+    // this.attribution.reviewer = new AttributedUser({ undefined, role: 'Reviewer' });
   }
   /**
    * Document ID / Label
