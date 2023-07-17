@@ -54,12 +54,12 @@ export default {
       zoom: 14,
       pitch: 45,
       center: [
-        this.currentOrganization.centerX,
-        this.currentOrganization.centerY,
+        this.currentOrganization.Center.centerX,
+        this.currentOrganization.Center.centerY,
       ],
       maxBounds: [
-        [this.currentOrganization.xMin, this.currentOrganization.yMin],
-        [this.currentOrganization.xMax, this.currentOrganization.yMax],
+        [this.currentOrganization.Area.xMin, this.currentOrganization.Area.yMin],
+        [this.currentOrganization.Area.xMax, this.currentOrganization.Area.yMax],
       ],
     });
     this.map.addControl(
