@@ -45,7 +45,7 @@ export default {
   mounted() {
     mapboxgl.accessToken = this.accessToken;
 
-    this.map = new mapboxgl.Map({
+    const mapOpions = {
       container: "mapContainer",
       style: this.mapStyle,
       attributionControl: false,
@@ -54,14 +54,26 @@ export default {
       zoom: 14,
       pitch: 45,
       center: [
-        this.currentOrganization.Center.centerX,
-        this.currentOrganization.Center.centerY,
+        5.2793703,
+        52.2129919
       ],
-      maxBounds: [
-        [this.currentOrganization.Area.xMin, this.currentOrganization.Area.yMin],
-        [this.currentOrganization.Area.xMax, this.currentOrganization.Area.yMax],
-      ],
-    });
+    }
+
+    if (this.currentOrganization.center) {
+      mapOpions.center = [
+        this.currentOrganization.center.centerX,
+        this.currentOrganization.center.centerY,
+      ];
+    }
+
+    if (this.currentOrganization.area) {
+      mapOpions.maxBounds = [
+        [this.currentOrganization.area.xMin, this.currentOrganization.area.yMin],
+        [this.currentOrganization.area.xMax, this.currentOrganization.area.yMax],
+      ];
+    }
+
+    this.map = new mapboxgl.Map(mapOpions);
     this.map.addControl(
       new MapboxGeocoder({
         accessToken: this.accessToken,
@@ -123,6 +135,7 @@ export default {
 
 .mapboxgl-canvas-container,
 .mapboxgl-canvas {
+
   &:active,
   &:focus {
     outline: none;
