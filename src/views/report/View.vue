@@ -126,6 +126,7 @@ export default {
     this.page = this.$route.params.page || 1;
 
     try {
+      await this.getContractors();
       await this.getReportById({
         id: this.$route.params.id,
       });
@@ -139,7 +140,6 @@ export default {
         this.nosamples = true;
       }
 
-      await this.getContractors();
     } catch (err) {
       this.feedback = {
         variant: "danger",

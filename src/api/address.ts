@@ -14,6 +14,6 @@ export default {
      * @param id Internal address id.
      */
     getAddressById(id: string) {
-        return axios.get(`/api/address/${id}`);
+        return axios.get(`/api/geocoder/address/${id}`);
     }
 }
