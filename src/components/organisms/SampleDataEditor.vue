@@ -377,7 +377,7 @@ export default {
     },
     async handleHit(address) {
       const { response } = await fetch(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/lookup?fl=nummeraanduiding_id&id=${address.id}`
+        `https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup?fl=nummeraanduiding_id&id=${address.id}`
       ).then((res) => {
         if (!res.ok) throw new Error(res.statusText);
         return res.json();
