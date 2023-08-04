@@ -73,14 +73,15 @@ const actions = {
 
     let response = await addressAPI.getAddressSuggestions(query);
     if (response.status === 200) {
-      return response.data.response.docs.map(
+      let response_data = await response.json();
+      return response_data.response.docs.map(
         suggestion =>
           new PDOKAddressSuggestion(
             suggestion.id,
             suggestion.type,
             suggestion.weergavenaam,
             suggestion.score,
-            response.data.highlighting[suggestion.id].suggest[0]
+            response_data.highlighting[suggestion.id].suggest[0]
           )
       );
     }

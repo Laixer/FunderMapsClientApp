@@ -5,8 +5,10 @@ export default {
      * Lists all address suggestions for a given query.
      * @param query The query string.
      */
-    getAddressSuggestions(query: string) {
-        return axios.get(`https://api.pdok.nl/bzk/locatieserver/search/v3_1/suggest?fq=type:adres&q=${query}&rows=10`);
+    async getAddressSuggestions(query: string) {
+        return await fetch(
+            `https://api.pdok.nl/bzk/locatieserver/search/v3_1/suggest?fq=type:adres&q=${query}&rows=10`
+        )
     },
 
     /**
