@@ -53,13 +53,21 @@ export default {
         maxFiles: 1,
         maxFilesize: 100,
         acceptedFiles: "application/pdf",
-        url: process.env.VUE_APP_API_BASE_URL + "/api/inquiry/upload-document",
+        url: this.getUplopadUrl(),
       },
     };
   },
   methods: {
     image,
     canUserWrite,
+    getUplopadUrl() {
+      if (process.env.VUE_APP_API_BASE_URL.endsWith('/')) {
+        return process.env.VUE_APP_API_BASE_URL + "api/inquiry/upload-document";
+      } else {
+        return process.env.VUE_APP_API_BASE_URL + "/api/inquiry/upload-document";
+      }
+    },
+
     /**
      * Add the Authorization header when the upload process starts
      */
