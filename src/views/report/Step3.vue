@@ -34,7 +34,7 @@
               Deze rapportage bevat nog geen samples
             </div>
             <div class="text-center mt-4" v-else>
-              De addres gegevens worden geladen...
+              De adres gegevens worden geladen...
             </div>
           </div>
 

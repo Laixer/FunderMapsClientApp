@@ -26,7 +26,7 @@
         Deze rapportage bevat nog geen adressen
       </div>
       <div class="text-center mt-4" v-else>
-        De addres gegevens worden geladen...
+        De adres gegevens worden geladen...
       </div>
     </div>
     <div v-if="activeReport" class="d-flex flex-column">
