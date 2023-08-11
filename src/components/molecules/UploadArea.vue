@@ -53,7 +53,7 @@ export default {
         maxFiles: 1,
         maxFilesize: 100,
         acceptedFiles: "application/pdf",
-        url: process.env.VUE_APP_API_BASE_URL + "api/inquiry/upload-document",
+        url: process.env.VUE_APP_API_BASE_URL + "/api/inquiry/upload-document",
       },
     };
   },
