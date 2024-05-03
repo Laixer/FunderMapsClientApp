@@ -7,6 +7,7 @@ class AddressModel {
   postalCode: string;
   street: string;
   city: string;
+  buildingId: string;
 
   // TODO Null checking
   /**
@@ -16,12 +17,14 @@ class AddressModel {
     buildingNumber: string,
     postalCode: string,
     street: string,
-    city: string) {
+    city: string,
+    buildingId: string) {
     this.id = id;
     this.buildingNumber = buildingNumber;
     this.postalCode = postalCode;
     this.street = street;
     this.city = city;
+    this.buildingId = buildingId;
   }
 
   format(): string {

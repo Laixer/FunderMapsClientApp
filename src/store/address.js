@@ -99,7 +99,8 @@ const mutations = {
       address.buildingNumber,
       address.postalCode,
       address.street,
-      address.city
+      address.city,
+      address.buildingId
     );
   },
   reset(state) {

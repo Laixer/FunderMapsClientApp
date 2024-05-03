@@ -250,6 +250,7 @@ export default {
 
       // Assign address geocoder id from selected field
       data.address = this.fields.address.selected.id;
+      data.building = this.fields.address.selected.buildingId;
       data.addressFormatted = this.fields.address.selected.format();
       data.report = this.activeReport.id;
 

@@ -1,98 +1,39 @@
 <template>
-  <Form
-    ref="form"
-    class="py-4 px-5"
-    @submit="handleSubmit"
-    @error="handleFormError"
-  >
+  <Form ref="form" class="py-4 px-5" @submit="handleSubmit" @error="handleFormError">
     <Feedback :feedback="feedback" />
 
     <div class="form-row">
-      <FormField
-        v-model="fields.address.value"
-        v-bind="fields.address"
-        :serializer="addressSerializer"
-        @input="getAddresses"
-        @hit="handleHit"
-        class="col-md-12"
-      />
+      <FormField v-model="fields.address.value" v-bind="fields.address" :serializer="addressSerializer"
+        @input="getAddresses" @hit="handleHit" class="col-md-12" />
     </div>
 
     <div class="form-row">
-      <FormField
-        v-model="fields.foundationType.value"
-        v-bind="fields.foundationType"
-        class="col-md-5"
-      />
-      <FormField
-        v-model="fields.substructure.value"
-        v-bind="fields.substructure"
-        class="col-md-5"
-      />
-      <FormField
-        v-model="fields.builtYear.value"
-        v-bind="fields.builtYear"
-        class="col-md-2"
-      />
+      <FormField v-model="fields.foundationType.value" v-bind="fields.foundationType" class="col-md-5" />
+      <FormField v-model="fields.substructure.value" v-bind="fields.substructure" class="col-md-5" />
+      <FormField v-model="fields.builtYear.value" v-bind="fields.builtYear" class="col-md-2" />
     </div>
 
     <div class="form-row">
-      <FormField
-        v-model="fields.monitoringWell.value"
-        v-bind="fields.monitoringWell"
-        class="col-md-6"
-      />
-      <FormField
-        v-model="fields.cpt.value"
-        v-bind="fields.cpt"
-        class="col-md-6"
-      />
+      <FormField v-model="fields.monitoringWell.value" v-bind="fields.monitoringWell" class="col-md-6" />
+      <FormField v-model="fields.cpt.value" v-bind="fields.cpt" class="col-md-6" />
     </div>
 
     <Divider />
 
     <div class="form-row">
-      <FormField
-        v-model="fields.overallQuality.value"
-        v-bind="fields.overallQuality"
-        class="col-md-6"
-      />
-      <FormField
-        v-model="fields.recoveryAdvised.value"
-        v-bind="fields.recoveryAdvised"
-        class="col-md-6"
-      />
+      <FormField v-model="fields.overallQuality.value" v-bind="fields.overallQuality" class="col-md-6" />
+      <FormField v-model="fields.recoveryAdvised.value" v-bind="fields.recoveryAdvised" class="col-md-6" />
     </div>
 
     <div class="form-row">
-      <FormField
-        v-model="fields.damageCause.value"
-        v-bind="fields.damageCause"
-        class="col-md-6"
-      />
-      <FormField
-        v-model="fields.enforcementTerm.value"
-        v-bind="fields.enforcementTerm"
-        class="col-md-6"
-      />
+      <FormField v-model="fields.damageCause.value" v-bind="fields.damageCause" class="col-md-6" />
+      <FormField v-model="fields.enforcementTerm.value" v-bind="fields.enforcementTerm" class="col-md-6" />
     </div>
 
     <div class="form-row">
-      <FormField
-        v-model="fields.woodLevel.value"
-        v-bind="fields.woodLevel"
-        class="col-md-3"
-      />
-      <FormField
-        v-model="fields.groundwaterLevelTemp.value"
-        v-bind="fields.groundwaterLevelTemp"
-        class="col-md-3"
-      />
-      <FormField
-        v-model="fields.groundLevel.value"
-        v-bind="fields.groundLevel"
-        class="col-md-3"
-      />
+      <FormField v-model="fields.woodLevel.value" v-bind="fields.woodLevel" class="col-md-3" />
+      <FormField v-model="fields.groundwaterLevelTemp.value" v-bind="fields.groundwaterLevelTemp" class="col-md-3" />
+      <FormField v-model="fields.groundLevel.value" v-bind="fields.groundLevel" class="col-md-3" />
     </div>
   </Form>
 </template>
@@ -375,6 +316,7 @@ export default {
     addressSerializer(address) {
       return address.weergavenaam;
     },
+    // NOTE: It is possible this is not used anymore, see Default.vue
     async handleHit(address) {
       const { response } = await fetch(
         `https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup?fl=nummeraanduiding_id&id=${address.id}`
