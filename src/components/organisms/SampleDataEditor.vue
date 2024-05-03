@@ -457,6 +457,8 @@ export default {
       data.address = this.fields.address.selected.id;
       data.report = this.activeReport.id;
 
+      console.log(this.fields.address.selected);
+
       // TODO These fields should be mapped automatically
       data.builtYear = data.builtYear
         ? new Date(data.builtYear, 1, 1, 0, 0, 0, 0)
