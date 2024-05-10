@@ -9,7 +9,7 @@
       :to="{ name: 'edit-report-2', params: { page: 1, step: step } }"
       class="FormStepDropdown"
     >
-      <h5 class="FormStep__title">Vervorming</h5>
+      <h5 class="FormStep__title">Vervorming/GevelScan</h5>
     </router-link>
 
     <div class="FormStepForm" v-if="active">
@@ -21,6 +21,11 @@
           <FormField
             v-model="fields.deformedFacade.value"
             v-bind="fields.deformedFacade"
+            class="col-md-6"
+          />
+          <FormField
+            v-model="fields.facadeScanRisk.value"
+            v-bind="fields.facadeScanRisk"
             class="col-md-6"
           />
 
@@ -99,7 +104,7 @@ import {
   maxValue,
 } from "vuelidate/lib/validators";
 
-import { rotationOptions } from "config/enums";
+import { rotationOptions, facadeScanRiskOptions } from "config/enums";
 import { mapGetters } from "vuex";
 
 import Form from "molecule/form/Form";
@@ -177,6 +182,18 @@ export default {
               text: "Selecteer een optie",
             },
           ].concat(rotationOptions),
+          validationRules: {},
+        },
+        facadeScanRisk: {
+          label: "Risico gevelscan",
+          type: "select",
+          value: null,
+          options: [
+            {
+              value: null,
+              text: "Selecteer een optie",
+            },
+          ].concat(facadeScanRiskOptions),
           validationRules: {},
         },
         skewedPerpendicular: {
@@ -276,6 +293,7 @@ export default {
       deformedFacade: deformedFacade,
       skewedPerpendicularFacade: skewedPerpendicularFacade,
       skewedParallelFacade: skewedParallelFacade,
+      facadeScanRisk: this.sample.facadeScanRisk,
       skewedPerpendicular: this.sample.skewedPerpendicular,
       skewedParallel: this.sample.skewedParallel,
       thresholdFrontLevel: this.sample.thresholdFrontLevel,

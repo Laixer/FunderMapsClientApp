@@ -711,3 +711,26 @@ export const FoundationRecoveryType = [
     text: "Onbekend",
   },
 ];
+
+export const facadeScanRiskOptions = [
+  {
+    text: "A",
+    value: 0,
+  },
+  {
+    text: "B",
+    value: 1,
+  },
+  {
+    text: "C",
+    value: 2,
+  },
+  {
+    text: "D",
+    value: 3,
+  },
+  {
+    text: "E",
+    value: 4,
+  },
+];

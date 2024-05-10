@@ -2,25 +2,25 @@
 
 ## Project setup
 ```
-npm install
+NODE_OPTIONS=--openssl-legacy-provider npm install
 ```
 
 ### Compiles and hot-reloads for development
 ```
-npm run serve
+NODE_OPTIONS=--openssl-legacy-provider npm run serve
 ```
 
 ### Compiles and minifies for production
 ```
-npm run build
+NODE_OPTIONS=--openssl-legacy-provider npm run build
 ```
 
 ### Run your unit tests
 ```
-npm run test:unit
+NODE_OPTIONS=--openssl-legacy-provider npm run test:unit
 ```
 
 ### Lints and fixes files
 ```
-npm run lint
+NODE_OPTIONS=--openssl-legacy-provider npm run lint
 ```
