@@ -9,7 +9,7 @@
       :to="{ name: 'edit-report-2', params: { page: 1, step: step } }"
       class="FormStepDropdown"
     >
-      <h5 class="FormStep__title">Vervorming/GevelScan</h5>
+      <h5 class="FormStep__title">Vervorming/FunderScan</h5>
     </router-link>
 
     <div class="FormStepForm" v-if="active">
@@ -173,7 +173,7 @@ export default {
           validationRules: {},
         },
         skewedParallelFacade: {
-          label: "Beoordeling lintvoegmeting",
+          label: "Beoordeling Lintvoegwaterpassing",
           type: "select",
           value: null,
           options: [
@@ -185,7 +185,7 @@ export default {
           validationRules: {},
         },
         facadeScanRisk: {
-          label: "Risico gevelscan",
+          label: "Risico FunderScan",
           type: "select",
           value: null,
           options: [
@@ -208,7 +208,7 @@ export default {
           },
         },
         skewedParallel: {
-          label: "Lintvoegmeting",
+          label: "Lintvoegwaterpassing",
           type: "number",
           value: "",
           info: "1:XXX (positief verloopt naar links, negatief verloopt naar rechts)",
