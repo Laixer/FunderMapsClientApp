@@ -86,9 +86,6 @@ export function getLastUserEmail(): string {
 //  User Roles & Capabilities
 // ****************************************************************************
 
-export function isAdmin(): boolean {
-  return getUserRole() === 'administrator';
-}
 export function isSuperUser(): boolean {
   return getOrganizationRole() === 'superuser';
 }
@@ -181,19 +178,6 @@ function getOrganizationRole() {
     let tokenDecoded = getAccessTokenDecoded();
 
     return tokenDecoded.cfor.toLowerCase();
-  } catch (err) {
-    return ''
-  }
-}
-
-/**
- * Gets the user role from the jwt access token.
- */
-function getUserRole() {
-  try {
-    let tokenDecoded: any = getAccessTokenDecoded();
-
-    return tokenDecoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'].toLowerCase();
   } catch (err) {
     return ''
   }

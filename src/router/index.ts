@@ -21,7 +21,7 @@ import Reports from "@/views/Reports.vue";
 import NotFound from "@/views/NotFound.vue";
 
 // Services
-import { isLoggedIn, isAdmin, logout } from "../services/auth";
+import { isLoggedIn, logout } from "../services/auth";
 
 Vue.use(VueRouter);
 

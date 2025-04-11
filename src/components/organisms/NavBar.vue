@@ -46,9 +46,6 @@ export default {
     return {
       company: "FunderMaps",
       menuItems: [
-        // new MenuItem("Profiel", {
-        //   name: this.admin ? "admin-user" : "user",
-        // }),
         new MenuItem("Uitloggen", {
           name: "logout",
         }),
