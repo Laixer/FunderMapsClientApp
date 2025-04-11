@@ -11,9 +11,7 @@ import loginLayout from "./login.vue";
   components: {
     emptyLayout,
     defaultLayout,
-    adminLayout,
     loginLayout,
-    mapLayout,
   },
 })
 export default class Layouts extends Vue {
