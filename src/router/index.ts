@@ -158,62 +158,6 @@ const routes = [
     component: Reports,
   },
 
-  // Admin
-  // {
-  //   path: "/admin/",
-  //   name: "admin-dashboard",
-  //   component: AdminDashboard,
-  //   meta: {
-  //     layout: "empty",
-  //     admin: true,
-  //   },
-  // },
-  // {
-  //   path: "/admin/organisaties",
-  //   name: "admin-organizations",
-  //   component: AdminOrganizations,
-  //   meta: {
-  //     layout: "admin",
-  //     admin: true,
-  //   },
-  // },
-  // {
-  //   path: "/admin/organisatie/:id",
-  //   name: "admin-organization",
-  //   component: AdminOrganization,
-  //   meta: {
-  //     layout: "admin",
-  //     admin: true,
-  //   },
-  // },
-  // {
-  //   path: "/admin/aanmeldingen/",
-  //   name: "admin-organization-proposals",
-  //   component: AdminOrganizationProposals,
-  //   meta: {
-  //     layout: "admin",
-  //     admin: true,
-  //   },
-  // },
-  {
-    path: "/admin/user",
-    name: "admin-user",
-    component: User,
-    meta: {
-      layout: "admin",
-      profile: true,
-    },
-  },
-  {
-    path: "/admin/security",
-    name: "admin-security",
-    component: Security,
-    meta: {
-      layout: "admin",
-      profile: true,
-    },
-  },
-
   // 404
   {
     path: "/not-found",
