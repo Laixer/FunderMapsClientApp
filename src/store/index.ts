@@ -25,7 +25,7 @@ const store: StoreOptions<{}> = {
     report,
     samples,
     attestation,
-    version,
+    // version,
     map,
     contractors,
     reviewers,
@@ -46,7 +46,7 @@ const store: StoreOptions<{}> = {
       commit("orgUsers/reset")
       commit("samples/reset")
       commit("attestation/reset")
-      commit("version/reset")
+      // commit("version/reset")
       commit("contractors/reset")
       commit("reviewers/reset")
     }

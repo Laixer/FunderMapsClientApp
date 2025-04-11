@@ -127,7 +127,7 @@ export default {
         this.getUser(),
         this.getOrganization(),
         this.getContractors(),
-        this.getVersion(),
+        // this.getVersion(),
       ]);
     } catch (err) {
       if (err.response && err.response.status === 401) {
