@@ -8,10 +8,6 @@ import Dashboard from "@/views/Dashboard.vue";
 import Login from "@/views/Login.vue";
 import Logout from "@/views/Logout.vue";
 import User from "@/views/User.vue";
-import Security from "@/views/Security.vue";
-
-// Register
-// import Register from "@/views/RegisterOrganization.vue";
 
 // Single Report
 import Step1 from "@/views/report/Step1.vue";
@@ -24,10 +20,6 @@ import Reports from "@/views/Reports.vue";
 
 // 404
 import NotFound from "@/views/NotFound.vue";
-
-// Maps
-import MapView from "@/views/Map.vue";
-import Map2View from "@/views/Map2.vue";
 
 // Services
 import { isLoggedIn, isAdmin, logout } from "../services/auth";
@@ -65,43 +57,6 @@ const routes = [
     name: "user",
     component: User,
   },
-  {
-    path: "/security",
-    name: "security",
-    component: Security,
-  },
-  // Registration
-  // {
-  //   path: "/register/:id",
-  //   name: "register",
-  //   component: Register,
-  //   meta: {
-  //     layout: "login",
-  //     public: true,
-  //   },
-  // },
-
-  // Maps
-  // {
-  //   path: "/map",
-  //   name: "map",
-  //   component: MapView,
-  //   meta: {
-  //     map: true,
-  //     fullscreen: true,
-  //   },
-  // },
-  // {
-  //   path: "/map/cknycxq5h1f9a17pj578xieqj",
-  //   name: "map2",
-  //   component: Map2View,
-  //   meta: {
-  //     layout: "map",
-  //     map: true,
-  //     public: true,
-  //     fullscreen: true,
-  //   },
-  // },
 
   // Inquiry
   {
