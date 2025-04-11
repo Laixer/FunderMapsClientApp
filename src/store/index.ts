@@ -9,7 +9,6 @@ import user from './user'
 import orgUsers from './orgUsers'
 import samples from './samples'
 import attestation from './attestation'
-import version from './version'
 import map from './map'
 import contractors from './contractors'
 import reviewers from './reviewers'
@@ -25,7 +24,6 @@ const store: StoreOptions<{}> = {
     report,
     samples,
     attestation,
-    // version,
     map,
     contractors,
     reviewers,
@@ -46,13 +44,10 @@ const store: StoreOptions<{}> = {
       commit("orgUsers/reset")
       commit("samples/reset")
       commit("attestation/reset")
-      // commit("version/reset")
       commit("contractors/reset")
       commit("reviewers/reset")
     }
   }
 };
-
-
 
 export default new Vuex.Store(store);
