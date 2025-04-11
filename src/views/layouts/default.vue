@@ -111,16 +111,16 @@ export default {
     },
   },
   async created() {
-    if (isSuperUser()) {
-      this.menuItems.push(
-        new MenuItem(
-          "Organisatie",
-          { name: "organization" },
-          "Tools-icon.svg",
-          "Tools-icon-active.svg"
-        )
-      );
-    }
+    // if (isSuperUser()) {
+    //   this.menuItems.push(
+    //     new MenuItem(
+    //       "Organisatie",
+    //       { name: "organization" },
+    //       "Tools-icon.svg",
+    //       "Tools-icon-active.svg"
+    //     )
+    //   );
+    // }
 
     try {
       await Promise.all([
