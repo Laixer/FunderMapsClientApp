@@ -59,9 +59,9 @@ export default {
         new MenuItem("Profiel", {
           name: this.admin ? "admin-user" : "user",
         }),
-        new MenuItem("Wachtwoord Wijzigen", {
-          name: this.admin ? "admin-security" : "security",
-        }),
+        // new MenuItem("Wachtwoord Wijzigen", {
+        //   name: this.admin ? "admin-security" : "security",
+        // }),
         new MenuItem("Uitloggen", {
           name: "logout",
         }),
