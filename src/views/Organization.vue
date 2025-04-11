@@ -1,7 +1,7 @@
 <script>
-import Organization from "@/views/admin/AdminOrganization";
+// import Organization from "@/views/admin/AdminOrganization";
 
 export default {
-  extends: Organization,
+  // extends: Organization,
 };
 </script>

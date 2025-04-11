@@ -25,12 +25,6 @@ import Reports from "@/views/Reports.vue";
 // Organization
 import Organization from "@/views/Organization.vue";
 
-// Admin
-// import AdminDashboard from "@/views/admin/AdminDashboard.vue";
-// import AdminOrganization from "@/views/admin/AdminOrganization.vue";
-// import AdminOrganizations from "@/views/admin/AdminOrganizations.vue";
-// import AdminOrganizationProposals from "@/views/admin/AdminOrganizationProposals.vue";
-
 // 404
 import NotFound from "@/views/NotFound.vue";
 
@@ -165,42 +159,42 @@ const routes = [
   },
 
   // Admin
-  {
-    path: "/admin/",
-    name: "admin-dashboard",
-    component: AdminDashboard,
-    meta: {
-      layout: "empty",
-      admin: true,
-    },
-  },
-  {
-    path: "/admin/organisaties",
-    name: "admin-organizations",
-    component: AdminOrganizations,
-    meta: {
-      layout: "admin",
-      admin: true,
-    },
-  },
-  {
-    path: "/admin/organisatie/:id",
-    name: "admin-organization",
-    component: AdminOrganization,
-    meta: {
-      layout: "admin",
-      admin: true,
-    },
-  },
-  {
-    path: "/admin/aanmeldingen/",
-    name: "admin-organization-proposals",
-    component: AdminOrganizationProposals,
-    meta: {
-      layout: "admin",
-      admin: true,
-    },
-  },
+  // {
+  //   path: "/admin/",
+  //   name: "admin-dashboard",
+  //   component: AdminDashboard,
+  //   meta: {
+  //     layout: "empty",
+  //     admin: true,
+  //   },
+  // },
+  // {
+  //   path: "/admin/organisaties",
+  //   name: "admin-organizations",
+  //   component: AdminOrganizations,
+  //   meta: {
+  //     layout: "admin",
+  //     admin: true,
+  //   },
+  // },
+  // {
+  //   path: "/admin/organisatie/:id",
+  //   name: "admin-organization",
+  //   component: AdminOrganization,
+  //   meta: {
+  //     layout: "admin",
+  //     admin: true,
+  //   },
+  // },
+  // {
+  //   path: "/admin/aanmeldingen/",
+  //   name: "admin-organization-proposals",
+  //   component: AdminOrganizationProposals,
+  //   meta: {
+  //     layout: "admin",
+  //     admin: true,
+  //   },
+  // },
   {
     path: "/admin/user",
     name: "admin-user",
