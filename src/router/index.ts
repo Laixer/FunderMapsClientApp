@@ -129,24 +129,8 @@ router.beforeEach((to: Route, from: Route, next: any) => {
   if (to.meta && to.meta.public) {
     next();
   } else if (isLoggedIn()) {
-    // Admin pages are only visible to admins
-    // Anyone else will get a 404
-    if (to.meta && to.meta.admin) {
-      if (isAdmin()) {
-        next();
-      } else {
-        next({ name: "404" });
-      }
-      // Regular dashboard pages are not available to admins
-    } else {
-      if (isAdmin() && (!to.meta || !to.meta.profile)) {
-        next({ name: "admin-dashboard" });
-      } else {
-        next();
-      }
-    }
+    next();
   } else {
-    // If the user is logged in, log out first
     if (isLoggedIn()) {
       logout();
     }
