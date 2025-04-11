@@ -7,7 +7,7 @@ import Dashboard from "@/views/Dashboard.vue";
 // Auth & User
 import Login from "@/views/Login.vue";
 import Logout from "@/views/Logout.vue";
-import User from "@/views/User.vue";
+// import User from "@/views/User.vue";
 
 // Single Report
 import Step1 from "@/views/report/Step1.vue";
@@ -52,11 +52,11 @@ const routes = [
       profile: true,
     },
   },
-  {
-    path: "/user",
-    name: "user",
-    component: User,
-  },
+  // {
+  //   path: "/user",
+  //   name: "user",
+  //   component: User,
+  // },
 
   // Inquiry
   {

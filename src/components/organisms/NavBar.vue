@@ -8,21 +8,11 @@
     <b-nav class="d-flex flex-row-reverse flex-grow-1">
       <b-nav-item-dropdown v-if="!public" class="align-self-center mr-3" right>
         <template slot="button-content">
-          <img
-            v-if="user !== null"
-            :src="user.getAvatar()"
-            class="m1 rounded-circle"
-            height="36"
-            width="36"
-            alt="Profile Menu"
-          />
+          <img v-if="user !== null" :src="user.getAvatar()" class="m1 rounded-circle" height="36" width="36"
+            alt="Profile Menu" />
         </template>
-        <b-dropdown-item
-          v-for="(item, index) in menuItems"
-          :key="index"
-          :to="item.to"
-          >{{ item.label }}</b-dropdown-item
-        >
+        <b-dropdown-item v-for="(item, index) in menuItems" :key="index" :to="item.to">{{ item.label
+          }}</b-dropdown-item>
       </b-nav-item-dropdown>
       <MapControls v-if="hasMapControls" />
     </b-nav>
@@ -56,11 +46,8 @@ export default {
     return {
       company: "FunderMaps",
       menuItems: [
-        new MenuItem("Profiel", {
-          name: this.admin ? "admin-user" : "user",
-        }),
-        // new MenuItem("Wachtwoord Wijzigen", {
-        //   name: this.admin ? "admin-security" : "security",
+        // new MenuItem("Profiel", {
+        //   name: this.admin ? "admin-user" : "user",
         // }),
         new MenuItem("Uitloggen", {
           name: "logout",
@@ -89,9 +76,11 @@ export default {
     height: 100%;
     padding: 20px 0 0 30px;
   }
+
   &__description {
     color: #7f8fa4;
   }
+
   .form-group {
     margin-bottom: 0;
   }
