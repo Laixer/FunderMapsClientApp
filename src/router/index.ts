@@ -23,7 +23,7 @@ import ReportView from "@/views/report/View.vue";
 import Reports from "@/views/Reports.vue";
 
 // Organization
-import Organization from "@/views/Organization.vue";
+// import Organization from "@/views/Organization.vue";
 
 // 404
 import NotFound from "@/views/NotFound.vue";
@@ -107,11 +107,11 @@ const routes = [
   },
 
   // SuperUser
-  {
-    path: "/organization",
-    name: "organization",
-    component: Organization,
-  },
+  // {
+  //   path: "/organization",
+  //   name: "organization",
+  //   component: Organization,
+  // },
 
   // Inquiry
   {
