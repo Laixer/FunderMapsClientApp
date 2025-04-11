@@ -26,10 +26,10 @@ import Reports from "@/views/Reports.vue";
 import Organization from "@/views/Organization.vue";
 
 // Admin
-import AdminDashboard from "@/views/admin/AdminDashboard.vue";
-import AdminOrganization from "@/views/admin/AdminOrganization.vue";
-import AdminOrganizations from "@/views/admin/AdminOrganizations.vue";
-import AdminOrganizationProposals from "@/views/admin/AdminOrganizationProposals.vue";
+// import AdminDashboard from "@/views/admin/AdminDashboard.vue";
+// import AdminOrganization from "@/views/admin/AdminOrganization.vue";
+// import AdminOrganizations from "@/views/admin/AdminOrganizations.vue";
+// import AdminOrganizationProposals from "@/views/admin/AdminOrganizationProposals.vue";
 
 // 404
 import NotFound from "@/views/NotFound.vue";
