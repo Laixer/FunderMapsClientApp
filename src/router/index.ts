@@ -11,7 +11,7 @@ import User from "@/views/User.vue";
 import Security from "@/views/Security.vue";
 
 // Register
-import Register from "@/views/RegisterOrganization.vue";
+// import Register from "@/views/RegisterOrganization.vue";
 
 // Single Report
 import Step1 from "@/views/report/Step1.vue";
@@ -21,9 +21,6 @@ import ReportView from "@/views/report/View.vue";
 
 // Reports
 import Reports from "@/views/Reports.vue";
-
-// Organization
-// import Organization from "@/views/Organization.vue";
 
 // 404
 import NotFound from "@/views/NotFound.vue";
@@ -74,43 +71,36 @@ const routes = [
     component: Security,
   },
   // Registration
-  {
-    path: "/register/:id",
-    name: "register",
-    component: Register,
-    meta: {
-      layout: "login",
-      public: true,
-    },
-  },
+  // {
+  //   path: "/register/:id",
+  //   name: "register",
+  //   component: Register,
+  //   meta: {
+  //     layout: "login",
+  //     public: true,
+  //   },
+  // },
 
   // Maps
-  {
-    path: "/map",
-    name: "map",
-    component: MapView,
-    meta: {
-      map: true,
-      fullscreen: true,
-    },
-  },
-  {
-    path: "/map/cknycxq5h1f9a17pj578xieqj",
-    name: "map2",
-    component: Map2View,
-    meta: {
-      layout: "map",
-      map: true,
-      public: true,
-      fullscreen: true,
-    },
-  },
-
-  // SuperUser
   // {
-  //   path: "/organization",
-  //   name: "organization",
-  //   component: Organization,
+  //   path: "/map",
+  //   name: "map",
+  //   component: MapView,
+  //   meta: {
+  //     map: true,
+  //     fullscreen: true,
+  //   },
+  // },
+  // {
+  //   path: "/map/cknycxq5h1f9a17pj578xieqj",
+  //   name: "map2",
+  //   component: Map2View,
+  //   meta: {
+  //     layout: "map",
+  //     map: true,
+  //     public: true,
+  //     fullscreen: true,
+  //   },
   // },
 
   // Inquiry
