@@ -83,12 +83,12 @@ export default {
           "Report-icon.svg",
           "Report-icon-active.svg"
         ),
-        new MenuItem(
-          "Kaart",
-          { name: "map" },
-          "Map-icon.svg",
-          "Map-icon-active.svg"
-        ),
+        // new MenuItem(
+        //   "Kaart",
+        //   { name: "map" },
+        //   "Map-icon.svg",
+        //   "Map-icon-active.svg"
+        // ),
       ],
     };
   },
