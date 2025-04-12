@@ -14,21 +14,13 @@
     <ReportDate :date="activeReport.documentDate" />
     <Divider />
     <div v-if="showUsers" class="Report__users d-flex">
-      <ReportUserRoleExplicit
-        :userId="activeReport.attribution.creator"
-        userRoleOverride="Verwerker"
-      />
-      <ReportUserRoleExplicit
-        :userId="activeReport.attribution.reviewer"
-        userRoleOverride="Reviewer"
-      />
+      <ReportUserRoleExplicit :userId="activeReport.attribution.creator" userRoleOverride="Verwerker" />
+      <ReportUserRoleExplicit :userId="activeReport.attribution.reviewer" userRoleOverride="Reviewer" />
     </div>
     <Divider v-if="showUsers" />
     <div v-if="showUsers" class="Report__users d-flex">
-      <ReportContractorExplicit
-        :organizationId="activeReport.attribution.contractor"
-        organizationRoleOverride="Uitvoerder"
-      />
+      <ReportContractorExplicit :organizationId="activeReport.attribution.contractor"
+        organizationRoleOverride="Uitvoerder" />
     </div>
     <Divider v-if="showUsers" />
 
@@ -148,6 +140,7 @@ export default {
     strong {
       margin-left: 15px;
     }
+
     .report-table-correct {
       color: #29cc8b;
     }
@@ -165,6 +158,7 @@ export default {
       color: #354052;
       font-weight: 600;
     }
+
     span {
       color: #7f8fa4;
       font-size: 12px;
@@ -179,12 +173,14 @@ export default {
       margin-top: 0 !important;
     }
   }
+
   .Report__indicators {
     padding: 0 30px;
 
     .CheckboxIndicator {
       width: 50%;
     }
+
     &:last-child {
       margin-bottom: 20px;
     }
@@ -194,6 +190,7 @@ export default {
     margin-top: 20px;
     padding: 0 30px;
   }
+
   .Note {
     padding: 0 30px;
     margin-bottom: 20px;

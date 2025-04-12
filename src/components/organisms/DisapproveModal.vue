@@ -1,17 +1,7 @@
 <template>
-  <b-modal
-    ref="modal"
-    id="report-disapprove"
-    title="Reden voor afkeuren"
-    @ok="onOk"
-  >
+  <b-modal ref="modal" id="report-disapprove" title="Reden voor afkeuren" @ok="onOk">
     <Feedback :feedback="feedback" />
-    <Form
-      ref="form"
-      autocomplete="off"
-      @error="handleError"
-      @submit="handleSubmit"
-    >
+    <Form ref="form" autocomplete="off" @error="handleError" @submit="handleSubmit">
       <FormField v-model="fields.reason.value" v-bind="fields.reason" />
     </Form>
   </b-modal>
@@ -104,5 +94,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

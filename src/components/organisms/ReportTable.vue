@@ -5,9 +5,7 @@
         {{ title }}
       </h2>
       <div v-if="synchronizing" class="flex-grow-1 d-flex justify-content-end">
-        <span
-          class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1"
-        >
+        <span class="badge badge-info badge-pill text-uppercase font-weight-bold px-2 py-1">
           Verversen van informatie ...
         </span>
       </div>
@@ -26,11 +24,7 @@
         </tr>
       </thead>
       <tbody>
-        <ReportTableLine
-          v-for="(report, index) in reports"
-          :key="index"
-          :report="report"
-        />
+        <ReportTableLine v-for="(report, index) in reports" :key="index" :report="report" />
       </tbody>
     </table>
   </div>
@@ -85,6 +79,7 @@ export default {
     color: #354052;
     font-weight: 600;
   }
+
   table {
     width: 100%;
 
@@ -93,31 +88,39 @@ export default {
       font-size: 14px;
       font-weight: normal;
     }
+
     th,
     td {
       &:nth-child(1) {
         width: 100px;
       }
+
       &:nth-child(2) {
         min-width: 200px;
         flex-grow: 1;
       }
+
       &:nth-child(3) {
         width: 150px;
       }
+
       &:nth-child(4) {
         width: 150px;
       }
+
       &:nth-child(5) {
         width: 150px;
       }
+
       &:nth-child(6) {
         width: 150px;
       }
+
       &:nth-child(7) {
         // width: 295px
         width: 245px;
       }
+
       &:nth-child(8) {
         // width: 155px
         width: 75px;

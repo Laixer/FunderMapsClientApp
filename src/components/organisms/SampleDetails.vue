@@ -9,20 +9,12 @@
     </div>
 
     <div class="SampleDetail__overview" v-if="open">
-      <OverviewItem
-        v-for="(group, index) in sampleData"
-        :key="index"
-        :group="group"
-      />
+      <OverviewItem v-for="(group, index) in sampleData" :key="index" :group="group" />
       <div v-if="!readOnly" class="SampleDetail__change">
-        <router-link
-          :to="{
-            name: 'edit-report-2',
-            params: { sampleId: sample.id, step: 1 },
-          }"
-          class="btn btn-submit"
-          >Bewerken</router-link
-        >
+        <router-link :to="{
+          name: 'edit-report-2',
+          params: { sampleId: sample.id, step: 1 },
+        }" class="btn btn-submit">Bewerken</router-link>
       </div>
     </div>
   </div>
@@ -261,7 +253,7 @@ export default {
         {
           title: "Scheuren",
           col: 3,
-          show: this.sample.crackIndoorRestored !== null || this.sample.getCrackIndoorType() !==null || this.sample.crackIndoorSize !== null,
+          show: this.sample.crackIndoorRestored !== null || this.sample.getCrackIndoorType() !== null || this.sample.crackIndoorSize !== null,
           columns: [
             [
               {

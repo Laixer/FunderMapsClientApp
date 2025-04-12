@@ -4,7 +4,6 @@
       <span class="align-self-center"> MENU </span>
     </div>
     <SideMenu class="SideBar__sidemenu" :items="menuItems" :slim="slim" />
-    <!-- <MapLegend class="SideBar__legend" v-if="hasLegend && !slim" /> -->
     <div v-if="version && !slim" class="SideBar__version">
       Versie: {{ version }}
     </div>
@@ -13,13 +12,11 @@
 
 <script>
 import SideMenu from "molecule/SideMenu";
-// import MapLegend from "molecule/MapLegend";
 import { mapGetters } from "vuex";
 
 export default {
   components: {
     SideMenu,
-    // MapLegend,
   },
   props: {
     menuItems: {
@@ -38,9 +35,6 @@ export default {
     hasMenuItems() {
       return this.menuItems.length > 0;
     },
-    // hasLegend() {
-    //   return this.$route.meta.map;
-    // },
   },
 };
 </script>
@@ -66,9 +60,11 @@ export default {
   &__title {
     height: 60px;
   }
+
   &__sidemenu {
     flex-grow: 1;
   }
+
   &__version {
     // position: absolute;
     // bottom: 1rem;

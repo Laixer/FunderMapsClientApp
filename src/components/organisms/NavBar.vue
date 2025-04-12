@@ -14,7 +14,6 @@
         <b-dropdown-item v-for="(item, index) in menuItems" :key="index" :to="item.to">{{ item.label
           }}</b-dropdown-item>
       </b-nav-item-dropdown>
-      <!-- <MapControls v-if="hasMapControls" /> -->
     </b-nav>
   </nav>
 </template>
@@ -22,7 +21,6 @@
 <script>
 import Logo from "atom/branding/Logo";
 import MenuItem from "model/MenuItem";
-// import MapControls from "molecule/MapControls";
 
 import { mapGetters } from "vuex";
 
@@ -54,9 +52,6 @@ export default {
   },
   computed: {
     ...mapGetters("user", ["user"]),
-    // hasMapControls() {
-    //   return this.$route.meta.map;
-    // },
   },
 };
 </script>
