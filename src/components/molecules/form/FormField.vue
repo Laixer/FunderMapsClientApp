@@ -180,9 +180,6 @@
 import { validationMixin } from "vuelidate";
 import { icon, image } from "helper/assets";
 
-// TODO: https://github.com/charliekassel/vuejs-datepicker
-// TODO: https://vue-multiselect.js.org
-
 import Datepicker from "vuejs-datepicker";
 import { nl } from "vuejs-datepicker/dist/locale";
 
