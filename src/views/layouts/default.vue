@@ -38,7 +38,6 @@ import HeaderBar from "organism/HeaderBar";
 
 import MenuItem from "model/MenuItem";
 
-import { isSuperUser } from "service/auth";
 import { mapGetters, mapActions } from "vuex";
 
 /**
@@ -72,12 +71,6 @@ export default {
           "Report-icon.svg",
           "Report-icon-active.svg"
         ),
-        // new MenuItem(
-        //   "Kaart",
-        //   { name: "map" },
-        //   "Map-icon.svg",
-        //   "Map-icon-active.svg"
-        // ),
       ],
     };
   },
@@ -117,7 +110,6 @@ export default {
   methods: {
     ...mapActions("user", ["getUser"]),
     ...mapActions("org", ["getOrganization"]),
-    ...mapActions("version", ["getVersion"]),
     ...mapActions("contractors", ["getContractors"]),
   },
 };
