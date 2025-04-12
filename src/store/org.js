@@ -2,7 +2,6 @@
  * Import Dependency
  */
 import OrganizationModel from 'model/Organization'
-import Vue from 'vue'
 
 /**
  * Import API
@@ -14,21 +13,7 @@ import orgAPI from 'api/org';
  */
 const defaultState = {
   organization: null,
-  // Admin
-  organizations: [],
-
-  // TODO This is used for the admin panel only atm, look into this.
-  /**
-   * Stores all fetched organizations.
-   */
   allOrganizations: [],
-
-  // TODO This is an experiment.
-  /**
-   * Collection containing all fetched organizations.
-   * When a new organization is fetched, it will be
-   * added to the existing collection.
-   */
   organizationCollection: null
 }
 
@@ -57,10 +42,6 @@ const getters = {
    */
   getOrganizationCollection: state => {
     return state.organizationCollection
-  },
-  // Admin
-  organisations: state => {
-    return state.organizations
   }
 }
 const actions = {
@@ -102,7 +83,7 @@ const actions = {
   },
 
   /**
-   * Gets all organizations from the store.
+   * Gets all organizations for selection purposes.
    */
   async getAllOrganizations({ commit, getters }) {
     let response = await orgAPI.getAllOrganizations();
@@ -117,36 +98,10 @@ const actions = {
   clearOrg({ commit }) {
     commit('clear_org')
   },
-  /**
-   * Update the users own organization.
-   */
-  async updateOrganization({ commit, getters }, { data }) {
-    let response = await orgAPI.updateOrganization({ data })
-    if (response.status === 204) {
-      commit('update_organization', {
-        organizationId: getters.currentOrganization.id,
-        data
-      })
-    }
-    return response;
-  },
-  /**
-   * Update any organization as an admin.
-   */
-  async updateOrganizationAsAdmin({ commit }, { organizationId, data }) {
-    let response = await orgAPI.updateOrganizationAsAdmin({ organizationId, data })
-    if (response.status === 204) {
-      commit('update_organization', {
-        organizationId, data
-      })
-    }
-    return response;
-  }
 }
 const mutations = {
   /**
    * Adds an organization to the state organization collection.
-   * TODO Duplicate check.
    */
   add_organization_to_collection(state, { organization }) {
     if (!state.organizationCollection) {
@@ -154,10 +109,6 @@ const mutations = {
     }
 
     state.organizationCollection.push(new OrganizationModel(organization));
-  },
-  set_organizations(state, { organizations }) {
-    state.organization = new OrganizationModel(organizations[0]);
-    state.organizations = organizations.map(org => new OrganizationModel(org))
   },
   set_organization(state, { organization }) {
     state.organization = new OrganizationModel(organization);
@@ -167,14 +118,6 @@ const mutations = {
   },
   clear_org(state) {
     state.organization = null
-    state.organizations = null
-  },
-  // Admin
-  update_organization(state, { orgId, data }) {
-    let index = state.organizations.findIndex(org => {
-      return org.id === orgId
-    })
-    state.organizations[index] = data
   },
   reset(state) {
     Object.assign(state, defaultState);

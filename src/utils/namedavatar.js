@@ -14,4 +14,3 @@ export const generateAvatar = ({ name }) => {
     namedavatar.getSVGString(name[0])
   )
 }
-

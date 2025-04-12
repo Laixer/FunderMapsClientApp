@@ -63,119 +63,17 @@ const actions = {
       })
     }
   },
-
+  
   /**
-   * Get all users for a given organization id. The logged in
-   * user must be admin to be able to call this function.
+   * This calls getUsers() if we can't find the requested
+   * user id in our store. If we can find it, nothing will happen.
    */
-  async adminGetUsers({ commit }, { organizationId }) {
-    let response = await orgUserAPI.adminGetOrganizationUsers({ organizationId });
-    if (response.status === 200) {
-      commit('set_users', {
-        users: response.data
-      })
-    }
-  },
-
-  /**
- * This calls getUsers() if we can't find the requested
- * user id in our store. If we can find it, nothing will happen.
- */
   async getOrgUsersIfNotStored({ getters, dispatch }, { userId }) {
     if (!getters.getUserById({ id: userId })) {
       dispatch('getUsers');
     }
   },
-
-  /**
-   * Updates an organization user, then triggers the getUsers
-   * action to fetch the updated user. The result is then returned.
-   */
-  async updateUser({ dispatch }, { userId, data }) {
-    let response = await orgUserAPI.updateOrganizationUser({ userId, data })
-    if (response.status === 204) {
-      dispatch('getUsers');
-    }
-    return response;
-  },
-
-  /**
-   * Admin call which updates a given organization user.
-   */
-  async adminUpdateUser({ dispatch }, { organizationId, userId, data }) {
-    let response = await orgUserAPI.adminUpdateOrganizationUser({ organizationId, userId, data })
-    if (response.status === 204) {
-      dispatch('adminGetUsers', { organizationId });
-    }
-    return response;
-  },
-
-  /**
- * Updates an organization user role, then triggers the getUsers
- * action to fetch the updated user. The result is then returned.
- */
-  async updateUserRole({ dispatch }, { userId, role }) {
-    let response = await orgUserAPI.updateOrganizationUserRole({ userId, role })
-    if (response.status === 204) {
-      dispatch('getUsers');
-    }
-    return response;
-  },
-
-  /**
-   * Admin call which updates a given organization user role.
-   */
-  async adminUpdateUserRole({ dispatch }, { organizationId, userId, role }) {
-    let response = await orgUserAPI.adminUpdateOrganizationUserRole({ organizationId, userId, role })
-    if (response.status === 204) {
-      dispatch('adminGetUsers', { organizationId });
-    }
-    return response;
-  },
-
-  /**
-   * Creates a new organization user, then triggers the getUsers
-   * action to fetch the created user. The result is then returned.
-   */
-  async createUser({ dispatch }, { data }) {
-    let response = await orgUserAPI.createOrganizationUser({ data })
-    if (response.status === 200) {
-      dispatch('getUsers');
-    }
-    return response;
-  },
-
-  /**
-   * Admin call to create a user for any organization.
-   */
-  async adminCreateUser({ dispatch }, { organizationId, data }) {
-    let response = await orgUserAPI.adminCreateOrganizationUser({ organizationId, data })
-    if (response.status === 200) {
-      dispatch('adminGetUsers', { organizationId });
-    }
-    return response;
-  },
-
-  /**
-   * Removes an organization user.
-   */
-  async removeUser({ commit }, { userId }) {
-    let response = await orgUserAPI.removeOrganizationUser({ userId })
-    if (response.status === 204) {
-      commit('remove_user', { userId })
-    }
-  },
-
-  /**
-   * Admin call that removes any user from any organization.
-   */
-  async adminRemoveUser({ commit }, { organizationId, userId }) {
-    let response = await orgUserAPI.adminRemoveOrganizationUser({ organizationId, userId })
-    if (response.status === 204) {
-      commit('remove_user', { userId })
-    }
-  },
-
+  
   /**
    * Clears all currently stored users from the state.
    */
@@ -189,19 +87,6 @@ const mutations = {
     state.users = users.map(user => {
       return new OrgUserModel(user)
     })
-  },
-  // TODO This isn't used
-  // update_user(state, { user }) {
-  //   let index = state.users.findIndex(u => {
-  //     return u.id === user.id
-  //   })
-  //   state.users[index] = user;
-  // },
-  remove_user(state, { userId }) {
-    let index = state.users.findIndex(user => {
-      return user.id === userId
-    })
-    Vue.delete(state.users, index);
   },
   clear_users(state) {
     state.users = null

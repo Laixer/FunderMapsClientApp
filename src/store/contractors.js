@@ -29,13 +29,13 @@ const actions = {
       commit('set_contractors', { contractors: response.data })
     }
   },
-  clearVersion({ commit }) {
+  clearContractors({ commit }) {
     commit('clear_contractors')
   }
 }
 const mutations = {
   set_contractors(state, { contractors }) {
-    state.contractors = contractors.map(contractor => new AttributedOrganisation(contractor.id, 'Uitvoerder', contractor.name))
+    state.contractors = contractors.map(contractor => new AttributedOrganisation(contractor.id, 'Contractor', contractor.name))
   },
   clear_contractors(state) {
     state.contractors = null;

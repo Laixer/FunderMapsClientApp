@@ -9,48 +9,16 @@ export default {
   },
 
   /**
-   * Admin call for getting an organization by its id.
+   * Get an organization by its id for viewing purposes.
    */
   getOrganizationById: ({ id }) => {
-    return axios.get(`/api/admin/organization/${id}`)
+    return axios.get(`/api/organization/${id}`)
   },
 
   /**
-   * Admin call for getting all existing organizations.
+   * Get all organizations for selection purposes.
    */
   getAllOrganizations: () => {
-    return axios.get('/api/admin/organization/')
-  },
-
-  /**
-   * Updates the organization of teh currently logged in user.
-   */
-  updateOrganization: ({ data }) => {
-    // TODO This is a quickfix, see FunderMapsClientApp issue #80
-    data.homeAddressNumber = data.homeAddressNumber ? Number(data.homeAddressNumber) : null;
-    data.postalAddressNumber = data.postalAddressNumber ? Number(data.postalAddressNumber) : null;
-
-    return axios.put(`/api/organization`, data)
-  },
-
-  /**
-   * Admin call updating an organization.
-   */
-  updateOrganizationAsAdmin: ({ organizationId, data }) => {
-    // TODO This is a quickfix, see FunderMapsClientApp issue #80
-    data.homeAddressNumber = data.homeAddressNumber ? Number(data.homeAddressNumber) : null;
-    data.postalAddressNumber = data.postalAddressNumber ? Number(data.postalAddressNumber) : null;
-
-    return axios.put(`/api/admin/organization/${organizationId}`, data)
-  },
-
-  /**
-   * Used to complete the organization registration.
-   */
-  createOrganization: ({ email, password, id }) => {
-    return axios.post(`/api/organization/${id}/setup`, {
-      email,
-      password
-    })
+    return axios.get('/api/organization/all')
   }
 }
