@@ -2,7 +2,6 @@
  * Import Dependency
  */
 import OrganizationModel from 'model/Organization'
-import OrganizationProposalModal from 'model/OrganizationProposalModal'
 import Vue from 'vue'
 
 /**
@@ -30,8 +29,7 @@ const defaultState = {
    * When a new organization is fetched, it will be
    * added to the existing collection.
    */
-  organizationCollection: null,
-  proposals: null
+  organizationCollection: null
 }
 
 const state = Object.assign({}, defaultState);
@@ -63,12 +61,6 @@ const getters = {
   // Admin
   organisations: state => {
     return state.organizations
-  },
-  proposals: state => {
-    return state.proposals
-  },
-  areProposalsAvailable: state => {
-    return state.proposals !== null
   }
 }
 const actions = {
@@ -149,42 +141,6 @@ const actions = {
       })
     }
     return response;
-  },
-  async getProposals({ commit }) {
-    let response = await orgAPI.getProposals();
-    if (response.status === 200 && response.data) {
-      commit('set_proposals', {
-        proposals: response.data
-      })
-    }
-  },
-  async removeProposal({ commit }, { id }) {
-    let response = await orgAPI.removeProposal({ id });
-    if (response.status === 204) {
-      commit('remove_proposal', {
-        id
-      })
-    }
-  },
-
-  /**
-   * Admin call that creates a new organization proposal.
-   */
-  async createProposal({ commit }, { name, email }) {
-    let response = await orgAPI.createProposal({ name, email });
-    if (response.status === 204 && response.data) {
-      commit('create_proposal', {
-        proposal: response.data
-      })
-    }
-  },
-
-  /**
-   * Used to complete the organization registration process
-   * by creating the first user with email and password.
-   */
-  async registerOrganization(context, { email, password, id }) {
-    return await orgAPI.createOrganization({ email, password, id });
   }
 }
 const mutations = {
@@ -219,22 +175,6 @@ const mutations = {
       return org.id === orgId
     })
     state.organizations[index] = data
-  },
-  set_proposals(state, { proposals }) {
-    state.proposals = proposals.map(
-      proposal => new OrganizationProposalModal(proposal)
-    )
-  },
-  remove_proposal(state, { id }) {
-    let index = state.proposals.findIndex(proposal => {
-      return proposal.id === id
-    })
-    Vue.delete(state.proposals, index);
-  },
-  create_proposal(state, { proposal }) {
-    state.proposals.unshift(
-      new OrganizationProposalModal(proposal)
-    )
   },
   reset(state) {
     Object.assign(state, defaultState);

@@ -1,4 +1,3 @@
-
 import axios from '@/utils/axios'
 
 export default {
@@ -43,21 +42,6 @@ export default {
     data.postalAddressNumber = data.postalAddressNumber ? Number(data.postalAddressNumber) : null;
 
     return axios.put(`/api/admin/organization/${organizationId}`, data)
-  },
-
-  /**
-   * Gets all currently existing organization proposals.
-   */
-  getProposals: () => {
-    return axios.get('/api/organization/proposal')
-  },
-  removeProposal: ({ id }) => {
-    return axios.delete(`/api/organization/proposal/${id}`)
-  },
-  createProposal: ({ name, email }) => {
-    return axios.post(`/api/organization/proposal`, {
-      name, email
-    })
   },
 
   /**

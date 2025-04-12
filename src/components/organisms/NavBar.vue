@@ -28,7 +28,6 @@ export default {
   name: "NavBar",
   components: {
     Logo,
-    // MapControls,
   },
   props: {
     admin: {
