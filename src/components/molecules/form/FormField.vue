@@ -84,17 +84,6 @@
     ></b-form-radio-group>
 
     <div class="image-checkbox" v-else-if="type === 'checkbox'">
-      <!-- <b-form-checkbox
-        v-model="fieldValue"
-        :options="options"
-        :state="state"
-        :placeholder="placeholder"
-        :autocomplete="autocomplete"
-        :disabled="isDisabled"
-        @input="handleInput"
-        @blur="handleBlur"
-      >
-      </b-form-checkbox> -->
       <input
         type="checkbox"
         v-model="fieldValue"
@@ -109,24 +98,6 @@
         <span class="item-check"></span>
       </label>
     </div>
-
-    <!-- <v-date-picker
-      locale="nl"
-      :popover="{ visibility: 'click' }"
-      v-else-if="type === 'datepicker'"
-      @input="handleDatepickerInput"
-      v-model="datepickerValue">
-      <b-form-input 
-        v-model="fieldValue" 
-        type="text"
-        :style="datepickerStyle"
-        :state="state" 
-        :placeholder="placeholder"
-        :autocomplete="autocomplete"
-        :disabled="isDisabled"
-        @blur="handleDatepickerBlur"
-        trim />
-    </v-date-picker> -->
 
     <Datepicker
       v-else-if="type === 'datepicker'"
