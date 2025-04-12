@@ -57,9 +57,6 @@ export default {
         return false;
       }
       return this.report.isEditable();
-
-      // TODO || isSuperUser() was removed. The state machine does not
-      // support this functionality.
     },
     reviewerUserObject() {
       return this.getUserById({ id: this.report.attribution.reviewer });
