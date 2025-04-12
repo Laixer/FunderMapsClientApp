@@ -1,4 +1,7 @@
-
+/**
+ * DEPRECATED: This API module appears to be unused as the Map functionality is disabled.
+ * The map route is commented out in the default.vue layout, and no Map.vue view component exists.
+ */
 import axios from '../utils/axios'
 
 export default {
