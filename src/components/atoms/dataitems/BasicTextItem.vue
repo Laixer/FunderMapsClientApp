@@ -40,7 +40,7 @@ export default {
         output = "Nee";
       } else {
         output =
-          isObject(this.value) && this.value.hasOwnProperty("text")
+          isObject(this.value) && Object.prototype.hasOwnProperty.call(this.value, "text")
             ? this.value.text
             : this.value;
       }

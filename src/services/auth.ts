@@ -1,4 +1,3 @@
-
 import authAPI from '../api/auth'
 import jwt_decode from "jwt-decode"
 import store from "@/store"
@@ -88,6 +87,9 @@ export function getLastUserEmail(): string {
 
 export function isSuperUser(): boolean {
   return getOrganizationRole() === 'superuser';
+}
+export function isAdmin(): boolean {
+  return isSuperUser(); // Admin is equivalent to superuser in this context
 }
 export function isVerifier(): boolean {
   return getOrganizationRole() === 'verifier'
