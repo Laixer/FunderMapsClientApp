@@ -65,10 +65,6 @@ const actions = {
     if (!getters.getUserById({ id: userId })) {
       dispatch('getReviewers');
     }
-  },
-
-  clearVersion({ commit }) {
-    commit('clear_reviewers')
   }
 }
 const mutations = {

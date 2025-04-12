@@ -1,4 +1,3 @@
-
 /**
  * Import Dependency
  */
@@ -60,9 +59,6 @@ const actions = {
         contractors: response.data
       })
     }
-  },
-  clearPrincipalUsers({ commit }) {
-    commit('clear_principal_users')
   }
 }
 const mutations = {
@@ -74,9 +70,7 @@ const mutations = {
   set_contractors(state, { contractors }) {
     state.contractors = contractors.map(org => new AttributedOrganisation(org.id, org.role, org.name));
   },
-  clear_principal_users(state) {
-    state.users = null
-  },
+  // Removed unused clear_principal_users mutation
   reset(state) {
     Object.assign(state, defaultState);
   }
