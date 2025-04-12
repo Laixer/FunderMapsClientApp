@@ -9,7 +9,6 @@ import user from './user'
 import orgUsers from './orgUsers'
 import samples from './samples'
 import attestation from './attestation'
-import map from './map'
 import contractors from './contractors'
 import reviewers from './reviewers'
 
@@ -24,7 +23,6 @@ const store: StoreOptions<{}> = {
     report,
     samples,
     attestation,
-    map,
     contractors,
     reviewers,
     address,
