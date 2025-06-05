@@ -9,7 +9,7 @@
       :to="{ name: 'edit-report-2', params: { page: 1, step: step } }"
       class="FormStepDropdown"
     >
-      <h5 class="FormStep__title">Vervorming/FunderScan</h5>
+      <h5 class="FormStep__title">Vervorming/QuickScan</h5>
     </router-link>
 
     <div class="FormStepForm" v-if="active">
@@ -185,7 +185,7 @@ export default {
           validationRules: {},
         },
         facadeScanRisk: {
-          label: "Risico FunderScan",
+          label: "Risico QuickScan",
           type: "select",
           value: null,
           options: [

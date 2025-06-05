@@ -21,7 +21,7 @@ export const typeOptions = [
     bgColor: "#3D5372",
   },
   {
-    text: "Quickscan",
+    text: "QuickScan (vervallen)",
     color: "white",
     bgColor: "#3D5372",
   },
@@ -76,7 +76,7 @@ export const typeOptions = [
     bgColor: "#3D5372",
   },
   {
-    text: "Gevelscan",
+    text: "QuickScan (addendum)",
     color: "white",
     bgColor: "#3D5372",
   }
