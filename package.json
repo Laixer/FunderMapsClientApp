@@ -10,12 +10,10 @@
     "audit:fix": "npm audit fix --force"
   },
   "dependencies": {
-    "@types/jwt-decode": "^3.1.0",
     "axios": "^1.9.0",
     "bootstrap": "^4.6.2",
     "bootstrap-vue": "^2.23.1",
     "core-js": "^3.42.0",
-    "jwt-decode": "^3.1.2",
     "lodash.clonedeep": "^4.5.0",
     "namedavatar": "^1.2.0",
     "vue": "^2.6.14",

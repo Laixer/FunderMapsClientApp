@@ -1,23 +1,19 @@
-
 import axios from '@/utils/axios'
+
+/**
+ * Self-user endpoints on FunderMapsApi (canonical TS API shape).
+ * Wire format: snake_case throughout.
+ */
 
 export default {
   getUser: () => {
-    return axios.get('/api/user')
+    return axios.get('/api/user/me')
   },
   updateUser: ({
-    givenName, lastName, avatar, jobTitle, phoneNumber, email
+    given_name, family_name, picture, job_title, phone_number,
   }) => {
-    return axios.put('/api/user', {
-      givenName, lastName, avatar, jobTitle, phoneNumber, email
+    return axios.put('/api/user/me', {
+      given_name, family_name, picture, job_title, phone_number,
     })
   },
-  // TODO: This is not the way to save the users password
-  updateUserPassword: ({
-    newPassword, oldPassword
-  }) => {
-    return axios.post('/api/user/change-password', {
-      newPassword, oldPassword
-    })
-  }
 }
