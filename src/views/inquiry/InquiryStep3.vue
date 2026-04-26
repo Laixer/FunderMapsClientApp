@@ -14,13 +14,16 @@ import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import { AUDIT_STATUS, inquiryTypeLabel } from '@/services/inquiryEnums'
 import { formatDate } from '@/utils/date'
+import { formatAddress } from '@/utils/address'
 import { getErrorMessage } from '@/services/fundermaps/errors'
+import { useAddressStore } from '@/stores/address'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
 const inquiryId = computed(() => Number(route.params.id))
+const addressStore = useAddressStore()
 
 const inquiry: Ref<IInquiry | null> = ref(null)
 const samples: Ref<IInquirySample[]> = ref([])
@@ -47,6 +50,7 @@ async function load() {
     ])
     inquiry.value = i
     samples.value = s
+    await addressStore.ensureMany(s.map((row) => row.address))
   } catch (e) {
     error.value = getErrorMessage(e) ?? t('error.generic')
   } finally {
@@ -126,7 +130,9 @@ function previous() {
           </p>
           <ul v-else class="divide-y divide-grey-200">
             <li v-for="s in samples" :key="s.id" class="py-3 text-sm">
-              <p class="font-semibold text-grey-800">{{ s.address }}</p>
+              <p class="font-semibold text-grey-800">
+                {{ formatAddress(addressStore.cache[s.address]) }}
+              </p>
               <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
             </li>
           </ul>

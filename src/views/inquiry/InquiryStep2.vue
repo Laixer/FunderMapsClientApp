@@ -14,12 +14,15 @@ import api from '@/services/fundermaps'
 import type { IInquirySample, IInquirySampleInput } from '@/services/fundermaps/interfaces/IInquirySample'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
 import { getErrorMessage } from '@/services/fundermaps/errors'
+import { formatAddress } from '@/utils/address'
+import { useAddressStore } from '@/stores/address'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
 const inquiryId = computed(() => Number(route.params.id))
+const addressStore = useAddressStore()
 
 const samples: Ref<IInquirySample[]> = ref([])
 const loading = ref(true)
@@ -36,6 +39,7 @@ async function load() {
     loading.value = true
     loadError.value = null
     samples.value = await api.inquirySample.list(inquiryId.value, { limit: 200 })
+    await addressStore.ensureMany(samples.value.map((s) => s.address))
     if (selectedId.value === null && samples.value.length > 0) {
       selectedId.value = samples.value[0].id
     }
@@ -56,6 +60,9 @@ async function handlePick(address: IAddress) {
   showPicker.value = false
   saving.value = true
   actionError.value = null
+  // Cache the resolved address right away so the new sample renders with
+  // a human-readable label as soon as it shows up in the list.
+  addressStore.cache[address.id] = address
   try {
     const empty: IInquirySampleInput = {
       address: address.id,
@@ -149,7 +156,8 @@ async function handleSave(data: IInquirySampleInput) {
 
 async function handleDelete() {
   if (!selected.value) return
-  if (!confirm(`Adres "${selected.value.address}" verwijderen?`)) return
+  const label = formatAddress(addressStore.cache[selected.value.address])
+  if (!confirm(`Adres "${label}" verwijderen?`)) return
   saving.value = true
   actionError.value = null
   try {
@@ -208,7 +216,7 @@ function previous() {
               :class="s.id === selectedId ? 'bg-green-100 font-semibold' : ''"
               @click="selectSample(s.id)"
             >
-              {{ s.address }}
+              {{ formatAddress(addressStore.cache[s.address]) }}
             </li>
           </ul>
         </Card>

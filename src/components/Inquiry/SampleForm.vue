@@ -10,6 +10,8 @@ import Textarea from '@/components/Common/Inputs/Textarea.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 
 import type { IInquirySample, IInquirySampleInput } from '@/services/fundermaps/interfaces/IInquirySample'
+import { formatAddress } from '@/utils/address'
+import { useAddressStore } from '@/stores/address'
 import {
   SUBSTRUCTURE_OPTIONS,
   FOUNDATION_TYPE_OPTIONS,
@@ -30,6 +32,8 @@ const props = defineProps<{
   sample: IInquirySample
   saving?: boolean
 }>()
+
+const addressStore = useAddressStore()
 
 const emit = defineEmits<{
   save: [data: IInquirySampleInput]
@@ -56,7 +60,9 @@ function onSave() {
 <template>
   <div class="space-y-6">
     <Card title="Adres">
-      <p class="text-sm text-grey-800">{{ form.address }}</p>
+      <p class="text-sm text-grey-800">
+        {{ formatAddress(addressStore.cache[form.address]) }}
+      </p>
       <p v-if="form.building" class="text-xs text-grey-700">Pand: {{ form.building }}</p>
     </Card>
 
