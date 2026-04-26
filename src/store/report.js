@@ -13,14 +13,12 @@ import reportAPI from 'api/reports';
  */
 const defaultState = {
   report: false,
-  reviewers: []
 }
 
 const state = Object.assign({}, defaultState);
 
 const getters = {
   activeReport: state => state.report,
-  reviewers: state => state.reviewers
 }
 const actions = {
   async getReportById({ commit }, { id }) {
@@ -83,14 +81,6 @@ const actions = {
       commit('set_report_pending_review')
     }
   },
-  async getReviewers({ commit }) {
-    let response = await reportAPI.getReviewers()
-    if (response.status === 200 && response.data) {
-      commit('set_reviewers', {
-        reviewers: response.data
-      })
-    }
-  }
 }
 const mutations = {
   set_report(state, { report }) {
@@ -113,12 +103,6 @@ const mutations = {
   },
   set_report_status_todo(state) {
     state.report.setStatus({ status: 0 })
-  },
-  set_reviewers(state, { reviewers }) {
-    state.reviewers = reviewers
-  },
-  clear_reviewers(state) {
-    state.reviewers = []
   },
   reset(state) {
     Object.assign(state, defaultState);

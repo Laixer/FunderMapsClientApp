@@ -1,22 +1,23 @@
-
 /**
- * The User model - contains the profile information of the active user
- * 
- * Note: look at the OrgUser model for the (profile) information superusers 
- *       and admins can access regarding other users.
+ * The User model — wraps the /api/user/me payload from FunderMapsApi.
+ *
+ * Field names mirror the canonical TS API shape (snake_case) — the wire
+ * format is the source of truth. Don't introduce camelCase aliases here.
  */
 
 import { generateAvatar } from 'utils/namedavatar'
 
 class UserModel {
-  constructor({ id, email, givenName, lastName, avatar, jobTitle, phoneNumber }) {
+  constructor({ id, email, given_name, family_name, picture, job_title, phone_number, role, organizations }) {
     this.id = id;
     this.email = email;
-    this.givenName = givenName || ''
-    this.lastName = lastName || ''
-    this.avatar = avatar || ''
-    this.jobTitle = jobTitle || ''
-    this.phoneNumber = phoneNumber || ''
+    this.given_name = given_name || ''
+    this.family_name = family_name || ''
+    this.picture = picture || ''
+    this.job_title = job_title || ''
+    this.phone_number = phone_number || ''
+    this.role = role || 'user'
+    this.organizations = organizations || []
   }
   // ****************************************************************************
   //  Rights
@@ -35,19 +36,17 @@ class UserModel {
    * Aim to get the most natural name by which to identify the user
    */
   getUserName() {
-    // First try given and/or last name
     let name = ''
-    if (this.givenName) {
-      name += this.givenName
+    if (this.given_name) {
+      name += this.given_name
     }
-    if (this.lastName) {
-      name += ' ' + this.lastName
+    if (this.family_name) {
+      name += ' ' + this.family_name
     }
     if (name) {
       return name.trim()
     }
-    // ...
-    return this.jobTitle || 'Me'
+    return this.job_title || 'Me'
   }
   // ****************************************************************************
   //  Avatar
@@ -57,22 +56,29 @@ class UserModel {
    */
   getAvatar() {
     if (this.hasAvatar()) {
-      return this.avatar
+      return this.picture
     }
-
     return this.generateAvatar()
   }
   /**
    * Whether the user has uploaded an Avatar
    */
   hasAvatar() {
-    return this.avatar !== '' && this.avatar !== null
+    return this.picture !== '' && this.picture !== null
   }
   /**
    * Generate a default avatar
    */
   generateAvatar() {
     return generateAvatar({ name: this.getUserName() })
+  }
+  /**
+   * Org role from /api/user/me organizations[0].role.
+   * Returns the snake_case string ('superuser'|'verifier'|'writer'|'reader')
+   * or '' if the user has no org membership.
+   */
+  getOrganizationRole() {
+    return (this.organizations[0] && this.organizations[0].role) || ''
   }
 }
 

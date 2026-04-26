@@ -1,83 +1,95 @@
 import authAPI from '../api/auth'
-import jwt_decode from "jwt-decode"
 import store from "@/store"
 
 /**
- * Check whether the user has credentials stored
- * Note: the credentials may be invalid
- * TODO This should be checked
+ * FunderMaps auth — Better Auth (bearer plugin) flow.
+ *
+ * The token is opaque from the client's perspective — no JWT decoding, no
+ * cfor/role claims. Role and identity come from the user store, which is
+ * hydrated by /api/user/me on app boot (see store/user.js + the router
+ * guard).
+ */
+
+// localStorage keys
+const access_token_key = 'access_token';
+const last_user = 'last_user';
+
+/**
+ * Has a session token been issued? Doesn't prove the token is still valid —
+ * the API will 401 if it's expired and the response handler redirects to
+ * login.
  */
 export function isLoggedIn(): boolean {
-  let token = getAccessToken();
-  if (token == null) {
-    return false;
-  }
-
-  var parsed = getAccessTokenDecoded();
-  var time = Math.round((new Date()).getTime() / 1000);
-  return parsed.exp > time;
+  return getAccessToken() !== null;
 }
 
 /**
- * Login based on email & password. Store credentials on success.
+ * Login based on email & password. Stores the bearer token on success.
  */
 export function login(email: string, password: string) {
   return authAPI
     .login({ email, password })
-    .then(handleAuthResponse)
+    .then((response: any) => {
+      // Better Auth /sign-in/email response shape: { token, user, redirect }
+      const token = response?.data?.token;
+      if (!token) {
+        throw new Error('Sign-in succeeded but no token returned');
+      }
+      localStorage.setItem(access_token_key, token);
+      sessionStorage.setItem(last_user, email);
+    });
 }
 
 /**
- * End the user session
+ * End the user session. Calls Better Auth /sign-out to invalidate the
+ * session server-side, then clears local state. Local state always clears
+ * even if the network call fails.
  */
-export function logout(): void {
-  localStorage.removeItem(access_token_key)
-  localStorage.removeItem(user_key)
-}
-
-/**
- * Renew the authentication credentials
- */
-export function refreshLogin(): void {
-  if (isLoggedIn()) {
-    authAPI
-      .refresh()
-      .then(handleAuthResponse)
-      .catch(() => {
-        // Redirect to Login?
-        // console.error(error)
-      })
+export async function logout(): Promise<void> {
+  try {
+    await authAPI.signOut();
+  } catch {
+    // ignore — local state must always reset
+  } finally {
+    localStorage.removeItem(access_token_key);
   }
 }
 
 /**
- * return authorization header with jwt token
+ * Confirm the current session is still alive. Better Auth has no refresh
+ * tokens — /api/auth/get-session both validates the bearer and extends the
+ * session in place. Throws if the session is gone (caller redirects to
+ * login).
  */
-export function authHeader(): object {
-  return (isLoggedIn())
-    ? { 'Authorization': 'Bearer ' + getAccessToken() }
-    : {}
+export async function refreshLogin(): Promise<void> {
+  if (!isLoggedIn()) return;
+  try {
+    await authAPI.getSession();
+  } catch {
+    // Let the next API call surface the 401; don't auto-redirect from here.
+  }
+}
+
+/**
+ * Returns the Authorization header for our API calls (Bearer token).
+ */
+export function authHeader(): { Authorization?: string } {
+  const token = getAccessToken();
+  return token ? { Authorization: 'Bearer ' + token } : {};
 }
 
 export function getUserEmail(): string {
-  let user = getUser()
-  return (user)
-    ? user.email
-    : ''
+  const user = getUser();
+  return user ? user.email : '';
 }
 
 export function getUserId(): string {
-  let user = getUser()
-  return user
-    ? user.id
-    : ''
+  const user = getUser();
+  return user ? user.id : '';
 }
 
 export function getLastUserEmail(): string {
-  let email = getLastUserEmailFromStorage()
-  return email
-    ? email
-    : ''
+  return sessionStorage.getItem(last_user) || '';
 }
 
 
@@ -89,25 +101,28 @@ export function isSuperUser(): boolean {
   return getOrganizationRole() === 'superuser';
 }
 export function isAdmin(): boolean {
-  return isSuperUser(); // Admin is equivalent to superuser in this context
+  // Global app role 'administrator' (separate from org role) — granted
+  // implicitly to superusers too for ClientApp UI gating.
+  const u = getUser();
+  return u?.role === 'administrator' || isSuperUser();
 }
 export function isVerifier(): boolean {
-  return getOrganizationRole() === 'verifier'
+  return getOrganizationRole() === 'verifier';
 }
 export function isWriter(): boolean {
-  return getOrganizationRole() === 'writer'
+  return getOrganizationRole() === 'writer';
 }
 export function isReader(): boolean {
-  return getOrganizationRole() === 'reader'
+  return getOrganizationRole() === 'reader';
 }
 export function canManageUsers(): boolean {
-  return isSuperUser()
+  return isSuperUser();
 }
 export function canApprove(): boolean {
-  return isVerifier() || isSuperUser()
+  return isVerifier() || isSuperUser();
 }
 export function canWrite(): boolean {
-  return canApprove() || isWriter()
+  return canApprove() || isWriter();
 }
 
 /**
@@ -126,61 +141,16 @@ export function canRead(): boolean {
 //  Private
 // ****************************************************************************
 
-// localStorage keys
-const user_key = 'user';
-const last_user = 'last_user';
-const access_token_key = 'access_token';
-
-/**
- * Store the authentication or refresh response
- */
-function handleAuthResponse(response: any) {
-  localStorage.setItem(access_token_key, response.data.token)
-}
-
-/**
- * Get the last login user from session storage
- */
-function getLastUserEmailFromStorage() {
-  return sessionStorage.getItem(last_user) || false
-}
-
-/**
- * Gets the stored access token.
- */
 function getAccessToken(): string | null {
   return localStorage.getItem(access_token_key);
 }
 
-/**
- * Get the access token from storage and decode it.
- */
-function getAccessTokenDecoded(): JwtToken {
-  let token = getAccessToken();
-  if (!token) {
-    throw new Error('Could not get access token when requesting user');
-  }
-
-  return jwt_decode(token);
-}
-
-
-/**
- * Get the user from storage.
- */
 function getUser(): any {
   return store.getters["user/user"];
 }
 
-/**
- * Gets the organization role from the jwt access token.
- */
-function getOrganizationRole() {
-  try {
-    let tokenDecoded = getAccessTokenDecoded();
-
-    return tokenDecoded.cfor.toLowerCase();
-  } catch (err) {
-    return ''
-  }
+function getOrganizationRole(): string {
+  const u = getUser();
+  if (!u || typeof u.getOrganizationRole !== 'function') return '';
+  return u.getOrganizationRole();
 }

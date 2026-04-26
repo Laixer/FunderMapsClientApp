@@ -1,8 +1,9 @@
-
 import { generateAvatar } from 'utils/namedavatar'
 
 /**
- * Just a pretty wrapper for now
+ * Wrapper for an organization-member row from /api/organization/user — i.e. a
+ * full /api/user/me-shape user (snake_case) plus the caller's role in the
+ * organization (`organization_role` as snake_case string from the PG enum).
  */
 class OrgUserModel {
   constructor(user) {
@@ -15,43 +16,42 @@ class OrgUserModel {
    * Aim to get the most natural name by which to identify the user
    */
   getUserName() {
-    // First try given and/or last name
     let name = '';
-    if (this.givenName) {
-      name += this.givenName;
+    if (this.given_name) {
+      name += this.given_name;
     }
-    if (this.lastName) {
-      name += ' ' + this.lastName;
+    if (this.family_name) {
+      name += ' ' + this.family_name;
     }
     if (name) {
       return name.trim();
     }
-    // Resort to email
     return this.email;
   }
   // ****************************************************************************
   //  Role
   // ****************************************************************************
+  /**
+   * Internal role identifier (English title-case for legacy comparisons).
+   */
   getRoleSlug() {
-    switch (this.organizationRole) {
-      case 0:
+    switch (this.organization_role) {
+      case 'superuser':
         return 'Superuser';
-      case 1:
+      case 'verifier':
         return 'Verifier';
-      case 2:
+      case 'writer':
         return 'Writer';
-      case 3:
+      case 'reader':
         return 'Reader';
     }
     return 'Unknown';
   }
   /**
-   * The translated role name
+   * Translated (Dutch) role label for UI.
    */
   getRoleName() {
     switch (this.getRoleSlug()) {
-      case 'Admin':
-        return 'Admin';
       case 'Superuser':
         return 'Beheerder';
       case 'Verifier':
@@ -67,13 +67,13 @@ class OrgUserModel {
    * Whether or not the user is able to approve / disapprove reports
    */
   canReview() {
-    return ['Admin', 'Superuser', 'Reviewer'].includes(this.getRoleSlug());
+    return ['Superuser', 'Verifier'].includes(this.getRoleSlug());
   }
   /**
    * Whether or not the user is able to create and edit reports
    */
   canCreate() {
-    return ['Admin', 'Superuser', 'Creator'].includes(this.getRoleSlug());
+    return ['Superuser', 'Writer'].includes(this.getRoleSlug());
   }
   // ****************************************************************************
   //  Avatar
@@ -83,7 +83,7 @@ class OrgUserModel {
    */
   getAvatar() {
     if (this.hasAvatar()) {
-      return this.avatar;
+      return this.picture;
     }
     return this.generateAvatar();
   }
@@ -91,13 +91,13 @@ class OrgUserModel {
    * Whether the user has uploaded an Avatar
    */
   hasAvatar() {
-    return this.avatar !== '' && this.avatar !== null;
+    return this.picture !== '' && this.picture !== null;
   }
   /**
    * Generate a default avatar
    */
   generateAvatar() {
-    return generateAvatar({ name: this.getUserName() || '?' }); // TODO: This should not be the fix
+    return generateAvatar({ name: this.getUserName() || '?' });
   }
 }
 

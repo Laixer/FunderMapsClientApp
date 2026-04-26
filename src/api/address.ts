@@ -12,10 +12,11 @@ export default {
     },
 
     /**
-     * Gets a single address from our geocoder.
-     * @param id Internal address id.
+     * Gets a single address from our geocoder by id.
+     * Canonical FunderMapsApi path: /api/geocoder/:id/address
+     * @param id Internal geocoder id.
      */
     getAddressById(id: string) {
-        return axios.get(`/api/geocoder/address/${id}`);
+        return axios.get(`/api/geocoder/${id}/address`);
     }
 }

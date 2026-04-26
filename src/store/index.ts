@@ -8,7 +8,6 @@ import report from './report'
 import user from './user'
 import orgUsers from './orgUsers'
 import samples from './samples'
-import attestation from './attestation'
 import contractors from './contractors'
 import reviewers from './reviewers'
 
@@ -22,7 +21,6 @@ const store: StoreOptions<{}> = {
     orgUsers,
     report,
     samples,
-    attestation,
     contractors,
     reviewers,
     address,
@@ -40,7 +38,6 @@ const store: StoreOptions<{}> = {
       commit("user/reset")
       commit("orgUsers/reset")
       commit("samples/reset")
-      commit("attestation/reset")
       commit("contractors/reset")
       commit("reviewers/reset")
     }
