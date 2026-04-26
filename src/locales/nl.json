@@ -13,8 +13,37 @@
     "dashboard": "Dashboard",
     "reports": "Rapportages"
   },
+  "common": {
+    "loading": "Laden…"
+  },
   "error": {
+    "generic": "Er is iets misgegaan.",
     "pageNotFound": "Pagina niet gevonden.",
     "backToDashboard": "Terug naar dashboard"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welkom terug, {name}.",
+    "recent": {
+      "title": "Recente rapportages",
+      "subtitle": "Je laatste vijf rapportages.",
+      "viewAll": "Alle rapportages →",
+      "empty": "Nog geen rapportages."
+    }
+  },
+  "inquiry": {
+    "list": {
+      "title": "Rapportages",
+      "subtitle": "Beheer je rapportages en hun status.",
+      "newButton": "Nieuwe rapportage",
+      "col": {
+        "documentName": "Naam",
+        "type": "Type",
+        "documentDate": "Datum",
+        "creator": "Opsteller",
+        "reviewer": "Beoordelaar",
+        "status": "Status"
+      }
+    }
   }
 }
