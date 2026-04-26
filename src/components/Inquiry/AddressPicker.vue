@@ -40,7 +40,14 @@ async function pick(s: IPDOKSuggestion) {
   try {
     resolving.value = true
     error.value = null
-    const resolved = await api.geocoder.getAddress(s.id)
+    // PDOK suggest returns its own internal id (e.g. `adr-...`); our geocoder
+    // only understands BAG NUMMERAANDUIDING/PAND ids. Look up the BAG id first.
+    const bagId = await api.pdok.lookupNummeraanduidingId(s.id)
+    if (!bagId) {
+      error.value = 'Geen BAG-id gevonden voor dit adres.'
+      return
+    }
+    const resolved = await api.geocoder.getAddress(bagId)
     emit('pick', resolved)
     query.value = ''
     suggestions.value = []
