@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useSessionStore } from '@/stores/session'
+import AuthWrapper from '@/components/Layout/AuthWrapper.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -29,12 +30,12 @@ async function onSubmit() {
 </script>
 
 <template>
-  <main class="grid min-h-screen place-items-center bg-grey-100 p-6">
+  <AuthWrapper :title="t('app.title')">
     <form
-      class="card w-full max-w-sm space-y-4 rounded-lg bg-white p-8"
+      class="card w-full max-w-sm space-y-4 rounded-lg bg-white p-8 shadow-card"
       @submit.prevent="onSubmit"
     >
-      <h1 class="text-xl text-blue-900">{{ t('app.title') }}</h1>
+      <h2 class="text-xl text-blue-900">{{ t('auth.login') }}</h2>
 
       <label class="block">
         <span class="text-sm text-grey-800">{{ t('auth.email') }}</span>
@@ -68,5 +69,5 @@ async function onSubmit() {
         {{ t('auth.login') }}
       </button>
     </form>
-  </main>
+  </AuthWrapper>
 </template>

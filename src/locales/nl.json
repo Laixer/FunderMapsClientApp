@@ -12,5 +12,9 @@
   "nav": {
     "dashboard": "Dashboard",
     "reports": "Rapportages"
+  },
+  "error": {
+    "pageNotFound": "Pagina niet gevonden.",
+    "backToDashboard": "Terug naar dashboard"
   }
 }
