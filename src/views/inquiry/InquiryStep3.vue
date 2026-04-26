@@ -83,12 +83,18 @@ function previous() {
 
 <template>
   <MainWrapper>
-    <main class="col-span-3 mt-16 space-y-6 p-8">
-      <header class="flex items-center justify-between">
-        <h1 class="text-2xl text-blue-900">Rapportage — controle (stap 3 van 3)</h1>
+    <Card class="List col-span-3 mt-16">
+      <header
+        class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+      >
+        <h2 class="heading-3">Rapportage — controle (stap 3 van 3)</h2>
         <div class="flex gap-2">
           <Button label="Vorige" outline @click="previous" />
-          <Button label="Aanbieden ter review" :disabled="!canSubmit || submitting" @click="submit" />
+          <Button
+            label="Aanbieden ter review"
+            :disabled="!canSubmit || submitting"
+            @click="submit"
+          />
         </div>
       </header>
 
@@ -97,53 +103,54 @@ function previous() {
       <Spinner v-if="loading" />
       <span v-if="false">{{ t('common.loading') }}</span>
 
-      <template v-if="inquiry">
-        <div class="flex items-center gap-2 text-sm text-grey-700">
-          <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
-          <span>·</span>
-          <span>{{ formatDate(inquiry.documentDate) }}</span>
-          <StatusBadge :status="inquiry.state.auditStatus" />
-        </div>
+      <div v-if="inquiry" class="flex items-center gap-2 text-sm text-grey-700">
+        <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
+        <span>·</span>
+        <span>{{ formatDate(inquiry.documentDate) }}</span>
+        <StatusBadge :status="inquiry.state.auditStatus" />
+      </div>
+    </Card>
 
-        <Card title="Rapport">
-          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-            <dt class="font-medium text-grey-700">Naam</dt>
-            <dd class="sm:col-span-2">{{ inquiry.documentName }}</dd>
+    <template v-if="inquiry">
+      <Card class="col-span-3" title="Rapport">
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+          <dt class="font-medium text-grey-700">Naam</dt>
+          <dd class="sm:col-span-2">{{ inquiry.documentName }}</dd>
 
-            <dt class="font-medium text-grey-700">Opsteller</dt>
-            <dd class="sm:col-span-2">{{ inquiry.attribution.creatorName ?? '-' }}</dd>
+          <dt class="font-medium text-grey-700">Opsteller</dt>
+          <dd class="sm:col-span-2">{{ inquiry.attribution.creatorName ?? '-' }}</dd>
 
-            <dt class="font-medium text-grey-700">Beoordelaar</dt>
-            <dd class="sm:col-span-2">{{ inquiry.attribution.reviewerName ?? '-' }}</dd>
+          <dt class="font-medium text-grey-700">Beoordelaar</dt>
+          <dd class="sm:col-span-2">{{ inquiry.attribution.reviewerName ?? '-' }}</dd>
 
-            <dt class="font-medium text-grey-700">Uitvoerder</dt>
-            <dd class="sm:col-span-2">{{ inquiry.attribution.contractorName ?? '-' }}</dd>
+          <dt class="font-medium text-grey-700">Uitvoerder</dt>
+          <dd class="sm:col-span-2">{{ inquiry.attribution.contractorName ?? '-' }}</dd>
 
-            <dt v-if="inquiry.note" class="font-medium text-grey-700">Notitie</dt>
-            <dd v-if="inquiry.note" class="whitespace-pre-wrap sm:col-span-2">
-              {{ inquiry.note }}
-            </dd>
-          </dl>
-        </Card>
+          <dt v-if="inquiry.note" class="font-medium text-grey-700">Notitie</dt>
+          <dd v-if="inquiry.note" class="whitespace-pre-wrap sm:col-span-2">
+            {{ inquiry.note }}
+          </dd>
+        </dl>
+      </Card>
 
-        <Card :title="`Adressen (${samples.length})`">
-          <p v-if="samples.length === 0" class="text-sm text-red-500">
-            Voeg minimaal één adres toe in stap 2 voordat je het rapport indient.
-          </p>
-          <ul v-else class="divide-y divide-grey-200">
-            <li v-for="s in samples" :key="s.id" class="py-3 text-sm">
-              <p class="font-semibold text-grey-800">
-                {{ formatAddress(addressStore.cache[s.address]) }}
-              </p>
-              <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
-            </li>
-          </ul>
-        </Card>
+      <Card class="col-span-3" :title="`Adressen (${samples.length})`">
+        <p v-if="samples.length === 0" class="text-sm text-red-500">
+          Voeg minimaal één adres toe in stap 2 voordat je het rapport indient.
+        </p>
+        <ul v-else class="divide-y divide-grey-200">
+          <li v-for="s in samples" :key="s.id" class="py-3 text-sm">
+            <p class="font-semibold text-grey-800">
+              {{ formatAddress(addressStore.cache[s.address]) }}
+            </p>
+            <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
+          </li>
+        </ul>
 
         <p v-if="!canSubmit && samples.length > 0" class="text-sm text-grey-700">
-          Dit rapport heeft status "{{ inquiry.state.auditStatus }}" en kan niet meer worden ingediend.
+          Dit rapport heeft status "{{ inquiry.state.auditStatus }}" en kan niet meer worden
+          ingediend.
         </p>
-      </template>
-    </main>
+      </Card>
+    </template>
   </MainWrapper>
 </template>

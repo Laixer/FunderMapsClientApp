@@ -184,9 +184,11 @@ function previous() {
 
 <template>
   <MainWrapper>
-    <main class="col-span-3 mt-16 space-y-4 p-8">
-      <header class="flex items-center justify-between">
-        <h1 class="text-2xl text-blue-900">Rapportage — adressen (stap 2 van 3)</h1>
+    <Card class="List col-span-3 mt-16">
+      <header
+        class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+      >
+        <h2 class="heading-3">Rapportage — adressen (stap 2 van 3)</h2>
         <div class="flex gap-2">
           <Button label="Vorige" outline @click="previous" />
           <Button label="Volgende" @click="next" />
@@ -194,49 +196,49 @@ function previous() {
       </header>
 
       <Alert v-if="loadError" :closeable="true" @close="loadError = null">{{ loadError }}</Alert>
-      <Alert v-if="actionError" :closeable="true" @close="actionError = null">{{ actionError }}</Alert>
+      <Alert v-if="actionError" :closeable="true" @close="actionError = null">{{
+        actionError
+      }}</Alert>
 
       <Spinner v-if="loading" />
       <span v-if="false">{{ t('common.loading') }}</span>
+    </Card>
 
-      <div v-if="!loading" class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <!-- Sample list -->
-        <Card title="Adressen" class="lg:col-span-1">
-          <Button label="Adres toevoegen" @click="showPicker = !showPicker" />
+    <template v-if="!loading">
+      <Card class="col-span-3 lg:col-span-1" title="Adressen">
+        <Button label="Adres toevoegen" @click="showPicker = !showPicker" />
 
-          <AddressPicker v-if="showPicker" class="mt-2" @pick="handlePick" />
+        <AddressPicker v-if="showPicker" class="mt-2" @pick="handlePick" />
 
-          <p v-if="!samples.length && !showPicker" class="text-sm text-grey-700">
-            Voeg een adres toe om te beginnen.
-          </p>
+        <p v-if="!samples.length && !showPicker" class="text-sm text-grey-700">
+          Voeg een adres toe om te beginnen.
+        </p>
 
-          <ul v-if="samples.length" class="divide-y divide-grey-200">
-            <li
-              v-for="s in samples"
-              :key="s.id"
-              class="cursor-pointer px-2 py-2 text-sm hover:bg-grey-100"
-              :class="s.id === selectedId ? 'bg-green-100 font-semibold' : ''"
-              @click="selectSample(s.id)"
-            >
-              {{ formatAddress(addressStore.cache[s.address]) }}
-            </li>
-          </ul>
+        <ul v-if="samples.length" class="divide-y divide-grey-200">
+          <li
+            v-for="s in samples"
+            :key="s.id"
+            class="cursor-pointer px-2 py-2 text-sm hover:bg-grey-100"
+            :class="s.id === selectedId ? 'bg-green-100 font-semibold' : ''"
+            @click="selectSample(s.id)"
+          >
+            {{ formatAddress(addressStore.cache[s.address]) }}
+          </li>
+        </ul>
+      </Card>
+
+      <div class="col-span-3 lg:col-span-2">
+        <Card v-if="!selected">
+          <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
         </Card>
-
-        <!-- Sample editor -->
-        <div class="lg:col-span-2">
-          <p v-if="!selected" class="text-sm text-grey-700">
-            Selecteer een adres om te bewerken.
-          </p>
-          <SampleForm
-            v-else
-            :sample="selected"
-            :saving="saving"
-            @save="handleSave"
-            @delete="handleDelete"
-          />
-        </div>
+        <SampleForm
+          v-else
+          :sample="selected"
+          :saving="saving"
+          @save="handleSave"
+          @delete="handleDelete"
+        />
       </div>
-    </main>
+    </template>
   </MainWrapper>
 </template>

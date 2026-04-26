@@ -116,20 +116,25 @@ async function handleDownload() {
 
 <template>
   <MainWrapper>
-    <main class="col-span-3 mt-16 space-y-6 p-8">
+    <Card v-if="loading || error || !inquiry" class="List col-span-3 mt-16">
       <RouterLink :to="{ name: 'inquiry-list' }" class="text-sm text-green-700 hover:underline">
         ← {{ t('inquiry.view.back') }}
       </RouterLink>
-
       <Spinner v-if="loading" />
       <span v-if="false">{{ t('common.loading') }}</span>
-
       <Alert v-if="error" :closeable="true" @close="error = null">{{ error }}</Alert>
+    </Card>
 
-      <template v-if="inquiry">
-        <header class="flex flex-wrap items-start justify-between gap-4">
+    <template v-if="inquiry">
+      <Card class="List col-span-3 mt-16">
+        <RouterLink :to="{ name: 'inquiry-list' }" class="text-sm text-green-700 hover:underline">
+          ← {{ t('inquiry.view.back') }}
+        </RouterLink>
+        <header
+          class="-mx-5 flex flex-wrap items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+        >
           <div class="space-y-1">
-            <h1 class="text-2xl text-blue-900">{{ inquiry.documentName }}</h1>
+            <h2 class="heading-3">{{ inquiry.documentName }}</h2>
             <div class="flex items-center gap-2 text-sm text-grey-700">
               <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
               <span>·</span>
@@ -163,8 +168,9 @@ async function handleDownload() {
         <Alert v-if="actionError" :closeable="true" @close="actionError = null">
           {{ actionError }}
         </Alert>
+      </Card>
 
-        <Card title="Details">
+      <Card class="col-span-3" title="Details">
           <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
             <dt class="font-medium text-grey-700">Opsteller</dt>
             <dd class="sm:col-span-2">{{ inquiry.attribution.creatorName ?? '-' }}</dd>
@@ -194,7 +200,7 @@ async function handleDownload() {
           </dl>
         </Card>
 
-        <Card :title="`Adressen (${samples.length})`">
+      <Card class="col-span-3" :title="`Adressen (${samples.length})`">
           <p v-if="samples.length === 0" class="text-sm text-grey-700">
             Nog geen adressen toegevoegd.
           </p>
@@ -212,7 +218,6 @@ async function handleDownload() {
           </ul>
         </Card>
       </template>
-    </main>
 
     <RejectModal v-if="showRejectModal" @close="showRejectModal = false" @submit="handleReject" />
   </MainWrapper>
