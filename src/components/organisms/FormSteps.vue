@@ -128,7 +128,7 @@ export default {
   methods: {
     ...mapActions("samples", [
       "updateSampleWithoutStoring",
-      "updateSelectedSample",
+      "updateSample",
       "createSample",
     ]),
     async next(step) {
@@ -139,13 +139,9 @@ export default {
       this.$refs[`step-${step}`].$refs.form.validate();
 
       if (this.$refs[`step-${step}`].$refs.form.isValid()) {
-
-        if (this.selectedSample.id) {
-          this.updateSelectedSample(this.activeReport.id);
-        } else if (this.activeReport.id) {
-          this.createSample({ inquiryId: this.activeReport.id });
-        }
-
+        // The step component builds the form payload and emits "stored" —
+        // handleStored() does the persist. Don't call create/update from
+        // here, the payload isn't built yet.
         return await this.$refs[`step-${step}`].handleSubmit();
       } else {
         return false;
@@ -153,31 +149,32 @@ export default {
     },
 
     async save() {
-      await this.next(this.selectedStep).then((valid) => {
-        // if (valid && this.selectedSample.id) {
-        //   this.updateSelectedSample(this.activeReport.id);
-        //   return;
-        // }
-
-        // if (valid) {
-        //   this.createSample({ inquiryId: this.activeReport.id });
-        // }
-      });
+      await this.next(this.selectedStep);
     },
 
     async handleStored(payload) {
+      // Keep the in-memory selectedSample in sync with the freshly-submitted
+      // form values so subsequent steps see them.
       await this.updateSampleWithoutStoring({
         sampleId: payload.id,
         data: payload,
       });
 
-
-      // if (this.selectedSample.id) {
-      //     await this.updateSelectedSample(this.activeReport.id);
-      //     return
-      // }
-
-      // await this.createSample({ inquiryId: this.activeReport.id });
+      // Persist: update if the sample already has a server-side id, create
+      // otherwise. Pass the form payload through untouched — the actions
+      // forward it to /api/inquiry/:id/sample.
+      if (this.selectedSample.id) {
+        await this.updateSample({
+          inquiryId: this.activeReport.id,
+          sampleId: this.selectedSample.id,
+          data: payload,
+        });
+      } else if (this.activeReport.id) {
+        await this.createSample({
+          inquiryId: this.activeReport.id,
+          data: payload,
+        });
+      }
     },
 
     handleShowStep4(value) {
