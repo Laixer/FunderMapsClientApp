@@ -1,34 +1,39 @@
-<template>
-  <Layout id="app">
-    <router-view />
-  </Layout>
-</template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import Layout from "./views/layouts/layouts.vue";
-
-@Component({
-  components: {
-    Layout,
-  },
-})
-export default class App extends Vue {}
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
 </script>
 
-<style lang="scss">
-html,
-body {
-  height: 100%;
-  // font-size: 14px;
-}
-html {
-  overflow-y: scroll;
+<template>
+  <RouterView />
+</template>
+
+<style>
+.page-dashboard {
+  max-height: 100vh;
 }
 
-#app {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  min-height: 100%;
+.List {
+  margin: 2rem;
+}
+
+.Details {
+  margin: 2rem;
+  margin-left: 0;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.short-enter-active,
+.short-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.v-enter-from,
+.v-leave-to,
+.short-enter-from,
+.short-leave-to {
+  opacity: 0;
 }
 </style>

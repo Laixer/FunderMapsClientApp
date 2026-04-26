@@ -1,0 +1,16 @@
+{
+  "app": {
+    "title": "FunderMaps"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "logout": "Uitloggen",
+    "email": "E-mailadres",
+    "password": "Wachtwoord",
+    "invalidCredentials": "Onjuiste e-mail of wachtwoord"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "reports": "Rapportages"
+  }
+}

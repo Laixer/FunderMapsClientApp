@@ -1,61 +1,19 @@
-<template>
-  <div class="d-flex flex-column">
-    <div v-if="areReviewersAvailable">
-      <UploadArea />
-    </div>
-    <ReportTable title="Recente rapporten" :reports="latestReports({ limit: 5 })" class="mt-4 pt-2 mb-5" />
-    <PrimaryArrowButton class="mx-auto" label="Alle rapporten" :to="{ name: 'reports' }" />
-  </div>
-</template>
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { useSessionStore } from '@/stores/session'
 
-<script>
-import PrimaryArrowButton from "atom/navigation/PrimaryArrowButton";
-import ReportTable from "organism/ReportTable";
-import UploadArea from "molecule/UploadArea";
-
-import { mapGetters, mapActions } from "vuex";
-
-export default {
-  name: "Dashboard",
-  components: {
-    ReportTable,
-    UploadArea,
-    PrimaryArrowButton,
-  },
-  computed: {
-    ...mapGetters("reports", ["latestReports"]),
-    ...mapGetters("reviewers", ["areReviewersAvailable"]),
-  },
-  async created() {
-    try {
-      await Promise.all([
-        await this.getReports({
-          page: 1,
-          limit: 25,
-        }),
-        this.getReviewers(),
-        this.getOrganization(),
-      ]);
-      this.timer = setInterval(
-        async () => {
-          await this.getReports({
-            page: 1,
-            limit: 25,
-          });
-        }, 2 * 60 * 1000);
-    } catch (err) {
-      if (err.response && err.response.status === 401) {
-        await this.$router.push({ name: "login" });
-      }
-    }
-  },
-  destroyed() {
-    clearInterval(this.timer);
-  },
-  methods: {
-    ...mapActions("reports", ["getReports"]),
-    ...mapActions("reviewers", ["getReviewers"]),
-    ...mapActions("org", ["getOrganization"]),
-  },
-};
+const { t } = useI18n()
+const sessionStore = useSessionStore()
 </script>
+
+<template>
+  <main class="space-y-4 p-8">
+    <h1 class="text-2xl text-blue-900">{{ t('nav.dashboard') }}</h1>
+    <p class="text-grey-700">
+      Ingelogd als {{ sessionStore.currentUser?.email }}.
+    </p>
+    <RouterLink :to="{ name: 'logout' }" class="text-green-700 underline">
+      {{ t('auth.logout') }}
+    </RouterLink>
+  </main>
+</template>

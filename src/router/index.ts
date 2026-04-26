@@ -1,141 +1,59 @@
-import Vue from "vue";
-import VueRouter, { Route } from "vue-router";
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { storeToRefs } from 'pinia'
 
-// Dashboard
-import Dashboard from "@/views/Dashboard.vue";
+import { hasAccessToken } from '@/services/fundermaps/session'
+import { useSessionStore } from '@/stores/session'
 
-// Auth & User
-import Login from "@/views/Login.vue";
-import Logout from "@/views/Logout.vue";
+import Login from '@/views/auth/Login.vue'
+import Logout from '@/views/auth/Logout.vue'
+import NotFound from '@/views/auth/NotFound.vue'
+import Dashboard from '@/views/Dashboard.vue'
+import InquiryList from '@/views/InquiryListView.vue'
+import InquiryStep1 from '@/views/inquiry/InquiryStep1.vue'
+import InquiryStep2 from '@/views/inquiry/InquiryStep2.vue'
+import InquiryStep3 from '@/views/inquiry/InquiryStep3.vue'
+import InquiryView from '@/views/inquiry/InquiryView.vue'
 
-// Single Report
-import Step1 from "@/views/report/Step1.vue";
-import Step2 from "@/views/report/Step2.vue";
-import Step3 from "@/views/report/Step3.vue";
-import ReportView from "@/views/report/View.vue";
+const routes: RouteRecordRaw[] = [
+  { name: 'login', path: '/login', component: Login, meta: { layout: 'login', public: true } },
+  { name: 'logout', path: '/logout', component: Logout, meta: { layout: 'empty' } },
 
-// Reports
-import Reports from "@/views/Reports.vue";
+  { name: 'dashboard', path: '/', component: Dashboard },
+  { name: 'inquiry-list', path: '/inquiries/:page?', component: InquiryList },
 
-// 404
-import NotFound from "@/views/NotFound.vue";
+  { name: 'inquiry-new', path: '/inquiry/create', component: InquiryStep1, meta: { fullscreen: true } },
+  { name: 'inquiry-edit-1', path: '/inquiry/:id/edit/1', component: InquiryStep1, meta: { fullscreen: true } },
+  { name: 'inquiry-edit-2', path: '/inquiry/:id/edit/2/:page?/:step?', component: InquiryStep2, meta: { fullscreen: true } },
+  { name: 'inquiry-edit-3', path: '/inquiry/:id/edit/3/:page?', component: InquiryStep3, meta: { fullscreen: true } },
+  { name: 'inquiry-view', path: '/inquiry/:id/:page?', component: InquiryView },
 
-// Services
-import { isLoggedIn, logout } from "../services/auth";
+  { name: 'not-found', path: '/:pathMatch(.*)*', component: NotFound, meta: { layout: 'login', public: true } },
+]
 
-Vue.use(VueRouter);
-
-const routes = [
-  {
-    path: "/",
-    name: "dashboard",
-    component: Dashboard,
-  },
-
-  // Authentication & User
-  {
-    path: "/login",
-    name: "login",
-    component: Login,
-    meta: {
-      layout: "login",
-      public: true,
-    },
-  },
-  {
-    path: "/logout",
-    name: "logout",
-    component: Logout,
-    meta: {
-      layout: "empty",
-      profile: true,
-    },
-  },
-
-  // Inquiry
-  {
-    path: "/inquiry/create/",
-    name: "new-report", // TODO No idea why, but new-report didn't work
-    component: Step1,
-    meta: {
-      fullscreen: true,
-    },
-  },
-  {
-    path: "/inquiry/:id/edit/1",
-    name: "edit-report-1",
-    component: Step1,
-    meta: {
-      fullscreen: true,
-    },
-  },
-  {
-    path: "/inquiry/:id/edit/2/:page?/:step?",
-    name: "edit-report-2",
-    component: Step2,
-    meta: {
-      fullscreen: true,
-    },
-  },
-  {
-    path: "/inquiry/:id/edit/3/:page?",
-    name: "edit-report-3",
-    component: Step3,
-    meta: {
-      fullscreen: true,
-    },
-  },
-  {
-    path: "/inquiry/:id/:page?",
-    name: "view-report",
-    component: ReportView,
-  },
-  // Reports
-  {
-    path: "/inquiries/:page?",
-    name: "reports",
-    component: Reports,
-  },
-
-  // 404
-  {
-    path: "/not-found",
-    name: "not-found",
-    component: NotFound,
-    meta: {
-      layout: "login",
-      public: true,
-    },
-  },
-  {
-    path: "/*",
-    name: "404",
-    component: NotFound,
-    meta: {
-      layout: "login",
-      public: true,
-    },
-  },
-];
-
-const router = new VueRouter({
-  mode: "history",
-  base: process.env.BASE_URL,
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-});
+})
 
-router.beforeEach((to: Route, from: Route, next: any) => {
-  // Public pages
-  if (to.meta && to.meta.public) {
-    next();
-  } else if (isLoggedIn()) {
-    next();
-  } else {
-    if (isLoggedIn()) {
-      logout();
+router.beforeEach(async (to) => {
+  const sessionStore = useSessionStore()
+  const { isAuthenticated } = storeToRefs(sessionStore)
+
+  // Restore session on first load if a bearer is in localStorage but the
+  // store has no current user yet.
+  if (!isAuthenticated.value && hasAccessToken()) {
+    try {
+      await sessionStore.authenticateFromAccessToken()
+    } catch {
+      // session validation failed — store has cleared itself
     }
-    next({ name: "login" });
   }
-});
 
-export default router;
+  if (to.meta.public) return true
+
+  if (!isAuthenticated.value) {
+    return { name: 'login' }
+  }
+})
+
+export default router

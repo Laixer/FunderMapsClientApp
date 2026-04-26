@@ -1,0 +1,59 @@
+@import url('../public/resources/styles/app.css');
+
+html {
+  color-scheme: light;
+  accent-color: theme(colors.green.500);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection {
+  background-color: theme(colors.green.100);
+  color: theme(colors.green.800);
+}
+
+.button:focus-visible {
+  outline: 2px solid theme(colors.green.500);
+  outline-offset: 2px;
+}
+
+.button {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.page-dashboard {
+  grid-template-rows: [header] theme(spacing.16) [main] auto;
+}
+
+.card {
+  box-shadow:
+    0 1px 2px 0 rgb(0 0 0 / 0.04),
+    0 1px 3px 0 rgb(0 0 0 / 0.06);
+}
+
+tr.is-selected-row td {
+  background-color: theme(colors.green.100) !important;
+}
+
+.List .bh-table-responsive tbody tr:hover td {
+  background-color: theme(colors.grey.100);
+  cursor: pointer;
+}
+.List .bh-table-responsive tbody tr.is-selected-row:hover td {
+  background-color: theme(colors.green.100) !important;
+}

@@ -1,38 +1,16 @@
-// Bootstrap config
-// import "@/assets/sass/bootstrap.scss";
+import './style.css'
 
-import Vue from "vue";
-import App from "./App.vue";
-import router from "./router";
-import store from "./store";
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 
-Vue.config.productionTip = false;
+import App from './App.vue'
+import router from './router'
+import i18n from './i18n'
 
-// Services
-import { refreshLogin } from "./services/auth";
+const app = createApp(App)
 
-// Fonts (Gibson)
+app.use(createPinia())
+app.use(router)
+app.use(i18n)
 
-// Bootstrap
-import BootstrapVue from "bootstrap-vue";
-Vue.use(BootstrapVue);
-
-import "@/assets/scss/main.scss";
-
-import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-
-// Named Avatar Generator
-import { config as configNamedAvatars } from "./utils/namedavatar";
-configNamedAvatars();
-
-new Vue({
-  router,
-  store,
-  created() {
-    setInterval(() => {
-      refreshLogin();
-    }, 60000 * 10);
-  },
-  render: (createElement) => createElement(App),
-}).$mount("#app");
+app.mount('#app')

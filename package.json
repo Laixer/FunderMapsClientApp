@@ -2,72 +2,54 @@
   "name": "fundermapsclientapp",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build --mode staging",
-    "build-prod": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "audit:fix": "npm audit fix --force"
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
   },
   "dependencies": {
-    "axios": "^1.9.0",
-    "bootstrap": "^4.6.2",
-    "bootstrap-vue": "^2.23.1",
-    "core-js": "^3.42.0",
-    "lodash.clonedeep": "^4.5.0",
-    "namedavatar": "^1.2.0",
-    "vue": "^2.6.14",
-    "vue-class-component": "^7.2.6",
-    "vue-property-decorator": "^8.5.1",
-    "vue-router": "^3.5.1",
-    "vue-typeahead-bootstrap": "^2.12.0",
-    "vue2-dropzone": "^3.6.0",
-    "vuejs-datepicker": "^1.6.2",
-    "vuelidate": "^0.7.7",
-    "vuex": "^3.6.2"
+    "@bhplugin/vue3-datatable": "^2.0.2",
+    "@vueuse/core": "^14.2.1",
+    "lodash-es": "^4.17.21",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.17",
+    "vue-i18n": "^11.1.5",
+    "vue-router": "^4.5.1",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/node": "^22.15.29",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "@vue/cli-plugin-eslint": "^4.5.19",
-    "@vue/cli-plugin-router": "^4.5.19",
-    "@vue/cli-plugin-typescript": "^4.5.19",
-    "@vue/cli-plugin-vuex": "^4.5.19",
-    "@vue/cli-service": "^4.5.19",
-    "@vue/eslint-config-typescript": "^4.0.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.8.0",
-    "eslint-plugin-vue": "^6.2.2",
-    "sass": "^1.89.1",
-    "sass-loader": "^8.0.2",
-    "typescript": "^3.9.9",
-    "vue-template-compiler": "^2.7.16"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended",
-      "@vue/typescript"
-    ],
-    "rules": {
-      "no-console": "off"
-    },
-    "parserOptions": {
-      "parser": "@typescript-eslint/parser"
-    }
-  },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions"
-  ]
+    "@tsconfig/node22": "^22.0.2",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^24.0.3",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/eslint-config-prettier": "^10.1.0",
+    "@vue/eslint-config-typescript": "^14.3.0",
+    "@vue/tsconfig": "^0.7.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^10.2.1",
+    "eslint-plugin-vue": "^10.8.0",
+    "jiti": "^2.4.2",
+    "npm-run-all2": "^8.0.4",
+    "postcss": "^8.5.2",
+    "postcss-import": "^16.1.0",
+    "postcss-nesting": "^13.0.1",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.13",
+    "sass-embedded": "^1.85.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.6",
+    "vite-plugin-vue-devtools": "^7.7.7",
+    "vite-svg-loader": "^5.1.0",
+    "vue-tsc": "^2.2.10"
+  }
 }
