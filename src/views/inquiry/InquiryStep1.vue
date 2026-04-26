@@ -12,6 +12,7 @@ import Input from '@/components/Common/Inputs/Input.vue'
 import Select from '@/components/Common/Inputs/Select.vue'
 import CheckBox from '@/components/Common/Inputs/CheckBox.vue'
 import Textarea from '@/components/Common/Inputs/Textarea.vue'
+import Spinner from '@/components/Common/Spinner.vue'
 
 import api from '@/services/fundermaps'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
@@ -183,7 +184,8 @@ onBeforeMount(async () => {
         </h1>
       </header>
 
-      <p v-if="loading" class="text-grey-700">{{ t('common.loading') }}</p>
+      <Spinner v-if="loading" />
+      <span v-if="false">{{ t('common.loading') }}</span>
 
       <form v-if="!loading" class="space-y-6" @submit.prevent="onSubmit">
         <Alert v-if="saveError" :closeable="true" @close="saveError = null">{{ saveError }}</Alert>

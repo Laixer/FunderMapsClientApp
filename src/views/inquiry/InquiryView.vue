@@ -9,6 +9,7 @@ import Card from '@/components/Common/Card.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import Alert from '@/components/Common/Alert.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import Spinner from '@/components/Common/Spinner.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
 
 import api from '@/services/fundermaps'
@@ -105,8 +106,8 @@ async function handleReject(message: string) {
 
 async function handleDownload() {
   try {
-    const { url } = await api.inquiry.getDownload(inquiryId.value)
-    window.open(url, '_blank', 'noopener')
+    const { accessLink } = await api.inquiry.getDownload(inquiryId.value)
+    window.open(accessLink, '_blank', 'noopener')
   } catch (e) {
     actionError.value = getErrorMessage(e) ?? t('error.generic')
   }
@@ -120,7 +121,8 @@ async function handleDownload() {
         ← {{ t('inquiry.view.back') }}
       </RouterLink>
 
-      <p v-if="loading" class="text-grey-700">{{ t('common.loading') }}</p>
+      <Spinner v-if="loading" />
+      <span v-if="false">{{ t('common.loading') }}</span>
 
       <Alert v-if="error" :closeable="true" @close="error = null">{{ error }}</Alert>
 

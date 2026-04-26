@@ -1,5 +1,23 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+import { RouterView, useRouter } from 'vue-router'
+import { setUnauthorizedHandler } from '@/services/fundermaps/client'
+import { useSessionStore } from '@/stores/session'
+
+const router = useRouter()
+const sessionStore = useSessionStore()
+
+onMounted(() => {
+  setUnauthorizedHandler(() => {
+    // Server says our bearer is dead. Clear local session and bounce to
+    // login. Best-effort — if logout itself errors, still navigate.
+    sessionStore.logout().finally(() => {
+      if (router.currentRoute.value.name !== 'login') {
+        router.push({ name: 'login' })
+      }
+    })
+  })
+})
 </script>
 
 <template>

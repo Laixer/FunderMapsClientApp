@@ -1,10 +1,11 @@
+/**
+ * The API only returns `id` and `name` from the organization table.
+ * (Verified 2026-04-26 against ~/Projects/FunderMapsApi/src/routes/organization.ts.)
+ * If the schema gains email/phone/branding columns later, expand this type.
+ */
 export interface IOrganization {
   id: string
   name: string
-  email: string | null
-  phone_number: string | null
-  registration_number: string | null
-  branding_logo: string | null
 }
 
 /** Member row returned by /api/organization/user. */

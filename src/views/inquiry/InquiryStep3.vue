@@ -8,6 +8,7 @@ import Card from '@/components/Common/Card.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import Alert from '@/components/Common/Alert.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import Spinner from '@/components/Common/Spinner.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
@@ -93,7 +94,8 @@ function previous() {
 
       <Alert v-if="error" :closeable="true" @close="error = null">{{ error }}</Alert>
 
-      <p v-if="loading" class="text-grey-700">{{ t('common.loading') }}</p>
+      <Spinner v-if="loading" />
+      <span v-if="false">{{ t('common.loading') }}</span>
 
       <template v-if="inquiry">
         <div class="flex items-center gap-2 text-sm text-grey-700">

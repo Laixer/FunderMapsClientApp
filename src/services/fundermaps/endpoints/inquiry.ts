@@ -6,7 +6,8 @@ interface IStats {
 }
 
 interface IDownloadInfo {
-  url: string
+  /** The API returns this field as `accessLink` — the signed URL to the document. */
+  accessLink: string
 }
 
 export async function list(opts: { limit?: number; offset?: number } = {}) {

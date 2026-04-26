@@ -1,14 +1,21 @@
 /**
  * Thin fetch wrapper over the FunderMaps TS API. Injects the Better Auth
  * bearer token, JSON-encodes object bodies, and translates non-OK responses
- * into typed errors. On 401 the caller is expected to redirect to /login —
- * we surface the error rather than handling navigation here so this module
+ * into typed errors. On 401 invokes a registered handler (typically the
+ * session store's logout-and-redirect) — kept as a callback so this module
  * stays free of router/component dependencies.
  */
 
 import { trimLeadingChar, trimTrailingChar } from '@/utils/string'
 import { getAccessToken, hasAccessToken } from './session'
 import { APICallError, APIClientError, APIErrorResponse, APITokenError } from './errors'
+
+let onUnauthorized: () => void = () => {}
+
+/** Register a callback invoked once per 401 response (after the error throws). */
+export function setUnauthorizedHandler(fn: () => void) {
+  onUnauthorized = fn
+}
 
 interface CallOptions {
   endpoint: string | URL
@@ -74,6 +81,12 @@ async function makeCall({
     }
 
     if (!response.ok) {
+      if (response.status === 401) {
+        // Bearer is dead. Fire the handler (which clears local session and
+        // navigates to /login) before throwing so the caller's catch fires
+        // against an already-cleaned session.
+        onUnauthorized()
+      }
       throw new APIErrorResponse(response.status, responseBody)
     }
 

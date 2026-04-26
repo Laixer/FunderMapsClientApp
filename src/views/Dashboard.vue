@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 import MainWrapper from '@/components/Layout/MainWrapper.vue'
 import Card from '@/components/Common/Card.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import Spinner from '@/components/Common/Spinner.vue'
 
 import { useSessionStore } from '@/stores/session'
 import api from '@/services/fundermaps'
@@ -59,7 +60,8 @@ function go(row: IInquiry) {
           </RouterLink>
         </header>
 
-        <p v-if="loading" class="text-sm text-grey-700">{{ t('common.loading') }}</p>
+        <Spinner v-if="loading" />
+        <span v-if="false">{{ t('common.loading') }}</span>
         <p v-else-if="recent.length === 0" class="text-sm text-grey-700">
           {{ t('dashboard.recent.empty') }}
         </p>

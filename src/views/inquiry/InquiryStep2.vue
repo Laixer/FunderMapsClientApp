@@ -9,6 +9,7 @@ import Button from '@/components/Common/Buttons/Button.vue'
 import Alert from '@/components/Common/Alert.vue'
 import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import SampleForm from '@/components/Inquiry/SampleForm.vue'
+import Spinner from '@/components/Common/Spinner.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquirySample, IInquirySampleInput } from '@/services/fundermaps/interfaces/IInquirySample'
@@ -195,7 +196,8 @@ function previous() {
       <Alert v-if="loadError" :closeable="true" @close="loadError = null">{{ loadError }}</Alert>
       <Alert v-if="actionError" :closeable="true" @close="actionError = null">{{ actionError }}</Alert>
 
-      <p v-if="loading" class="text-grey-700">{{ t('common.loading') }}</p>
+      <Spinner v-if="loading" />
+      <span v-if="false">{{ t('common.loading') }}</span>
 
       <div v-if="!loading" class="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <!-- Sample list -->
