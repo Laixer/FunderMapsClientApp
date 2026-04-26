@@ -67,8 +67,8 @@ export default function <T extends ZodTypeAny>(
     }
   }
 
-  const getError = (path: string) =>
-    get(errors.value, `${path.replaceAll('.', ',')}.0.message`)
+  const getError = (path: string): string | undefined =>
+    get(errors.value, `${path.replaceAll('.', ',')}.0.message`) as string | undefined
 
   const getStatus = (path: string) => {
     if (hasRun.value === false) return 'none'

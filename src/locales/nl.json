@@ -44,6 +44,9 @@
         "reviewer": "Beoordelaar",
         "status": "Status"
       }
+    },
+    "view": {
+      "back": "Terug naar rapportages"
     }
   }
 }
