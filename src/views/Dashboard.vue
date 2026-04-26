@@ -52,7 +52,7 @@ function go(row: IInquiry) {
       </header>
     </Card>
 
-    <Card class="col-span-3">
+    <Card class="List col-span-3">
       <header
         class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
       >

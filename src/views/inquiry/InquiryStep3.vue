@@ -112,7 +112,7 @@ function previous() {
     </Card>
 
     <template v-if="inquiry">
-      <Card class="col-span-3" title="Rapport">
+      <Card class="List col-span-3" title="Rapport">
         <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
           <dt class="font-medium text-grey-700">Naam</dt>
           <dd class="sm:col-span-2">{{ inquiry.documentName }}</dd>
@@ -133,7 +133,7 @@ function previous() {
         </dl>
       </Card>
 
-      <Card class="col-span-3" :title="`Adressen (${samples.length})`">
+      <Card class="List col-span-3" :title="`Adressen (${samples.length})`">
         <p v-if="samples.length === 0" class="text-sm text-red-500">
           Voeg minimaal één adres toe in stap 2 voordat je het rapport indient.
         </p>

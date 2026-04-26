@@ -44,10 +44,16 @@ interface IPDOKLookupResponse {
   }
 }
 
+const NUMMERAANDUIDING_PREFIX = 'NL.IMBAG.NUMMERAANDUIDING.'
+
 /**
  * Resolve a PDOK suggestion id to its BAG NUMMERAANDUIDING. Returns the
  * full `NL.IMBAG.NUMMERAANDUIDING.*` string suitable for our geocoder, or
  * null if PDOK didn't return one.
+ *
+ * PDOK gives back the bare 16-digit `nummeraanduiding_id`; our geocoder's
+ * fromIdentifier() requires the prefixed form to dispatch to NlBagAddress.
+ * Without the prefix it tries the 16-char legacy heuristic and 400s.
  */
 export async function lookupNummeraanduidingId(
   pdokId: string,
@@ -58,7 +64,9 @@ export async function lookupNummeraanduidingId(
   const res = await fetch(url)
   if (!res.ok) throw new Error(`PDOK lookup failed: ${res.status}`)
   const body: IPDOKLookupResponse = await res.json()
-  return body.response?.docs?.[0]?.nummeraanduiding_id ?? null
+  const bare = body.response?.docs?.[0]?.nummeraanduiding_id
+  if (!bare) return null
+  return bare.startsWith(NUMMERAANDUIDING_PREFIX) ? bare : NUMMERAANDUIDING_PREFIX + bare
 }
 
 export default { suggest, lookupNummeraanduidingId }

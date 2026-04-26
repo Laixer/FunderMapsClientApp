@@ -170,7 +170,7 @@ async function handleDownload() {
         </Alert>
       </Card>
 
-      <Card class="col-span-3" title="Details">
+      <Card class="List col-span-3" title="Details">
           <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
             <dt class="font-medium text-grey-700">Opsteller</dt>
             <dd class="sm:col-span-2">{{ inquiry.attribution.creatorName ?? '-' }}</dd>
@@ -200,7 +200,7 @@ async function handleDownload() {
           </dl>
         </Card>
 
-      <Card class="col-span-3" :title="`Adressen (${samples.length})`">
+      <Card class="List col-span-3" :title="`Adressen (${samples.length})`">
           <p v-if="samples.length === 0" class="text-sm text-grey-700">
             Nog geen adressen toegevoegd.
           </p>

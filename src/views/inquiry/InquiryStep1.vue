@@ -191,7 +191,7 @@ onBeforeMount(async () => {
     </Card>
 
     <template v-if="!loading">
-      <Card class="col-span-3" title="Rapport">
+      <Card class="List col-span-3" title="Rapport">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input
             v-model="formData.documentName"
@@ -242,7 +242,7 @@ onBeforeMount(async () => {
         </div>
       </Card>
 
-      <Card class="col-span-3" title="Document">
+      <Card class="List col-span-3" title="Document">
         <div class="space-y-2">
           <input
             type="file"
@@ -264,7 +264,7 @@ onBeforeMount(async () => {
         </div>
       </Card>
 
-      <Card class="col-span-3" title="Eigenschappen">
+      <Card class="List col-span-3" title="Eigenschappen">
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
           <CheckBox v-model="formData.standardF3o" label="F3O standaard" />
           <CheckBox v-model="formData.inspection" label="Inspectie" />
@@ -273,11 +273,11 @@ onBeforeMount(async () => {
         </div>
       </Card>
 
-      <Card class="col-span-3" title="Notitie">
+      <Card class="List col-span-3" title="Notitie">
         <Textarea v-model="formData.note" placeholder="Optionele notitie…" :rows="4" />
       </Card>
 
-      <Card class="col-span-3">
+      <Card class="List col-span-3">
         <div class="flex justify-end gap-3">
           <Button
             label="Opslaan en verder"
