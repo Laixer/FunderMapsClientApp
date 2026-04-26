@@ -347,6 +347,12 @@ export default {
       data.address = this.sample.address;
       data.report = this.activeReport.id;
 
+      // damageCharacteristics on the wire is an array (PG text[]), but the
+      // form is single-select today. Wrap so the API doesn't ZodError.
+      if (data.damageCharacteristics != null && !Array.isArray(data.damageCharacteristics)) {
+        data.damageCharacteristics = [data.damageCharacteristics];
+      }
+
       this.$emit("stored", data);
 
       return true;
