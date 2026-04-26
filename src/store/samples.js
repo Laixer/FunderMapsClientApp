@@ -101,11 +101,6 @@ const actions = {
     }
   },
 
-  // The form caller (SampleDataEditor.handleSubmit) builds `data` with the
-  // resolved address id attached and passes it in. Earlier versions of these
-  // actions silently dropped the `data` arg and read `state.selectedSample`
-  // instead, which never had `address` populated — that was the longstanding
-  // "address is empty" bug.
   async updateSample({ commit }, { inquiryId, sampleId, data }) {
     let response = await samplesAPI.updateSample({ inquiryId, sampleId, data });
     if (response && response.status === 204) {

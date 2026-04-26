@@ -63,17 +63,8 @@ class OrgUserModel {
     }
     return 'Unknown';
   }
-  /**
-   * Whether or not the user is able to approve / disapprove reports
-   */
   canReview() {
     return ['Superuser', 'Verifier'].includes(this.getRoleSlug());
-  }
-  /**
-   * Whether or not the user is able to create and edit reports
-   */
-  canCreate() {
-    return ['Superuser', 'Writer'].includes(this.getRoleSlug());
   }
   // ****************************************************************************
   //  Avatar

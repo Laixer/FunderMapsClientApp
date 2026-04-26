@@ -101,9 +101,6 @@ const mutations = {
   set_report_pending_review(state) {
     state.report.setStatus({ status: 4 })
   },
-  set_report_status_todo(state) {
-    state.report.setStatus({ status: 0 })
-  },
   reset(state) {
     Object.assign(state, defaultState);
   }

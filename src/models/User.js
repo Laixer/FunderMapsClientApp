@@ -19,19 +19,6 @@ class UserModel {
     this.role = role || 'user'
     this.organizations = organizations || []
   }
-  // ****************************************************************************
-  //  Rights
-  // ****************************************************************************
-  // TODO: implement
-  canReview() {
-    return false
-  }
-  canCreate() {
-    return false
-  }
-  // ****************************************************************************
-  //  Username
-  // ****************************************************************************
   /**
    * Aim to get the most natural name by which to identify the user
    */

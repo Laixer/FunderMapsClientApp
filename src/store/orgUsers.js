@@ -32,21 +32,9 @@ const getters = {
       })
       : null;
   },
-  getCreators: state => {
-    return state.users
-      ? state.users.filter(user => {
-        return user.canCreate()
-      })
-      : null;
-  },
   getUserById: (state) => ({ id }) => {
     return state.users.find(user => {
       return user.id === id
-    })
-  },
-  getUserByEmail: (state) => ({ email }) => {
-    return state.users.find(user => {
-      return user.email === email
     })
   }
 }
