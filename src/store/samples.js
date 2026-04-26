@@ -101,19 +101,21 @@ const actions = {
     }
   },
 
-  async updateSample({ commit, state }, { inquiryId, sampleId, data }) {
-    const current = await state.selectedSample;
-
-    await samplesAPI.updateSample({
-      inquiryId,
-      sampleId,
-      current,
-    });
+  // The form caller (SampleDataEditor.handleSubmit) builds `data` with the
+  // resolved address id attached and passes it in. Earlier versions of these
+  // actions silently dropped the `data` arg and read `state.selectedSample`
+  // instead, which never had `address` populated — that was the longstanding
+  // "address is empty" bug.
+  async updateSample({ commit }, { inquiryId, sampleId, data }) {
+    let response = await samplesAPI.updateSample({ inquiryId, sampleId, data });
+    if (response && response.status === 204) {
+      commit("update_sample", {
+        id: sampleId,
+        data: Object.assign({}, data, { id: sampleId, stored: true }),
+      });
+    }
   },
-  // TODO: where does creationstamp come from?
-  async createSample({ commit, state }, { inquiryId }) {
-    let data = state.selectedSample;
-
+  async createSample({ commit }, { inquiryId, data }) {
     let response = await samplesAPI.createSample({ inquiryId, data });
     if (response.status === 200 && response.data) {
       commit("update_sample", {
