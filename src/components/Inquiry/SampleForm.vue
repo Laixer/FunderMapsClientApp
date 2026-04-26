@@ -9,7 +9,10 @@ import CheckBox from '@/components/Common/Inputs/CheckBox.vue'
 import Textarea from '@/components/Common/Inputs/Textarea.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 
-import type { IInquirySample, IInquirySampleInput } from '@/services/fundermaps/interfaces/IInquirySample'
+import type {
+  IInquirySample,
+  IInquirySampleInput,
+} from '@/services/fundermaps/interfaces/IInquirySample'
 import { formatAddress } from '@/utils/address'
 import { useAddressStore } from '@/stores/address'
 import {
@@ -52,122 +55,355 @@ watch(
 
 function onSave() {
   const { id, inquiry, building, createDate, updateDate, deleteDate, ...input } = form.value
-  void id; void inquiry; void building; void createDate; void updateDate; void deleteDate
+  void id
+  void inquiry
+  void building
+  void createDate
+  void updateDate
+  void deleteDate
   emit('save', input as IInquirySampleInput)
 }
 </script>
 
 <template>
-  <div class="space-y-6">
-    <Card title="Adres">
-      <p class="text-sm text-grey-800">
-        {{ formatAddress(addressStore.cache[form.address]) }}
-      </p>
-      <p v-if="form.building" class="text-xs text-grey-700">Pand: {{ form.building }}</p>
-    </Card>
-
-    <Card title="Algemeen">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Input v-model="form.builtYear" label="Bouwjaar" type="date" />
-        <Select v-model="form.substructure" label="Onderbouw" :options="SUBSTRUCTURE_OPTIONS" placeholder="-" />
-        <Input v-model="form.cpt" label="Sondering" />
-        <Input v-model="form.monitoringWell" label="Peilbuis" />
-        <Input v-model.number="form.groundLevel" label="Maaiveld (m NAP)" type="number" step="0.01" />
-        <Input v-model.number="form.groundwaterLevelTemp" label="Tijdelijk grondwater (m NAP)" type="number" step="0.01" />
-        <Input v-model.number="form.groundwaterLevelNet" label="Netto grondwater (m NAP)" type="number" step="0.01" />
-        <CheckBox v-model="form.recoveryAdvised" label="Herstel geadviseerd" />
+  <Card class="List col-span-3 lg:col-span-2">
+    <header
+      class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+    >
+      <div class="min-w-0">
+        <h3 class="heading-3 truncate">
+          {{ formatAddress(addressStore.cache[form.address]) }}
+        </h3>
+        <p v-if="form.building" class="text-xs text-grey-700">Pand: {{ form.building }}</p>
       </div>
-    </Card>
-
-    <Card title="Fundering">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Select v-model="form.foundationType" label="Funderingstype" :options="FOUNDATION_TYPE_OPTIONS" placeholder="-" />
-        <Select v-model="form.enforcementTerm" label="Handhavingstermijn" :options="ENFORCEMENT_TERM_OPTIONS" placeholder="-" />
-        <Select v-model="form.damageCause" label="Schade-oorzaak" :options="FOUNDATION_DAMAGE_CAUSE_OPTIONS" placeholder="-" />
-        <Select v-model="form.damageCharacteristics" label="Schadebeeld" :options="DAMAGE_CHARACTERISTICS_OPTIONS" placeholder="-" />
-        <Select v-model="form.constructionPile" label="Paaltype" :options="CONSTRUCTION_PILE_OPTIONS" placeholder="-" />
-        <Select v-model="form.woodType" label="Houtsoort" :options="WOOD_TYPE_OPTIONS" placeholder="-" />
-        <Select v-model="form.woodEncroachment" label="Houtaantasting" :options="WOOD_ENCROACHMENT_OPTIONS" placeholder="-" />
-        <Input v-model.number="form.constructionLevel" label="Funderingsniveau" type="number" step="0.01" />
-        <Input v-model.number="form.woodLevel" label="Houtniveau" type="number" step="0.01" />
-        <Input v-model.number="form.foundationDepth" label="Funderingsdiepte" type="number" step="0.01" />
-        <Input v-model.number="form.masonLevel" label="Metselwerkniveau" type="number" step="0.01" />
-        <Input v-model.number="form.pileDiameterTop" label="Paaldiameter top" type="number" step="0.01" />
-        <Input v-model.number="form.pileDiameterBottom" label="Paaldiameter onder" type="number" step="0.01" />
-        <Input v-model.number="form.pileHeadLevel" label="Paalkop niveau" type="number" step="0.01" />
-        <Input v-model.number="form.pileTipLevel" label="Paalpunt niveau" type="number" step="0.01" />
-        <Input v-model.number="form.concreteChargerLength" label="Betonopzetter lengte" type="number" step="0.01" />
-        <Input v-model.number="form.pileDistanceLength" label="Paalafstand" type="number" step="0.01" />
-        <Input v-model.number="form.woodPenetrationDepth" label="Houtindringing" type="number" step="0.01" />
+      <div class="flex flex-shrink-0 gap-2">
+        <Button label="Verwijderen" danger @click="emit('delete')" />
+        <Button label="Opslaan" type="submit" :disabled="saving" @click="onSave" />
       </div>
-    </Card>
+    </header>
 
-    <Card title="Kwaliteit">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Select v-model="form.overallQuality" label="Algehele kwaliteit" :options="FOUNDATION_QUALITY_OPTIONS" placeholder="-" />
-        <Select v-model="form.woodQuality" label="Houtkwaliteit" :options="QUALITY_OPTIONS" placeholder="-" />
-        <Select v-model="form.constructionQuality" label="Constructiekwaliteit" :options="QUALITY_OPTIONS" placeholder="-" />
-        <Select v-model="form.woodCapacityHorizontalQuality" label="Houtcapaciteit horizontaal" :options="QUALITY_OPTIONS" placeholder="-" />
-        <Select v-model="form.pileWoodCapacityVerticalQuality" label="Paal-/houtcapaciteit verticaal" :options="QUALITY_OPTIONS" placeholder="-" />
-        <Select v-model="form.carryingCapacityQuality" label="Draagkracht" :options="QUALITY_OPTIONS" placeholder="-" />
-        <Select v-model="form.masonQuality" label="Metselwerkkwaliteit" :options="QUALITY_OPTIONS" placeholder="-" />
-        <CheckBox v-model="form.woodQualityNecessity" label="Houtkwaliteitsonderzoek nodig" />
-      </div>
-    </Card>
+    <div class="space-y-8">
+      <section>
+        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          Algemeen
+        </h4>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Input v-model="form.builtYear" label="Bouwjaar" type="date" />
+          <Select
+            v-model="form.substructure"
+            label="Onderbouw"
+            :options="SUBSTRUCTURE_OPTIONS"
+            placeholder="-"
+          />
+          <Input v-model="form.cpt" label="Sondering" />
+          <Input v-model="form.monitoringWell" label="Peilbuis" />
+          <Input
+            v-model.number="form.groundLevel"
+            label="Maaiveld (m NAP)"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.groundwaterLevelTemp"
+            label="Tijdelijk grondwater (m NAP)"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.groundwaterLevelNet"
+            label="Netto grondwater (m NAP)"
+            type="number"
+            step="0.01"
+          />
+          <CheckBox v-model="form.recoveryAdvised" label="Herstel geadviseerd" />
+        </div>
+      </section>
 
-    <Card title="Scheuren">
-      <div class="space-y-4">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Select v-model="form.crackIndoorType" label="Inpandige scheur" :options="CRACK_TYPE_OPTIONS" placeholder="-" />
-          <Input v-model.number="form.crackIndoorSize" label="Grootte (mm)" type="number" />
-          <CheckBox v-model="form.crackIndoorRestored" label="Hersteld" />
+      <section>
+        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          Fundering
+        </h4>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Select
+            v-model="form.foundationType"
+            label="Funderingstype"
+            :options="FOUNDATION_TYPE_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.enforcementTerm"
+            label="Handhavingstermijn"
+            :options="ENFORCEMENT_TERM_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.damageCause"
+            label="Schade-oorzaak"
+            :options="FOUNDATION_DAMAGE_CAUSE_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.damageCharacteristics"
+            label="Schadebeeld"
+            :options="DAMAGE_CHARACTERISTICS_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.constructionPile"
+            label="Paaltype"
+            :options="CONSTRUCTION_PILE_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.woodType"
+            label="Houtsoort"
+            :options="WOOD_TYPE_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.woodEncroachment"
+            label="Houtaantasting"
+            :options="WOOD_ENCROACHMENT_OPTIONS"
+            placeholder="-"
+          />
+          <Input
+            v-model.number="form.constructionLevel"
+            label="Funderingsniveau"
+            type="number"
+            step="0.01"
+          />
+          <Input v-model.number="form.woodLevel" label="Houtniveau" type="number" step="0.01" />
+          <Input
+            v-model.number="form.foundationDepth"
+            label="Funderingsdiepte"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.masonLevel"
+            label="Metselwerkniveau"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.pileDiameterTop"
+            label="Paaldiameter top"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.pileDiameterBottom"
+            label="Paaldiameter onder"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.pileHeadLevel"
+            label="Paalkop niveau"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.pileTipLevel"
+            label="Paalpunt niveau"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.concreteChargerLength"
+            label="Betonopzetter lengte"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.pileDistanceLength"
+            label="Paalafstand"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.woodPenetrationDepth"
+            label="Houtindringing"
+            type="number"
+            step="0.01"
+          />
         </div>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Select v-model="form.crackFacadeFrontType" label="Voorgevel scheur" :options="CRACK_TYPE_OPTIONS" placeholder="-" />
-          <Input v-model.number="form.crackFacadeFrontSize" label="Grootte (mm)" type="number" />
-          <CheckBox v-model="form.crackFacadeFrontRestored" label="Hersteld" />
-        </div>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Select v-model="form.crackFacadeBackType" label="Achtergevel scheur" :options="CRACK_TYPE_OPTIONS" placeholder="-" />
-          <Input v-model.number="form.crackFacadeBackSize" label="Grootte (mm)" type="number" />
-          <CheckBox v-model="form.crackFacadeBackRestored" label="Hersteld" />
-        </div>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Select v-model="form.crackFacadeLeftType" label="Linkergevel scheur" :options="CRACK_TYPE_OPTIONS" placeholder="-" />
-          <Input v-model.number="form.crackFacadeLeftSize" label="Grootte (mm)" type="number" />
-          <CheckBox v-model="form.crackFacadeLeftRestored" label="Hersteld" />
-        </div>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Select v-model="form.crackFacadeRightType" label="Rechtergevel scheur" :options="CRACK_TYPE_OPTIONS" placeholder="-" />
-          <Input v-model.number="form.crackFacadeRightSize" label="Grootte (mm)" type="number" />
-          <CheckBox v-model="form.crackFacadeRightRestored" label="Hersteld" />
-        </div>
-      </div>
-    </Card>
+      </section>
 
-    <Card title="Vervorming">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <CheckBox v-model="form.deformedFacade" label="Vervormde gevel" />
-        <CheckBox v-model="form.thresholdUpdownSkewed" label="Drempel scheef" />
-        <Input v-model.number="form.thresholdFrontLevel" label="Voorste drempelniveau" type="number" step="0.01" />
-        <Input v-model.number="form.thresholdBackLevel" label="Achterste drempelniveau" type="number" step="0.01" />
-        <Input v-model.number="form.skewedParallel" label="Scheefstand parallel" type="number" step="0.01" />
-        <Select v-model="form.skewedParallelFacade" label="Parallelle gevel rotatie" :options="ROTATION_OPTIONS" placeholder="-" />
-        <Input v-model.number="form.skewedPerpendicular" label="Scheefstand loodrecht" type="number" step="0.01" />
-        <Select v-model="form.skewedPerpendicularFacade" label="Loodrechte gevel rotatie" :options="ROTATION_OPTIONS" placeholder="-" />
-        <Input v-model.number="form.settlementSpeed" label="Zakkingssnelheid" type="number" step="0.01" />
-        <CheckBox v-model="form.skewedWindowFrame" label="Scheve kozijnen" />
-        <Select v-model="form.facadeScanRisk" label="Gevelscan risico" :options="FACADE_SCAN_RISK_OPTIONS" placeholder="-" />
-      </div>
-    </Card>
+      <section>
+        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          Kwaliteit
+        </h4>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Select
+            v-model="form.overallQuality"
+            label="Algehele kwaliteit"
+            :options="FOUNDATION_QUALITY_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.woodQuality"
+            label="Houtkwaliteit"
+            :options="QUALITY_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.constructionQuality"
+            label="Constructiekwaliteit"
+            :options="QUALITY_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.woodCapacityHorizontalQuality"
+            label="Houtcapaciteit horizontaal"
+            :options="QUALITY_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.pileWoodCapacityVerticalQuality"
+            label="Paal-/houtcapaciteit verticaal"
+            :options="QUALITY_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.carryingCapacityQuality"
+            label="Draagkracht"
+            :options="QUALITY_OPTIONS"
+            placeholder="-"
+          />
+          <Select
+            v-model="form.masonQuality"
+            label="Metselwerkkwaliteit"
+            :options="QUALITY_OPTIONS"
+            placeholder="-"
+          />
+          <CheckBox v-model="form.woodQualityNecessity" label="Houtkwaliteitsonderzoek nodig" />
+        </div>
+      </section>
 
-    <Card title="Notitie">
-      <Textarea v-model="form.note" placeholder="Optionele notitie…" :rows="4" />
-    </Card>
+      <section>
+        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          Scheuren
+        </h4>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Select
+              v-model="form.crackIndoorType"
+              label="Inpandige scheur"
+              :options="CRACK_TYPE_OPTIONS"
+              placeholder="-"
+            />
+            <Input v-model.number="form.crackIndoorSize" label="Grootte (mm)" type="number" />
+            <CheckBox v-model="form.crackIndoorRestored" label="Hersteld" />
+          </div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Select
+              v-model="form.crackFacadeFrontType"
+              label="Voorgevel scheur"
+              :options="CRACK_TYPE_OPTIONS"
+              placeholder="-"
+            />
+            <Input v-model.number="form.crackFacadeFrontSize" label="Grootte (mm)" type="number" />
+            <CheckBox v-model="form.crackFacadeFrontRestored" label="Hersteld" />
+          </div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Select
+              v-model="form.crackFacadeBackType"
+              label="Achtergevel scheur"
+              :options="CRACK_TYPE_OPTIONS"
+              placeholder="-"
+            />
+            <Input v-model.number="form.crackFacadeBackSize" label="Grootte (mm)" type="number" />
+            <CheckBox v-model="form.crackFacadeBackRestored" label="Hersteld" />
+          </div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Select
+              v-model="form.crackFacadeLeftType"
+              label="Linkergevel scheur"
+              :options="CRACK_TYPE_OPTIONS"
+              placeholder="-"
+            />
+            <Input v-model.number="form.crackFacadeLeftSize" label="Grootte (mm)" type="number" />
+            <CheckBox v-model="form.crackFacadeLeftRestored" label="Hersteld" />
+          </div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Select
+              v-model="form.crackFacadeRightType"
+              label="Rechtergevel scheur"
+              :options="CRACK_TYPE_OPTIONS"
+              placeholder="-"
+            />
+            <Input v-model.number="form.crackFacadeRightSize" label="Grootte (mm)" type="number" />
+            <CheckBox v-model="form.crackFacadeRightRestored" label="Hersteld" />
+          </div>
+        </div>
+      </section>
 
-    <div class="flex justify-between gap-3">
-      <Button label="Verwijderen" danger @click="emit('delete')" />
-      <Button label="Opslaan" type="submit" :disabled="saving" @click="onSave" />
+      <section>
+        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          Vervorming
+        </h4>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <CheckBox v-model="form.deformedFacade" label="Vervormde gevel" />
+          <CheckBox v-model="form.thresholdUpdownSkewed" label="Drempel scheef" />
+          <Input
+            v-model.number="form.thresholdFrontLevel"
+            label="Voorste drempelniveau"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.thresholdBackLevel"
+            label="Achterste drempelniveau"
+            type="number"
+            step="0.01"
+          />
+          <Input
+            v-model.number="form.skewedParallel"
+            label="Scheefstand parallel"
+            type="number"
+            step="0.01"
+          />
+          <Select
+            v-model="form.skewedParallelFacade"
+            label="Parallelle gevel rotatie"
+            :options="ROTATION_OPTIONS"
+            placeholder="-"
+          />
+          <Input
+            v-model.number="form.skewedPerpendicular"
+            label="Scheefstand loodrecht"
+            type="number"
+            step="0.01"
+          />
+          <Select
+            v-model="form.skewedPerpendicularFacade"
+            label="Loodrechte gevel rotatie"
+            :options="ROTATION_OPTIONS"
+            placeholder="-"
+          />
+          <Input
+            v-model.number="form.settlementSpeed"
+            label="Zakkingssnelheid"
+            type="number"
+            step="0.01"
+          />
+          <CheckBox v-model="form.skewedWindowFrame" label="Scheve kozijnen" />
+          <Select
+            v-model="form.facadeScanRisk"
+            label="Gevelscan risico"
+            :options="FACADE_SCAN_RISK_OPTIONS"
+            placeholder="-"
+          />
+        </div>
+      </section>
+
+      <section>
+        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          Notitie
+        </h4>
+        <Textarea v-model="form.note" placeholder="Optionele notitie…" :rows="4" />
+      </section>
     </div>
-  </div>
+  </Card>
 </template>

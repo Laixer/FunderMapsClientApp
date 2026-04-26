@@ -190,103 +190,114 @@ onBeforeMount(async () => {
       <Alert v-if="saveError" :closeable="true" @close="saveError = null">{{ saveError }}</Alert>
     </Card>
 
-    <template v-if="!loading">
-      <Card class="List col-span-3" title="Rapport">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Input
-            v-model="formData.documentName"
-            label="Naam"
-            required
-            :validationStatus="getStatus('documentName')"
-            :validationMessage="getError('documentName')"
-          />
+    <Card v-if="!loading" class="List col-span-3">
+      <form class="space-y-8" @submit.prevent="onSubmit">
+        <section>
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+            Rapport
+          </h4>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              v-model="formData.documentName"
+              label="Naam"
+              required
+              :validationStatus="getStatus('documentName')"
+              :validationMessage="getError('documentName')"
+            />
 
-          <Select
-            v-model="formData.type"
-            label="Type"
-            :options="typeOptions"
-            placeholder="Kies een type"
-            required
-            :validationStatus="getStatus('type')"
-            :validationMessage="getError('type')"
-          />
+            <Select
+              v-model="formData.type"
+              label="Type"
+              :options="typeOptions"
+              placeholder="Kies een type"
+              required
+              :validationStatus="getStatus('type')"
+              :validationMessage="getError('type')"
+            />
 
-          <Input
-            v-model="formData.documentDate"
-            label="Datum"
-            type="date"
-            required
-            :validationStatus="getStatus('documentDate')"
-            :validationMessage="getError('documentDate')"
-          />
+            <Input
+              v-model="formData.documentDate"
+              label="Datum"
+              type="date"
+              required
+              :validationStatus="getStatus('documentDate')"
+              :validationMessage="getError('documentDate')"
+            />
 
-          <Select
-            v-model="formData.contractor"
-            label="Uitvoerder"
-            :options="contractorOptions"
-            placeholder="Kies een uitvoerder"
-            required
-            :validationStatus="getStatus('contractor')"
-            :validationMessage="getError('contractor')"
-          />
+            <Select
+              v-model="formData.contractor"
+              label="Uitvoerder"
+              :options="contractorOptions"
+              placeholder="Kies een uitvoerder"
+              required
+              :validationStatus="getStatus('contractor')"
+              :validationMessage="getError('contractor')"
+            />
 
-          <Select
-            v-model="formData.reviewer"
-            label="Beoordelaar"
-            :options="reviewerOptions"
-            placeholder="Kies een beoordelaar"
-            required
-            :validationStatus="getStatus('reviewer')"
-            :validationMessage="getError('reviewer')"
-          />
-        </div>
-      </Card>
+            <Select
+              v-model="formData.reviewer"
+              label="Beoordelaar"
+              :options="reviewerOptions"
+              placeholder="Kies een beoordelaar"
+              required
+              :validationStatus="getStatus('reviewer')"
+              :validationMessage="getError('reviewer')"
+            />
+          </div>
+        </section>
 
-      <Card class="List col-span-3" title="Document">
-        <div class="space-y-2">
-          <input
-            type="file"
-            accept="application/pdf,image/*"
-            :disabled="uploading"
-            class="block w-full text-sm text-grey-800"
-            @change="onUpload"
-          />
-          <p v-if="uploading" class="text-sm text-grey-700">Bezig met uploaden…</p>
-          <p v-if="formData.documentFile" class="text-sm text-green-800">
-            Document gekoppeld: {{ formData.documentFile }}
-          </p>
-          <Alert v-if="uploadError" :closeable="true" @close="uploadError = null">
-            {{ uploadError }}
-          </Alert>
-          <p v-if="getStatus('documentFile') === 'error'" class="text-sm text-red-500">
-            {{ getError('documentFile') }}
-          </p>
-        </div>
-      </Card>
+        <section>
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+            Document
+          </h4>
+          <div class="space-y-2">
+            <input
+              type="file"
+              accept="application/pdf,image/*"
+              :disabled="uploading"
+              class="block w-full text-sm text-grey-800"
+              @change="onUpload"
+            />
+            <p v-if="uploading" class="text-sm text-grey-700">Bezig met uploaden…</p>
+            <p v-if="formData.documentFile" class="text-sm text-green-800">
+              Document gekoppeld: {{ formData.documentFile }}
+            </p>
+            <Alert v-if="uploadError" :closeable="true" @close="uploadError = null">
+              {{ uploadError }}
+            </Alert>
+            <p v-if="getStatus('documentFile') === 'error'" class="text-sm text-red-500">
+              {{ getError('documentFile') }}
+            </p>
+          </div>
+        </section>
 
-      <Card class="List col-span-3" title="Eigenschappen">
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <CheckBox v-model="formData.standardF3o" label="F3O standaard" />
-          <CheckBox v-model="formData.inspection" label="Inspectie" />
-          <CheckBox v-model="formData.jointMeasurement" label="Voegmeting" />
-          <CheckBox v-model="formData.floorMeasurement" label="Vloermeting" />
-        </div>
-      </Card>
+        <section>
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+            Eigenschappen
+          </h4>
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <CheckBox v-model="formData.standardF3o" label="F3O standaard" />
+            <CheckBox v-model="formData.inspection" label="Inspectie" />
+            <CheckBox v-model="formData.jointMeasurement" label="Voegmeting" />
+            <CheckBox v-model="formData.floorMeasurement" label="Vloermeting" />
+          </div>
+        </section>
 
-      <Card class="List col-span-3" title="Notitie">
-        <Textarea v-model="formData.note" placeholder="Optionele notitie…" :rows="4" />
-      </Card>
+        <section>
+          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+            Notitie
+          </h4>
+          <Textarea v-model="formData.note" placeholder="Optionele notitie…" :rows="4" />
+        </section>
 
-      <Card class="List col-span-3">
-        <div class="flex justify-end gap-3">
+        <div class="-mx-5 -mb-5 flex justify-end gap-3 border-t border-grey-200 px-5 py-4">
           <Button
             label="Opslaan en verder"
             type="submit"
             :disabled="saving || uploading"
-            @click="onSubmit"
           />
         </div>
-      </Card>
-    </template>
+      </form>
+    </Card>
   </MainWrapper>
 </template>

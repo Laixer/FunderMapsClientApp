@@ -116,20 +116,16 @@ async function handleDownload() {
 
 <template>
   <MainWrapper>
-    <Card v-if="loading || error || !inquiry" class="List col-span-3 mt-16">
+    <Card class="List col-span-3 mt-16">
       <RouterLink :to="{ name: 'inquiry-list' }" class="text-sm text-green-700 hover:underline">
         ← {{ t('inquiry.view.back') }}
       </RouterLink>
+
       <Spinner v-if="loading" />
       <span v-if="false">{{ t('common.loading') }}</span>
       <Alert v-if="error" :closeable="true" @close="error = null">{{ error }}</Alert>
-    </Card>
 
-    <template v-if="inquiry">
-      <Card class="List col-span-3 mt-16">
-        <RouterLink :to="{ name: 'inquiry-list' }" class="text-sm text-green-700 hover:underline">
-          ← {{ t('inquiry.view.back') }}
-        </RouterLink>
+      <template v-if="inquiry">
         <header
           class="-mx-5 flex flex-wrap items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
         >
@@ -168,56 +164,60 @@ async function handleDownload() {
         <Alert v-if="actionError" :closeable="true" @close="actionError = null">
           {{ actionError }}
         </Alert>
-      </Card>
 
-      <Card class="List col-span-3" title="Details">
-          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-            <dt class="font-medium text-grey-700">Opsteller</dt>
-            <dd class="sm:col-span-2">{{ inquiry.attribution.creatorName ?? '-' }}</dd>
+        <div class="space-y-8">
+          <section>
+            <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+              Details
+            </h4>
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+              <dt class="font-medium text-grey-700">Opsteller</dt>
+              <dd class="sm:col-span-2">{{ inquiry.attribution.creatorName ?? '-' }}</dd>
 
-            <dt class="font-medium text-grey-700">Beoordelaar</dt>
-            <dd class="sm:col-span-2">{{ inquiry.attribution.reviewerName ?? '-' }}</dd>
+              <dt class="font-medium text-grey-700">Beoordelaar</dt>
+              <dd class="sm:col-span-2">{{ inquiry.attribution.reviewerName ?? '-' }}</dd>
 
-            <dt class="font-medium text-grey-700">Uitvoerder</dt>
-            <dd class="sm:col-span-2">{{ inquiry.attribution.contractorName ?? '-' }}</dd>
+              <dt class="font-medium text-grey-700">Uitvoerder</dt>
+              <dd class="sm:col-span-2">{{ inquiry.attribution.contractorName ?? '-' }}</dd>
 
-            <dt class="font-medium text-grey-700">Inspectie</dt>
-            <dd class="sm:col-span-2">{{ inquiry.inspection ? 'Ja' : 'Nee' }}</dd>
+              <dt class="font-medium text-grey-700">Inspectie</dt>
+              <dd class="sm:col-span-2">{{ inquiry.inspection ? 'Ja' : 'Nee' }}</dd>
 
-            <dt class="font-medium text-grey-700">Voegmeting</dt>
-            <dd class="sm:col-span-2">{{ inquiry.jointMeasurement ? 'Ja' : 'Nee' }}</dd>
+              <dt class="font-medium text-grey-700">Voegmeting</dt>
+              <dd class="sm:col-span-2">{{ inquiry.jointMeasurement ? 'Ja' : 'Nee' }}</dd>
 
-            <dt class="font-medium text-grey-700">Vloermeting</dt>
-            <dd class="sm:col-span-2">{{ inquiry.floorMeasurement ? 'Ja' : 'Nee' }}</dd>
+              <dt class="font-medium text-grey-700">Vloermeting</dt>
+              <dd class="sm:col-span-2">{{ inquiry.floorMeasurement ? 'Ja' : 'Nee' }}</dd>
 
-            <dt class="font-medium text-grey-700">F3O standaard</dt>
-            <dd class="sm:col-span-2">{{ inquiry.standardF3o ? 'Ja' : 'Nee' }}</dd>
+              <dt class="font-medium text-grey-700">F3O standaard</dt>
+              <dd class="sm:col-span-2">{{ inquiry.standardF3o ? 'Ja' : 'Nee' }}</dd>
 
-            <dt v-if="inquiry.note" class="font-medium text-grey-700">Notitie</dt>
-            <dd v-if="inquiry.note" class="whitespace-pre-wrap sm:col-span-2">
-              {{ inquiry.note }}
-            </dd>
-          </dl>
-        </Card>
+              <dt v-if="inquiry.note" class="font-medium text-grey-700">Notitie</dt>
+              <dd v-if="inquiry.note" class="whitespace-pre-wrap sm:col-span-2">
+                {{ inquiry.note }}
+              </dd>
+            </dl>
+          </section>
 
-      <Card class="List col-span-3" :title="`Adressen (${samples.length})`">
-          <p v-if="samples.length === 0" class="text-sm text-grey-700">
-            Nog geen adressen toegevoegd.
-          </p>
-          <ul v-else class="divide-y divide-grey-200">
-            <li
-              v-for="s in samples"
-              :key="s.id"
-              class="space-y-1 py-3 text-sm"
-            >
-              <p class="font-semibold text-grey-800">
-                {{ formatAddress(addressStore.cache[s.address]) }}
-              </p>
-              <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
-            </li>
-          </ul>
-        </Card>
+          <section>
+            <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+              Adressen ({{ samples.length }})
+            </h4>
+            <p v-if="samples.length === 0" class="text-sm text-grey-700">
+              Nog geen adressen toegevoegd.
+            </p>
+            <ul v-else class="divide-y divide-grey-200">
+              <li v-for="s in samples" :key="s.id" class="space-y-1 py-3 text-sm">
+                <p class="font-semibold text-grey-800">
+                  {{ formatAddress(addressStore.cache[s.address]) }}
+                </p>
+                <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
+              </li>
+            </ul>
+          </section>
+        </div>
       </template>
+    </Card>
 
     <RejectModal v-if="showRejectModal" @close="showRejectModal = false" @submit="handleReject" />
   </MainWrapper>

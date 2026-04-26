@@ -33,7 +33,6 @@ const actionError: Ref<string | null> = ref(null)
 
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
-const showPicker = ref(false)
 
 async function load() {
   try {
@@ -58,7 +57,6 @@ function selectSample(id: number) {
 }
 
 async function handlePick(address: IAddress) {
-  showPicker.value = false
   saving.value = true
   actionError.value = null
   // Cache the resolved address right away so the new sample renders with
@@ -205,40 +203,40 @@ function previous() {
     </Card>
 
     <template v-if="!loading">
-      <Card class="col-span-3 lg:col-span-1" title="Adressen">
-        <Button label="Adres toevoegen" @click="showPicker = !showPicker" />
+      <Card class="List col-span-3 lg:col-span-1">
+        <header class="-mx-5 -mt-5 border-b border-grey-200 px-5 py-4">
+          <h3 class="heading-3">Adressen</h3>
+          <p class="mt-1 text-xs text-grey-700">
+            Zoek het adres en klik op een suggestie om toe te voegen.
+          </p>
+        </header>
 
-        <AddressPicker v-if="showPicker" class="mt-2" @pick="handlePick" />
-
-        <p v-if="!samples.length && !showPicker" class="text-sm text-grey-700">
-          Voeg een adres toe om te beginnen.
-        </p>
+        <AddressPicker @pick="handlePick" />
 
         <ul v-if="samples.length" class="divide-y divide-grey-200">
           <li
             v-for="s in samples"
             :key="s.id"
             class="cursor-pointer px-2 py-2 text-sm hover:bg-grey-100"
-            :class="s.id === selectedId ? 'bg-green-100 font-semibold' : ''"
+            :class="s.id === selectedId ? 'bg-green-100 font-semibold' : 'text-grey-800'"
             @click="selectSample(s.id)"
           >
             {{ formatAddress(addressStore.cache[s.address]) }}
           </li>
         </ul>
+        <p v-else class="text-sm text-grey-700">Nog geen adressen. Begin hierboven met zoeken.</p>
       </Card>
 
-      <div class="col-span-3 lg:col-span-2">
-        <Card v-if="!selected">
-          <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
-        </Card>
-        <SampleForm
-          v-else
-          :sample="selected"
-          :saving="saving"
-          @save="handleSave"
-          @delete="handleDelete"
-        />
-      </div>
+      <Card v-if="!selected" class="List col-span-3 lg:col-span-2">
+        <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
+      </Card>
+      <SampleForm
+        v-else
+        :sample="selected"
+        :saving="saving"
+        @save="handleSave"
+        @delete="handleDelete"
+      />
     </template>
   </MainWrapper>
 </template>
