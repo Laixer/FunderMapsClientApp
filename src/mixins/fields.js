@@ -5,13 +5,25 @@ export default {
 
     /**
      * Get Field Value
+     *
+     * <input type="number"> always returns the value as a string. The TS API
+     * expects actual numbers (zod number().nullish()) — coerce based on the
+     * field's declared type. Empty / null / undefined → null so the
+     * "no value" case is sent explicitly rather than as NaN.
      */
     fieldValue(name) {
-      return this.fields[name].value;
+      const field = this.fields[name];
+      const raw = field.value;
+      if (field.type === "number") {
+        if (raw === "" || raw === null || raw === undefined) return null;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+      }
+      return raw;
     },
     fieldValues(names) {
       return names.reduce((obj, name) => {
-        obj[name] = this.fields[name].value;
+        obj[name] = this.fieldValue(name);
         return obj
       }, {})
     },
