@@ -13,10 +13,10 @@ export default {
 
     /**
      * Gets a single address from our geocoder by id.
-     * Canonical FunderMapsApi path: /api/geocoder/:id/address
-     * @param id Internal geocoder id.
+     * Canonical FunderMapsApi path: /api/geocoder/address/:id
+     * @param id Internal geocoder id (gfm-*), BAG NUMMERAANDUIDING, or BAG PAND.
      */
     getAddressById(id: string) {
-        return axios.get(`/api/geocoder/${id}/address`);
+        return axios.get(`/api/geocoder/address/${id}`);
     }
 }
