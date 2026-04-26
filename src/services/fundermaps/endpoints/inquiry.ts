@@ -63,14 +63,16 @@ export async function getDownload(id: number) {
 }
 
 /**
- * Upload the report's PDF document. Multipart upload returns a file resource
- * id which then goes into IInquiry.documentFile on create/update.
+ * Upload the report's PDF document. Multipart upload returns the unique
+ * stored filename, which then goes into IInquiry.documentFile on create/update.
+ * The API expects the multipart field to be named `input` (matches the
+ * legacy C# `[FormFile] IFormFile input` signature).
  */
-export async function uploadDocument(file: File) {
+export async function uploadDocument(file: File): Promise<{ name: string }> {
   const form = new FormData()
-  form.append('file', file)
+  form.append('input', file)
   return (await post({ endpoint: '/inquiry/upload-document', body: form })) as {
-    documentFile: string
+    name: string
   }
 }
 

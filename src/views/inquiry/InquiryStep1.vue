@@ -95,8 +95,8 @@ async function onUpload(e: Event) {
   uploadError.value = null
   uploading.value = true
   try {
-    const { documentFile } = await api.inquiry.uploadDocument(file)
-    formData.value.documentFile = documentFile
+    const { name } = await api.inquiry.uploadDocument(file)
+    formData.value.documentFile = name
   } catch (err) {
     uploadError.value = getErrorMessage(err) ?? 'Upload mislukt.'
   } finally {
