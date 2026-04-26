@@ -93,15 +93,7 @@ const mutations = {
    * If address already exists, overwrite its entry with new data.
    */
   add_address_to_collection(state, { address }) {
-    state.addressCollection[address.id] = new AddressModel(
-      // TODO: There is more that is returned
-      address.id,
-      address.buildingNumber,
-      address.postalCode,
-      address.street,
-      address.city,
-      address.buildingId
-    );
+    state.addressCollection[address.id] = new AddressModel(address);
   },
   reset(state) {
     Object.assign(state, defaultState);

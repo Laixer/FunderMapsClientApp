@@ -1,43 +1,31 @@
 /**
- * The address model.
+ * Address model — wraps the /api/geocoder/address/{id} payload from
+ * FunderMapsApi. Field names mirror the canonical TS API (snake_case).
  */
 class AddressModel {
-  id: string;
-  buildingNumber: string;
-  postalCode: string;
-  street: string;
-  city: string;
-  buildingId: string;
+  id!: string;
+  external_id?: string;
+  building_number!: string;
+  postal_code?: string;
+  street!: string;
+  city!: string;
+  building_id!: string;
 
-  // TODO Null checking
-  /**
-   * Create new instance.
-   */
-  constructor(id: string,
-    buildingNumber: string,
-    postalCode: string,
-    street: string,
-    city: string,
-    buildingId: string) {
-    this.id = id;
-    this.buildingNumber = buildingNumber;
-    this.postalCode = postalCode;
-    this.street = street;
-    this.city = city;
-    this.buildingId = buildingId;
+  constructor(payload: Partial<AddressModel>) {
+    Object.assign(this, payload);
   }
 
   format(): string {
-    let buildingNumberCleaned = `${this.street} ${this.buildingNumberCleaned()}, `
-    if (this.postalCode) {
-      buildingNumberCleaned += `${this.postalCode} `
+    let out = `${this.street} ${this.cleanedBuildingNumber()}, `;
+    if (this.postal_code) {
+      out += `${this.postal_code} `;
     }
-    buildingNumberCleaned += `${this.city}`
-    return buildingNumberCleaned
+    out += `${this.city}`;
+    return out;
   }
 
-  buildingNumberCleaned(): string {
-    return this.buildingNumber.trim();
+  cleanedBuildingNumber(): string {
+    return (this.building_number || '').trim();
   }
 }
 
