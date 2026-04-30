@@ -39,7 +39,15 @@ const actionError: Ref<string | null> = ref(null)
 const showRejectModal = ref(false)
 
 const status = computed(() => inquiry.value?.state?.auditStatus ?? null)
+// Editable until the inquiry is approved (DONE). Discarded inquiries are
+// also frozen — they're a deliberate close-out, not active work.
 const isEditable = computed(
+  () =>
+    status.value !== null &&
+    status.value !== AUDIT_STATUS.DONE &&
+    status.value !== AUDIT_STATUS.DISCARDED,
+)
+const canSubmitForReview = computed(
   () =>
     status.value === AUDIT_STATUS.TODO ||
     status.value === AUDIT_STATUS.PENDING ||
@@ -143,7 +151,7 @@ async function handleDownload() {
             <Button label="Document" outline @click="handleDownload" />
             <Button v-if="isEditable && canWrite" label="Bewerken" outline @click="goEdit" />
             <Button
-              v-if="isEditable && canWrite"
+              v-if="canSubmitForReview && canWrite"
               label="Aanbieden ter review"
               @click="handleSubmitForReview"
             />
