@@ -391,7 +391,7 @@ function onSave() {
           <CheckBox v-model="form.skewedWindowFrame" label="Scheve kozijnen" />
           <Select
             v-model="form.facadeScanRisk"
-            label="Gevelscan risico"
+            label="QuickScan / Fase 0 risico"
             :options="FACADE_SCAN_RISK_OPTIONS"
             placeholder="-"
           />
