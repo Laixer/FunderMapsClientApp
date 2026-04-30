@@ -56,6 +56,84 @@ function selectSample(id: number) {
   selectedId.value = id
 }
 
+function emptyInput(addressId: string): IInquirySampleInput {
+  return {
+    address: addressId,
+    note: null,
+    builtYear: null,
+    substructure: null,
+    cpt: null,
+    monitoringWell: null,
+    groundwaterLevelTemp: null,
+    groundLevel: null,
+    groundwaterLevelNet: null,
+    foundationType: null,
+    enforcementTerm: null,
+    recoveryAdvised: null,
+    damageCause: null,
+    damageCharacteristics: null,
+    constructionPile: null,
+    woodType: null,
+    woodEncroachment: null,
+    constructionLevel: null,
+    woodLevel: null,
+    pileDiameterTop: null,
+    pileDiameterBottom: null,
+    pileHeadLevel: null,
+    pileTipLevel: null,
+    foundationDepth: null,
+    masonLevel: null,
+    concreteChargerLength: null,
+    pileDistanceLength: null,
+    woodPenetrationDepth: null,
+    overallQuality: null,
+    woodQuality: null,
+    constructionQuality: null,
+    woodCapacityHorizontalQuality: null,
+    pileWoodCapacityVerticalQuality: null,
+    carryingCapacityQuality: null,
+    masonQuality: null,
+    woodQualityNecessity: null,
+    crackIndoorRestored: null,
+    crackIndoorType: null,
+    crackIndoorSize: null,
+    crackFacadeFrontRestored: null,
+    crackFacadeFrontType: null,
+    crackFacadeFrontSize: null,
+    crackFacadeBackRestored: null,
+    crackFacadeBackType: null,
+    crackFacadeBackSize: null,
+    crackFacadeLeftRestored: null,
+    crackFacadeLeftType: null,
+    crackFacadeLeftSize: null,
+    crackFacadeRightRestored: null,
+    crackFacadeRightType: null,
+    crackFacadeRightSize: null,
+    deformedFacade: null,
+    thresholdUpdownSkewed: null,
+    thresholdFrontLevel: null,
+    thresholdBackLevel: null,
+    skewedParallel: null,
+    skewedParallelFacade: null,
+    skewedPerpendicular: null,
+    skewedPerpendicularFacade: null,
+    settlementSpeed: null,
+    skewedWindowFrame: null,
+    facadeScanRisk: null,
+  }
+}
+
+function cloneInputFrom(s: IInquirySample, addressId: string): IInquirySampleInput {
+  const { id, inquiry, building, createDate, updateDate, deleteDate, ...rest } = s
+  void id
+  void inquiry
+  void building
+  void createDate
+  void updateDate
+  void deleteDate
+  return { ...rest, address: addressId }
+}
+
 async function handlePick(address: IAddress) {
   saving.value = true
   actionError.value = null
@@ -63,71 +141,12 @@ async function handlePick(address: IAddress) {
   // a human-readable label as soon as it shows up in the list.
   addressStore.cache[address.id] = address
   try {
-    const empty: IInquirySampleInput = {
-      address: address.id,
-      note: null,
-      builtYear: null,
-      substructure: null,
-      cpt: null,
-      monitoringWell: null,
-      groundwaterLevelTemp: null,
-      groundLevel: null,
-      groundwaterLevelNet: null,
-      foundationType: null,
-      enforcementTerm: null,
-      recoveryAdvised: null,
-      damageCause: null,
-      damageCharacteristics: null,
-      constructionPile: null,
-      woodType: null,
-      woodEncroachment: null,
-      constructionLevel: null,
-      woodLevel: null,
-      pileDiameterTop: null,
-      pileDiameterBottom: null,
-      pileHeadLevel: null,
-      pileTipLevel: null,
-      foundationDepth: null,
-      masonLevel: null,
-      concreteChargerLength: null,
-      pileDistanceLength: null,
-      woodPenetrationDepth: null,
-      overallQuality: null,
-      woodQuality: null,
-      constructionQuality: null,
-      woodCapacityHorizontalQuality: null,
-      pileWoodCapacityVerticalQuality: null,
-      carryingCapacityQuality: null,
-      masonQuality: null,
-      woodQualityNecessity: null,
-      crackIndoorRestored: null,
-      crackIndoorType: null,
-      crackIndoorSize: null,
-      crackFacadeFrontRestored: null,
-      crackFacadeFrontType: null,
-      crackFacadeFrontSize: null,
-      crackFacadeBackRestored: null,
-      crackFacadeBackType: null,
-      crackFacadeBackSize: null,
-      crackFacadeLeftRestored: null,
-      crackFacadeLeftType: null,
-      crackFacadeLeftSize: null,
-      crackFacadeRightRestored: null,
-      crackFacadeRightType: null,
-      crackFacadeRightSize: null,
-      deformedFacade: null,
-      thresholdUpdownSkewed: null,
-      thresholdFrontLevel: null,
-      thresholdBackLevel: null,
-      skewedParallel: null,
-      skewedParallelFacade: null,
-      skewedPerpendicular: null,
-      skewedPerpendicularFacade: null,
-      settlementSpeed: null,
-      skewedWindowFrame: null,
-      facadeScanRisk: null,
-    }
-    const created = await api.inquirySample.create(inquiryId.value, empty)
+    // Prefill from the currently-selected sample so users don't re-type
+    // shared fields when adding multiple addresses to one inquiry.
+    const payload = selected.value
+      ? cloneInputFrom(selected.value, address.id)
+      : emptyInput(address.id)
+    const created = await api.inquirySample.create(inquiryId.value, payload)
     samples.value.unshift(created)
     selectedId.value = created.id
   } catch (e) {
