@@ -14,6 +14,9 @@ const props = withDefaults(
     validationStatus?: 'none' | 'success' | 'error'
     validationMessage?: string
     tabindex?: number
+    min?: number | string
+    max?: number | string
+    step?: number | string
   }>(),
   { type: 'text', required: false, disabled: false, validationStatus: 'none' },
 )
@@ -38,6 +41,9 @@ const identifier = computed(() => props.id ?? `input-${crypto.randomUUID()}`)
         :required="required"
         :disabled="disabled"
         :tabindex="tabindex"
+        :min="min"
+        :max="max"
+        :step="step"
         v-model="model"
       />
       <div v-if="$slots.after" class="input-field__after"><slot name="after" /></div>

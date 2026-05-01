@@ -102,18 +102,24 @@ function onSave() {
             label="Maaiveld (m NAP)"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <Input
             v-model.number="form.groundwaterLevelTemp"
             label="Tijdelijk grondwater (m NAP)"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <Input
             v-model.number="form.groundwaterLevelNet"
             label="Netto grondwater (m NAP)"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <CheckBox v-model="form.recoveryAdvised" label="Herstel geadviseerd" />
         </div>
@@ -171,61 +177,88 @@ function onSave() {
             label="Funderingsniveau"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
-          <Input v-model.number="form.woodLevel" label="Houtniveau" type="number" step="0.01" />
+          <Input
+            v-model.number="form.woodLevel"
+            label="Houtniveau"
+            type="number"
+            step="0.01"
+            :min="-999.99"
+            :max="999.99"
+          />
           <Input
             v-model.number="form.foundationDepth"
             label="Funderingsdiepte"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
           <Input
             v-model.number="form.masonLevel"
             label="Metselwerkniveau"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <Input
             v-model.number="form.pileDiameterTop"
             label="Paaldiameter top"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
           <Input
             v-model.number="form.pileDiameterBottom"
             label="Paaldiameter onder"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
           <Input
             v-model.number="form.pileHeadLevel"
             label="Paalkop niveau"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <Input
             v-model.number="form.pileTipLevel"
             label="Paalpunt niveau"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <Input
             v-model.number="form.concreteChargerLength"
             label="Betonopzetter lengte"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
           <Input
             v-model.number="form.pileDistanceLength"
             label="Paalafstand"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
           <Input
             v-model.number="form.woodPenetrationDepth"
             label="Houtindringing"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
         </div>
       </section>
@@ -351,18 +384,24 @@ function onSave() {
             label="Voorste drempelniveau"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <Input
             v-model.number="form.thresholdBackLevel"
             label="Achterste drempelniveau"
             type="number"
             step="0.01"
+            :min="-999.99"
+            :max="999.99"
           />
           <Input
             v-model.number="form.skewedParallel"
             label="Scheefstand parallel"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
           <Select
             v-model="form.skewedParallelFacade"
@@ -375,6 +414,8 @@ function onSave() {
             label="Scheefstand loodrecht"
             type="number"
             step="0.01"
+            :min="0"
+            :max="999.99"
           />
           <Select
             v-model="form.skewedPerpendicularFacade"
