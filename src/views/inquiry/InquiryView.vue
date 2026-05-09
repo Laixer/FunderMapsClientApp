@@ -26,7 +26,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const sessionStore = useSessionStore()
-const { canWrite, canApprove } = storeToRefs(sessionStore)
+const { canWrite, canApprove, isSuperUser } = storeToRefs(sessionStore)
 const addressStore = useAddressStore()
 
 const inquiryId = computed(() => Number(route.params.id))
@@ -120,6 +120,22 @@ async function handleDownload() {
     actionError.value = getErrorMessage(e) ?? t('error.generic')
   }
 }
+
+async function handleDelete() {
+  if (
+    !confirm(
+      'Weet je zeker dat je dit rapport wilt verwijderen? Alle bijbehorende adressen worden ook verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
+    )
+  )
+    return
+  try {
+    actionError.value = null
+    await api.inquiry.remove(inquiryId.value)
+    router.push({ name: 'inquiry-list' })
+  } catch (e) {
+    actionError.value = getErrorMessage(e) ?? t('error.generic')
+  }
+}
 </script>
 
 <template>
@@ -165,6 +181,12 @@ async function handleDownload() {
               label="Afkeuren"
               danger
               @click="showRejectModal = true"
+            />
+            <Button
+              v-if="isSuperUser"
+              label="Verwijderen"
+              danger
+              @click="handleDelete"
             />
           </div>
         </header>
