@@ -10,6 +10,7 @@ const { t } = useI18n()
 const navLinks = [
   { name: 'dashboard', label: t('nav.dashboard') },
   { name: 'inquiry-list', label: t('nav.reports') },
+  { name: 'recovery-list', label: t('nav.recoveries') },
 ]
 </script>
 
