@@ -1,0 +1,12 @@
+[_]
+schema-version = "0.2"
+
+# DO App Platform provisioned this app's builder with heroku/nodejs-engine
+# v0.5.4, which predates pnpm support. Request a current version from the
+# public CNB registry — pnpm via corepack has been supported since the 2.x
+# series. Note: DO may use an internal fork of this buildpack with its own
+# versioning, in which case this pin is ignored and the fix has to happen at
+# the DO app-spec level (refresh buildpacks via control panel or doctl).
+[[io.buildpacks.group]]
+id = "heroku/nodejs-engine"
+version = "5.0.0"
