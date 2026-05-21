@@ -5,6 +5,7 @@ import { hasAccessToken } from '@/services/fundermaps/session'
 import { useSessionStore } from '@/stores/session'
 
 import Login from '@/views/auth/Login.vue'
+import Callback from '@/views/auth/Callback.vue'
 import Logout from '@/views/auth/Logout.vue'
 import NotFound from '@/views/auth/NotFound.vue'
 import InquiryList from '@/views/InquiryListView.vue'
@@ -20,6 +21,7 @@ import RecoveryView from '@/views/recovery/RecoveryView.vue'
 
 const routes: RouteRecordRaw[] = [
   { name: 'login', path: '/login', component: Login, meta: { layout: 'login', public: true } },
+  { name: 'auth-callback', path: '/auth/callback', component: Callback, meta: { layout: 'login', public: true } },
   { name: 'logout', path: '/logout', component: Logout, meta: { layout: 'empty' } },
 
   { path: '/', redirect: { name: 'inquiry-list' } },
