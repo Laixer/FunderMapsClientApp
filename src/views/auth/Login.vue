@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 
-import AuthWrapper from '@/components/Layout/AuthWrapper.vue'
 import { loginRedirect } from '@/services/oidc'
 
-// Login now lives in the dedicated auth app (auth.fundermaps.com). This route
-// is just the entry point: it kicks off the OIDC authorization-code flow and
-// hands off to the auth app. The guard routes unauthenticated users here, and
-// logout returns here too.
-const { t } = useI18n()
-
+// Login lives in the auth app (auth.fundermaps.com). The router redirects to
+// the OIDC flow before this component renders (the global guard + this route's
+// beforeEnter), so this is normally never shown. The onMounted call is a
+// defensive fallback, and the template renders nothing so there is no flash of
+// a local login page during the hand-off.
 onMounted(() => {
   loginRedirect()
 })
 </script>
 
 <template>
-  <AuthWrapper :title="t('app.title')">
-    <p class="text-sm text-grey-700">{{ t('common.loading') }}</p>
-  </AuthWrapper>
+  <div />
 </template>

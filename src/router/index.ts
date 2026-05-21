@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 
 import { hasAccessToken } from '@/services/fundermaps/session'
 import { useSessionStore } from '@/stores/session'
+import { loginRedirect } from '@/services/oidc'
 
 import Login from '@/views/auth/Login.vue'
 import Callback from '@/views/auth/Callback.vue'
@@ -20,7 +21,20 @@ import RecoveryStep3 from '@/views/recovery/RecoveryStep3.vue'
 import RecoveryView from '@/views/recovery/RecoveryView.vue'
 
 const routes: RouteRecordRaw[] = [
-  { name: 'login', path: '/login', component: Login, meta: { layout: 'login', public: true } },
+  // Login lives in the auth app. Redirect to OIDC in beforeEnter — before the
+  // component renders — so no local login page flashes during the hand-off.
+  // Reached via logout (push to 'login') and direct /login hits; the global
+  // guard handles protected routes the same way.
+  {
+    name: 'login',
+    path: '/login',
+    component: Login,
+    meta: { layout: 'login', public: true },
+    beforeEnter: async () => {
+      await loginRedirect()
+      return false
+    },
+  },
   { name: 'auth-callback', path: '/auth/callback', component: Callback, meta: { layout: 'login', public: true } },
   { name: 'logout', path: '/logout', component: Logout, meta: { layout: 'empty' } },
 
@@ -66,7 +80,10 @@ router.beforeEach(async (to) => {
   if (to.meta.public) return true
 
   if (!isAuthenticated.value) {
-    return { name: 'login' }
+    // Hand off to the auth app here, before any route component renders, so the
+    // user never sees a local login page flash.
+    await loginRedirect()
+    return false
   }
 })
 
