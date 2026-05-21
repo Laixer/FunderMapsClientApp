@@ -14,8 +14,8 @@ defineProps<{ label?: string }>()
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
-  border: 2px solid theme(colors.grey.200);
-  border-top-color: theme(colors.green.500);
+  border: 2px solid var(--color-grey-200);
+  border-top-color: var(--color-green-500);
   animation: spin 700ms linear infinite;
 }
 

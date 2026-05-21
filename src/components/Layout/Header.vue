@@ -16,7 +16,7 @@ const navLinks = [
 
 <template>
   <header
-    class="app-header fixed inset-x-0 top-0 isolate z-50 flex h-16 items-center gap-8 bg-white/85 px-6 shadow-[0_1px_0_0_theme(colors.grey.200)] backdrop-blur supports-[backdrop-filter]:bg-white/75"
+    class="app-header fixed inset-x-0 top-0 isolate z-50 flex h-16 items-center gap-8 bg-white/85 px-6 shadow-[0_1px_0_0_var(--color-grey-200)] backdrop-blur supports-[backdrop-filter]:bg-white/75"
   >
     <RouterLink
       :to="{ name: 'dashboard' }"
@@ -52,14 +52,14 @@ const navLinks = [
   bottom: -1px;
   height: 2px;
   border-radius: 2px 2px 0 0;
-  background: theme(colors.green.500);
+  background: var(--color-green-500);
   transform: scaleX(0);
   transform-origin: center;
   transition: transform 180ms ease;
 }
 
 .nav-link.router-link-active {
-  color: theme(colors.grey.800);
+  color: var(--color-grey-800);
 }
 
 .nav-link.router-link-active::after {
