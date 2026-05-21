@@ -13,6 +13,11 @@
     "reports": "Rapportages",
     "recoveries": "Herstel"
   },
+  "userMenu": {
+    "apps": "Andere apps",
+    "maps": "Kaart",
+    "admin": "Beheer"
+  },
   "common": {
     "loading": "Laden…"
   },
