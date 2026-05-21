@@ -18,7 +18,7 @@
     grid-column: full;
     grid-row: main;
 
-    @screen xl {
+    @media (width >= 80rem) {
       grid-column: main;
       grid-row: main;
     }
