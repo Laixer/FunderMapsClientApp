@@ -7,6 +7,7 @@ import {
   getAccessToken,
   hasAccessToken,
   removeAccessToken,
+  removeIdToken,
   storeAccessToken,
 } from '@/services/fundermaps/session'
 import type { IUser, OrgRole } from '@/services/fundermaps/interfaces/IUser'
@@ -56,6 +57,7 @@ async function authenticateFromAccessToken() {
 
 function clearLocalSession() {
   removeAccessToken()
+  removeIdToken()
   currentUser.value = null
 }
 

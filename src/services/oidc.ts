@@ -8,7 +8,13 @@
  * and no refresh token for now (the access token is re-obtained by bouncing
  * through /authorize again, which is silent while the SSO session is alive).
  */
-import { storeAccessToken } from './fundermaps/session'
+import {
+  getIdToken,
+  removeAccessToken,
+  removeIdToken,
+  storeAccessToken,
+  storeIdToken,
+} from './fundermaps/session'
 
 const API = (import.meta.env.VITE_FUNDERMAPS_URL || '').replace(/\/+$/, '')
 const CLIENT_ID = 'clientapp'
@@ -76,10 +82,40 @@ export async function exchangeCode(code: string, state: string): Promise<void> {
   if (!res.ok) {
     throw new Error(`Token exchange failed (${res.status})`)
   }
-  const tokens = (await res.json()) as { access_token?: string }
+  const tokens = (await res.json()) as { access_token?: string; id_token?: string }
   if (!tokens.access_token) throw new Error('No access token in token response')
 
   storeAccessToken(tokens.access_token)
+  if (tokens.id_token) storeIdToken(tokens.id_token)
   sessionStorage.removeItem(VERIFIER_KEY)
   sessionStorage.removeItem(STATE_KEY)
+}
+
+/**
+ * RP-initiated logout: clear local tokens, then end the SSO session at the
+ * provider via /oauth2/end-session (id_token_hint identifies the session). The
+ * provider clears the Better Auth session cookie and redirects to
+ * post_logout_redirect_uri — here /login, which re-enters the flow and (now
+ * that the SSO session is gone) shows a fresh login prompt.
+ *
+ * Without ending the SSO session, a local-only logout would just bounce back
+ * through /authorize and silently log the user straight back in.
+ */
+export function logoutRedirect(): void {
+  const idToken = getIdToken()
+  removeAccessToken()
+  removeIdToken()
+
+  const postLogout = `${window.location.origin}/login`
+  if (!idToken) {
+    // No id_token to prove the session — best effort: just go to login.
+    window.location.assign(postLogout)
+    return
+  }
+  const params = new URLSearchParams({
+    id_token_hint: idToken,
+    post_logout_redirect_uri: postLogout,
+    client_id: CLIENT_ID,
+  })
+  window.location.assign(`${API}/api/auth/oauth2/end-session?${params.toString()}`)
 }
