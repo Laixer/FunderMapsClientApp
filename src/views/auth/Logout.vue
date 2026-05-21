@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useSessionStore } from '@/stores/session'
+import { logoutRedirect } from '@/services/oidc'
 
-const sessionStore = useSessionStore()
-
-onMounted(async () => {
-  await sessionStore.logoutAndRedirect()
+// RP-initiated logout: clear local tokens and end the SSO session at the
+// provider (/oauth2/end-session), then land back on /login for a fresh login
+// (option B). A local-only logout would silently re-login via the still-alive
+// SSO session.
+onMounted(() => {
+  logoutRedirect()
 })
 </script>
 
