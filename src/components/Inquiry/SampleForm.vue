@@ -71,12 +71,12 @@ function onSave() {
       class="-mx-5 -mt-5 flex flex-wrap items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
     >
       <div class="min-w-0 flex-1">
-        <h3 class="heading-3 break-words">
+        <h3 class="heading-3 wrap-break-word">
           {{ formatAddress(addressStore.cache[form.address]) }}
         </h3>
         <p v-if="form.building" class="text-xs text-grey-700">Pand: {{ form.building }}</p>
       </div>
-      <div class="flex flex-shrink-0 gap-2">
+      <div class="flex shrink-0 gap-2">
         <Button label="Verwijderen" danger @click="emit('delete')" />
         <Button label="Opslaan" type="submit" :disabled="saving" @click="onSave" />
       </div>

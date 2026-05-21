@@ -15,11 +15,11 @@ const navLinks = [
 
 <template>
   <header
-    class="app-header fixed inset-x-0 top-0 isolate z-50 flex h-16 items-center gap-8 bg-white/85 px-6 shadow-[0_1px_0_0_var(--color-grey-200)] backdrop-blur supports-[backdrop-filter]:bg-white/75"
+    class="app-header fixed inset-x-0 top-0 isolate z-50 flex h-16 items-center gap-8 bg-white/85 px-6 shadow-[0_1px_0_0_var(--color-grey-200)] backdrop-blur supports-backdrop-filter:bg-white/75"
   >
     <RouterLink
       :to="{ name: 'inquiry-list' }"
-      class="flex-shrink-0 outline-none"
+      class="shrink-0 outline-none"
       aria-label="FunderMaps"
     >
       <img :src="fundermapsLogo" alt="FunderMaps" class="h-7 w-auto" />
