@@ -7,7 +7,6 @@ import { useSessionStore } from '@/stores/session'
 import Login from '@/views/auth/Login.vue'
 import Logout from '@/views/auth/Logout.vue'
 import NotFound from '@/views/auth/NotFound.vue'
-import Dashboard from '@/views/Dashboard.vue'
 import InquiryList from '@/views/InquiryListView.vue'
 import InquiryStep1 from '@/views/inquiry/InquiryStep1.vue'
 import InquiryStep2 from '@/views/inquiry/InquiryStep2.vue'
@@ -23,7 +22,7 @@ const routes: RouteRecordRaw[] = [
   { name: 'login', path: '/login', component: Login, meta: { layout: 'login', public: true } },
   { name: 'logout', path: '/logout', component: Logout, meta: { layout: 'empty' } },
 
-  { name: 'dashboard', path: '/', component: Dashboard },
+  { path: '/', redirect: { name: 'inquiry-list' } },
   { name: 'inquiry-list', path: '/inquiries/:page?', component: InquiryList },
 
   { name: 'inquiry-new', path: '/inquiry/create', component: InquiryStep1, meta: { fullscreen: true } },

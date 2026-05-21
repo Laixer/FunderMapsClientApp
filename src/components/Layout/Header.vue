@@ -8,7 +8,6 @@ import fundermapsLogo from '@assets/svg/fundermaps.svg?url'
 const { t } = useI18n()
 
 const navLinks = [
-  { name: 'dashboard', label: t('nav.dashboard') },
   { name: 'inquiry-list', label: t('nav.reports') },
   { name: 'recovery-list', label: t('nav.recoveries') },
 ]
@@ -19,7 +18,7 @@ const navLinks = [
     class="app-header fixed inset-x-0 top-0 isolate z-50 flex h-16 items-center gap-8 bg-white/85 px-6 shadow-[0_1px_0_0_theme(colors.grey.200)] backdrop-blur supports-[backdrop-filter]:bg-white/75"
   >
     <RouterLink
-      :to="{ name: 'dashboard' }"
+      :to="{ name: 'inquiry-list' }"
       class="flex-shrink-0 outline-none"
       aria-label="FunderMaps"
     >

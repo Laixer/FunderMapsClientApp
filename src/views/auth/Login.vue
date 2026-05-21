@@ -20,7 +20,7 @@ async function onSubmit() {
   error.value = null
   try {
     await sessionStore.login(email.value, password.value)
-    router.push({ name: 'dashboard' })
+    router.push({ name: 'inquiry-list' })
   } catch {
     error.value = t('auth.invalidCredentials')
   } finally {
