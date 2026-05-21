@@ -4,65 +4,107 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FunderMaps client application — a Vue 2 + TypeScript SPA for managing foundation investigation reports (inquiries). Uses Vue CLI 4, Vuex for state management, and Vue Router with history mode.
+FunderMaps **ClientApp** — the internal "invoer app" (Dutch: data-entry app) used by a
+small group of FunderMaps staff to enter and review foundation **inquiries** and
+**recoveries** (and their samples). It is not customer-facing — that's WebFront.
+
+Stack: **Vue 3** (`<script setup>` SFCs) + **TypeScript** + **Vite** + **Pinia** +
+**vue-router** + **vue-i18n** + **Tailwind CSS v4**. Package manager is **pnpm**;
+Node `>=22`. (This app shares its design system and Tailwind setup with WebFront —
+keep them aligned when touching build tooling.)
 
 ## Commands
 
-All commands require `NODE_OPTIONS=--openssl-legacy-provider` due to the older Node.js/Webpack toolchain.
+- **Dev server:** `pnpm dev`
+- **Build:** `pnpm build` (runs `type-check` and `vite build` in parallel via `npm-run-all2`)
+- **Type-check only:** `pnpm type-check` (`vue-tsc --build`)
+- **Preview production build:** `pnpm preview`
+- **Lint:** `pnpm lint` (`eslint . --fix`)
+- **Format:** `pnpm format` (`prettier --write src/`)
 
-- **Dev server:** `NODE_OPTIONS=--openssl-legacy-provider npm run serve`
-- **Build (staging):** `NODE_OPTIONS=--openssl-legacy-provider npm run build`
-- **Build (production):** `NODE_OPTIONS=--openssl-legacy-provider npm run build-prod`
-- **Lint:** `NODE_OPTIONS=--openssl-legacy-provider npm run lint`
+No test runner is configured. (No `NODE_OPTIONS=--openssl-legacy-provider` — that was the
+old Vue 2 / Vue CLI toolchain, now gone.)
 
-No test runner is currently configured in package.json scripts.
+## Environment
+
+One required `VITE_` var (see `.env.example`):
+
+- `VITE_FUNDERMAPS_URL` — base URL of the FunderMaps TS API.
 
 ## Architecture
 
-### Webpack Aliases (vue.config.js)
+### Source Layout (`src/`)
 
-These aliases are used throughout the codebase instead of `@/` paths:
+- **`router/`** — `index.ts`: `createWebHistory`, a single `beforeEach` guard, route table.
+- **`stores/`** — Pinia stores (setup-style): `session` (auth + role flags), `address`.
+- **`services/fundermaps/`** — the API layer (see below).
+- **`services/`** — also `inquiryEnums.ts` / `recoveryEnums.ts` / `sampleEnums.ts` (int↔label
+  helpers mirroring the API's integer enums) and `useValidation.ts` (form-validation composable).
+- **`views/`** — route components: `auth/` (Login, Logout, NotFound), `InquiryListView`,
+  `RecoveryListView`, and the `inquiry/` & `recovery/` wizards (`Step1`–`Step3`, `View`).
+- **`components/`** — `Layout/` (AuthWrapper, MainWrapper, Header), `Common/`
+  (Alert, Card, Modal, Spinner, StatusBadge, `Buttons/`, `Inputs/`), `Inquiry/` &
+  `Recovery/` (SampleForm, AddressPicker, RejectModal), `Branding/`, `UserMenu`.
+- **`locales/`** — `nl.json` (Dutch is the only locale).
+- **`utils/`** — small helpers (date, string).
 
-| Alias | Path |
-|-------|------|
-| `config` | `src/config` |
-| `atom` | `src/components/atoms` |
-| `molecule` | `src/components/molecules` |
-| `organism` | `src/components/organisms` |
-| `model` | `src/models` |
-| `service` | `src/services` |
-| `api` | `src/api` |
-| `utils` | `src/utils` |
-| `helper` | `src/helpers` |
-| `mixin` | `src/mixins` |
+### Path Aliases
 
-The `@/` alias (mapped to `src/`) is also available via tsconfig.
+- `@` → `src/` (defined in both `vite.config.ts` and `tsconfig.app.json`).
+- `@assets` → `src/assets/` (defined in `vite.config.ts`).
 
-### Component Structure (Atomic Design)
+### Authentication
 
-- `src/components/atoms/` — small UI primitives (Divider, TypeTag, ProgressLine, Feedback, branding, navigation, review, dataitems)
-- `src/components/molecules/` — composed components (DataRow, forms, headerbars, NavigationBar, SideMenu, UploadArea)
-- `src/components/organisms/` — full sections (ReportTable, SampleCard, SideBar, HeaderBar, FormSteps)
+Better Auth with an **opaque bearer token** — *not* a JWT. There is **no client-side token
+decoding and no refresh token**; the server is the source of truth on whether a session is
+alive.
 
-### State Management (Vuex)
+- `services/fundermaps/session.ts` — stores/reads the token in `localStorage` under
+  `access_token`.
+- `services/fundermaps/client.ts` — `fetch` wrapper (`makeCall`) that injects
+  `Authorization: Bearer <token>`, JSON-encodes object bodies, and throws typed errors
+  (`errors.ts`). A registered `setUnauthorizedHandler` callback fires on `401`.
+- `stores/session.ts` — `login()` calls `auth.login` → stores the token → fetches `user.me()`;
+  `authenticateFromAccessToken()` re-verifies the token on a fresh page load;
+  `logout()`/`logoutAndRedirect()` clear local state. Role flags
+  (`isSuperUser`/`isVerifier`/`isWriter`/`isReader`, `canWrite`, `canApprove`) derive from
+  the user's **first** organization's role (`currentUser.organizations[0].role`).
+- `App.vue` wires the `401` handler in `onMounted` → logout + bounce to `login`.
 
-Modular store at `src/store/` with namespaced modules: `address`, `org`, `reports`, `report`, `user`, `orgUsers`, `samples`, `attestation`, `contractors`, `reviewers`. Each module has a `reset` mutation called by the root `clearAll` action.
+### Routing
 
-### API Layer
+`router/index.ts` groups routes into **auth** (`/login`, `/logout`, catch-all `NotFound`),
+**inquiries** (list at `/inquiries/:page?`, a `create`/`edit/1..3` wizard, and `view`), and
+**recoveries** (same shape). The root `/` lands on the inquiry list.
 
-- `src/utils/axios.js` — configured Axios instance with base URL from `VUE_APP_API_BASE_URL` env var, auto-attaches auth headers via interceptor
-- `src/api/` — API endpoint modules (auth, address, attestation, contractors, org, orgUser, reports, reviewers, samples, upload, user)
-- `src/services/` — business logic wrapping API calls (auth service handles JWT login/refresh/logout)
+The `beforeEach` guard restores the session from a stored bearer on first load, then redirects
+unauthenticated users to `login`. Routes opt out of the auth check with `meta.public: true`
+(login and 404). Layouts are **not** chosen via route meta — each view wraps itself in
+`AuthWrapper` (auth/error pages) or `MainWrapper` (the app shell with `Header`).
 
-### Routing & Auth
+### API Layer (`services/fundermaps/`)
 
-Routes defined in `src/router/index.ts`. Navigation guard redirects unauthenticated users to login. Routes with `meta.public: true` bypass auth. The app auto-refreshes JWT tokens every 10 minutes.
+`index.ts` aggregates per-resource endpoint modules from `endpoints/` (`auth`, `user`,
+`inquiry`, `inquirySample`, `recovery`, `recoverySample`, `contractor`, `reviewer`,
+`geocoder`, `organization`, `pdok`) into a single default-exported `api` object — call as
+`api.inquiry.list(...)`, `api.user.me()`, etc. Response shapes live in `interfaces/`
+(`IInquiry`, `IRecovery`, `IUser`, …). The API expects the bearer as
+`Authorization: Bearer <token>`.
 
-### Key Patterns
+### Styling (Tailwind v4)
 
-- **Mixed JS/TS codebase:** Components use both `.js` and `.ts`. Vue components use `vue-class-component` and `vue-property-decorator` decorators.
-- **Report workflow:** Multi-step inquiry creation (Step1 → Step2 → Step3) and a read-only View, all under `/inquiry/` routes.
-- **Layouts:** `src/views/layouts/` contains layout wrappers (default, login, empty) selected via route `meta.layout`.
-- **SCSS:** Global styles in `src/assets/scss/`, with `common.scss` auto-prepended to all component styles via vue.config.js.
-- **Config constants:** `src/config/` holds enums, roles, claim types, and avatar color definitions.
-- **Validation:** Uses `vuelidate` for form validation.
+- Theme is defined in `src/style.css` via the `@theme` block (the full FunderMaps palette,
+  the `legenda` color scale, type scale, and shadows). `@tailwindcss/vite` is the only
+  Tailwind integration — there is **no** `tailwind.config.js` or `postcss.config.js`.
+- The custom CSS tree lives under `public/resources/styles/` (base / components / utilities /
+  pages). Its entry `app.css` starts with `@reference "../../../src/style.css";` so `@apply`
+  and `theme()`/`var(--…)` resolve, and it is imported **separately** in `main.ts`
+  (`import './style.css'` then `import '../public/resources/styles/app.css'`) — never
+  `@import`ed into the Tailwind entry. Mirror this pattern (it matches WebFront) when adding CSS.
+- In SFC `<style scoped>` blocks, reference theme values as CSS variables
+  (`var(--color-green-500)`), not `theme()` — Tailwind processes scoped blocks in isolation.
+
+### i18n
+
+`i18n.ts` uses vue-i18n in Composition mode (`legacy: false`), locale and fallback both `nl`,
+messages from `locales/nl.json`. Use `const { t } = useI18n()` and `t('key.path')`.
