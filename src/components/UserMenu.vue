@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import ExitIcon from '@assets/svg/icons/exit.svg'
 
 import { useSessionStore } from '@/stores/session'
+import { logoutRedirect } from '@/services/oidc'
 
 const sessionStore = useSessionStore()
 const { currentUser } = storeToRefs(sessionStore)
@@ -25,8 +26,9 @@ const initials = computed(() => {
   return (u.email?.slice(0, 2) ?? '??').toUpperCase()
 })
 
-async function handleLogout() {
-  await sessionStore.logoutAndRedirect()
+function handleLogout() {
+  // RP-initiated logout — ends the SSO session at the provider (see oidc.ts).
+  logoutRedirect()
 }
 </script>
 
