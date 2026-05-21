@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-*: initial;
@@ -94,25 +94,27 @@
   --text-4xl--line-height: 1.125;
   --text-4xl--letter-spacing: -0.001em;
 
-  --shadow-hover: 0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
-  --shadow-card: 0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
+  --shadow-hover:
+    0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
+  --shadow-card:
+    0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
   --shadow-float: 0px 5px 15px 0px rgb(44 45 60 / 0.2);
 }
 
 html {
   color-scheme: light;
-  accent-color: theme(colors.green.500);
+  accent-color: var(--color-green-500);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
 ::selection {
-  background-color: theme(colors.green.100);
-  color: theme(colors.green.800);
+  background-color: var(--color-green-100);
+  color: var(--color-green-800);
 }
 
 .button:focus-visible {
-  outline: 2px solid theme(colors.green.500);
+  outline: 2px solid var(--color-green-500);
   outline-offset: 2px;
 }
 
@@ -136,7 +138,7 @@ html {
 }
 
 .page-dashboard {
-  grid-template-rows: [header] theme(spacing.16) [main] auto;
+  grid-template-rows: [header] --spacing(16) [main] auto;
 }
 
 .card {
@@ -146,13 +148,13 @@ html {
 }
 
 tr.is-selected-row td {
-  background-color: theme(colors.green.100) !important;
+  background-color: var(--color-green-100) !important;
 }
 
 .List .bh-table-responsive tbody tr:hover td {
-  background-color: theme(colors.grey.100);
+  background-color: var(--color-grey-100);
   cursor: pointer;
 }
 .List .bh-table-responsive tbody tr.is-selected-row:hover td {
-  background-color: theme(colors.green.100) !important;
+  background-color: var(--color-green-100) !important;
 }

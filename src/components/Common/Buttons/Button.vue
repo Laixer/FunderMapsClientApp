@@ -14,9 +14,9 @@ const { link, outline, muted, danger } = defineProps({
 const btnClass = computed<string[]>(() => {
   if (link) return ['button-link']
   if (danger)
-    return ['button--solid', '!bg-red-500', 'hover:!bg-red-800', 'disabled:!bg-grey-400', 'group']
+    return ['button--solid', 'bg-red-500!', 'hover:bg-red-800!', 'disabled:bg-grey-400!', 'group']
   if (outline) return ['button--outline', 'group']
-  if (muted) return ['button--solid', '!bg-grey-700', 'hover:!bg-grey-800', 'group']
+  if (muted) return ['button--solid', 'bg-grey-700!', 'hover:bg-grey-800!', 'group']
   return ['button--solid', 'group']
 })
 </script>
