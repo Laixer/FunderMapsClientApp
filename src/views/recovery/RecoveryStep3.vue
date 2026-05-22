@@ -47,7 +47,7 @@ async function load() {
     error.value = null
     const [r, s] = await Promise.all([
       api.recovery.getById(recoveryId.value),
-      api.recoverySample.list(recoveryId.value, { limit: 200 }),
+      api.recoverySample.listAll(recoveryId.value),
     ])
     recovery.value = r
     samples.value = s

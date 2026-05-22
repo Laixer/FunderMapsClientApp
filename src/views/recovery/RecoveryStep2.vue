@@ -41,7 +41,7 @@ async function load() {
   try {
     loading.value = true
     loadError.value = null
-    samples.value = await api.recoverySample.list(recoveryId.value, { limit: 200 })
+    samples.value = await api.recoverySample.listAll(recoveryId.value)
     // Cache labels keyed by building id (PAND).
     await addressStore.ensureMany(samples.value.map((s) => s.building))
     if (selectedId.value === null && samples.value.length > 0) {

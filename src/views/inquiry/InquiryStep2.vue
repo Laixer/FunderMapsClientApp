@@ -38,7 +38,7 @@ async function load() {
   try {
     loading.value = true
     loadError.value = null
-    samples.value = await api.inquirySample.list(inquiryId.value, { limit: 200 })
+    samples.value = await api.inquirySample.listAll(inquiryId.value)
     await addressStore.ensureMany(samples.value.map((s) => s.address))
     if (selectedId.value === null && samples.value.length > 0) {
       selectedId.value = samples.value[0].id
