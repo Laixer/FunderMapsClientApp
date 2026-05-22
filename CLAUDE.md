@@ -55,21 +55,25 @@ One required `VITE_` var (see `.env.example`):
 
 ### Authentication
 
-Better Auth with an **opaque bearer token** — *not* a JWT. There is **no client-side token
-decoding and no refresh token**; the server is the source of truth on whether a session is
-alive.
+**OIDC** authorization-code + PKCE (`client_id=clientapp`). The login form lives in the
+auth app (auth.fundermaps.com), not here. The access token is an **opaque bearer** — *not* a
+JWT — and there is **no refresh token**: on expiry the app re-obtains a token by bouncing
+back through the login redirect.
 
-- `services/fundermaps/session.ts` — stores/reads the token in `localStorage` under
-  `access_token`.
+- `services/oidc.ts` — `loginRedirect()` sends the browser to the provider's `/authorize`;
+  `exchangeCode()` (called from `views/auth/Callback.vue` at `/auth/callback`) swaps the code
+  for tokens; `logoutRedirect()` does RP-initiated end-session (passing `id_token_hint`).
+- `services/fundermaps/session.ts` — stores the access token in `localStorage` under
+  `access_token`, plus the `id_token` (kept only for `id_token_hint` on logout).
 - `services/fundermaps/client.ts` — `fetch` wrapper (`makeCall`) that injects
   `Authorization: Bearer <token>`, JSON-encodes object bodies, and throws typed errors
   (`errors.ts`). A registered `setUnauthorizedHandler` callback fires on `401`.
-- `stores/session.ts` — `login()` calls `auth.login` → stores the token → fetches `user.me()`;
-  `authenticateFromAccessToken()` re-verifies the token on a fresh page load;
-  `logout()`/`logoutAndRedirect()` clear local state. Role flags
-  (`isSuperUser`/`isVerifier`/`isWriter`/`isReader`, `canWrite`, `canApprove`) derive from
-  the user's **first** organization's role (`currentUser.organizations[0].role`).
-- `App.vue` wires the `401` handler in `onMounted` → logout + bounce to `login`.
+- `stores/session.ts` — `authenticateFromAccessToken()` re-verifies the bearer (`user.me()`)
+  on a fresh page load; `logout()` clears local state and best-effort signs out server-side.
+  Role flags (`isSuperUser`/`isVerifier`/`isWriter`/`isReader`, `canWrite`, `canApprove`)
+  derive from the user's **first** organization's role (`currentUser.organizations[0].role`).
+- `components/UserMenu.vue` logs out via `logoutRedirect()` (ends the SSO session).
+- `App.vue` wires the `401` handler in `onMounted` → `logout()` + bounce to `login`.
 
 ### Routing
 
@@ -96,11 +100,11 @@ unauthenticated users to `login`. Routes opt out of the auth check with `meta.pu
 - Theme is defined in `src/style.css` via the `@theme` block (the full FunderMaps palette,
   the `legenda` color scale, type scale, and shadows). `@tailwindcss/vite` is the only
   Tailwind integration — there is **no** `tailwind.config.js` or `postcss.config.js`.
-- The custom CSS tree lives under `public/resources/styles/` (base / components / utilities /
-  pages). Its entry `app.css` starts with `@reference "../../../src/style.css";` so `@apply`
-  and `theme()`/`var(--…)` resolve, and it is imported **separately** in `main.ts`
-  (`import './style.css'` then `import '../public/resources/styles/app.css'`) — never
-  `@import`ed into the Tailwind entry. Mirror this pattern (it matches WebFront) when adding CSS.
+- The custom CSS tree lives under `src/styles/` (base / components / utilities / pages). Its
+  entry `app.css` starts with `@reference "../style.css";` so `@apply` and
+  `theme()`/`var(--…)` resolve, and it is imported **separately** in `main.ts`
+  (`import './style.css'` then `import './styles/app.css'`) — never `@import`ed into the
+  Tailwind entry. Mirror this pattern (it matches WebFront) when adding CSS.
 - In SFC `<style scoped>` blocks, reference theme values as CSS variables
   (`var(--color-green-500)`), not `theme()` — Tailwind processes scoped blocks in isolation.
 

@@ -44,7 +44,7 @@
 
     @apply box-border w-full rounded border border-solid
       border-grey-400 bg-white bg-gradient-to-b from-white to-grey-100 py-2.5
-      pl-4 pr-10 text-base leading-none text-blue-900 placeholder-grey-400;
+      pl-4 pr-10 text-base leading-none text-blue-900;
 
     background-image: url("@assets/svg/icons/select-marker.svg"),
       linear-gradient(theme(colors.white), theme(colors.grey.100));

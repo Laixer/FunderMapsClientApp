@@ -1,13 +1,4 @@
 .page-no-session {
+  /* background-image is set in AuthWrapper.vue via the @assets alias */
   @apply bg-cover bg-center;
-
-  background-image: url("/resources/images/background.jpg");
-}
-
-.temp {
-  width: calc(100vw - 3rem);
-
-  @media (width >= 40rem) {
-    width: 30rem;
-  }
 }

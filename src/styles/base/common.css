@@ -3,10 +3,6 @@ body {
   @apply h-full w-full;
 }
 
-[x-cloak] {
-  @apply hidden;
-}
-
 :where(.content) {
   > :not([hidden]) ~ :not([hidden]) {
     margin-top: var(--flow-margin-top, theme(spacing.4));
