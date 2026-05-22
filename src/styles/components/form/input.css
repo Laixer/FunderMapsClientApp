@@ -82,7 +82,7 @@
   [type="password"],
   [type="tel"],
   [type="number"] {
-    @apply w-full py-2.5 pl-4 pr-10 text-base leading-none text-blue-900 placeholder-grey-400 focus:outline-none;
+    @apply w-full py-2.5 pl-4 pr-10 text-base leading-none text-blue-900 focus:outline-none;
 
     &::placeholder {
       @apply text-grey-400;

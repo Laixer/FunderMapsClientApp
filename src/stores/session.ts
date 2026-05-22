@@ -1,6 +1,5 @@
 import { computed, type ShallowRef, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
-import { useRouter } from 'vue-router'
 
 import api from '@/services/fundermaps'
 import {
@@ -26,17 +25,6 @@ const isWriter = computed<boolean>(() => orgRole.value === 'writer')
 const isReader = computed<boolean>(() => orgRole.value === 'reader')
 const canWrite = computed<boolean>(() => isSuperUser.value || isWriter.value)
 const canApprove = computed<boolean>(() => isSuperUser.value || isVerifier.value)
-
-async function login(email: string, password: string) {
-  try {
-    const token = await api.auth.login(email, password)
-    storeAccessToken(token)
-    currentUser.value = await api.user.me()
-  } catch (e) {
-    clearLocalSession()
-    throw e
-  }
-}
 
 /**
  * On a fresh page load, if a bearer is present, verify it by fetching /me.
@@ -73,13 +61,6 @@ async function logout() {
 }
 
 function useSession() {
-  const router = useRouter()
-
-  async function logoutAndRedirect() {
-    await logout()
-    router.push({ name: 'login' })
-  }
-
   return {
     currentUser,
     isAuthenticated,
@@ -91,9 +72,7 @@ function useSession() {
     canWrite,
     canApprove,
     authenticateFromAccessToken,
-    login,
     logout,
-    logoutAndRedirect,
   }
 }
 

@@ -1,5 +1,3 @@
-@import "./accordion.css";
-@import "./avatar.css";
 @import "./button.css";
 @import "./foundation.css";
 @import "./card/index.css";
@@ -8,4 +6,3 @@
 @import "./list/index.css";
 @import "./loading.css";
 @import "./panel/index.css";
-@import "./searchbar.css";

@@ -1,26 +1,39 @@
 # FunderMapsClientApp
 
-## Project setup
-```
-NODE_OPTIONS=--openssl-legacy-provider npm install
+Internal "invoer app" (data-entry app) used by FunderMaps staff to enter and
+review foundation **inquiries** and **recoveries** (and their samples). Not
+customer-facing — that's WebFront. Authentication is OIDC (authorization-code +
+PKCE) against the FunderMaps API; the login form lives in the auth app.
+
+**Stack:** Vue 3 (`<script setup>`), TypeScript, Vite, Pinia, vue-router,
+vue-i18n, Tailwind CSS 4. Package manager: **pnpm**; Node `>=22`.
+
+## Setup
+
+```sh
+pnpm install
 ```
 
-### Compiles and hot-reloads for development
-```
-NODE_OPTIONS=--openssl-legacy-provider npm run serve
+### Develop (Vite dev server)
+
+```sh
+pnpm dev
 ```
 
-### Compiles and minifies for production
-```
-NODE_OPTIONS=--openssl-legacy-provider npm run build
+### Type-check + production build
+
+```sh
+pnpm build
 ```
 
-### Run your unit tests
-```
-NODE_OPTIONS=--openssl-legacy-provider npm run test:unit
+### Preview / lint / format
+
+```sh
+pnpm preview
+pnpm lint
+pnpm format
 ```
 
-### Lints and fixes files
-```
-NODE_OPTIONS=--openssl-legacy-provider npm run lint
-```
+## Configuration
+
+Set `VITE_FUNDERMAPS_URL` to the API base URL (see `.env.example`).
