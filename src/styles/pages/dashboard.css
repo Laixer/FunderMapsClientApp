@@ -2,7 +2,9 @@
   @apply grid;
 
   grid-template-columns: [panel-left full-start] 21rem [main] auto [panel-right] 21rem [full-end];
-  grid-template-rows: [header] theme(spacing.20) [main] auto;
+  /* Header row must match the fixed .app-header height (h-16 = 4rem). A taller
+     row leaves a white strip between the header and the grey .app-view. */
+  grid-template-rows: [header] theme(spacing.16) [main] auto;
 
   .app-header {
     grid-column: full;
