@@ -18,6 +18,26 @@ export async function list(
   })) as IInquirySample[]
 }
 
+/**
+ * Fetch *every* sample for an inquiry by walking the offset. A single call is
+ * capped (the API defaults to a page of 100 and honours an arbitrary `limit`
+ * with no documented maximum); an inquiry can hold far more addresses than one
+ * page, so a capped call silently hides the rest. Pages until a short page
+ * signals the end.
+ */
+export async function listAll(
+  inquiryId: number,
+  pageSize = 500,
+): Promise<IInquirySample[]> {
+  const all: IInquirySample[] = []
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await list(inquiryId, { limit: pageSize, offset })
+    all.push(...page)
+    if (page.length < pageSize) break
+  }
+  return all
+}
+
 export async function getCount(inquiryId: number) {
   return (await get({ endpoint: `/inquiry/${inquiryId}/sample/stats` })) as IStats
 }
@@ -50,4 +70,4 @@ export async function remove(inquiryId: number, sampleId: number) {
   await del({ endpoint: `/inquiry/${inquiryId}/sample/${sampleId}` })
 }
 
-export default { list, getCount, getById, create, update, remove }
+export default { list, listAll, getCount, getById, create, update, remove }

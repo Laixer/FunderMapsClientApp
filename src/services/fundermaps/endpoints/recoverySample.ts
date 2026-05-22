@@ -18,6 +18,26 @@ export async function list(
   })) as IRecoverySample[]
 }
 
+/**
+ * Fetch *every* sample for a recovery by walking the offset. A single call is
+ * capped (the API defaults to a page of 100 and honours an arbitrary `limit`
+ * with no documented maximum); a recovery can hold far more addresses than one
+ * page, so a capped call silently hides the rest. Pages until a short page
+ * signals the end.
+ */
+export async function listAll(
+  recoveryId: number,
+  pageSize = 500,
+): Promise<IRecoverySample[]> {
+  const all: IRecoverySample[] = []
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await list(recoveryId, { limit: pageSize, offset })
+    all.push(...page)
+    if (page.length < pageSize) break
+  }
+  return all
+}
+
 export async function getCount(recoveryId: number) {
   return (await get({ endpoint: `/recovery/${recoveryId}/sample/stats` })) as IStats
 }
@@ -50,4 +70,4 @@ export async function remove(recoveryId: number, sampleId: number) {
   await del({ endpoint: `/recovery/${recoveryId}/sample/${sampleId}` })
 }
 
-export default { list, getCount, getById, create, update, remove }
+export default { list, listAll, getCount, getById, create, update, remove }

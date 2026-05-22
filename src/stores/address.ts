@@ -24,11 +24,15 @@ export const useAddressStore = defineStore('address', () => {
     }
   }
 
-  /** Fetch all missing ids in parallel; returns map covering whatever was found. */
-  async function ensureMany(ids: string[]): Promise<Record<string, IAddress>> {
+  /**
+   * Fetch all missing ids; returns a map covering whatever was found. Resolves
+   * in bounded batches — an inquiry can carry thousands of addresses, and one
+   * geocoder request per address fired all at once would swamp the API.
+   */
+  async function ensureMany(ids: string[], batchSize = 25): Promise<Record<string, IAddress>> {
     const missing = [...new Set(ids)].filter((id) => !cache.value[id])
-    if (missing.length) {
-      await Promise.all(missing.map(getById))
+    for (let i = 0; i < missing.length; i += batchSize) {
+      await Promise.all(missing.slice(i, i + batchSize).map(getById))
     }
     const out: Record<string, IAddress> = {}
     for (const id of ids) {

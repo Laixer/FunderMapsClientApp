@@ -61,7 +61,7 @@ async function load() {
     error.value = null
     const [i, s] = await Promise.all([
       api.inquiry.getById(inquiryId.value),
-      api.inquirySample.list(inquiryId.value, { limit: 200 }),
+      api.inquirySample.listAll(inquiryId.value),
     ])
     inquiry.value = i
     samples.value = s
