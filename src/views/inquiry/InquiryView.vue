@@ -140,32 +140,30 @@ async function handleDelete() {
 
 <template>
   <MainWrapper>
-    <Card class="List col-span-3 mt-16">
-      <RouterLink :to="{ name: 'inquiry-list' }" class="text-sm text-green-700 hover:underline">
+    <div class="mb-5 space-y-3">
+      <RouterLink
+        :to="{ name: 'inquiry-list' }"
+        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
+      >
         ← {{ t('inquiry.view.back') }}
       </RouterLink>
 
-      <Spinner v-if="loading" />
-      <span v-if="false">{{ t('common.loading') }}</span>
-      <Alert v-if="error" :closeable="true" @close="error = null">{{ error }}</Alert>
-
       <template v-if="inquiry">
-        <header
-          class="-mx-5 flex flex-wrap items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
-        >
-          <div class="space-y-1">
-            <h2 class="heading-3">{{ inquiry.documentName }}</h2>
-            <div class="flex items-center gap-2 text-sm text-grey-700">
-              <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
-              <span>·</span>
-              <span>{{ formatDate(inquiry.documentDate) }}</span>
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="text-xl font-semibold text-grey-800">{{ inquiry.documentName }}</h2>
               <StatusBadge :status="inquiry.state.auditStatus" />
             </div>
+            <p class="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-grey-700">
+              <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ formatDate(inquiry.documentDate) }}</span>
+            </p>
           </div>
-
           <div class="flex flex-wrap gap-2">
-            <Button label="Document" outline @click="handleDownload" />
-            <Button v-if="isEditable && canWrite" label="Bewerken" outline @click="goEdit" />
+            <Button outline label="Document" @click="handleDownload" />
+            <Button v-if="isEditable && canWrite" outline label="Bewerken" @click="goEdit" />
             <Button
               v-if="canSubmitForReview && canWrite"
               label="Aanbieden ter review"
@@ -178,75 +176,82 @@ async function handleDelete() {
             />
             <Button
               v-if="isPendingReview && canApprove"
-              label="Afkeuren"
               danger
+              label="Afkeuren"
               @click="showRejectModal = true"
             />
-            <Button
-              v-if="isSuperUser"
-              label="Verwijderen"
-              danger
-              @click="handleDelete"
-            />
+            <Button v-if="isSuperUser" danger label="Verwijderen" @click="handleDelete" />
           </div>
-        </header>
-
-        <Alert v-if="actionError" :closeable="true" @close="actionError = null">
-          {{ actionError }}
-        </Alert>
-
-        <div class="space-y-8">
-          <section>
-            <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
-              Details
-            </h4>
-            <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-              <dt class="font-medium text-grey-700">Opsteller</dt>
-              <dd class="sm:col-span-2">{{ inquiry.attribution.creatorName ?? '-' }}</dd>
-
-              <dt class="font-medium text-grey-700">Beoordelaar</dt>
-              <dd class="sm:col-span-2">{{ inquiry.attribution.reviewerName ?? '-' }}</dd>
-
-              <dt class="font-medium text-grey-700">Uitvoerder</dt>
-              <dd class="sm:col-span-2">{{ inquiry.attribution.contractorName ?? '-' }}</dd>
-
-              <dt class="font-medium text-grey-700">Inspectie</dt>
-              <dd class="sm:col-span-2">{{ inquiry.inspection ? 'Ja' : 'Nee' }}</dd>
-
-              <dt class="font-medium text-grey-700">Voegmeting</dt>
-              <dd class="sm:col-span-2">{{ inquiry.jointMeasurement ? 'Ja' : 'Nee' }}</dd>
-
-              <dt class="font-medium text-grey-700">Vloermeting</dt>
-              <dd class="sm:col-span-2">{{ inquiry.floorMeasurement ? 'Ja' : 'Nee' }}</dd>
-
-              <dt class="font-medium text-grey-700">F3O standaard</dt>
-              <dd class="sm:col-span-2">{{ inquiry.standardF3o ? 'Ja' : 'Nee' }}</dd>
-
-              <dt v-if="inquiry.note" class="font-medium text-grey-700">Notitie</dt>
-              <dd v-if="inquiry.note" class="whitespace-pre-wrap sm:col-span-2">
-                {{ inquiry.note }}
-              </dd>
-            </dl>
-          </section>
-
-          <section>
-            <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
-              Adressen ({{ samples.length }})
-            </h4>
-            <p v-if="samples.length === 0" class="text-sm text-grey-700">
-              Nog geen adressen toegevoegd.
-            </p>
-            <ul v-else class="divide-y divide-grey-200">
-              <li v-for="s in samples" :key="s.id" class="space-y-1 py-3 text-sm">
-                <p class="font-semibold text-grey-800">
-                  {{ formatAddress(addressStore.cache[s.address]) }}
-                </p>
-                <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
-              </li>
-            </ul>
-          </section>
         </div>
       </template>
+    </div>
+
+    <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">{{ error }}</Alert>
+    <Alert v-if="actionError" :closeable="true" class="mb-3" @close="actionError = null">
+      {{ actionError }}
+    </Alert>
+
+    <Card v-if="loading" class="flex justify-center py-8">
+      <Spinner />
+      <span v-if="false">{{ t('common.loading') }}</span>
+    </Card>
+
+    <Card v-else-if="inquiry">
+      <div class="space-y-6">
+        <section>
+          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
+            Details
+          </h4>
+          <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
+            <dt class="text-grey-700">Opsteller</dt>
+            <dd class="text-grey-800">{{ inquiry.attribution.creatorName ?? '—' }}</dd>
+
+            <dt class="text-grey-700">Beoordelaar</dt>
+            <dd class="text-grey-800">{{ inquiry.attribution.reviewerName ?? '—' }}</dd>
+
+            <dt class="text-grey-700">Uitvoerder</dt>
+            <dd class="text-grey-800">{{ inquiry.attribution.contractorName ?? '—' }}</dd>
+
+            <dt class="text-grey-700">Inspectie</dt>
+            <dd class="text-grey-800">{{ inquiry.inspection ? 'Ja' : 'Nee' }}</dd>
+
+            <dt class="text-grey-700">Voegmeting</dt>
+            <dd class="text-grey-800">{{ inquiry.jointMeasurement ? 'Ja' : 'Nee' }}</dd>
+
+            <dt class="text-grey-700">Vloermeting</dt>
+            <dd class="text-grey-800">{{ inquiry.floorMeasurement ? 'Ja' : 'Nee' }}</dd>
+
+            <dt class="text-grey-700">F3O standaard</dt>
+            <dd class="text-grey-800">{{ inquiry.standardF3o ? 'Ja' : 'Nee' }}</dd>
+
+            <template v-if="inquiry.note">
+              <dt class="text-grey-700">Notitie</dt>
+              <dd class="whitespace-pre-wrap text-grey-800">{{ inquiry.note }}</dd>
+            </template>
+          </dl>
+        </section>
+
+        <section>
+          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
+            Adressen ({{ samples.length }})
+          </h4>
+          <p v-if="samples.length === 0" class="text-sm text-grey-700">
+            Nog geen adressen toegevoegd.
+          </p>
+          <ul v-else class="overflow-hidden rounded-md border border-grey-200">
+            <li
+              v-for="s in samples"
+              :key="s.id"
+              class="space-y-1 border-b border-grey-200 px-3 py-3 text-sm last:border-b-0"
+            >
+              <p class="font-medium text-grey-800">
+                {{ formatAddress(addressStore.cache[s.address]) }}
+              </p>
+              <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
+            </li>
+          </ul>
+        </section>
+      </div>
     </Card>
 
     <RejectModal v-if="showRejectModal" @close="showRejectModal = false" @submit="handleReject" />

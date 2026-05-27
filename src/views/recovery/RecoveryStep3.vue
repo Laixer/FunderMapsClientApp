@@ -9,6 +9,8 @@ import Button from '@/components/Common/Buttons/Button.vue'
 import Alert from '@/components/Common/Alert.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
 import Spinner from '@/components/Common/Spinner.vue'
+import WizardSteps from '@/components/Common/WizardSteps.vue'
+import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
@@ -83,68 +85,82 @@ function previous() {
 
 <template>
   <MainWrapper>
-    <Card class="List col-span-3 mt-16">
-      <header
-        class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+    <div class="mb-5 space-y-3">
+      <RouterLink
+        :to="{ name: 'recovery-list' }"
+        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
       >
+        ← {{ t('recovery.view.back') }}
+      </RouterLink>
+      <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="heading-3">Herstel — controle (stap 3 van 3)</h2>
-          <div v-if="recovery" class="mt-1 flex items-center gap-2 text-sm text-grey-700">
+          <h2 class="text-xl font-semibold text-grey-800">Controle</h2>
+          <p v-if="recovery" class="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-grey-700">
             <span>{{ recoveryDocumentTypeLabel(recovery.type) }}</span>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <span>{{ formatDate(recovery.documentDate) }}</span>
             <StatusBadge :status="recovery.state.auditStatus" />
-          </div>
+          </p>
         </div>
         <div class="flex gap-2">
-          <Button label="Vorige" outline @click="previous" />
+          <Button outline label="Vorige" @click="previous" />
           <Button
             label="Aanbieden ter review"
             :disabled="!canSubmit || submitting"
             @click="submit"
           />
         </div>
-      </header>
+      </div>
+      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="3" />
+    </div>
 
-      <Alert v-if="error" :closeable="true" @close="error = null">{{ error }}</Alert>
-      <Spinner v-if="loading" />
+    <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">{{ error }}</Alert>
+
+    <Card v-if="loading" class="flex justify-center py-8">
+      <Spinner />
       <span v-if="false">{{ t('common.loading') }}</span>
+    </Card>
 
-      <div v-if="recovery" class="space-y-8">
+    <Card v-else-if="recovery">
+      <div class="space-y-6">
         <section>
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
             Document
           </h4>
-          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-            <dt class="font-medium text-grey-700">Naam</dt>
-            <dd class="sm:col-span-2">{{ recovery.documentName }}</dd>
+          <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
+            <dt class="text-grey-700">Naam</dt>
+            <dd class="text-grey-800">{{ recovery.documentName }}</dd>
 
-            <dt class="font-medium text-grey-700">Opsteller</dt>
-            <dd class="sm:col-span-2">{{ recovery.attribution.creatorName ?? '-' }}</dd>
+            <dt class="text-grey-700">Opsteller</dt>
+            <dd class="text-grey-800">{{ recovery.attribution.creatorName ?? '—' }}</dd>
 
-            <dt class="font-medium text-grey-700">Beoordelaar</dt>
-            <dd class="sm:col-span-2">{{ recovery.attribution.reviewerName ?? '-' }}</dd>
+            <dt class="text-grey-700">Beoordelaar</dt>
+            <dd class="text-grey-800">{{ recovery.attribution.reviewerName ?? '—' }}</dd>
 
-            <dt class="font-medium text-grey-700">Uitvoerder</dt>
-            <dd class="sm:col-span-2">{{ recovery.attribution.contractorName ?? '-' }}</dd>
+            <dt class="text-grey-700">Uitvoerder</dt>
+            <dd class="text-grey-800">{{ recovery.attribution.contractorName ?? '—' }}</dd>
 
-            <dt v-if="recovery.note" class="font-medium text-grey-700">Notitie</dt>
-            <dd v-if="recovery.note" class="whitespace-pre-wrap sm:col-span-2">
-              {{ recovery.note }}
-            </dd>
+            <template v-if="recovery.note">
+              <dt class="text-grey-700">Notitie</dt>
+              <dd class="whitespace-pre-wrap text-grey-800">{{ recovery.note }}</dd>
+            </template>
           </dl>
         </section>
 
         <section>
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
             Adressen ({{ samples.length }})
           </h4>
-          <p v-if="samples.length === 0" class="text-sm text-red-500">
+          <Alert v-if="samples.length === 0" type="warning">
             Voeg minimaal één adres toe in stap 2 voordat je het herstel indient.
-          </p>
-          <ul v-else class="divide-y divide-grey-200">
-            <li v-for="s in samples" :key="s.id" class="py-3 text-sm">
-              <p class="font-semibold text-grey-800">
+          </Alert>
+          <ul v-else class="overflow-hidden rounded-md border border-grey-200">
+            <li
+              v-for="s in samples"
+              :key="s.id"
+              class="space-y-1 border-b border-grey-200 px-3 py-3 text-sm last:border-b-0"
+            >
+              <p class="font-medium text-grey-800">
                 {{ formatAddress(addressStore.cache[s.building]) }}
               </p>
               <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
