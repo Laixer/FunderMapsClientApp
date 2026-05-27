@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { onBeforeMount, ref, type Ref } from 'vue'
+import { computed, onBeforeMount, ref, type Ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import Vue3Datatable from '@bhplugin/vue3-datatable'
-import '@bhplugin/vue3-datatable/dist/style.css'
-
 import MainWrapper from '@/components/Layout/MainWrapper.vue'
-import Card from '@/components/Common/Card.vue'
+import Button from '@/components/Common/Buttons/Button.vue'
+import Alert from '@/components/Common/Alert.vue'
+import Table from '@/components/Common/Table.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import Input from '@/components/Common/Inputs/Input.vue'
 
 import api from '@/services/fundermaps'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
@@ -21,17 +21,36 @@ const router = useRouter()
 
 const loading = ref(true)
 const error: Ref<string | null> = ref(null)
+const search = ref('')
 const rows: Ref<IRecovery[]> = ref([])
 
-const cols = [
+const columns = [
   { field: 'id', title: 'ID', width: '5rem' },
   { field: 'documentName', title: t('recovery.list.col.documentName') },
   { field: 'type', title: t('recovery.list.col.type') },
-  { field: 'documentDate', title: t('recovery.list.col.documentDate') },
+  { field: 'documentDate', title: t('recovery.list.col.documentDate'), width: '11rem' },
   { field: 'creator', title: t('recovery.list.col.creator') },
   { field: 'reviewer', title: t('recovery.list.col.reviewer') },
-  { field: 'status', title: t('recovery.list.col.status') },
+  { field: 'status', title: t('recovery.list.col.status'), width: '11rem' },
 ]
+
+const filteredRows = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return rows.value
+  return rows.value.filter((r) => {
+    const docName = (r.documentName ?? '').toLowerCase()
+    const creator = (r.attribution?.creatorName ?? '').toLowerCase()
+    const reviewer = (r.attribution?.reviewerName ?? '').toLowerCase()
+    const typeLabel = recoveryDocumentTypeLabel(r.type).toLowerCase()
+    return (
+      String(r.id).includes(q) ||
+      docName.includes(q) ||
+      typeLabel.includes(q) ||
+      creator.includes(q) ||
+      reviewer.includes(q)
+    )
+  })
+})
 
 async function load() {
   try {
@@ -47,7 +66,7 @@ async function load() {
 
 onBeforeMount(load)
 
-function handleRowClick(row: IRecovery) {
+function handleSelect(row: IRecovery) {
   router.push({ name: 'recovery-view', params: { id: row.id } })
 }
 
@@ -58,43 +77,50 @@ function newRecovery() {
 
 <template>
   <MainWrapper>
-    <Card class="List col-span-3 mt-16">
-      <header
-        class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
-      >
-        <div>
-          <h2 class="heading-3">{{ t('recovery.list.title') }}</h2>
-          <p class="mt-1 text-sm text-grey-700">{{ t('recovery.list.subtitle') }}</p>
-        </div>
-        <button
-          type="button"
-          class="button rounded bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
-          @click="newRecovery"
-        >
-          {{ t('recovery.list.newButton') }}
-        </button>
-      </header>
+    <header class="mb-4 flex items-end justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-grey-800">{{ t('recovery.list.title') }}</h2>
+        <p class="mt-0.5 text-sm text-grey-700">{{ t('recovery.list.subtitle') }}</p>
+      </div>
+      <Button lg :label="t('recovery.list.newButton')" @click="newRecovery" />
+    </header>
 
-      <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
+    <div class="mb-3 flex items-center gap-3">
+      <div class="w-72">
+        <Input
+          id="recovery-search"
+          v-model="search"
+          type="search"
+          :placeholder="t('recovery.list.searchPlaceholder')"
+        />
+      </div>
+      <span class="text-xs text-grey-700">{{ filteredRows.length }} / {{ rows.length }}</span>
+    </div>
 
-      <Vue3Datatable
-        :rows="rows"
-        :columns="cols"
-        :loading="loading"
-        :sortable="true"
-        :columnFilter="true"
-        sortColumn="id"
-        sortDirection="desc"
-        @rowClick="handleRowClick"
-      >
-        <template #type="data">{{ recoveryDocumentTypeLabel(data.value.type) }}</template>
-        <template #documentDate="data">{{ formatDate(data.value.documentDate) }}</template>
-        <template #creator="data">{{ data.value.attribution?.creatorName ?? '-' }}</template>
-        <template #reviewer="data">{{ data.value.attribution?.reviewerName ?? '-' }}</template>
-        <template #status="data">
-          <StatusBadge :status="data.value.state?.auditStatus" />
-        </template>
-      </Vue3Datatable>
-    </Card>
+    <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">
+      {{ error }}
+    </Alert>
+
+    <Table
+      :rows="filteredRows"
+      :columns="columns"
+      :loading="loading"
+      :emptyMessage="t('recovery.list.empty')"
+      @select="handleSelect"
+    >
+      <template #id="{ row }">
+        <span class="font-mono text-xs text-grey-700">#{{ row.id }}</span>
+      </template>
+      <template #documentName="{ row }">
+        <span class="font-medium text-grey-800">{{ row.documentName }}</span>
+      </template>
+      <template #type="{ row }">{{ recoveryDocumentTypeLabel(row.type) }}</template>
+      <template #documentDate="{ row }">{{ formatDate(row.documentDate) }}</template>
+      <template #creator="{ row }">{{ row.attribution?.creatorName ?? '—' }}</template>
+      <template #reviewer="{ row }">{{ row.attribution?.reviewerName ?? '—' }}</template>
+      <template #status="{ row }">
+        <StatusBadge :status="row.state?.auditStatus" />
+      </template>
+    </Table>
   </MainWrapper>
 </template>

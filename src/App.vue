@@ -25,19 +25,6 @@ onMounted(() => {
 </template>
 
 <style>
-.page-dashboard {
-  max-height: 100vh;
-}
-
-.List {
-  margin: 2rem;
-}
-
-.Details {
-  margin: 2rem;
-  margin-left: 0;
-}
-
 .v-enter-active,
 .v-leave-active {
   transition: opacity 0.5s ease;

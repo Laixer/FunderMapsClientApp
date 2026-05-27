@@ -18,7 +18,6 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@bhplugin/vue3-datatable": "^2.0.2",
     "@vueuse/core": "^14.3.0",
     "lodash-es": "^4.17.21",
     "pinia": "^3.0.4",
