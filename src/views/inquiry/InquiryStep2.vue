@@ -10,6 +10,8 @@ import Alert from '@/components/Common/Alert.vue'
 import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import SampleForm from '@/components/Inquiry/SampleForm.vue'
 import Spinner from '@/components/Common/Spinner.vue'
+import WizardSteps from '@/components/Common/WizardSteps.vue'
+import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
 import type { IInquirySample, IInquirySampleInput } from '@/services/fundermaps/interfaces/IInquirySample'
@@ -201,61 +203,85 @@ function previous() {
 
 <template>
   <MainWrapper>
-    <Card class="List col-span-3 mt-16">
-      <header
-        class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+    <div class="mb-5 space-y-3">
+      <RouterLink
+        :to="{ name: 'inquiry-list' }"
+        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
       >
-        <h2 class="heading-3">Rapportage — adressen (stap 2 van 3)</h2>
+        ← {{ t('inquiry.view.back') }}
+      </RouterLink>
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-grey-800">Adressen</h2>
+          <p class="mt-0.5 text-sm text-grey-700">
+            Zoek adressen en vul per locatie de bevindingen in.
+          </p>
+        </div>
         <div class="flex gap-2">
-          <Button label="Vorige" outline @click="previous" />
+          <Button outline label="Vorige" @click="previous" />
           <Button label="Volgende" @click="next" />
         </div>
-      </header>
+      </div>
+      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="2" />
+    </div>
 
-      <Alert v-if="loadError" :closeable="true" @close="loadError = null">{{ loadError }}</Alert>
-      <Alert v-if="actionError" :closeable="true" @close="actionError = null">{{
-        actionError
-      }}</Alert>
+    <Alert v-if="loadError" :closeable="true" class="mb-3" @close="loadError = null">
+      {{ loadError }}
+    </Alert>
+    <Alert v-if="actionError" :closeable="true" class="mb-3" @close="actionError = null">
+      {{ actionError }}
+    </Alert>
 
-      <Spinner v-if="loading" />
+    <Card v-if="loading" class="flex justify-center py-8">
+      <Spinner />
       <span v-if="false">{{ t('common.loading') }}</span>
     </Card>
 
-    <template v-if="!loading">
-      <Card class="List col-span-3 lg:col-span-1">
-        <header class="-mx-5 -mt-5 border-b border-grey-200 px-5 py-4">
-          <h3 class="heading-3">Adressen</h3>
-          <p class="mt-1 text-xs text-grey-700">
-            Zoek het adres en klik op een suggestie om toe te voegen.
+    <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <Card class="lg:col-span-1 !p-0">
+        <header class="border-b border-grey-200 px-4 py-3">
+          <h3 class="text-sm font-semibold text-grey-800">Adressen ({{ samples.length }})</h3>
+          <p class="mt-0.5 text-xs text-grey-700">
+            Zoek een adres en klik op een suggestie om toe te voegen.
           </p>
         </header>
 
-        <AddressPicker @pick="handlePick" />
+        <div class="px-4 py-3">
+          <AddressPicker @pick="handlePick" />
+        </div>
 
-        <ul v-if="samples.length" class="divide-y divide-grey-200">
+        <ul v-if="samples.length" class="divide-y divide-grey-200 border-t border-grey-200">
           <li
             v-for="s in samples"
             :key="s.id"
-            class="cursor-pointer px-2 py-2 text-sm hover:bg-grey-100"
-            :class="s.id === selectedId ? 'bg-green-100 font-semibold' : 'text-grey-800'"
+            class="cursor-pointer px-4 py-2 text-sm transition-colors"
+            :class="
+              s.id === selectedId
+                ? 'bg-grey-100 font-semibold text-grey-800'
+                : 'text-grey-800 hover:bg-grey-100'
+            "
             @click="selectSample(s.id)"
           >
             {{ formatAddress(addressStore.cache[s.address]) }}
           </li>
         </ul>
-        <p v-else class="text-sm text-grey-700">Nog geen adressen. Begin hierboven met zoeken.</p>
+        <p v-else class="border-t border-grey-200 px-4 py-3 text-sm text-grey-700">
+          Nog geen adressen. Begin hierboven met zoeken.
+        </p>
       </Card>
 
-      <Card v-if="!selected" class="List col-span-3 lg:col-span-2">
-        <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
-      </Card>
-      <SampleForm
-        v-else
-        :sample="selected"
-        :saving="saving"
-        @save="handleSave"
-        @delete="handleDelete"
-      />
-    </template>
+      <div class="lg:col-span-2">
+        <Card v-if="!selected" class="flex items-center justify-center py-12">
+          <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
+        </Card>
+        <SampleForm
+          v-else
+          :sample="selected"
+          :saving="saving"
+          @save="handleSave"
+          @delete="handleDelete"
+        />
+      </div>
+    </div>
   </MainWrapper>
 </template>

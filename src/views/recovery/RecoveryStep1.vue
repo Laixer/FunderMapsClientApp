@@ -12,6 +12,8 @@ import Input from '@/components/Common/Inputs/Input.vue'
 import Select from '@/components/Common/Inputs/Select.vue'
 import Textarea from '@/components/Common/Inputs/Textarea.vue'
 import Spinner from '@/components/Common/Spinner.vue'
+import WizardSteps from '@/components/Common/WizardSteps.vue'
+import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
@@ -160,23 +162,39 @@ onBeforeMount(async () => {
 
 <template>
   <MainWrapper>
-    <Card class="List col-span-3 mt-16">
-      <header
-        class="-mx-5 -mt-5 flex items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+    <div class="mb-5 space-y-3">
+      <RouterLink
+        :to="{ name: 'recovery-list' }"
+        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
       >
-        <h2 class="heading-3">
-          {{ isNew ? 'Nieuw herstel' : 'Herstel bewerken' }} — gegevens (stap 1 van 3)
-        </h2>
-      </header>
-      <Spinner v-if="loading" />
+        ← {{ t('recovery.view.back') }}
+      </RouterLink>
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-grey-800">
+            {{ isNew ? 'Nieuw herstel' : 'Herstel bewerken' }}
+          </h2>
+          <p class="mt-0.5 text-sm text-grey-700">
+            Vul de basisgegevens van het herstel-dossier in en upload het document.
+          </p>
+        </div>
+      </div>
+      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="1" />
+    </div>
+
+    <Alert v-if="saveError" :closeable="true" class="mb-3" @close="saveError = null">
+      {{ saveError }}
+    </Alert>
+
+    <Card v-if="loading" class="flex justify-center py-8">
+      <Spinner />
       <span v-if="false">{{ t('common.loading') }}</span>
-      <Alert v-if="saveError" :closeable="true" @close="saveError = null">{{ saveError }}</Alert>
     </Card>
 
-    <Card v-if="!loading" class="List col-span-3">
+    <Card v-else>
       <form class="space-y-8" @submit.prevent="onSubmit">
         <section>
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
             Document
           </h4>
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -230,7 +248,7 @@ onBeforeMount(async () => {
         </section>
 
         <section>
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
             Bestand
           </h4>
           <div class="space-y-2">
@@ -255,13 +273,13 @@ onBeforeMount(async () => {
         </section>
 
         <section>
-          <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
+          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
             Notitie
           </h4>
           <Textarea v-model="formData.note" placeholder="Optionele notitie…" :rows="4" />
         </section>
 
-        <div class="-mx-5 -mb-5 flex justify-end gap-3 border-t border-grey-200 px-5 py-4">
+        <div class="flex justify-end gap-2 border-t border-grey-200 pt-4">
           <Button
             label="Opslaan en verder"
             type="submit"
