@@ -143,7 +143,7 @@ async function handleDelete() {
 
 <template>
   <MainWrapper>
-    <div class="mb-5 space-y-3">
+    <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'recovery-list' }"
         class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
@@ -155,7 +155,7 @@ async function handleDelete() {
         <div class="flex flex-wrap items-end justify-between gap-3">
           <div>
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-xl font-semibold text-grey-800">{{ recovery.documentName }}</h2>
+              <h2 class="text-2xl font-semibold text-grey-800">{{ recovery.documentName }}</h2>
               <StatusBadge :status="recovery.state.auditStatus" />
             </div>
             <p class="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-grey-700">
@@ -169,11 +169,13 @@ async function handleDelete() {
             <Button v-if="isEditable && canWrite" outline label="Bewerken" @click="goEdit" />
             <Button
               v-if="canSubmitForReview && canWrite"
+              lg
               label="Aanbieden ter review"
               @click="handleSubmitForReview"
             />
             <Button
               v-if="isPendingReview && canApprove"
+              lg
               label="Goedkeuren"
               @click="handleApprove"
             />

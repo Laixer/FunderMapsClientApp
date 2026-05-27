@@ -162,7 +162,7 @@ onBeforeMount(async () => {
 
 <template>
   <MainWrapper>
-    <div class="mb-5 space-y-3">
+    <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'recovery-list' }"
         class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
@@ -171,7 +171,7 @@ onBeforeMount(async () => {
       </RouterLink>
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-xl font-semibold text-grey-800">
+          <h2 class="text-2xl font-semibold text-grey-800">
             {{ isNew ? 'Nieuw herstel' : 'Herstel bewerken' }}
           </h2>
           <p class="mt-0.5 text-sm text-grey-700">
@@ -197,7 +197,7 @@ onBeforeMount(async () => {
           <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
             Document
           </h4>
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <Input
               v-model="formData.documentName"
               label="Naam"
@@ -279,8 +279,9 @@ onBeforeMount(async () => {
           <Textarea v-model="formData.note" placeholder="Optionele notitie…" :rows="4" />
         </section>
 
-        <div class="flex justify-end gap-2 border-t border-grey-200 pt-4">
+        <div class="flex justify-end gap-2 border-t border-grey-200 pt-6">
           <Button
+            lg
             label="Opslaan en verder"
             type="submit"
             :disabled="saving || uploading"
