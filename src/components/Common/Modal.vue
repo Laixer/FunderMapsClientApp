@@ -1,51 +1,62 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted } from 'vue'
+
 import CloseBtn from '@/components/Common/Buttons/CloseBtn.vue'
 
-defineProps({
-  title: { type: String, default: '' },
-  variant: { type: String, default: '' },
-  closeable: { type: Boolean, default: true },
-  placing: { type: String, default: 'center' },
-  wrapper: { type: String, default: 'full' },
-})
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    closeable?: boolean
+  }>(),
+  {
+    title: '',
+    closeable: true,
+  },
+)
 
 const emit = defineEmits(['close'])
 
-function onClose() {
-  emit('close')
+const handleKey = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && props.closeable) emit('close')
+}
+
+onMounted(() => window.addEventListener('keydown', handleKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', handleKey))
+
+function handleBackdrop() {
+  if (props.closeable) emit('close')
 }
 </script>
 
 <template>
   <div
-    class="app-modal modal | z-20 grid overflow-y-auto p-4"
-    :class="`place-items-${placing}`"
-    :data-variant="wrapper"
+    class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/30 p-4"
+    @click.self="handleBackdrop"
   >
     <div
-      class="panel pointer-events-auto"
+      class="relative w-full max-w-xl rounded-md border border-grey-200 bg-white shadow-lg"
       role="dialog"
       aria-describedby="dialog-label"
       aria-modal="true"
-      :data-variant="variant"
     >
-      <header class="panel__header">
-        <slot name="header">
-          <h4 v-if="title" id="dialog-label" class="heading-4">{{ title }}</h4>
-        </slot>
-        <CloseBtn
-          v-if="closeable"
-          :small="false"
-          class="absolute right-8 top-3"
-          @close="onClose"
-        />
+      <header
+        class="flex items-center justify-between gap-3 border-b border-grey-200 px-5 py-3"
+      >
+        <h4 v-if="title" id="dialog-label" class="text-base font-semibold text-grey-800">
+          {{ title }}
+        </h4>
+        <slot v-else name="header" />
+        <CloseBtn v-if="closeable" :small="true" @close="emit('close')" />
       </header>
 
-      <div class="panel__content content | -mx-6 space-y-4 px-6">
+      <div class="space-y-4 px-5 py-4">
         <slot />
       </div>
 
-      <footer v-if="$slots.footer" class="panel__footer">
+      <footer
+        v-if="$slots.footer"
+        class="flex items-center justify-end gap-2 border-t border-grey-200 px-5 py-3"
+      >
         <slot name="footer" />
       </footer>
     </div>

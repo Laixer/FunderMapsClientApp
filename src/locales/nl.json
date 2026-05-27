@@ -31,6 +31,8 @@
       "title": "Rapportages",
       "subtitle": "Beheer je rapportages en hun status.",
       "newButton": "Nieuwe rapportage",
+      "searchPlaceholder": "Zoek op naam, type, opsteller…",
+      "empty": "Geen rapportages gevonden.",
       "col": {
         "documentName": "Naam",
         "type": "Type",
@@ -49,6 +51,8 @@
       "title": "Herstel",
       "subtitle": "Beheer funderingsherstel-dossiers en hun status.",
       "newButton": "Nieuw herstel",
+      "searchPlaceholder": "Zoek op naam, type, opsteller…",
+      "empty": "Geen herstel-dossiers gevonden.",
       "col": {
         "documentName": "Naam",
         "type": "Documenttype",
