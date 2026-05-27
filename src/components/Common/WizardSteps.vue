@@ -9,14 +9,14 @@ withDefaults(
 </script>
 
 <template>
-  <ol class="flex flex-wrap items-center gap-2 text-sm">
+  <ol class="flex flex-wrap items-center gap-3 text-sm">
     <template v-for="(label, idx) in steps" :key="idx">
-      <li class="flex items-center gap-2">
+      <li class="flex items-center gap-2.5">
         <span
-          class="inline-flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold transition-colors"
           :class="
             idx + 1 === current
-              ? 'border-green-500 bg-green-500 text-white'
+              ? 'border-green-500 bg-green-500 text-white shadow-sm'
               : idx + 1 < current
                 ? 'border-green-500 bg-green-50 text-green-700'
                 : 'border-grey-200 bg-white text-grey-700'
@@ -25,7 +25,7 @@ withDefaults(
           {{ idx + 1 }}
         </span>
         <span
-          class="font-medium"
+          class="text-sm font-medium"
           :class="idx + 1 === current ? 'text-grey-800' : 'text-grey-700'"
         >
           {{ label }}
@@ -33,11 +33,10 @@ withDefaults(
       </li>
       <li
         v-if="idx < steps.length - 1"
-        class="text-grey-400"
+        class="h-px w-10 transition-colors"
+        :class="idx + 1 < current ? 'bg-green-500' : 'bg-grey-200'"
         aria-hidden="true"
-      >
-        ›
-      </li>
+      />
     </template>
   </ol>
 </template>

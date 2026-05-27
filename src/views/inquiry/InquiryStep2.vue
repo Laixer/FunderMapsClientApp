@@ -203,7 +203,7 @@ function previous() {
 
 <template>
   <MainWrapper>
-    <div class="mb-5 space-y-3">
+    <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'inquiry-list' }"
         class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
@@ -212,14 +212,14 @@ function previous() {
       </RouterLink>
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-xl font-semibold text-grey-800">Adressen</h2>
+          <h2 class="text-2xl font-semibold text-grey-800">Adressen</h2>
           <p class="mt-0.5 text-sm text-grey-700">
             Zoek adressen en vul per locatie de bevindingen in.
           </p>
         </div>
         <div class="flex gap-2">
-          <Button outline label="Vorige" @click="previous" />
-          <Button label="Volgende" @click="next" />
+          <Button lg outline label="Vorige" @click="previous" />
+          <Button lg label="Volgende" @click="next" />
         </div>
       </div>
       <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="2" />
