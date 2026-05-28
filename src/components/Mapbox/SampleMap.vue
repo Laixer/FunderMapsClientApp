@@ -112,6 +112,11 @@ onMounted(() => {
 
   map.on('load', () => {
     mapInstance.value = map
+    // Force a resize on the next frame in case the container's final
+    // dimensions weren't known when mapbox-gl read them at init (lazy
+    // mount, transition, parent that resolves height after layout).
+    // Cheap and idempotent; protects against a silent 0x0 render.
+    requestAnimationFrame(() => map.resize())
     rebuildMarkers()
     frame()
   })
