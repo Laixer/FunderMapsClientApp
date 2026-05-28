@@ -11,14 +11,17 @@ import Logout from '@/views/auth/Logout.vue'
 import NotFound from '@/views/auth/NotFound.vue'
 import InquiryList from '@/views/InquiryListView.vue'
 import InquiryStep1 from '@/views/inquiry/InquiryStep1.vue'
-import InquiryStep2 from '@/views/inquiry/InquiryStep2.vue'
 import InquiryStep3 from '@/views/inquiry/InquiryStep3.vue'
 import InquiryView from '@/views/inquiry/InquiryView.vue'
 import RecoveryList from '@/views/RecoveryListView.vue'
 import RecoveryStep1 from '@/views/recovery/RecoveryStep1.vue'
-import RecoveryStep2 from '@/views/recovery/RecoveryStep2.vue'
 import RecoveryStep3 from '@/views/recovery/RecoveryStep3.vue'
 import RecoveryView from '@/views/recovery/RecoveryView.vue'
+
+// Step 2 pulls in mapbox-gl (~250 KB gzip) for the sample map. Lazy-load
+// so the list views, Step 1, Step 3, and View pages stay light.
+const InquiryStep2 = () => import('@/views/inquiry/InquiryStep2.vue')
+const RecoveryStep2 = () => import('@/views/recovery/RecoveryStep2.vue')
 
 const routes: RouteRecordRaw[] = [
   // Login lives in the auth app. Redirect to OIDC in beforeEnter — before the

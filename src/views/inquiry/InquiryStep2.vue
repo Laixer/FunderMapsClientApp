@@ -11,6 +11,7 @@ import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import SampleForm from '@/components/Inquiry/SampleForm.vue'
 import Spinner from '@/components/Common/Spinner.vue'
 import WizardSteps from '@/components/Common/WizardSteps.vue'
+import SampleMap, { type SamplePin } from '@/components/Mapbox/SampleMap.vue'
 import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
@@ -35,6 +36,25 @@ const actionError: Ref<string | null> = ref(null)
 
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
+
+// Map markers — one per sample whose address has resolved coordinates.
+// `latitude` / `longitude` come back null from the geocoder when the
+// linked building has no geometry; those samples simply don't render a
+// pin (the list + form still work).
+const mapPins = computed<SamplePin[]>(() => {
+  const out: SamplePin[] = []
+  for (const s of samples.value) {
+    const a = addressStore.cache[s.address]
+    if (a && a.latitude != null && a.longitude != null) {
+      out.push({ id: s.id, lat: a.latitude, lng: a.longitude })
+    }
+  }
+  return out
+})
+
+function handleMapSelect(id: string | number): void {
+  if (typeof id === 'number') selectSample(id)
+}
 
 async function load() {
   try {
@@ -270,7 +290,11 @@ function previous() {
         </p>
       </Card>
 
-      <div class="lg:col-span-2">
+      <div class="space-y-4 lg:col-span-2">
+        <Card v-if="mapPins.length" class="h-64 overflow-hidden !p-0">
+          <SampleMap :pins="mapPins" :selected-id="selectedId" @select="handleMapSelect" />
+        </Card>
+
         <Card v-if="!selected" class="flex items-center justify-center py-12">
           <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
         </Card>
