@@ -291,9 +291,16 @@ function previous() {
       </Card>
 
       <div class="space-y-4 lg:col-span-2">
-        <Card v-if="mapPins.length" class="h-64 overflow-hidden !p-0">
+        <!-- Bordered div, not <Card> — Card's body div has auto height, so a
+             child with `h-full` collapses to 0 and Mapbox renders a 0x0 canvas
+             with no error. Putting the explicit `h-64` on the direct parent
+             of SampleMap gives mapbox-gl the dimensions it needs at init. -->
+        <div
+          v-if="mapPins.length"
+          class="h-64 overflow-hidden rounded-md border border-grey-200 bg-white"
+        >
           <SampleMap :pins="mapPins" :selected-id="selectedId" @select="handleMapSelect" />
-        </Card>
+        </div>
 
         <Card v-if="!selected" class="flex items-center justify-center py-12">
           <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
