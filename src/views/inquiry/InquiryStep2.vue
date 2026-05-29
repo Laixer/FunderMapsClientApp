@@ -257,8 +257,11 @@ function previous() {
       <span v-if="false">{{ t('common.loading') }}</span>
     </Card>
 
-    <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card class="lg:col-span-1 !p-0">
+    <div
+      v-else
+      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[18rem_1fr_22rem]"
+    >
+      <Card class="!p-0">
         <header class="border-b border-grey-200 px-4 py-3">
           <h3 class="text-sm font-semibold text-grey-800">Adressen ({{ samples.length }})</h3>
           <p class="mt-0.5 text-xs text-grey-700">
@@ -290,18 +293,8 @@ function previous() {
         </p>
       </Card>
 
-      <div class="space-y-4 lg:col-span-2">
-        <!-- Bordered div, not <Card> — Card's body div has auto height, so a
-             child with `h-full` collapses to 0 and Mapbox renders a 0x0 canvas
-             with no error. Putting the explicit `h-64` on the direct parent
-             of SampleMap gives mapbox-gl the dimensions it needs at init. -->
-        <div
-          v-if="mapPins.length"
-          class="h-64 overflow-hidden rounded-md border border-grey-200 bg-white"
-        >
-          <SampleMap :pins="mapPins" :selected-id="selectedId" @select="handleMapSelect" />
-        </div>
-
+      <!-- Form column (col 2 at lg+, last on mobile). -->
+      <div class="order-3 lg:order-2">
         <Card v-if="!selected" class="flex items-center justify-center py-12">
           <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
         </Card>
@@ -312,6 +305,30 @@ function previous() {
           @save="handleSave"
           @delete="handleDelete"
         />
+      </div>
+
+      <!-- Map column (col 3 at lg+, thumbnail above the form on mobile).
+           Sticky on lg+ so the operator keeps a spatial reference while
+           scrolling the sample form. Plain bordered div, not <Card> —
+           Card's body has auto height and would collapse SampleMap's
+           h-full to zero (see PR #244 for the original landmine). -->
+      <div class="order-2 lg:order-3 lg:sticky lg:top-4">
+        <div
+          class="h-64 overflow-hidden rounded-md border border-grey-200 bg-white lg:h-[calc(100vh-8rem)] lg:min-h-[480px]"
+        >
+          <SampleMap
+            v-if="mapPins.length"
+            :pins="mapPins"
+            :selected-id="selectedId"
+            @select="handleMapSelect"
+          />
+          <div
+            v-else
+            class="flex h-full items-center justify-center px-4 text-center text-xs text-grey-700"
+          >
+            Voeg een adres toe om de locatie op de kaart te zien.
+          </div>
+        </div>
       </div>
     </div>
   </MainWrapper>
