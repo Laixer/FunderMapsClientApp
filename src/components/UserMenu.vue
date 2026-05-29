@@ -73,10 +73,13 @@ function handleLogout() {
       <span class="hidden text-sm font-medium text-grey-800 sm:inline">{{ userName }}</span>
     </button>
 
+    <!-- Opens upward: this menu lives at the bottom of the fixed full-height
+         sidebar, so a downward dropdown would render below the viewport and the
+         logout/app-switcher items would be unclickable. -->
     <div
       v-if="open"
       role="menu"
-      class="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-grey-200 bg-white py-2 shadow-card"
+      class="absolute bottom-full left-0 z-50 mb-2 w-56 rounded-lg border border-grey-200 bg-white py-2 shadow-card"
     >
       <p class="px-4 pb-1 text-xs font-semibold tracking-wide text-grey-700 uppercase">
         {{ t('userMenu.apps') }}
