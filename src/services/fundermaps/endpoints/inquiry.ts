@@ -10,10 +10,11 @@ interface IDownloadInfo {
   accessLink: string
 }
 
-export async function list(opts: { limit?: number; offset?: number } = {}) {
+export async function list(opts: { limit?: number; offset?: number; q?: string } = {}) {
   const queryString: Record<string, string> = {}
   if (opts.limit != null) queryString.limit = String(opts.limit)
   if (opts.offset != null) queryString.offset = String(opts.offset)
+  if (opts.q) queryString.q = opts.q
   return (await get({ endpoint: '/inquiry', queryString })) as IInquiry[]
 }
 

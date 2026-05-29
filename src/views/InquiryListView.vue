@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, type Ref } from 'vue'
+import { onBeforeMount, ref, watch, type Ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { refDebounced } from '@vueuse/core'
 
 import MainWrapper from '@/components/Layout/MainWrapper.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
@@ -22,6 +23,7 @@ const router = useRouter()
 const loading = ref(true)
 const error: Ref<string | null> = ref(null)
 const search = ref('')
+const debouncedSearch = refDebounced(search, 300)
 const rows: Ref<IInquiry[]> = ref([])
 
 const columns = [
@@ -34,29 +36,14 @@ const columns = [
   { field: 'status', title: t('inquiry.list.col.status'), width: '11rem' },
 ]
 
-const filteredRows = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  if (!q) return rows.value
-  return rows.value.filter((r) => {
-    const docName = (r.documentName ?? '').toLowerCase()
-    const creator = (r.attribution?.creatorName ?? '').toLowerCase()
-    const reviewer = (r.attribution?.reviewerName ?? '').toLowerCase()
-    const typeLabel = inquiryTypeLabel(r.type).toLowerCase()
-    return (
-      String(r.id).includes(q) ||
-      docName.includes(q) ||
-      typeLabel.includes(q) ||
-      creator.includes(q) ||
-      reviewer.includes(q)
-    )
-  })
-})
-
-async function load() {
+async function load(query: string) {
   try {
     loading.value = true
     error.value = null
-    rows.value = await api.inquiry.list({ limit: 200 })
+    const q = query.trim()
+    // Bare browse: most-recent slice. Search: server-side across the full
+    // dataset (id / document_name / sample address / BAG identifiers).
+    rows.value = q ? await api.inquiry.list({ q }) : await api.inquiry.list({ limit: 200 })
   } catch (e) {
     error.value = getErrorMessage(e) ?? t('error.generic')
   } finally {
@@ -64,7 +51,8 @@ async function load() {
   }
 }
 
-onBeforeMount(load)
+onBeforeMount(() => load(''))
+watch(debouncedSearch, (q) => load(q))
 
 function handleSelect(row: IInquiry) {
   router.push({ name: 'inquiry-view', params: { id: row.id } })
@@ -94,7 +82,7 @@ function newInquiry() {
           :placeholder="t('inquiry.list.searchPlaceholder')"
         />
       </div>
-      <span class="text-xs text-grey-700">{{ filteredRows.length }} / {{ rows.length }}</span>
+      <span class="text-xs text-grey-700">{{ rows.length }}</span>
     </div>
 
     <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">
@@ -102,7 +90,7 @@ function newInquiry() {
     </Alert>
 
     <Table
-      :rows="filteredRows"
+      :rows="rows"
       :columns="columns"
       :loading="loading"
       :emptyMessage="t('inquiry.list.empty')"

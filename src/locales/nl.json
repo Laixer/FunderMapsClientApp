@@ -31,7 +31,7 @@
       "title": "Rapportages",
       "subtitle": "Beheer je rapportages en hun status.",
       "newButton": "Nieuwe rapportage",
-      "searchPlaceholder": "Zoek op naam, type, opsteller…",
+      "searchPlaceholder": "Zoek op id, naam, adres of BAG…",
       "empty": "Geen rapportages gevonden.",
       "col": {
         "documentName": "Naam",
@@ -51,7 +51,7 @@
       "title": "Herstel",
       "subtitle": "Beheer funderingsherstel-dossiers en hun status.",
       "newButton": "Nieuw herstel",
-      "searchPlaceholder": "Zoek op naam, type, opsteller…",
+      "searchPlaceholder": "Zoek op id, naam of BAG…",
       "empty": "Geen herstel-dossiers gevonden.",
       "col": {
         "documentName": "Naam",
