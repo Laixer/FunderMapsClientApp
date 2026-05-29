@@ -7,7 +7,9 @@
     "logout": "Uitloggen",
     "email": "E-mailadres",
     "password": "Wachtwoord",
-    "invalidCredentials": "Onjuiste e-mail of wachtwoord"
+    "invalidCredentials": "Onjuiste e-mail of wachtwoord",
+    "loginFailed": "Inloggen is niet gelukt. Mogelijk heeft het actieve account geen toegang tot deze app.",
+    "signInOtherAccount": "Inloggen met een ander account"
   },
   "nav": {
     "reports": "Rapportages",
