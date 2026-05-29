@@ -259,7 +259,7 @@ function previous() {
 
     <div
       v-else
-      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[18rem_1fr_22rem]"
+      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)_32rem]"
     >
       <Card class="!p-0">
         <header class="border-b border-grey-200 px-4 py-3">
