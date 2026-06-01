@@ -54,6 +54,9 @@ const canSubmitForReview = computed(
     status.value === AUDIT_STATUS.REJECTED,
 )
 const isPendingReview = computed(() => status.value === AUDIT_STATUS.PENDING_REVIEW)
+// Escape hatch for "approved but an error surfaced later" — restricted to org
+// admins (issue #250). The API's /reset is an unconditional → pending move.
+const isReopenable = computed(() => status.value === AUDIT_STATUS.DONE)
 
 async function load() {
   try {
@@ -95,6 +98,17 @@ async function handleApprove() {
   try {
     actionError.value = null
     await api.inquiry.approve(inquiryId.value)
+    await load()
+  } catch (e) {
+    actionError.value = getErrorMessage(e) ?? t('error.generic')
+  }
+}
+
+async function handleReopen() {
+  if (!confirm(t('inquiry.view.reopenConfirm'))) return
+  try {
+    actionError.value = null
+    await api.inquiry.reset(inquiryId.value)
     await load()
   } catch (e) {
     actionError.value = getErrorMessage(e) ?? t('error.generic')
@@ -181,6 +195,12 @@ async function handleDelete() {
               danger
               label="Afkeuren"
               @click="showRejectModal = true"
+            />
+            <Button
+              v-if="isReopenable && isSuperUser"
+              outline
+              :label="t('inquiry.view.reopen')"
+              @click="handleReopen"
             />
             <Button v-if="isSuperUser" danger label="Verwijderen" @click="handleDelete" />
           </div>
