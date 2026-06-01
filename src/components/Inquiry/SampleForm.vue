@@ -66,7 +66,7 @@ function onSave() {
 </script>
 
 <template>
-  <Card class="List col-span-3 lg:col-span-2">
+  <Card class="List">
     <header
       class="-mx-5 -mt-5 flex flex-wrap items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
     >
