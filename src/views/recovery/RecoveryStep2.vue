@@ -11,6 +11,7 @@ import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import SampleForm from '@/components/Recovery/SampleForm.vue'
 import Spinner from '@/components/Common/Spinner.vue'
 import WizardSteps from '@/components/Common/WizardSteps.vue'
+import SampleMap, { type SamplePin } from '@/components/Mapbox/SampleMap.vue'
 import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
@@ -38,6 +39,26 @@ const actionError: Ref<string | null> = ref(null)
 
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
+
+// Map markers — one per sample whose building has resolved coordinates.
+// Recovery samples key on the BAG PAND id; the geocoder /address/:id route
+// accepts that and returns the building's centroid lat/lng, so the pin
+// derivation mirrors the inquiry side. Samples whose building lacks a geom
+// just don't render a pin (the list + form still work).
+const mapPins = computed<SamplePin[]>(() => {
+  const out: SamplePin[] = []
+  for (const s of samples.value) {
+    const a = addressStore.cache[s.building]
+    if (a && a.latitude != null && a.longitude != null) {
+      out.push({ id: s.id, lat: a.latitude, lng: a.longitude })
+    }
+  }
+  return out
+})
+
+function handleMapSelect(id: string | number): void {
+  if (typeof id === 'number') selectSample(id)
+}
 
 async function load() {
   try {
@@ -191,8 +212,13 @@ function previous() {
       <span v-if="false">{{ t('common.loading') }}</span>
     </Card>
 
-    <div v-else class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card class="lg:col-span-1 !p-0">
+    <!-- 3-col layout at xl+ only — see InquiryStep2 / issue #249. Below xl
+         the cards stack at full content width so the form isn't squeezed. -->
+    <div
+      v-else
+      class="grid grid-cols-1 items-start gap-4 xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
+    >
+      <Card class="!p-0">
         <header class="border-b border-grey-200 px-4 py-3">
           <h3 class="text-sm font-semibold text-grey-800">Adressen ({{ samples.length }})</h3>
           <p class="mt-0.5 text-xs text-grey-700">
@@ -224,7 +250,8 @@ function previous() {
         </p>
       </Card>
 
-      <div class="lg:col-span-2">
+      <!-- Form column (col 2 at xl+, last on smaller screens). -->
+      <div class="order-3 xl:order-2">
         <Card v-if="!selected" class="flex items-center justify-center py-12">
           <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
         </Card>
@@ -235,6 +262,27 @@ function previous() {
           @save="handleSave"
           @delete="handleDelete"
         />
+      </div>
+
+      <!-- Map column (col 3 at xl+, thumbnail above the form on smaller
+           screens). Plain bordered div, not <Card> — see PR #244. -->
+      <div class="order-2 xl:order-3 xl:sticky xl:top-4">
+        <div
+          class="h-64 overflow-hidden rounded-md border border-grey-200 bg-white xl:h-[calc(100vh-8rem)] xl:min-h-[480px]"
+        >
+          <SampleMap
+            v-if="mapPins.length"
+            :pins="mapPins"
+            :selected-id="selectedId"
+            @select="handleMapSelect"
+          />
+          <div
+            v-else
+            class="flex h-full items-center justify-center px-4 text-center text-xs text-grey-700"
+          >
+            Voeg een adres toe om de locatie op de kaart te zien.
+          </div>
+        </div>
       </div>
     </div>
   </MainWrapper>
