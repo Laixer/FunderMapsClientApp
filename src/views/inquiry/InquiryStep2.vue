@@ -257,13 +257,13 @@ function previous() {
       <span v-if="false">{{ t('common.loading') }}</span>
     </Card>
 
-    <!-- 3-col layout at xl+ only. The two side cols (26rem + 32rem) plus the
-         MainWrapper padding total 1024px on their own, so at the lg
-         breakpoint the middle column would collapse to zero width and the
-         form would render letter-by-letter (issue #249). Below xl we stack. -->
+    <!-- Layout: stacked on mobile, addresses+form at lg, addresses+form+map
+         at xl. The map is an optional spatial-context aid — when there's
+         no room for a real 3-col layout we drop it entirely rather than
+         squeezing it under the form or shrinking the side cols. -->
     <div
       v-else
-      class="grid grid-cols-1 items-start gap-4 xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
+      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)] xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
     >
       <Card class="!p-0">
         <header class="border-b border-grey-200 px-4 py-3">
@@ -297,8 +297,7 @@ function previous() {
         </p>
       </Card>
 
-      <!-- Form column (col 2 at xl+, last on smaller screens). -->
-      <div class="order-3 xl:order-2">
+      <div>
         <Card v-if="!selected" class="flex items-center justify-center py-12">
           <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
         </Card>
@@ -311,14 +310,13 @@ function previous() {
         />
       </div>
 
-      <!-- Map column (col 3 at xl+, thumbnail above the form on smaller
-           screens). Sticky on xl+ so the operator keeps a spatial reference
-           while scrolling the sample form. Plain bordered div, not <Card> —
-           Card's body has auto height and would collapse SampleMap's
-           h-full to zero (see PR #244 for the original landmine). -->
-      <div class="order-2 xl:order-3 xl:sticky xl:top-4">
+      <!-- Map column (xl+ only). Sticky so the operator keeps a spatial
+           reference while scrolling the sample form. Plain bordered div,
+           not <Card> — Card's body has auto height and would collapse
+           SampleMap's h-full to zero (#244). -->
+      <div class="hidden xl:sticky xl:top-4 xl:block">
         <div
-          class="h-64 overflow-hidden rounded-md border border-grey-200 bg-white xl:h-[calc(100vh-8rem)] xl:min-h-[480px]"
+          class="overflow-hidden rounded-md border border-grey-200 bg-white xl:h-[calc(100vh-8rem)] xl:min-h-[480px]"
         >
           <SampleMap
             v-if="mapPins.length"
