@@ -213,12 +213,12 @@ function previous() {
     </Card>
 
     <!-- Layout: stacked on mobile, addresses+form at lg, addresses+form+map
-         at xl. The map is an optional spatial-context aid — when there's
-         no room for a real 3-col layout we drop it entirely rather than
-         squeezing it under the form or shrinking the side cols. -->
+         at 2xl. The map is an optional spatial-context aid — show it only
+         when there's room for the middle col to stay comfortable (~512px
+         at the 2xl breakpoint, vs ~256px if we ran 3-col already at xl). -->
     <div
       v-else
-      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)] xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
+      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
     >
       <Card class="!p-0">
         <header class="border-b border-grey-200 px-4 py-3">
@@ -265,10 +265,10 @@ function previous() {
         />
       </div>
 
-      <!-- Map column (xl+ only). Plain bordered div, not <Card> — see #244. -->
-      <div class="hidden xl:sticky xl:top-4 xl:block">
+      <!-- Map column (2xl+ only). Plain bordered div, not <Card> — see #244. -->
+      <div class="hidden 2xl:sticky 2xl:top-4 2xl:block">
         <div
-          class="overflow-hidden rounded-md border border-grey-200 bg-white xl:h-[calc(100vh-8rem)] xl:min-h-[480px]"
+          class="overflow-hidden rounded-md border border-grey-200 bg-white 2xl:h-[calc(100vh-8rem)] 2xl:min-h-[480px]"
         >
           <SampleMap
             v-if="mapPins.length"
