@@ -58,7 +58,7 @@ const schema = z
     documentDate: z.string().min(1, 'Datum is verplicht.'),
     documentFile: z.string().min(1, 'Upload eerst een document.'),
     contractor: z.number().int('Kies een uitvoerder.'),
-    reviewer: z.string().uuid('Kies een beoordelaar.'),
+    reviewer: z.string().guid('Kies een beoordelaar.'),
     note: z.string(),
   })
   .strict()
