@@ -36,6 +36,9 @@ export interface IAttribution {
   creatorName: string | null
   owner: string
   ownerName: string | null
+  /** #973: durable owning organization, independent of the processing account. */
+  dataOwner: string | null
+  dataOwnerName: string | null
   contractor: number
   contractorName: string | null
 }
@@ -51,6 +54,8 @@ export interface IInquiryInput {
   documentFile: string
   type: number
   standardF3o?: boolean
+  /** #973: admin-only — assign the data to another org (central-account entry). */
+  dataOwnerOrganizationId?: string
   attribution: {
     reviewer: string
     contractor: number

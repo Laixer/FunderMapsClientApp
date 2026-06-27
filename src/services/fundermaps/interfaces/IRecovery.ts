@@ -37,6 +37,8 @@ export interface IRecoveryInput {
   documentDate: string
   documentFile: string
   type: number
+  /** #973: admin-only — assign the data to another org (central-account entry). */
+  dataOwnerOrganizationId?: string
   attribution: {
     reviewer: string
     contractor: number
