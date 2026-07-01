@@ -27,7 +27,7 @@ export const STATUS_META: Record<number, StatusMeta> = {
   1: { label: 'In bewerking', classes: 'bg-yellow-100 text-grey-800' },
   2: { label: 'Afgerond', classes: 'bg-green-100 text-green-800' },
   3: { label: 'Afgevallen', classes: 'bg-grey-200 text-grey-700' },
-  4: { label: 'Gecontroleerd', classes: 'bg-blue-100 text-blue-900' },
+  4: { label: 'Te controleren', classes: 'bg-blue-100 text-blue-900' },
   5: { label: 'Afgekeurd', classes: 'bg-red-50 text-red-800' },
 }
 

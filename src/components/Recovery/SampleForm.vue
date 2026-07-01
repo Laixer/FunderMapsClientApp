@@ -132,7 +132,7 @@ function onSave() {
           />
           <Select
             v-model="form.pileType"
-            label="Paaltype"
+            label="Type funderingsbalk"
             :options="PILE_TYPE_OPTIONS"
             placeholder="-"
           />
