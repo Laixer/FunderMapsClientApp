@@ -42,6 +42,11 @@ const uploading = ref(false)
 const contractors: Ref<IContractor[]> = ref([])
 const reviewers: Ref<IUser[]> = ref([])
 
+// #999: read-only display of the owning organization (attribution.dataOwnerName,
+// introduced by #973). Kept out of formData so the strict schema + submit body
+// stay untouched — the data-owner is assigned server-side, not edited here.
+const dataOwnerName = ref('')
+
 const formData = ref({
   documentName: '',
   type: null as number | null,
@@ -168,6 +173,7 @@ onBeforeMount(async () => {
         floorMeasurement: inquiry.floorMeasurement,
         note: inquiry.note ?? '',
       }
+      dataOwnerName.value = inquiry.attribution.dataOwnerName ?? ''
     }
   } catch (err) {
     saveError.value = getErrorMessage(err) ?? t('error.generic')
@@ -250,6 +256,14 @@ onBeforeMount(async () => {
               required
               :validationStatus="getStatus('contractor')"
               :validationMessage="getError('contractor')"
+            />
+
+            <Input
+              v-if="!isNew"
+              v-model="dataOwnerName"
+              label="Data-eigenaar"
+              placeholder="Onbekend"
+              disabled
             />
 
             <Select
