@@ -15,10 +15,11 @@ const props = withDefaults(
     placeholder?: string
     required?: boolean
     disabled?: boolean
+    clearable?: boolean
     validationStatus?: 'none' | 'success' | 'error'
     validationMessage?: string
   }>(),
-  { required: false, disabled: false, validationStatus: 'none' },
+  { required: false, disabled: false, clearable: false, validationStatus: 'none' },
 )
 
 const model = defineModel()
@@ -37,7 +38,7 @@ const identifier = computed(() => props.id ?? `select-${crypto.randomUUID()}`)
         :disabled="disabled"
         v-model="model"
       >
-        <option v-if="placeholder" :value="null" disabled>{{ placeholder }}</option>
+        <option v-if="placeholder" :value="null" :disabled="!clearable">{{ placeholder }}</option>
         <option v-for="(option, i) in options" :key="i" :value="option.value">
           {{ option.label }}
         </option>

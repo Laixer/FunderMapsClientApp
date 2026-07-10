@@ -94,6 +94,7 @@ function onSave() {
             label="Onderbouw"
             :options="SUBSTRUCTURE_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Input v-model="form.cpt" label="Sondering" />
           <Input v-model="form.monitoringWell" label="Peilbuis" />
@@ -135,46 +136,53 @@ function onSave() {
             label="Funderingstype"
             :options="FOUNDATION_TYPE_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.enforcementTerm"
             label="Handhavingstermijn"
             :options="ENFORCEMENT_TERM_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.damageCause"
             label="Schade-oorzaak"
             :options="FOUNDATION_DAMAGE_CAUSE_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.damageCharacteristics"
             label="Waargenomen schadebeeld"
             :options="DAMAGE_CHARACTERISTICS_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.constructionPile"
             label="Type funderingsbalk"
             :options="CONSTRUCTION_PILE_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.woodType"
             label="Houtsoort paal"
             :options="WOOD_TYPE_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.woodEncroachment"
             label="Type houtaantasting"
             :options="WOOD_ENCROACHMENT_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Input
             v-model.number="form.constructionLevel"
-            label="Onderkant fundering (m NAP), alleen bij niet-onderheide fundering"
+            label="Onderkant constructie (opbouw op fundering)"
             type="number"
             step="0.01"
             :min="-999.99"
@@ -190,10 +198,10 @@ function onSave() {
           />
           <Input
             v-model.number="form.foundationDepth"
-            label="Diepteligging funderingshout"
+            label="Onderkant fundering (m NAP), alleen bij niet-onderheide fundering"
             type="number"
             step="0.01"
-            :min="0"
+            :min="-999.99"
             :max="999.99"
           />
           <Input
@@ -273,42 +281,49 @@ function onSave() {
             label="Algehele funderingskwaliteit"
             :options="FOUNDATION_QUALITY_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.woodQuality"
             label="Kwaliteit hout"
             :options="QUALITY_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.constructionQuality"
             label="Stabiliteit funderingsconstructie"
             :options="QUALITY_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.woodCapacityHorizontalQuality"
             label="Draagkracht horizontaal funderingshout"
             :options="QUALITY_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.pileWoodCapacityVerticalQuality"
             label="Draagkracht paalhout"
             :options="QUALITY_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.carryingCapacityQuality"
             label="Geotechnische draagkracht"
             :options="QUALITY_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Select
             v-model="form.masonQuality"
             label="Metselwerkkwaliteit"
             :options="QUALITY_OPTIONS"
             placeholder="-"
+            clearable
           />
           <CheckBox v-model="form.woodQualityNecessity" label="Houtonderzoek nodig" />
         </div>
@@ -325,6 +340,7 @@ function onSave() {
               label="Inpandige scheur"
               :options="CRACK_TYPE_OPTIONS"
               placeholder="-"
+              clearable
             />
             <Input v-model.number="form.crackIndoorSize" label="Grootte (mm)" type="number" />
             <CheckBox v-model="form.crackIndoorRestored" label="Hersteld" />
@@ -335,6 +351,7 @@ function onSave() {
               label="Voorgevel scheur"
               :options="CRACK_TYPE_OPTIONS"
               placeholder="-"
+              clearable
             />
             <Input v-model.number="form.crackFacadeFrontSize" label="Grootte (mm)" type="number" />
             <CheckBox v-model="form.crackFacadeFrontRestored" label="Hersteld" />
@@ -345,6 +362,7 @@ function onSave() {
               label="Achtergevel scheur"
               :options="CRACK_TYPE_OPTIONS"
               placeholder="-"
+              clearable
             />
             <Input v-model.number="form.crackFacadeBackSize" label="Grootte (mm)" type="number" />
             <CheckBox v-model="form.crackFacadeBackRestored" label="Hersteld" />
@@ -355,6 +373,7 @@ function onSave() {
               label="Linkergevel scheur"
               :options="CRACK_TYPE_OPTIONS"
               placeholder="-"
+              clearable
             />
             <Input v-model.number="form.crackFacadeLeftSize" label="Grootte (mm)" type="number" />
             <CheckBox v-model="form.crackFacadeLeftRestored" label="Hersteld" />
@@ -365,6 +384,7 @@ function onSave() {
               label="Rechtergevel scheur"
               :options="CRACK_TYPE_OPTIONS"
               placeholder="-"
+              clearable
             />
             <Input v-model.number="form.crackFacadeRightSize" label="Grootte (mm)" type="number" />
             <CheckBox v-model="form.crackFacadeRightRestored" label="Hersteld" />
@@ -408,6 +428,7 @@ function onSave() {
             label="Lintvoegmeting beoordeling"
             :options="ROTATION_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Input
             v-model.number="form.skewedPerpendicular"
@@ -422,6 +443,7 @@ function onSave() {
             label="Loodmeting beoordeling"
             :options="ROTATION_OPTIONS"
             placeholder="-"
+            clearable
           />
           <Input
             v-model.number="form.settlementSpeed"
@@ -435,6 +457,7 @@ function onSave() {
             label="Risicoklasse QuickScan / Fase 0"
             :options="FACADE_SCAN_RISK_OPTIONS"
             placeholder="-"
+            clearable
           />
         </div>
       </section>
