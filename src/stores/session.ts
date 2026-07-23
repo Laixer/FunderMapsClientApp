@@ -7,7 +7,6 @@ import {
   hasAccessToken,
   removeAccessToken,
   removeIdToken,
-  storeAccessToken,
 } from '@/services/fundermaps/session'
 import type { IUser, OrgRole } from '@/services/fundermaps/interfaces/IUser'
 
