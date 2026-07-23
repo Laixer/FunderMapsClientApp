@@ -26,6 +26,11 @@ export async function getById(id: number) {
   return (await get({ endpoint: `/inquiry/${id}` })) as IInquiry
 }
 
+/** All inquiries with a sample on the given building (most recent first). */
+export async function getByBuilding(buildingId: string) {
+  return (await get({ endpoint: `/inquiry/building/${buildingId}` })) as IInquiry[]
+}
+
 export async function create(data: IInquiryInput) {
   return (await post({
     endpoint: '/inquiry',
@@ -82,6 +87,7 @@ export default {
   list,
   getCount,
   getById,
+  getByBuilding,
   create,
   update,
   remove,

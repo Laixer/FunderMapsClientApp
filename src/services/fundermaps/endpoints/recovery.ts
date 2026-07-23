@@ -26,6 +26,11 @@ export async function getById(id: number) {
   return (await get({ endpoint: `/recovery/${id}` })) as IRecovery
 }
 
+/** All recoveries with a sample on the given building (most recent first). */
+export async function getByBuilding(buildingId: string) {
+  return (await get({ endpoint: `/recovery/building/${buildingId}` })) as IRecovery[]
+}
+
 export async function create(data: IRecoveryInput) {
   return (await post({
     endpoint: '/recovery',
@@ -80,6 +85,7 @@ export default {
   list,
   getCount,
   getById,
+  getByBuilding,
   create,
   update,
   remove,

@@ -8,6 +8,7 @@ import Card from '@/components/Common/Card.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import Alert from '@/components/Common/Alert.vue'
 import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
+import BuildingContext from '@/components/Inquiry/BuildingContext.vue'
 import SampleForm from '@/components/Inquiry/SampleForm.vue'
 import Spinner from '@/components/Common/Spinner.vue'
 import WizardSteps from '@/components/Common/WizardSteps.vue'
@@ -301,13 +302,21 @@ function previous() {
         <Card v-if="!selected" class="flex items-center justify-center py-12">
           <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
         </Card>
-        <SampleForm
-          v-else
-          :sample="selected"
-          :saving="saving"
-          @save="handleSave"
-          @delete="handleDelete"
-        />
+        <template v-else>
+          <!-- What's already known about this building (issue #263, item 3) —
+               spot double or conflicting work before filling in the form. -->
+          <BuildingContext
+            :building="selected.building"
+            :exclude-inquiry="inquiryId"
+            class="mb-4"
+          />
+          <SampleForm
+            :sample="selected"
+            :saving="saving"
+            @save="handleSave"
+            @delete="handleDelete"
+          />
+        </template>
       </div>
 
       <!-- Map column (2xl+ only). Sticky so the operator keeps a spatial
