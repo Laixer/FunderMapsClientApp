@@ -11,13 +11,13 @@ import Alert from '@/components/Common/Alert.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
 import Spinner from '@/components/Common/Spinner.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
+import SampleOverview from '@/components/Inquiry/SampleOverview.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import { AUDIT_STATUS, inquiryTypeLabel } from '@/services/inquiryEnums'
 import { formatDate } from '@/utils/date'
-import { formatAddress } from '@/utils/address'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useSessionStore } from '@/stores/session'
 import { useAddressStore } from '@/stores/address'
@@ -260,18 +260,9 @@ async function handleDelete() {
           <p v-if="samples.length === 0" class="text-sm text-grey-700">
             Nog geen adressen toegevoegd.
           </p>
-          <ul v-else class="overflow-hidden rounded-md border border-grey-200">
-            <li
-              v-for="s in samples"
-              :key="s.id"
-              class="space-y-1 border-b border-grey-200 px-3 py-3 text-sm last:border-b-0"
-            >
-              <p class="font-medium text-grey-800">
-                {{ formatAddress(addressStore.cache[s.address]) }}
-              </p>
-              <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
-            </li>
-          </ul>
+          <!-- Reviewing? Open everything up — the reviewer should see the data,
+               not a list of addresses (issue #263, item 7). -->
+          <SampleOverview v-else :samples="samples" :expanded="isPendingReview" />
         </section>
       </div>
     </Card>

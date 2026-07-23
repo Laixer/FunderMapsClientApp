@@ -10,6 +10,7 @@ import Alert from '@/components/Common/Alert.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
 import Spinner from '@/components/Common/Spinner.vue'
 import WizardSteps from '@/components/Common/WizardSteps.vue'
+import SampleOverview from '@/components/Inquiry/SampleOverview.vue'
 import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
@@ -17,7 +18,6 @@ import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import { AUDIT_STATUS, inquiryTypeLabel } from '@/services/inquiryEnums'
 import { formatDate } from '@/utils/date'
-import { formatAddress } from '@/utils/address'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useAddressStore } from '@/stores/address'
 
@@ -155,18 +155,7 @@ function previous() {
           <Alert v-if="samples.length === 0" type="warning">
             Voeg minimaal één adres toe in stap 2 voordat je het rapport indient.
           </Alert>
-          <ul v-else class="overflow-hidden rounded-md border border-grey-200">
-            <li
-              v-for="s in samples"
-              :key="s.id"
-              class="space-y-1 border-b border-grey-200 px-3 py-3 text-sm last:border-b-0"
-            >
-              <p class="font-medium text-grey-800">
-                {{ formatAddress(addressStore.cache[s.address]) }}
-              </p>
-              <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
-            </li>
-          </ul>
+          <SampleOverview v-else :samples="samples" />
 
           <p v-if="!canSubmit && samples.length > 0" class="mt-3 text-sm text-grey-700">
             Dit rapport kan niet meer worden ingediend in de huidige status.
