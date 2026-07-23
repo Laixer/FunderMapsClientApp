@@ -4,6 +4,7 @@ type Column = {
   title: string
   width?: string
   align?: 'left' | 'right' | 'center'
+  sortable?: boolean
 }
 
 const props = withDefaults(
@@ -16,6 +17,9 @@ const props = withDefaults(
     loadingMessage?: string
     rowKey?: (row: T) => string | number
     clickable?: boolean
+    /** Active sort state, owned by the parent; `sort` emits the clicked field. */
+    sortField?: string | null
+    sortOrder?: 'asc' | 'desc'
   }>(),
   {
     loading: false,
@@ -23,10 +27,12 @@ const props = withDefaults(
     emptyMessage: 'Geen resultaten.',
     loadingMessage: 'Laden…',
     clickable: true,
+    sortField: null,
+    sortOrder: 'desc',
   },
 )
 
-const emit = defineEmits<{ select: [row: T] }>()
+const emit = defineEmits<{ select: [row: T]; sort: [field: string] }>()
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fieldValue = (row: T, field: string): any => (row as Record<string, unknown>)[field]
@@ -57,10 +63,23 @@ const isSelected = (row: T): boolean => {
             v-for="c in columns"
             :key="c.field"
             class="px-3 py-2"
-            :class="alignClass(c.align)"
+            :class="[alignClass(c.align), c.sortable && 'cursor-pointer select-none hover:text-grey-800']"
             :style="c.width ? { width: c.width } : undefined"
+            :aria-sort="
+              c.sortable && sortField === c.field
+                ? sortOrder === 'asc'
+                  ? 'ascending'
+                  : 'descending'
+                : undefined
+            "
+            @click="c.sortable && emit('sort', c.field)"
           >
-            {{ c.title }}
+            <span class="inline-flex items-center gap-1">
+              {{ c.title }}
+              <span v-if="c.sortable && sortField === c.field" aria-hidden="true">
+                {{ sortOrder === 'asc' ? '▲' : '▼' }}
+              </span>
+            </span>
           </th>
         </tr>
       </thead>

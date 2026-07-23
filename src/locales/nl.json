@@ -42,6 +42,11 @@
         "creator": "Opsteller",
         "reviewer": "Beoordelaar",
         "status": "Status"
+      },
+      "filter": {
+        "allStatuses": "Alle statussen",
+        "myReviews": "Mijn beoordelingen",
+        "myEntries": "Mijn invoer"
       }
     },
     "view": {

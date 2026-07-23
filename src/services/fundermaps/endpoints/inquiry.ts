@@ -10,11 +10,32 @@ interface IDownloadInfo {
   accessLink: string
 }
 
-export async function list(opts: { limit?: number; offset?: number; q?: string } = {}) {
+export interface IInquiryListOpts {
+  limit?: number
+  offset?: number
+  q?: string
+  /** auditStatus wire integers; combined as OR. */
+  status?: number[]
+  /** Attribution user ids. */
+  creator?: string
+  reviewer?: string
+  /** Server-side sort column (see API docs) + direction. */
+  sort?: 'id' | 'document_name' | 'type' | 'document_date' | 'creator' | 'reviewer' | 'status'
+  order?: 'asc' | 'desc'
+}
+
+export async function list(opts: IInquiryListOpts = {}) {
   const queryString: Record<string, string> = {}
   if (opts.limit != null) queryString.limit = String(opts.limit)
   if (opts.offset != null) queryString.offset = String(opts.offset)
   if (opts.q) queryString.q = opts.q
+  if (opts.status?.length) queryString.status = opts.status.join(',')
+  if (opts.creator) queryString.creator = opts.creator
+  if (opts.reviewer) queryString.reviewer = opts.reviewer
+  if (opts.sort) {
+    queryString.sort = opts.sort
+    queryString.order = opts.order ?? 'desc'
+  }
   return (await get({ endpoint: '/inquiry', queryString })) as IInquiry[]
 }
 
