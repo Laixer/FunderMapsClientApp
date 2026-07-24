@@ -76,5 +76,15 @@
       "reopen": "Heropenen",
       "reopenConfirm": "Goedgekeurd herstel-dossier heropenen voor correcties? De status keert terug naar 'In behandeling'."
     }
+  },
+  "sample": {
+    "provenance": {
+      "inherited": "overgenomen van {address}",
+      "unverified": "niet geverifieerd",
+      "confirm": "bevestigen",
+      "confirmed": "bevestigd",
+      "sectionPending": "nog {count} te bevestigen",
+      "confirmSection": "alles bevestigen"
+    }
   }
 }
