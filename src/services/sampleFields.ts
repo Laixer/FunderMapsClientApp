@@ -1,9 +1,13 @@
 /**
- * Read-only field descriptors for inquiry samples: every field of the
- * sample form (`components/Inquiry/SampleForm.vue`) with its Dutch label,
- * display kind, and enum options — grouped in the same sections and order
- * as the form. Used to render the reviewer-facing overview (issue #263,
- * item 7); keep in sync when the form gains or loses fields.
+ * Field descriptors for inquiry samples: every field of the sample form with
+ * its Dutch label, display kind, enum options and input constraints — grouped
+ * in the same sections and order the form renders them.
+ *
+ * This is the single definition of "what a sample looks like". Three things
+ * render from it: the editable form (`components/Inquiry/SampleForm.vue`, via
+ * `SampleField.vue`), the reviewer-facing overview (issue #263, item 7), and
+ * the read-only detail. Add a field here and it appears in all three — there
+ * is no separate list to keep in sync.
  */
 
 import type { SelectOption } from '@/components/Common/Inputs/Select.vue'
@@ -28,15 +32,43 @@ export type SampleFieldKind = 'text' | 'number' | 'bool' | 'enum' | 'date'
 
 export interface SampleFieldDef {
   key: keyof IInquirySample
+  /**
+   * Standalone label. Carries enough context to be read on its own, because
+   * the overview and read-only views list fields without their section
+   * grouping — hence "Voorgevel scheur — grootte (mm)" rather than "Grootte".
+   */
   label: string
+  /**
+   * Label to use inside the form, where the surrounding row already supplies
+   * the context. Falls back to `label` when absent.
+   */
+  shortLabel?: string
   kind: SampleFieldKind
   options?: SelectOption[]
+  /** Native number-input constraints. Only meaningful for `kind: 'number'`. */
+  min?: number
+  max?: number
+  step?: number
 }
 
 export interface SampleSectionDef {
   title: string
+  /**
+   * Column count for the form grid. `3` is used by sections whose fields come
+   * in fixed triplets (crack: type / size / restored). Defaults to `2`.
+   */
+  columns?: 2 | 3
   fields: SampleFieldDef[]
 }
+
+/**
+ * A height in metres relative to NAP. Negative is ordinary — most of the
+ * Netherlands sits below sea level.
+ */
+const LEVEL = { min: -999.99, max: 999.99, step: 0.01 } as const
+
+/** A physical length or diameter, so never negative. */
+const MEASURE = { min: 0, max: 999.99, step: 0.01 } as const
 
 export const SAMPLE_SECTIONS: SampleSectionDef[] = [
   {
@@ -46,13 +78,19 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       { key: 'substructure', label: 'Onderbouw', kind: 'enum', options: SUBSTRUCTURE_OPTIONS },
       { key: 'cpt', label: 'Sondering', kind: 'text' },
       { key: 'monitoringWell', label: 'Peilbuis', kind: 'text' },
-      { key: 'groundLevel', label: 'Maaiveldhoogte (m NAP)', kind: 'number' },
+      { key: 'groundLevel', label: 'Maaiveldhoogte (m NAP)', kind: 'number', ...LEVEL },
       {
         key: 'groundwaterLevelTemp',
         label: 'Grondwaterstand tijdens inspectie (m NAP)',
         kind: 'number',
+        ...LEVEL,
       },
-      { key: 'groundwaterLevelNet', label: 'Grondwaterstand (m NAP)', kind: 'number' },
+      {
+        key: 'groundwaterLevelNet',
+        label: 'Grondwaterstand (m NAP)',
+        kind: 'number',
+        ...LEVEL,
+      },
       {
         key: 'recoveryAdvised',
         label: 'Hersteladvies / funderingsherstel noodzakelijk',
@@ -63,7 +101,12 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
   {
     title: 'Fundering',
     fields: [
-      { key: 'foundationType', label: 'Funderingstype', kind: 'enum', options: FOUNDATION_TYPE_OPTIONS },
+      {
+        key: 'foundationType',
+        label: 'Funderingstype',
+        kind: 'enum',
+        options: FOUNDATION_TYPE_OPTIONS,
+      },
       {
         key: 'enforcementTerm',
         label: 'Handhavingstermijn',
@@ -99,21 +142,38 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
         key: 'constructionLevel',
         label: 'Onderkant constructie (opbouw op fundering)',
         kind: 'number',
+        ...LEVEL,
       },
-      { key: 'woodLevel', label: 'Bovenkant funderingshout (m NAP)', kind: 'number' },
+      {
+        key: 'woodLevel',
+        label: 'Bovenkant funderingshout (m NAP)',
+        kind: 'number',
+        ...LEVEL,
+      },
       {
         key: 'foundationDepth',
         label: 'Onderkant fundering (m NAP), alleen bij niet-onderheide fundering',
         kind: 'number',
+        ...LEVEL,
       },
-      { key: 'masonLevel', label: 'Onderkant metselwerk (m NAP)', kind: 'number' },
-      { key: 'pileDiameterTop', label: 'Paaldiameter top', kind: 'number' },
-      { key: 'pileDiameterBottom', label: 'Paaldiameter onder', kind: 'number' },
-      { key: 'pileHeadLevel', label: 'Paalkop niveau', kind: 'number' },
-      { key: 'pileTipLevel', label: 'Paalpunt niveau', kind: 'number' },
-      { key: 'concreteChargerLength', label: 'Lengte betonoplanger (m)', kind: 'number' },
-      { key: 'pileDistanceLength', label: 'Paalafstand', kind: 'number' },
-      { key: 'woodPenetrationDepth', label: 'Indringingswaarde (mm)', kind: 'number' },
+      { key: 'masonLevel', label: 'Onderkant metselwerk (m NAP)', kind: 'number', ...LEVEL },
+      { key: 'pileDiameterTop', label: 'Paaldiameter top', kind: 'number', ...MEASURE },
+      { key: 'pileDiameterBottom', label: 'Paaldiameter onder', kind: 'number', ...MEASURE },
+      { key: 'pileHeadLevel', label: 'Paalkop niveau', kind: 'number', ...LEVEL },
+      { key: 'pileTipLevel', label: 'Paalpunt niveau', kind: 'number', ...LEVEL },
+      {
+        key: 'concreteChargerLength',
+        label: 'Lengte betonoplanger (m)',
+        kind: 'number',
+        ...MEASURE,
+      },
+      { key: 'pileDistanceLength', label: 'Paalafstand', kind: 'number', ...MEASURE },
+      {
+        key: 'woodPenetrationDepth',
+        label: 'Indringingswaarde (mm)',
+        kind: 'number',
+        ...MEASURE,
+      },
     ],
   },
   {
@@ -156,66 +216,136 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
   },
   {
     title: 'Scheuren',
+    columns: 3,
     fields: [
-      { key: 'crackIndoorType', label: 'Inpandige scheur', kind: 'enum', options: CRACK_TYPE_OPTIONS },
-      { key: 'crackIndoorSize', label: 'Inpandige scheur — grootte (mm)', kind: 'number' },
-      { key: 'crackIndoorRestored', label: 'Inpandige scheur — hersteld', kind: 'bool' },
+      {
+        key: 'crackIndoorType',
+        label: 'Inpandige scheur',
+        kind: 'enum',
+        options: CRACK_TYPE_OPTIONS,
+      },
+      {
+        key: 'crackIndoorSize',
+        label: 'Inpandige scheur — grootte (mm)',
+        shortLabel: 'Grootte (mm)',
+        kind: 'number',
+      },
+      {
+        key: 'crackIndoorRestored',
+        label: 'Inpandige scheur — hersteld',
+        shortLabel: 'Hersteld',
+        kind: 'bool',
+      },
       {
         key: 'crackFacadeFrontType',
         label: 'Voorgevel scheur',
         kind: 'enum',
         options: CRACK_TYPE_OPTIONS,
       },
-      { key: 'crackFacadeFrontSize', label: 'Voorgevel scheur — grootte (mm)', kind: 'number' },
-      { key: 'crackFacadeFrontRestored', label: 'Voorgevel scheur — hersteld', kind: 'bool' },
+      {
+        key: 'crackFacadeFrontSize',
+        label: 'Voorgevel scheur — grootte (mm)',
+        shortLabel: 'Grootte (mm)',
+        kind: 'number',
+      },
+      {
+        key: 'crackFacadeFrontRestored',
+        label: 'Voorgevel scheur — hersteld',
+        shortLabel: 'Hersteld',
+        kind: 'bool',
+      },
       {
         key: 'crackFacadeBackType',
         label: 'Achtergevel scheur',
         kind: 'enum',
         options: CRACK_TYPE_OPTIONS,
       },
-      { key: 'crackFacadeBackSize', label: 'Achtergevel scheur — grootte (mm)', kind: 'number' },
-      { key: 'crackFacadeBackRestored', label: 'Achtergevel scheur — hersteld', kind: 'bool' },
+      {
+        key: 'crackFacadeBackSize',
+        label: 'Achtergevel scheur — grootte (mm)',
+        shortLabel: 'Grootte (mm)',
+        kind: 'number',
+      },
+      {
+        key: 'crackFacadeBackRestored',
+        label: 'Achtergevel scheur — hersteld',
+        shortLabel: 'Hersteld',
+        kind: 'bool',
+      },
       {
         key: 'crackFacadeLeftType',
         label: 'Linkergevel scheur',
         kind: 'enum',
         options: CRACK_TYPE_OPTIONS,
       },
-      { key: 'crackFacadeLeftSize', label: 'Linkergevel scheur — grootte (mm)', kind: 'number' },
-      { key: 'crackFacadeLeftRestored', label: 'Linkergevel scheur — hersteld', kind: 'bool' },
+      {
+        key: 'crackFacadeLeftSize',
+        label: 'Linkergevel scheur — grootte (mm)',
+        shortLabel: 'Grootte (mm)',
+        kind: 'number',
+      },
+      {
+        key: 'crackFacadeLeftRestored',
+        label: 'Linkergevel scheur — hersteld',
+        shortLabel: 'Hersteld',
+        kind: 'bool',
+      },
       {
         key: 'crackFacadeRightType',
         label: 'Rechtergevel scheur',
         kind: 'enum',
         options: CRACK_TYPE_OPTIONS,
       },
-      { key: 'crackFacadeRightSize', label: 'Rechtergevel scheur — grootte (mm)', kind: 'number' },
-      { key: 'crackFacadeRightRestored', label: 'Rechtergevel scheur — hersteld', kind: 'bool' },
+      {
+        key: 'crackFacadeRightSize',
+        label: 'Rechtergevel scheur — grootte (mm)',
+        shortLabel: 'Grootte (mm)',
+        kind: 'number',
+      },
+      {
+        key: 'crackFacadeRightRestored',
+        label: 'Rechtergevel scheur — hersteld',
+        shortLabel: 'Hersteld',
+        kind: 'bool',
+      },
     ],
   },
   {
     title: 'Vervorming',
     fields: [
       { key: 'deformedFacade', label: 'Gevelvervorming aanwezig', kind: 'bool' },
-      { key: 'thresholdUpdownSkewed', label: 'Scheefstand onder-/bovendorpel aanwezig', kind: 'bool' },
-      { key: 'thresholdFrontLevel', label: 'Drempelniveau voorzijde (m NAP)', kind: 'number' },
-      { key: 'thresholdBackLevel', label: 'Drempelniveau achterzijde (m NAP)', kind: 'number' },
-      { key: 'skewedParallel', label: 'Lintvoegmeting (mm/m)', kind: 'number' },
+      {
+        key: 'thresholdUpdownSkewed',
+        label: 'Scheefstand onder-/bovendorpel aanwezig',
+        kind: 'bool',
+      },
+      {
+        key: 'thresholdFrontLevel',
+        label: 'Drempelniveau voorzijde (m NAP)',
+        kind: 'number',
+        ...LEVEL,
+      },
+      {
+        key: 'thresholdBackLevel',
+        label: 'Drempelniveau achterzijde (m NAP)',
+        kind: 'number',
+        ...LEVEL,
+      },
+      { key: 'skewedParallel', label: 'Lintvoegmeting (mm/m)', kind: 'number', ...MEASURE },
       {
         key: 'skewedParallelFacade',
         label: 'Lintvoegmeting beoordeling',
         kind: 'enum',
         options: ROTATION_OPTIONS,
       },
-      { key: 'skewedPerpendicular', label: 'Loodmeting (mm/m)', kind: 'number' },
+      { key: 'skewedPerpendicular', label: 'Loodmeting (mm/m)', kind: 'number', ...MEASURE },
       {
         key: 'skewedPerpendicularFacade',
         label: 'Loodmeting beoordeling',
         kind: 'enum',
         options: ROTATION_OPTIONS,
       },
-      { key: 'settlementSpeed', label: 'Zakkingssnelheid (mm/jaar)', kind: 'number' },
+      { key: 'settlementSpeed', label: 'Zakkingssnelheid (mm/jaar)', kind: 'number', step: 0.01 },
       { key: 'skewedWindowFrame', label: 'Scheve kozijnen', kind: 'bool' },
       {
         key: 'facadeScanRisk',
