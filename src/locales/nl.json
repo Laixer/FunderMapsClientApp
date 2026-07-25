@@ -13,7 +13,8 @@
   },
   "nav": {
     "reports": "Rapportages",
-    "recoveries": "Herstel"
+    "recoveries": "Herstel",
+    "today": "Vandaag"
   },
   "userMenu": {
     "apps": "Andere apps",
@@ -46,7 +47,8 @@
       "filter": {
         "allStatuses": "Alle statussen",
         "myReviews": "Mijn beoordelingen",
-        "myEntries": "Mijn invoer"
+        "myEntries": "Mijn invoer",
+        "clearInbox": "Filter uit Vandaag wissen"
       }
     },
     "view": {
@@ -86,5 +88,11 @@
       "sectionPending": "nog {count} te bevestigen",
       "confirmSection": "alles bevestigen"
     }
+  },
+  "home": {
+    "title": "Vandaag",
+    "subtitle": "{count} dossiers wachten op jou.",
+    "allClear": "Niks op je bord. Mooi zo.",
+    "showAll": "+{count} meer"
   }
 }

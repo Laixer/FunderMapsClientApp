@@ -2,22 +2,23 @@
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
+import Icon from '@/components/Common/Icon.vue'
+import type { IconName } from '@/components/Common/icons'
 import UserMenu from '@/components/UserMenu.vue'
 import fundermapsLogo from '@assets/svg/fundermaps.svg?url'
 
 const { t } = useI18n()
 
-const navLinks = [
-  { name: 'inquiry-list', label: t('nav.reports') },
-  { name: 'recovery-list', label: t('nav.recoveries') },
+const navLinks: { name: string; label: string; icon: IconName }[] = [
+  { name: 'home', label: t('nav.today'), icon: 'target' },
+  { name: 'inquiry-list', label: t('nav.reports'), icon: 'clipboard' },
+  { name: 'recovery-list', label: t('nav.recoveries'), icon: 'switch' },
 ]
 </script>
 
 <template>
-  <aside
-    class="fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r border-grey-200 bg-white"
-  >
-    <div class="flex h-14 items-center border-b border-grey-200 px-4">
+  <aside class="border-grey-200 fixed inset-y-0 left-0 z-40 flex w-56 flex-col border-r bg-white">
+    <div class="border-grey-200 flex h-14 items-center border-b px-4">
       <RouterLink
         :to="{ name: 'inquiry-list' }"
         class="inline-flex items-center gap-2"
@@ -32,15 +33,16 @@ const navLinks = [
         <li v-for="link in navLinks" :key="link.name">
           <RouterLink
             :to="{ name: link.name }"
-            class="nav-link flex items-center rounded-md px-3 py-2 text-sm font-medium text-grey-700 transition-colors hover:bg-grey-100 hover:text-grey-800"
+            class="nav-link text-grey-700 hover:bg-grey-100 hover:text-grey-800 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors"
           >
+            <Icon :name="link.icon" size="sm" />
             {{ link.label }}
           </RouterLink>
         </li>
       </ul>
     </nav>
 
-    <div class="border-t border-grey-200 p-3">
+    <div class="border-grey-200 border-t p-3">
       <UserMenu />
     </div>
   </aside>
