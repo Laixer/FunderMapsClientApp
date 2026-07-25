@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
-import mapboxgl, { type Map as MapboxMap, type Marker } from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
+import { LngLatBounds, Map as MaplibreMap, Marker, NavigationControl } from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
 export interface SamplePin {
   id: string | number
@@ -22,7 +22,7 @@ const props = withDefaults(
 const emit = defineEmits<{ select: [id: string | number] }>()
 
 const container = useTemplateRef<HTMLElement>('container')
-const mapInstance = shallowRef<MapboxMap | null>(null)
+const mapInstance = shallowRef<MaplibreMap | null>(null)
 // Marker per pin id. Selection state is reflected on the existing element
 // instead of rebuilding markers — avoids a flicker on every click.
 const markerById = new Map<string | number, { marker: Marker; el: HTMLElement }>()
@@ -32,10 +32,11 @@ const markerById = new Map<string | number, { marker: Marker; el: HTMLElement }>
 // user never actually sees this view.
 const FALLBACK_CENTER: [number, number] = [4.897, 52.378]
 
-// Falsy token / style → no map. Caller hides the component or accepts a blank
-// container; either way the rest of the wizard keeps working.
-const token = import.meta.env.VITE_MAPBOX_TOKEN
-const style = import.meta.env.VITE_MAPBOX_STYLE
+// The FunderMaps basemap (MapLibre, no token needed). Source of truth is
+// FunderMapsWorker tileserver/styles/; served as a static file from Spaces.
+const style =
+  import.meta.env.VITE_BASEMAP_STYLE ||
+  'https://fundermaps-tileset.ams3.digitaloceanspaces.com/assets/styles/fundermaps-basemap.json'
 
 function makePinEl(id: string | number): HTMLElement {
   const el = document.createElement('div')
@@ -66,7 +67,7 @@ function rebuildMarkers(): void {
       existing.marker.setLngLat([pin.lng, pin.lat])
     } else {
       const el = makePinEl(pin.id)
-      const marker = new mapboxgl.Marker({ element: el }).setLngLat([pin.lng, pin.lat]).addTo(map)
+      const marker = new Marker({ element: el }).setLngLat([pin.lng, pin.lat]).addTo(map)
       markerById.set(pin.id, { marker, el })
     }
   }
@@ -86,21 +87,20 @@ function frame(): void {
 
   if (props.pins.length === 1) {
     const p = props.pins[0]
-    map.flyTo({ center: [p.lng, p.lat], zoom: props.singlePinZoom, essential: true })
+    map.flyTo({ center: [p.lng, p.lat], zoom: props.singlePinZoom })
     return
   }
 
-  const bounds = new mapboxgl.LngLatBounds()
+  const bounds = new LngLatBounds()
   for (const p of props.pins) bounds.extend([p.lng, p.lat])
   map.fitBounds(bounds, { padding: 60, maxZoom: 18, duration: 400 })
 }
 
 onMounted(() => {
-  if (!container.value || !token || !style) return
-  mapboxgl.accessToken = token
+  if (!container.value) return
 
   const initial = props.pins[0]
-  const map = new mapboxgl.Map({
+  const map = new MaplibreMap({
     container: container.value,
     style,
     center: initial ? [initial.lng, initial.lat] : FALLBACK_CENTER,
@@ -108,12 +108,12 @@ onMounted(() => {
     attributionControl: false,
   })
 
-  map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+  map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
 
   map.on('load', () => {
     mapInstance.value = map
     // Force a resize on the next frame in case the container's final
-    // dimensions weren't known when mapbox-gl read them at init (lazy
+    // dimensions weren't known when maplibre-gl read them at init (lazy
     // mount, transition, parent that resolves height after layout).
     // Cheap and idempotent; protects against a silent 0x0 render.
     requestAnimationFrame(() => map.resize())
@@ -142,13 +142,7 @@ watch(() => props.selectedId, updateSelection)
 </script>
 
 <template>
-  <div v-if="token && style" ref="container" class="h-full w-full"></div>
-  <div
-    v-else
-    class="flex h-full w-full items-center justify-center rounded-md border border-grey-200 bg-grey-100 text-xs text-grey-700"
-  >
-    Kaart niet beschikbaar (geen Mapbox-token geconfigureerd).
-  </div>
+  <div ref="container" class="h-full w-full"></div>
 </template>
 
 <style scoped>
