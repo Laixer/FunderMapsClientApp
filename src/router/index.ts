@@ -9,6 +9,7 @@ import Login from '@/views/auth/Login.vue'
 import Callback from '@/views/auth/Callback.vue'
 import Logout from '@/views/auth/Logout.vue'
 import NotFound from '@/views/auth/NotFound.vue'
+import Home from '@/views/HomeView.vue'
 import InquiryList from '@/views/InquiryListView.vue'
 import InquiryStep1 from '@/views/inquiry/InquiryStep1.vue'
 import InquiryStep3 from '@/views/inquiry/InquiryStep3.vue'
@@ -38,27 +39,78 @@ const routes: RouteRecordRaw[] = [
       return false
     },
   },
-  { name: 'auth-callback', path: '/auth/callback', component: Callback, meta: { layout: 'login', public: true } },
+  {
+    name: 'auth-callback',
+    path: '/auth/callback',
+    component: Callback,
+    meta: { layout: 'login', public: true },
+  },
   { name: 'logout', path: '/logout', component: Logout, meta: { layout: 'empty' } },
 
-  { path: '/', redirect: { name: 'inquiry-list' } },
+  // The landing page is the worklist, not the archive — see services/worklist.ts.
+  { name: 'home', path: '/', component: Home },
   { name: 'inquiry-list', path: '/inquiries/:page?', component: InquiryList },
 
-  { name: 'inquiry-new', path: '/inquiry/create', component: InquiryStep1, meta: { fullscreen: true } },
-  { name: 'inquiry-edit-1', path: '/inquiry/:id/edit/1', component: InquiryStep1, meta: { fullscreen: true } },
-  { name: 'inquiry-edit-2', path: '/inquiry/:id/edit/2/:page?/:step?', component: InquiryStep2, meta: { fullscreen: true } },
-  { name: 'inquiry-edit-3', path: '/inquiry/:id/edit/3/:page?', component: InquiryStep3, meta: { fullscreen: true } },
+  {
+    name: 'inquiry-new',
+    path: '/inquiry/create',
+    component: InquiryStep1,
+    meta: { fullscreen: true },
+  },
+  {
+    name: 'inquiry-edit-1',
+    path: '/inquiry/:id/edit/1',
+    component: InquiryStep1,
+    meta: { fullscreen: true },
+  },
+  {
+    name: 'inquiry-edit-2',
+    path: '/inquiry/:id/edit/2/:page?/:step?',
+    component: InquiryStep2,
+    meta: { fullscreen: true },
+  },
+  {
+    name: 'inquiry-edit-3',
+    path: '/inquiry/:id/edit/3/:page?',
+    component: InquiryStep3,
+    meta: { fullscreen: true },
+  },
   { name: 'inquiry-view', path: '/inquiry/:id/:page?', component: InquiryView },
 
   { name: 'recovery-list', path: '/recoveries/:page?', component: RecoveryList },
 
-  { name: 'recovery-new', path: '/recovery/create', component: RecoveryStep1, meta: { fullscreen: true } },
-  { name: 'recovery-edit-1', path: '/recovery/:id/edit/1', component: RecoveryStep1, meta: { fullscreen: true } },
-  { name: 'recovery-edit-2', path: '/recovery/:id/edit/2/:page?/:step?', component: RecoveryStep2, meta: { fullscreen: true } },
-  { name: 'recovery-edit-3', path: '/recovery/:id/edit/3/:page?', component: RecoveryStep3, meta: { fullscreen: true } },
+  {
+    name: 'recovery-new',
+    path: '/recovery/create',
+    component: RecoveryStep1,
+    meta: { fullscreen: true },
+  },
+  {
+    name: 'recovery-edit-1',
+    path: '/recovery/:id/edit/1',
+    component: RecoveryStep1,
+    meta: { fullscreen: true },
+  },
+  {
+    name: 'recovery-edit-2',
+    path: '/recovery/:id/edit/2/:page?/:step?',
+    component: RecoveryStep2,
+    meta: { fullscreen: true },
+  },
+  {
+    name: 'recovery-edit-3',
+    path: '/recovery/:id/edit/3/:page?',
+    component: RecoveryStep3,
+    meta: { fullscreen: true },
+  },
   { name: 'recovery-view', path: '/recovery/:id/:page?', component: RecoveryView },
 
-  { name: 'not-found', path: '/:pathMatch(.*)*', component: NotFound, meta: { layout: 'login', public: true } },
+  {
+    name: 'not-found',
+    path: '/:pathMatch(.*)*',
+    component: NotFound,
+    meta: { layout: 'login', public: true },
+  },
 ]
 
 const router = createRouter({
