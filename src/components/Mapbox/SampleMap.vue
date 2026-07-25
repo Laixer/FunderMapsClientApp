@@ -36,7 +36,7 @@ const FALLBACK_CENTER: [number, number] = [4.897, 52.378]
 // FunderMapsWorker tileserver/styles/; served as a static file from Spaces.
 const style =
   import.meta.env.VITE_BASEMAP_STYLE ||
-  'https://fundermaps-tileset.ams3.digitaloceanspaces.com/assets/styles/fundermaps-basemap.json'
+  'https://tiles.fundermaps.com/style/fundermaps-basemap'
 
 function makePinEl(id: string | number): HTMLElement {
   const el = document.createElement('div')
