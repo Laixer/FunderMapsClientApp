@@ -20,12 +20,15 @@ const props = withDefaults(
     /** Active sort state, owned by the parent; `sort` emits the clicked field. */
     sortField?: string | null
     sortOrder?: 'asc' | 'desc'
+    /** Placeholder rows drawn while loading. */
+    skeletonRows?: number
   }>(),
   {
     loading: false,
     selectedId: null,
     emptyMessage: 'Geen resultaten.',
     loadingMessage: 'Laden…',
+    skeletonRows: 5,
     clickable: true,
     sortField: null,
     sortOrder: 'desc',
@@ -46,6 +49,14 @@ const keyFor = (row: T, idx: number): string | number => {
 const alignClass = (align?: 'left' | 'right' | 'center') =>
   align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
 
+/**
+ * Placeholder bar widths, so the loading state looks like a table of text rather
+ * than a row of identical grey blocks. Derived from the column index and kept
+ * deterministic — a random width that changes every tick would shimmer.
+ */
+const SKELETON_WIDTHS = ['w-8', 'w-3/4', 'w-1/2', 'w-2/3', 'w-1/3', 'w-5/6']
+const skeletonWidth = (col: number): string => SKELETON_WIDTHS[col % SKELETON_WIDTHS.length]!
+
 const isSelected = (row: T): boolean => {
   if (props.selectedId == null) return false
   return fieldValue(row, 'id') === props.selectedId
@@ -53,17 +64,20 @@ const isSelected = (row: T): boolean => {
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-md border border-grey-200 bg-white">
+  <div class="border-grey-200 overflow-x-auto rounded-md border bg-white">
     <table class="w-full text-sm">
       <thead
-        class="border-b border-grey-200 bg-grey-100 text-xs font-semibold uppercase tracking-wide text-grey-700"
+        class="border-grey-200 bg-grey-100 text-grey-700 border-b text-xs font-semibold tracking-wide uppercase"
       >
         <tr>
           <th
             v-for="c in columns"
             :key="c.field"
             class="px-3 py-2"
-            :class="[alignClass(c.align), c.sortable && 'cursor-pointer select-none hover:text-grey-800']"
+            :class="[
+              alignClass(c.align),
+              c.sortable && 'hover:text-grey-800 cursor-pointer select-none',
+            ]"
             :style="c.width ? { width: c.width } : undefined"
             :aria-sort="
               c.sortable && sortField === c.field
@@ -84,13 +98,26 @@ const isSelected = (row: T): boolean => {
         </tr>
       </thead>
       <tbody>
-        <tr v-if="loading">
-          <td :colspan="columns.length" class="px-3 py-4 text-center text-grey-700">
-            {{ loadingMessage }}
-          </td>
-        </tr>
+        <!-- Skeleton rows rather than a "Laden…" cell: the table keeps its shape,
+             so nothing jumps when the data lands. `animate-pulse` is already
+             neutralised by the global prefers-reduced-motion rule. -->
+        <template v-if="loading">
+          <tr
+            v-for="n in skeletonRows"
+            :key="`skeleton-${n}`"
+            class="border-grey-200 border-t"
+            aria-hidden="true"
+          >
+            <td v-for="(c, i) in columns" :key="c.field" class="px-3 py-2">
+              <span class="bg-grey-200 block h-3 animate-pulse rounded" :class="skeletonWidth(i)" />
+            </td>
+          </tr>
+          <tr class="sr-only">
+            <td :colspan="columns.length">{{ loadingMessage }}</td>
+          </tr>
+        </template>
         <tr v-else-if="!rows.length">
-          <td :colspan="columns.length" class="px-3 py-4 text-center text-grey-700">
+          <td :colspan="columns.length" class="text-grey-700 px-3 py-4 text-center">
             {{ emptyMessage }}
           </td>
         </tr>
@@ -98,9 +125,9 @@ const isSelected = (row: T): boolean => {
           v-for="(row, idx) in rows"
           v-else
           :key="keyFor(row, idx)"
-          class="border-t border-grey-200 transition-colors"
+          class="border-grey-200 border-t transition-colors"
           :class="[
-            clickable && 'cursor-pointer hover:bg-grey-100',
+            clickable && 'hover:bg-grey-100 cursor-pointer',
             isSelected(row) && 'bg-grey-100',
           ]"
           @click="clickable && emit('select', row)"
@@ -108,7 +135,7 @@ const isSelected = (row: T): boolean => {
           <td
             v-for="c in columns"
             :key="c.field"
-            class="px-3 py-2 align-middle text-grey-800"
+            class="text-grey-800 px-3 py-2 align-middle"
             :class="alignClass(c.align)"
           >
             <slot :name="c.field" :row="row" :value="fieldValue(row, c.field)">
