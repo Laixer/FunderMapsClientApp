@@ -1,15 +1,17 @@
 import { get, post, put, del } from '../client'
 import type { IInquiry, IInquiryInput } from '../interfaces/IInquiry'
 import type { DossierEvent } from '@/services/pipeline'
+import type { DocumentFileInfo } from '@/services/documentFile'
 
 interface IStats {
   count: number
 }
 
-interface IDownloadInfo {
-  /** The API returns this field as `accessLink` — the signed URL to the document. */
-  accessLink: string
-}
+/**
+ * Signed link plus what the file actually is — see `services/documentFile.ts`.
+ * The name fields are null for uploads that predate `application.file_resources`.
+ */
+type IDownloadInfo = DocumentFileInfo
 
 export interface IInquiryListOpts {
   limit?: number
