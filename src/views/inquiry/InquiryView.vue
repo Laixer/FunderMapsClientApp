@@ -200,59 +200,63 @@ async function handleDelete() {
 
 <template>
   <MainWrapper>
-    <div class="mb-8 space-y-3">
-      <RouterLink
-        :to="{ name: 'inquiry-list' }"
-        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
-      >
-        ← {{ t('inquiry.view.back') }}
-      </RouterLink>
+    <RouterLink
+      :to="{ name: 'inquiry-list' }"
+      class="text-grey-700 hover:text-grey-800 mb-3 inline-flex items-center gap-1 text-xs font-medium"
+    >
+      ← {{ t('inquiry.view.back') }}
+    </RouterLink>
 
-      <template v-if="inquiry">
-        <div class="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-grey-800 text-2xl font-semibold">{{ inquiry.documentName }}</h2>
-              <StatusBadge :status="inquiry.state.auditStatus" :events="events" />
-            </div>
-            <p class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
-              <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
-              <span aria-hidden="true">·</span>
-              <span>{{ formatDate(inquiry.documentDate) }}</span>
-            </p>
+    <template v-if="inquiry">
+      <!-- Sticky: one inquiry in prod carries 49,753 samples, so Goedkeuren /
+             Afkeuren used to be tens of screens above wherever the reviewer had
+             read to. The title rides along so you can still see what you are
+             approving. Bleeds past MainWrapper's p-8 to span the content width. -->
+      <div
+        class="border-grey-200 bg-grey-100/95 sticky top-0 z-30 -mx-8 mb-8 flex flex-wrap items-end justify-between gap-3 border-b px-8 py-4 backdrop-blur"
+      >
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-grey-800 text-2xl font-semibold">{{ inquiry.documentName }}</h2>
+            <StatusBadge :status="inquiry.state.auditStatus" />
           </div>
-          <div class="flex flex-wrap gap-2">
-            <Button outline label="Document" @click="handleDownload" />
-            <Button v-if="isEditable && canWrite" outline label="Bewerken" @click="goEdit" />
-            <Button
-              v-if="canSubmitForReview && canWrite"
-              lg
-              label="Aanbieden ter review"
-              @click="handleSubmitForReview"
-            />
-            <Button
-              v-if="isPendingReview && canApprove"
-              lg
-              label="Goedkeuren"
-              @click="handleApprove"
-            />
-            <Button
-              v-if="isPendingReview && canApprove"
-              danger
-              label="Afkeuren"
-              @click="showRejectModal = true"
-            />
-            <Button
-              v-if="isReopenable && isSuperUser"
-              outline
-              :label="t('inquiry.view.reopen')"
-              @click="handleReopen"
-            />
-            <Button v-if="isSuperUser" danger label="Verwijderen" @click="handleDelete" />
-          </div>
+          <p class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
+            <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
+            <span aria-hidden="true">·</span>
+            <span>{{ formatDate(inquiry.documentDate) }}</span>
+          </p>
         </div>
-      </template>
-    </div>
+        <div class="flex flex-wrap gap-2">
+          <Button outline label="Document" @click="handleDownload" />
+          <Button v-if="isEditable && canWrite" outline label="Bewerken" @click="goEdit" />
+          <Button
+            v-if="canSubmitForReview && canWrite"
+            lg
+            label="Aanbieden ter review"
+            @click="handleSubmitForReview"
+          />
+          <Button
+            v-if="isPendingReview && canApprove"
+            lg
+            label="Goedkeuren"
+            @click="handleApprove"
+          />
+          <Button
+            v-if="isPendingReview && canApprove"
+            danger
+            label="Afkeuren"
+            @click="showRejectModal = true"
+          />
+          <Button
+            v-if="isReopenable && isSuperUser"
+            outline
+            :label="t('inquiry.view.reopen')"
+            @click="handleReopen"
+          />
+          <Button v-if="isSuperUser" danger label="Verwijderen" @click="handleDelete" />
+        </div>
+      </div>
+    </template>
 
     <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">{{ error }}</Alert>
     <Alert v-if="actionError" :closeable="true" class="mb-3" @close="actionError = null">
@@ -270,6 +274,7 @@ async function handleDelete() {
       <DossierProgress
         class="mb-4"
         :status="inquiry.state.auditStatus"
+        :events="events"
         :create-date="inquiry.record.createDate"
         :document-date="inquiry.documentDate"
         :creator-name="inquiry.attribution.creatorName"
