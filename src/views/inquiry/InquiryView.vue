@@ -13,6 +13,7 @@ import Spinner from '@/components/Common/Spinner.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
 import SampleOverview from '@/components/Inquiry/SampleOverview.vue'
 import DossierProgress from '@/components/Common/DossierProgress.vue'
+import type { DossierEvent } from '@/services/pipeline'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
@@ -35,6 +36,7 @@ const inquiryId = computed(() => Number(route.params.id))
 
 const inquiry: Ref<IInquiry | null> = ref(null)
 const samples: Ref<IInquirySample[]> = ref([])
+const events: Ref<DossierEvent[]> = ref([])
 const loading = ref(true)
 const error: Ref<string | null> = ref(null)
 const actionError: Ref<string | null> = ref(null)
@@ -87,6 +89,15 @@ async function load() {
     error.value = getErrorMessage(e) ?? t('error.generic')
   } finally {
     loading.value = false
+  }
+
+  // The trail is an enrichment, not the record. Fetched separately and
+  // swallowed on failure so an API that predates the /events endpoint costs
+  // the panel its timeline and nothing else.
+  try {
+    events.value = await api.inquiry.getEvents(inquiryId.value)
+  } catch {
+    events.value = []
   }
 }
 
@@ -181,7 +192,7 @@ async function handleDelete() {
           <div>
             <div class="flex flex-wrap items-center gap-2">
               <h2 class="text-grey-800 text-2xl font-semibold">{{ inquiry.documentName }}</h2>
-              <StatusBadge :status="inquiry.state.auditStatus" />
+              <StatusBadge :status="inquiry.state.auditStatus" :events="events" />
             </div>
             <p class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
               <span>{{ inquiryTypeLabel(inquiry.type) }}</span>

@@ -1,5 +1,6 @@
 import { get, post, put, del } from '../client'
 import type { IInquiry, IInquiryInput } from '../interfaces/IInquiry'
+import type { DossierEvent } from '@/services/pipeline'
 
 interface IStats {
   count: number
@@ -50,6 +51,14 @@ export async function getById(id: number) {
 /** All inquiries with a sample on the given building (most recent first). */
 export async function getByBuilding(buildingId: string) {
   return (await get({ endpoint: `/inquiry/building/${buildingId}` })) as IInquiry[]
+}
+
+/**
+ * The dossier's trail, oldest first. Empty until the API carrying
+ * `report.dossier_event` is deployed — callers treat a failure as "no trail".
+ */
+export async function getEvents(id: number) {
+  return (await get({ endpoint: `/inquiry/${id}/events` })) as DossierEvent[]
 }
 
 export async function create(data: IInquiryInput) {
@@ -109,6 +118,7 @@ export default {
   getCount,
   getById,
   getByBuilding,
+  getEvents,
   create,
   update,
   remove,

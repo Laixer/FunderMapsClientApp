@@ -9,24 +9,25 @@
  * Inquiries and recoveries share `report.audit_status` (see `recoveryEnums.ts`,
  * which re-exports it), so they share this model too.
  *
- * ## What we can and cannot say today
+ * ## What we can and cannot say
  *
- * There is no event log. Every transition (`/status_review`, `/status_rejected`,
- * `/status_approved`, `/reset`) overwrites `audit_status` in place and keeps no
- * trace, so the *sequence* a dossier took is not recoverable — only where it
- * stands. Worse, `update_date` is not a record of human activity either: on
- * 2026-06-27 the #973 attribution backfill stamped it on 20,954 of 26,633
- * inquiries (79%), and a 2026-03-07 migration did the same to 442,698 samples.
- * Anything labelled "laatst gewijzigd" off that column would be fiction for
- * four rows in five, which is why nothing here reads it.
+ * Transitions overwrite `audit_status` in place, so the status column knows
+ * where a dossier stands and nothing about how it got there. `report.dossier_event`
+ * carries the history instead (`DossierEvent` below), but only from the day it
+ * was added: the 26k dossiers that predate it hold one truthful backfilled
+ * `created` entry each and nothing more.
  *
- * So this model is deliberately narrow: current position, whose turn it is, and
- * the milestones that *are* trustworthy (`create_date`, `document_date`,
- * attribution). `DossierEvent` below is the shape a real trail will carry once
- * transitions are recorded — declared now so the UI is built against it.
+ * `update_date` does not fill that gap and is never read here. The #973
+ * attribution backfill stamped 2026-06-27 onto 20,954 of 26,633 inquiries (79%)
+ * and a 2026-03-07 migration did the same to 442,698 samples, so a
+ * "laatst gewijzigd" built on it would be fiction for four rows in five.
+ *
+ * What remains trustworthy without the trail: current position, whose turn it
+ * is, `create_date`, `document_date`, and attribution.
  */
 
-import { AUDIT_STATUS } from '@/services/inquiryEnums'
+import type { IconName } from '@/components/Common/icons'
+import { AUDIT_STATUS, statusMeta } from '@/services/inquiryEnums'
 
 /** Which attribution role carries a stage. */
 export type StageRole = 'creator' | 'reviewer'
@@ -162,8 +163,10 @@ export function nextStep(status: number | null | undefined): NextStep {
       return {
         role: 'creator',
         title: 'Afgekeurd — aanpassen en opnieuw aanbieden',
+        // Rejections recorded before `report.dossier_event` existed kept their
+        // motivation nowhere but the mail, so point at both.
         detail:
-          'De beoordelaar heeft het dossier teruggestuurd. De reden staat in de mail aan de opsteller; de app bewaart die nog niet.',
+          'De beoordelaar heeft het dossier teruggestuurd. De reden staat in de tijdlijn, of anders in de mail aan de opsteller.',
         tone: 'critical',
       }
     case AUDIT_STATUS.DONE:
@@ -199,10 +202,9 @@ export const ROLE_LABELS: Record<StageRole | 'admin', string> = {
 /**
  * One thing that happened to a dossier.
  *
- * Not produced yet — no transition is recorded anywhere. Declared here so that
- * the trail UI, the shape the API will return, and the columns a future
- * `report.dossier_event` table needs are agreed on in one place. `imported` and
- * `proposed` are the Data Ops pipeline's entries (see
+ * Mirrors `LegacyDossierEvent` in `FunderMapsApi/src/lib/dossier-events.ts`,
+ * served by `GET /api/inquiry/:id/events` and the recovery equivalent, oldest
+ * first. `imported` and `proposed` are the Data Ops pipeline's entries (see
  * `FunderMapsWorker/docs/dataops-pipeline.md`): a dossier that arrived as a
  * document rather than being typed, and a field the pipeline filled in.
  */
@@ -211,8 +213,71 @@ export type DossierEventKind =
 
 export interface DossierEvent {
   kind: DossierEventKind
-  at: string
-  byName?: string | null
-  /** Free text the event carried — a rejection motivation, an import source. */
-  note?: string | null
+  date: string
+  /** Null for machine actors and for accounts deleted since. */
+  actorName: string | null
+  /** Human prose the event carried — a rejection motivation, an import source. */
+  note: string | null
+  metadata: Record<string, unknown> | null
+}
+
+export interface DossierEventMeta {
+  label: string
+  icon: IconName
+  /** Tailwind text colour for the marker. */
+  tone: string
+}
+
+/**
+ * Only `rejected` gets a colour. A trail where every row shouts is a trail
+ * nobody scans; the one entry that means "this came back" should be the one
+ * that catches the eye.
+ */
+export const EVENT_META: Record<DossierEventKind, DossierEventMeta> = {
+  created: { label: 'Aangemaakt', icon: 'clipboard', tone: 'text-grey-700' },
+  submitted: { label: 'Aangeboden ter controle', icon: 'arrowRight', tone: 'text-grey-700' },
+  approved: { label: 'Goedgekeurd', icon: 'check', tone: 'text-green-700' },
+  rejected: { label: 'Afgekeurd', icon: 'alert', tone: 'text-red-800' },
+  reopened: { label: 'Heropend', icon: 'switch', tone: 'text-grey-700' },
+  imported: { label: 'Geïmporteerd', icon: 'plus', tone: 'text-grey-700' },
+  proposed: { label: 'Voorgesteld door de pijplijn', icon: 'target', tone: 'text-grey-700' },
+}
+
+export function eventMeta(kind: string): DossierEventMeta {
+  return (
+    EVENT_META[kind as DossierEventKind] ?? {
+      label: kind,
+      icon: 'info',
+      tone: 'text-grey-700',
+    }
+  )
+}
+
+/**
+ * `reset` records the state it pulled the dossier out of, because reopening an
+ * approved dossier is a different act from reopening a rejected one and the
+ * status column cannot tell them apart afterwards.
+ */
+/**
+ * `metadata.from` carries the raw PG enum label (`done`, `pending_review`, …)
+ * because that is what the API read off the column. Translate it through the
+ * same table the status pill uses, so a trail entry and a badge never disagree.
+ */
+const PG_STATUS_TO_INT: Record<string, number> = {
+  todo: AUDIT_STATUS.TODO,
+  pending: AUDIT_STATUS.PENDING,
+  done: AUDIT_STATUS.DONE,
+  discarded: AUDIT_STATUS.DISCARDED,
+  pending_review: AUDIT_STATUS.PENDING_REVIEW,
+  rejected: AUDIT_STATUS.REJECTED,
+}
+
+export function statusLabelFor(pgLabel: string): string {
+  const value = PG_STATUS_TO_INT[pgLabel]
+  return value === undefined ? pgLabel : statusMeta(value).label
+}
+
+export function reopenedFrom(event: DossierEvent): string | null {
+  const from = event.metadata?.from
+  return typeof from === 'string' ? from : null
 }
