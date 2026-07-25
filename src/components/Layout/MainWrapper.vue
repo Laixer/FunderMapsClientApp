@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Sidebar from '@/components/Layout/Sidebar.vue'
 import ShortcutsOverlay from '@/components/Common/ShortcutsOverlay.vue'
+import ConfirmDialog from '@/components/Common/ConfirmDialog.vue'
 import { useGlobalShortcuts } from '@/services/useGlobalShortcuts'
 
 // Mounted here rather than per view: the shell is the one component every
@@ -17,5 +18,6 @@ const { showShortcuts } = useGlobalShortcuts()
     </main>
 
     <ShortcutsOverlay v-if="showShortcuts" @close="showShortcuts = false" />
+    <ConfirmDialog />
   </div>
 </template>

@@ -21,6 +21,7 @@ import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySa
 import { AUDIT_STATUS, inquiryTypeLabel } from '@/services/inquiryEnums'
 import { countFilledSampleFields } from '@/services/sampleFields'
 import { formatDate } from '@/utils/date'
+import { confirmAction } from '@/services/confirm'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useSessionStore } from '@/stores/session'
 import { useAddressStore } from '@/stores/address'
@@ -108,7 +109,16 @@ function goEdit() {
 }
 
 async function handleSubmitForReview() {
-  if (!confirm('Aanbieden ter review?')) return
+  const ok = await confirmAction({
+    title: 'Aanbieden ter review?',
+    body: `De beoordelaar krijgt bericht en het rapport wordt vergrendeld tot de controle klaar is.${
+      completeness.value.empty
+        ? ` Let op: ${completeness.value.empty} adres(sen) zijn nog leeg.`
+        : ''
+    }`,
+    confirmLabel: 'Aanbieden',
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.inquiry.submitForReview(inquiryId.value)
@@ -119,7 +129,12 @@ async function handleSubmitForReview() {
 }
 
 async function handleApprove() {
-  if (!confirm('Rapport goedkeuren?')) return
+  const ok = await confirmAction({
+    title: 'Rapport goedkeuren?',
+    body: `${samples.value.length} adres(sen) worden vastgesteld en werken door in kaart en producten. Alleen een beheerder kan het rapport daarna nog heropenen.`,
+    confirmLabel: 'Goedkeuren',
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.inquiry.approve(inquiryId.value)
@@ -130,7 +145,12 @@ async function handleApprove() {
 }
 
 async function handleReopen() {
-  if (!confirm(t('inquiry.view.reopenConfirm'))) return
+  const ok = await confirmAction({
+    title: t('inquiry.view.reopen'),
+    body: t('inquiry.view.reopenConfirm'),
+    confirmLabel: t('inquiry.view.reopen'),
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.inquiry.reset(inquiryId.value)
@@ -161,12 +181,13 @@ async function handleDownload() {
 }
 
 async function handleDelete() {
-  if (
-    !confirm(
-      'Weet je zeker dat je dit rapport wilt verwijderen? Alle bijbehorende adressen worden ook verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
-    )
-  )
-    return
+  const ok = await confirmAction({
+    title: 'Rapport verwijderen?',
+    body: `${samples.value.length} bijbehorend(e) adres(sen) worden ook verwijderd. Dit kan niet ongedaan worden gemaakt.`,
+    confirmLabel: 'Verwijderen',
+    danger: true,
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.inquiry.remove(inquiryId.value)

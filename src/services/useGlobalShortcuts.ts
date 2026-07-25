@@ -9,7 +9,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { GOTO_ROUTES, isTypingTarget, SEQUENCE_TIMEOUT_MS } from '@/services/shortcuts'
+import { GOTO_ROUTES, isModalOpen, isTypingTarget, SEQUENCE_TIMEOUT_MS } from '@/services/shortcuts'
 
 export function useGlobalShortcuts() {
   const router = useRouter()
@@ -51,6 +51,10 @@ export function useGlobalShortcuts() {
     // Never steal a keystroke from a text field, and never from a shortcut that
     // belongs to the browser or the OS.
     if (event.metaKey || event.ctrlKey || event.altKey) return
+
+    // A dialog owns the keyboard while it is up. Escape still gets through, so
+    // the overlay can close itself and Modal can close everything else.
+    if (isModalOpen() && event.key !== 'Escape') return
 
     if (isTypingTarget(event.target)) {
       // One exception: Escape gives the field back, which is how you get from

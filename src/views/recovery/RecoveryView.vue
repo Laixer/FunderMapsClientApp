@@ -25,6 +25,7 @@ import {
 } from '@/services/recoveryEnums'
 import { formatDate } from '@/utils/date'
 import { formatAddress } from '@/utils/address'
+import { confirmAction } from '@/services/confirm'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useSessionStore } from '@/stores/session'
 import { useAddressStore } from '@/stores/address'
@@ -111,7 +112,12 @@ function goEdit() {
 }
 
 async function handleSubmitForReview() {
-  if (!confirm('Aanbieden ter review?')) return
+  const ok = await confirmAction({
+    title: 'Aanbieden ter review?',
+    body: 'De beoordelaar krijgt bericht en het dossier wordt vergrendeld tot de controle klaar is.',
+    confirmLabel: 'Aanbieden',
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.recovery.submitForReview(recoveryId.value)
@@ -122,7 +128,12 @@ async function handleSubmitForReview() {
 }
 
 async function handleApprove() {
-  if (!confirm('Herstel goedkeuren?')) return
+  const ok = await confirmAction({
+    title: 'Herstel goedkeuren?',
+    body: `${samples.value.length} adres(sen) worden vastgesteld. Alleen een beheerder kan het dossier daarna nog heropenen.`,
+    confirmLabel: 'Goedkeuren',
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.recovery.approve(recoveryId.value)
@@ -133,7 +144,12 @@ async function handleApprove() {
 }
 
 async function handleReopen() {
-  if (!confirm(t('recovery.view.reopenConfirm'))) return
+  const ok = await confirmAction({
+    title: t('recovery.view.reopen'),
+    body: t('recovery.view.reopenConfirm'),
+    confirmLabel: t('recovery.view.reopen'),
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.recovery.reset(recoveryId.value)
@@ -164,12 +180,13 @@ async function handleDownload() {
 }
 
 async function handleDelete() {
-  if (
-    !confirm(
-      'Weet je zeker dat je dit herstel wilt verwijderen? Alle bijbehorende adressen worden ook verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
-    )
-  )
-    return
+  const ok = await confirmAction({
+    title: 'Herstel verwijderen?',
+    body: `${samples.value.length} bijbehorend(e) adres(sen) worden ook verwijderd. Dit kan niet ongedaan worden gemaakt.`,
+    confirmLabel: 'Verwijderen',
+    danger: true,
+  })
+  if (!ok) return
   try {
     actionError.value = null
     await api.recovery.remove(recoveryId.value)

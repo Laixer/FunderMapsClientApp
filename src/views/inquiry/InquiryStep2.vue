@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, reactive, ref, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import MainWrapper from '@/components/Layout/MainWrapper.vue'
@@ -21,6 +21,7 @@ import type {
   IInquirySampleInput,
 } from '@/services/fundermaps/interfaces/IInquirySample'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
+import { confirmAction } from '@/services/confirm'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { formatAddress } from '@/utils/address'
 import { useAddressStore } from '@/stores/address'
@@ -87,7 +88,30 @@ async function load() {
 
 onBeforeMount(load)
 
-function selectSample(id: number) {
+/** Handle on the open form, so we can ask whether it has unsaved edits. */
+const sampleForm = ref<{ isDirty: boolean } | null>(null)
+
+/**
+ * Switching address discards whatever is typed — `SampleForm` re-clones from the
+ * new sample. That used to happen silently, which in a 61-field form across a
+ * terrace of addresses is a real way to lose an afternoon. Ask first.
+ */
+async function confirmLeavingCurrent(): Promise<boolean> {
+  if (!sampleForm.value?.isDirty) return true
+  return await confirmAction({
+    title: t('sample.discardTitle'),
+    body: t('sample.discardBody', {
+      address: formatAddress(addressStore.cache[selected.value?.address ?? '']),
+    }),
+    confirmLabel: t('sample.discardConfirm'),
+    cancelLabel: t('sample.discardCancel'),
+    danger: true,
+  })
+}
+
+async function selectSample(id: number) {
+  if (id === selectedId.value) return
+  if (!(await confirmLeavingCurrent())) return
   selectedId.value = id
 }
 
@@ -170,6 +194,9 @@ function cloneInputFrom(s: IInquirySample, addressId: string): IInquirySampleInp
 }
 
 async function handlePick(address: IAddress) {
+  // Adding an address selects it, which swaps the form out just as surely as
+  // clicking one in the list.
+  if (!(await confirmLeavingCurrent())) return
   saving.value = true
   actionError.value = null
   // Cache the resolved address right away so the new sample renders with
@@ -217,7 +244,13 @@ async function handleSave(data: IInquirySampleInput) {
 async function handleDelete() {
   if (!selected.value) return
   const label = formatAddress(addressStore.cache[selected.value.address])
-  if (!confirm(`Adres "${label}" verwijderen?`)) return
+  const ok = await confirmAction({
+    title: `Adres verwijderen?`,
+    body: `${label} en alle ingevoerde waarnemingen voor dit adres verdwijnen. Dit kan niet ongedaan worden gemaakt.`,
+    confirmLabel: 'Verwijderen',
+    danger: true,
+  })
+  if (!ok) return
   saving.value = true
   actionError.value = null
   try {
@@ -232,6 +265,13 @@ async function handleDelete() {
     saving.value = false
   }
 }
+
+/**
+ * Leaving the wizard step abandons the open form just as switching address does
+ * — "Vorige", "Volgende", the breadcrumb, and the browser's back button all land
+ * here. Returning false keeps you where you are.
+ */
+onBeforeRouteLeave(async () => await confirmLeavingCurrent())
 
 function next() {
   router.push({ name: 'inquiry-edit-3', params: { id: inquiryId.value } })
@@ -331,6 +371,7 @@ function previous() {
             class="mb-4"
           />
           <SampleForm
+            ref="sampleForm"
             v-model:provenance="provenanceBySample[selected.id]"
             :sample="selected"
             :saving="saving"

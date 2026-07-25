@@ -88,7 +88,13 @@
       "confirmed": "bevestigd",
       "sectionPending": "nog {count} te bevestigen",
       "confirmSection": "alles bevestigen"
-    }
+    },
+    "unsaved": "niet opgeslagen",
+    "unsavedHint": "Er zijn wijzigingen die nog niet zijn opgeslagen.",
+    "discardTitle": "Wijzigingen niet opslaan?",
+    "discardBody": "De wijzigingen aan {address} zijn nog niet opgeslagen en gaan verloren.",
+    "discardConfirm": "Niet opslaan",
+    "discardCancel": "Terug"
   },
   "home": {
     "title": "Vandaag",
