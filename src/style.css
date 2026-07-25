@@ -94,10 +94,8 @@
   --text-4xl--line-height: 1.125;
   --text-4xl--letter-spacing: -0.001em;
 
-  --shadow-hover:
-    0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
-  --shadow-card:
-    0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
+  --shadow-hover: 0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
+  --shadow-card: 0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
   --shadow-float: 0px 5px 15px 0px rgb(44 45 60 / 0.2);
 }
 
@@ -111,6 +109,22 @@ html {
 ::selection {
   background-color: var(--color-green-100);
   color: var(--color-green-800);
+}
+
+/*
+ * Tailwind v4's Preflight leaves buttons on the browser default arrow cursor —
+ * a deliberate change from v3. Only `.button` and `.link` opted back in, so
+ * every hand-rolled <button> in the app (the document card, the "bevestigen"
+ * provenance controls, the user menu, alert dismissals) looked unclickable.
+ * Fixed once here rather than by sprinkling `cursor-pointer`, so buttons added
+ * later inherit it.
+ *
+ * `:not(:disabled)` preserves `.button:disabled`, which deliberately reverts to
+ * the default cursor.
+ */
+button:not(:disabled),
+[role='button']:not(:disabled) {
+  cursor: pointer;
 }
 
 .button:focus-visible {
