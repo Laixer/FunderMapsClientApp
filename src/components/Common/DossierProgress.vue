@@ -4,12 +4,20 @@ import { computed } from 'vue'
 import Icon from '@/components/Common/Icon.vue'
 import type { IconName } from '@/components/Common/icons'
 import PipelineTrail from '@/components/Common/PipelineTrail.vue'
-import { nextStep, ROLE_LABELS, type NextStepTone } from '@/services/pipeline'
-import { formatDate } from '@/utils/date'
+import {
+  eventMeta,
+  nextStep,
+  reopenedFrom,
+  ROLE_LABELS,
+  statusLabelFor,
+  type DossierEvent,
+  type NextStepTone,
+} from '@/services/pipeline'
+import { formatDate, formatDateTime } from '@/utils/date'
 
 /**
- * The journey panel: where a dossier stands, whose turn it is, and the
- * milestones we can actually vouch for.
+ * The journey panel: where a dossier stands, whose turn it is, what happened
+ * along the way, and the milestones we can vouch for.
  *
  * Deliberately absent: "laatst gewijzigd". `update_date` was bulk-stamped by two
  * migrations and is wrong for most rows — see the note in `services/pipeline.ts`.
@@ -21,7 +29,22 @@ const props = defineProps<{
   documentDate?: string | null
   creatorName?: string | null
   reviewerName?: string | null
+  /**
+   * The dossier's trail, oldest first. Empty is the normal case for anything
+   * that predates `report.dossier_event`, and also what a caller passes when
+   * the request failed — so the section simply does not render.
+   */
+  events?: DossierEvent[]
 }>()
+
+const trail = computed(() => props.events ?? [])
+
+/**
+ * `created` is the one event every dossier has, courtesy of the backfill, and it
+ * says exactly what the "Aangemaakt" row says. Drop the row when the trail is
+ * carrying it.
+ */
+const hasCreatedEvent = computed(() => trail.value.some((e) => e.kind === 'created'))
 
 const step = computed(() => nextStep(props.status))
 
@@ -75,12 +98,56 @@ const actor = computed(() => {
       </div>
     </div>
 
+    <!-- What actually happened, oldest first. Absent for dossiers older than
+         report.dossier_event, and when the request failed — better a panel
+         without a trail than a panel claiming an empty history. -->
+    <ol v-if="trail.length" class="mt-6 space-y-3">
+      <li v-for="(event, i) in trail" :key="`${event.kind}-${event.date}-${i}`" class="flex gap-3">
+        <!-- The connector stops at the last entry: a line trailing into nothing
+             would imply a step we know about and are not showing. -->
+        <div class="relative flex w-4 shrink-0 justify-center">
+          <span
+            v-if="i < trail.length - 1"
+            aria-hidden="true"
+            class="bg-grey-200 absolute top-5 bottom-[-0.75rem] w-px"
+          />
+          <Icon
+            :name="eventMeta(event.kind).icon"
+            size="xs"
+            class="bg-white"
+            :class="eventMeta(event.kind).tone"
+          />
+        </div>
+        <div class="min-w-0 flex-1 pb-0.5">
+          <p class="text-sm">
+            <span class="text-grey-800 font-medium">{{ eventMeta(event.kind).label }}</span>
+            <span v-if="reopenedFrom(event)" class="text-grey-700">
+              uit “{{ statusLabelFor(reopenedFrom(event)!) }}”
+            </span>
+            <span class="text-grey-700">
+              · {{ formatDateTime(event.date) }}
+              <template v-if="event.actorName">· {{ event.actorName }}</template>
+            </span>
+          </p>
+          <!-- A rejection motivation. Until now this lived only in an email. -->
+          <p
+            v-if="event.note"
+            class="border-grey-200 text-grey-800 mt-1 border-l-2 pl-2 text-sm whitespace-pre-wrap"
+          >
+            {{ event.note }}
+          </p>
+        </div>
+      </li>
+    </ol>
+
     <dl class="mt-5 grid grid-cols-[9rem_1fr] gap-x-4 gap-y-2 text-sm">
-      <dt class="text-grey-700">Aangemaakt</dt>
-      <dd class="text-grey-800">
-        {{ formatDate(createDate) }}
-        <span v-if="creatorName" class="text-grey-700">· {{ creatorName }}</span>
-      </dd>
+      <template v-if="!hasCreatedEvent">
+        <dt class="text-grey-700">Aangemaakt</dt>
+        <dd class="text-grey-800">
+          {{ formatDate(createDate) }}
+          <span v-if="creatorName" class="text-grey-700">· {{ creatorName }}</span>
+        </dd>
+      </template>
 
       <template v-if="documentDate">
         <dt class="text-grey-700">Documentdatum</dt>

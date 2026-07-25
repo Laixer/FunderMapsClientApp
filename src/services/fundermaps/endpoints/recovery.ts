@@ -1,5 +1,6 @@
 import { get, post, put, del } from '../client'
 import type { IRecovery, IRecoveryInput } from '../interfaces/IRecovery'
+import type { DossierEvent } from '@/services/pipeline'
 
 interface IStats {
   count: number
@@ -29,6 +30,14 @@ export async function getById(id: number) {
 /** All recoveries with a sample on the given building (most recent first). */
 export async function getByBuilding(buildingId: string) {
   return (await get({ endpoint: `/recovery/building/${buildingId}` })) as IRecovery[]
+}
+
+/**
+ * The dossier's trail, oldest first. Empty until the API carrying
+ * `report.dossier_event` is deployed — callers treat a failure as "no trail".
+ */
+export async function getEvents(id: number) {
+  return (await get({ endpoint: `/recovery/${id}/events` })) as DossierEvent[]
 }
 
 export async function create(data: IRecoveryInput) {
@@ -86,6 +95,7 @@ export default {
   getCount,
   getById,
   getByBuilding,
+  getEvents,
   create,
   update,
   remove,
