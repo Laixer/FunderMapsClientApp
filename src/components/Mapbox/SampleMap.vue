@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
-import { LngLatBounds, Map as MaplibreMap, Marker, NavigationControl } from 'maplibre-gl'
+import { LngLatBounds, Map as MaplibreMap, Marker, NavigationControl, setWorkerUrl } from 'maplibre-gl'
+// maplibre v6 loads its worker as a sibling module via a runtime-computed
+// URL the bundler can't see - without this the worker request 404s into
+// the SPA catch-all and the map stays blank. ?worker&url bundles the
+// worker and returns its hashed URL.
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
+
+setWorkerUrl(maplibreWorkerUrl)
 
 export interface SamplePin {
   id: string | number
