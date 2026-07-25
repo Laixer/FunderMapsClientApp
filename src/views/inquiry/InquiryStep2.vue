@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, type Ref } from 'vue'
+import { computed, onBeforeMount, reactive, ref, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -16,11 +16,15 @@ import SampleMap, { type SamplePin } from '@/components/Mapbox/SampleMap.vue'
 import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
-import type { IInquirySample, IInquirySampleInput } from '@/services/fundermaps/interfaces/IInquirySample'
+import type {
+  IInquirySample,
+  IInquirySampleInput,
+} from '@/services/fundermaps/interfaces/IInquirySample'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { formatAddress } from '@/utils/address'
 import { useAddressStore } from '@/stores/address'
+import { inheritedFrom, type SampleProvenance } from '@/services/sampleProvenance'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -37,6 +41,14 @@ const actionError: Ref<string | null> = ref(null)
 
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
+
+/**
+ * Per-sample record of which fields were prefilled from another address rather
+ * than entered for this one. Held here rather than in the form so it survives
+ * switching between addresses; it lives for the session only until phase 2
+ * persists it on the sample.
+ */
+const provenanceBySample = reactive<Record<number, SampleProvenance>>({})
 
 // Map markers — one per sample whose address has resolved coordinates.
 // `latitude` / `longitude` come back null from the geocoder when the
@@ -166,10 +178,17 @@ async function handlePick(address: IAddress) {
   try {
     // Prefill from the currently-selected sample so users don't re-type
     // shared fields when adding multiple addresses to one inquiry.
-    const payload = selected.value
-      ? cloneInputFrom(selected.value, address.id)
-      : emptyInput(address.id)
+    const source = selected.value
+    const payload = source ? cloneInputFrom(source, address.id) : emptyInput(address.id)
     const created = await api.inquirySample.create(inquiryId.value, payload)
+    // Record what the prefill carried across, so the form can show which
+    // values describe this address and which merely rode along.
+    if (source) {
+      provenanceBySample[created.id] = inheritedFrom(payload, {
+        id: source.id,
+        address: formatAddress(addressStore.cache[source.address]),
+      })
+    }
     samples.value.unshift(created)
     selectedId.value = created.id
   } catch (e) {
@@ -204,6 +223,7 @@ async function handleDelete() {
   try {
     await api.inquirySample.remove(inquiryId.value, selected.value.id)
     const removedId = selected.value.id
+    delete provenanceBySample[removedId]
     samples.value = samples.value.filter((s) => s.id !== removedId)
     selectedId.value = samples.value[0]?.id ?? null
   } catch (e) {
@@ -227,14 +247,14 @@ function previous() {
     <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'inquiry-list' }"
-        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
+        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
       >
         ← {{ t('inquiry.view.back') }}
       </RouterLink>
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-2xl font-semibold text-grey-800">Adressen</h2>
-          <p class="mt-0.5 text-sm text-grey-700">
+          <h2 class="text-grey-800 text-2xl font-semibold">Adressen</h2>
+          <p class="text-grey-700 mt-0.5 text-sm">
             Zoek adressen en vul per locatie de bevindingen in.
           </p>
         </div>
@@ -267,9 +287,9 @@ function previous() {
       class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
     >
       <Card class="!p-0">
-        <header class="border-b border-grey-200 px-4 py-3">
-          <h3 class="text-sm font-semibold text-grey-800">Adressen ({{ samples.length }})</h3>
-          <p class="mt-0.5 text-xs text-grey-700">
+        <header class="border-grey-200 border-b px-4 py-3">
+          <h3 class="text-grey-800 text-sm font-semibold">Adressen ({{ samples.length }})</h3>
+          <p class="text-grey-700 mt-0.5 text-xs">
             Zoek een adres en klik op een suggestie om toe te voegen.
           </p>
         </header>
@@ -278,14 +298,14 @@ function previous() {
           <AddressPicker @pick="handlePick" />
         </div>
 
-        <ul v-if="samples.length" class="divide-y divide-grey-200 border-t border-grey-200">
+        <ul v-if="samples.length" class="divide-grey-200 border-grey-200 divide-y border-t">
           <li
             v-for="s in samples"
             :key="s.id"
             class="cursor-pointer px-4 py-2 text-sm transition-colors"
             :class="
               s.id === selectedId
-                ? 'bg-grey-100 font-semibold text-grey-800'
+                ? 'bg-grey-100 text-grey-800 font-semibold'
                 : 'text-grey-800 hover:bg-grey-100'
             "
             @click="selectSample(s.id)"
@@ -293,14 +313,14 @@ function previous() {
             {{ formatAddress(addressStore.cache[s.address]) }}
           </li>
         </ul>
-        <p v-else class="border-t border-grey-200 px-4 py-3 text-sm text-grey-700">
+        <p v-else class="border-grey-200 text-grey-700 border-t px-4 py-3 text-sm">
           Nog geen adressen. Begin hierboven met zoeken.
         </p>
       </Card>
 
       <div>
         <Card v-if="!selected" class="flex items-center justify-center py-12">
-          <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
+          <p class="text-grey-700 text-sm">Selecteer een adres om te bewerken.</p>
         </Card>
         <template v-else>
           <!-- What's already known about this building (issue #263, item 3) —
@@ -311,6 +331,7 @@ function previous() {
             class="mb-4"
           />
           <SampleForm
+            v-model:provenance="provenanceBySample[selected.id]"
             :sample="selected"
             :saving="saving"
             @save="handleSave"
@@ -325,7 +346,7 @@ function previous() {
            SampleMap's h-full to zero (#244). -->
       <div class="hidden 2xl:sticky 2xl:top-4 2xl:block">
         <div
-          class="overflow-hidden rounded-md border border-grey-200 bg-white 2xl:h-[calc(100vh-8rem)] 2xl:min-h-[480px]"
+          class="border-grey-200 overflow-hidden rounded-md border bg-white 2xl:h-[calc(100vh-8rem)] 2xl:min-h-[480px]"
         >
           <SampleMap
             v-if="mapPins.length"
@@ -335,7 +356,7 @@ function previous() {
           />
           <div
             v-else
-            class="flex h-full items-center justify-center px-4 text-center text-xs text-grey-700"
+            class="text-grey-700 flex h-full items-center justify-center px-4 text-center text-xs"
           >
             Voeg een adres toe om de locatie op de kaart te zien.
           </div>
