@@ -21,6 +21,7 @@ import { inquiryTypeLabel, statusMeta, STATUS_META } from '@/services/inquiryEnu
 import { formatDate } from '@/utils/date'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useSessionStore } from '@/stores/session'
+import { useRowKeyboard } from '@/services/useRowKeyboard'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -168,6 +169,9 @@ function handleSelect(row: IInquiry) {
   router.push({ name: 'inquiry-view', params: { id: row.id } })
 }
 
+// j / k / Enter over the table — see services/useRowKeyboard.ts.
+const { activeId } = useRowKeyboard({ rows, onOpen: handleSelect })
+
 function newInquiry() {
   router.push({ name: 'inquiry-new' })
 }
@@ -235,6 +239,7 @@ function newInquiry() {
       :emptyMessage="t('inquiry.list.empty')"
       :sortField="sortField"
       :sortOrder="sortOrder"
+      :selectedId="activeId"
       @select="handleSelect"
       @sort="handleSort"
     >

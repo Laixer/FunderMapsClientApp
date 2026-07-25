@@ -42,8 +42,13 @@ const navLinks: { name: string; label: string; icon: IconName }[] = [
       </ul>
     </nav>
 
-    <div class="border-grey-200 border-t p-3">
+    <div class="border-grey-200 space-y-2 border-t p-3">
       <UserMenu />
+      <!-- Shortcuts nobody can discover are shortcuts nobody uses. -->
+      <p class="text-grey-700 px-1 text-xs">
+        <kbd class="border-grey-200 bg-grey-100 rounded border px-1 py-0.5 font-mono">?</kbd>
+        {{ t('nav.shortcuts') }}
+      </p>
     </div>
   </aside>
 </template>

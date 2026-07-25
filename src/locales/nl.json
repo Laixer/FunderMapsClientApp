@@ -14,7 +14,8 @@
   "nav": {
     "reports": "Rapportages",
     "recoveries": "Herstel",
-    "today": "Vandaag"
+    "today": "Vandaag",
+    "shortcuts": "sneltoetsen"
   },
   "userMenu": {
     "apps": "Andere apps",

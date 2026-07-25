@@ -16,6 +16,7 @@ import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
 import { recoveryDocumentTypeLabel } from '@/services/recoveryEnums'
 import { formatDate } from '@/utils/date'
 import { getErrorMessage } from '@/services/fundermaps/errors'
+import { useRowKeyboard } from '@/services/useRowKeyboard'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -56,6 +57,9 @@ function handleSelect(row: IRecovery) {
   router.push({ name: 'recovery-view', params: { id: row.id } })
 }
 
+// j / k / Enter over the table — see services/useRowKeyboard.ts.
+const { activeId } = useRowKeyboard({ rows, onOpen: handleSelect })
+
 function newRecovery() {
   router.push({ name: 'recovery-new' })
 }
@@ -65,8 +69,8 @@ function newRecovery() {
   <MainWrapper>
     <header class="mb-4 flex items-end justify-between gap-4">
       <div>
-        <h2 class="text-xl font-semibold text-grey-800">{{ t('recovery.list.title') }}</h2>
-        <p class="mt-0.5 text-sm text-grey-700">{{ t('recovery.list.subtitle') }}</p>
+        <h2 class="text-grey-800 text-xl font-semibold">{{ t('recovery.list.title') }}</h2>
+        <p class="text-grey-700 mt-0.5 text-sm">{{ t('recovery.list.subtitle') }}</p>
       </div>
       <Button lg :label="t('recovery.list.newButton')" @click="newRecovery" />
     </header>
@@ -80,7 +84,7 @@ function newRecovery() {
           :placeholder="t('recovery.list.searchPlaceholder')"
         />
       </div>
-      <span class="text-xs text-grey-700">{{ rows.length }}</span>
+      <span class="text-grey-700 text-xs">{{ rows.length }}</span>
     </div>
 
     <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">
@@ -92,13 +96,14 @@ function newRecovery() {
       :columns="columns"
       :loading="loading"
       :emptyMessage="t('recovery.list.empty')"
+      :selectedId="activeId"
       @select="handleSelect"
     >
       <template #id="{ row }">
-        <span class="font-mono text-xs text-grey-700">#{{ row.id }}</span>
+        <span class="text-grey-700 font-mono text-xs">#{{ row.id }}</span>
       </template>
       <template #documentName="{ row }">
-        <span class="font-medium text-grey-800">{{ row.documentName }}</span>
+        <span class="text-grey-800 font-medium">{{ row.documentName }}</span>
       </template>
       <template #type="{ row }">{{ recoveryDocumentTypeLabel(row.type) }}</template>
       <template #documentDate="{ row }">{{ formatDate(row.documentDate) }}</template>
