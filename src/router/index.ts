@@ -18,7 +18,7 @@ import RecoveryStep1 from '@/views/recovery/RecoveryStep1.vue'
 import RecoveryStep3 from '@/views/recovery/RecoveryStep3.vue'
 import RecoveryView from '@/views/recovery/RecoveryView.vue'
 
-// Step 2 pulls in mapbox-gl (~250 KB gzip) for the sample map. Lazy-load
+// Step 2 pulls in maplibre-gl (~230 KB gzip) for the sample map. Lazy-load
 // so the list views, Step 1, Step 3, and View pages stay light.
 const InquiryStep2 = () => import('@/views/inquiry/InquiryStep2.vue')
 const RecoveryStep2 = () => import('@/views/recovery/RecoveryStep2.vue')
