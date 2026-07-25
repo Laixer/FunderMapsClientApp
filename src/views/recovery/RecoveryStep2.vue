@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import MainWrapper from '@/components/Layout/MainWrapper.vue'
@@ -20,6 +20,7 @@ import type {
   IRecoverySampleInput,
 } from '@/services/fundermaps/interfaces/IRecoverySample'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
+import { confirmAction } from '@/services/confirm'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { formatAddress } from '@/utils/address'
 import { useAddressStore } from '@/stores/address'
@@ -79,7 +80,29 @@ async function load() {
 
 onBeforeMount(load)
 
-function selectSample(id: number) {
+/** Handle on the open form, so we can ask whether it has unsaved edits. */
+const sampleForm = ref<{ isDirty: boolean } | null>(null)
+
+/**
+ * Switching address discards whatever is typed — `SampleForm` re-clones from the
+ * new sample. Ask before throwing the work away.
+ */
+async function confirmLeavingCurrent(): Promise<boolean> {
+  if (!sampleForm.value?.isDirty) return true
+  return await confirmAction({
+    title: t('sample.discardTitle'),
+    body: t('sample.discardBody', {
+      address: formatAddress(addressStore.cache[selected.value?.building ?? '']),
+    }),
+    confirmLabel: t('sample.discardConfirm'),
+    cancelLabel: t('sample.discardCancel'),
+    danger: true,
+  })
+}
+
+async function selectSample(id: number) {
+  if (id === selectedId.value) return
+  if (!(await confirmLeavingCurrent())) return
   selectedId.value = id
 }
 
@@ -114,6 +137,9 @@ function cloneInputFrom(s: IRecoverySample, buildingId: string): IRecoverySample
 }
 
 async function handlePick(address: IAddress) {
+  // Adding an address selects it, which swaps the form out just as surely as
+  // clicking one in the list.
+  if (!(await confirmLeavingCurrent())) return
   saving.value = true
   actionError.value = null
   // Cache the resolved address so the new sample renders with a label
@@ -152,7 +178,13 @@ async function handleSave(data: IRecoverySampleInput) {
 async function handleDelete() {
   if (!selected.value) return
   const label = formatAddress(addressStore.cache[selected.value.building])
-  if (!confirm(`Adres "${label}" verwijderen?`)) return
+  const ok = await confirmAction({
+    title: `Adres verwijderen?`,
+    body: `${label} en alle ingevoerde waarnemingen voor dit adres verdwijnen. Dit kan niet ongedaan worden gemaakt.`,
+    confirmLabel: 'Verwijderen',
+    danger: true,
+  })
+  if (!ok) return
   saving.value = true
   actionError.value = null
   try {
@@ -166,6 +198,13 @@ async function handleDelete() {
     saving.value = false
   }
 }
+
+/**
+ * Leaving the wizard step abandons the open form just as switching address does
+ * — "Vorige", "Volgende", the breadcrumb, and the browser's back button all land
+ * here. Returning false keeps you where you are.
+ */
+onBeforeRouteLeave(async () => await confirmLeavingCurrent())
 
 function next() {
   router.push({ name: 'recovery-edit-3', params: { id: recoveryId.value } })
@@ -181,14 +220,14 @@ function previous() {
     <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'recovery-list' }"
-        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
+        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
       >
         ← {{ t('recovery.view.back') }}
       </RouterLink>
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-2xl font-semibold text-grey-800">Adressen</h2>
-          <p class="mt-0.5 text-sm text-grey-700">
+          <h2 class="text-grey-800 text-2xl font-semibold">Adressen</h2>
+          <p class="text-grey-700 mt-0.5 text-sm">
             Zoek adressen en vul per locatie de herstel-gegevens in.
           </p>
         </div>
@@ -221,9 +260,9 @@ function previous() {
       class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
     >
       <Card class="!p-0">
-        <header class="border-b border-grey-200 px-4 py-3">
-          <h3 class="text-sm font-semibold text-grey-800">Adressen ({{ samples.length }})</h3>
-          <p class="mt-0.5 text-xs text-grey-700">
+        <header class="border-grey-200 border-b px-4 py-3">
+          <h3 class="text-grey-800 text-sm font-semibold">Adressen ({{ samples.length }})</h3>
+          <p class="text-grey-700 mt-0.5 text-xs">
             Zoek een adres en klik op een suggestie om toe te voegen.
           </p>
         </header>
@@ -232,14 +271,14 @@ function previous() {
           <AddressPicker @pick="handlePick" />
         </div>
 
-        <ul v-if="samples.length" class="divide-y divide-grey-200 border-t border-grey-200">
+        <ul v-if="samples.length" class="divide-grey-200 border-grey-200 divide-y border-t">
           <li
             v-for="s in samples"
             :key="s.id"
             class="cursor-pointer px-4 py-2 text-sm transition-colors"
             :class="
               s.id === selectedId
-                ? 'bg-grey-100 font-semibold text-grey-800'
+                ? 'bg-grey-100 text-grey-800 font-semibold'
                 : 'text-grey-800 hover:bg-grey-100'
             "
             @click="selectSample(s.id)"
@@ -247,16 +286,17 @@ function previous() {
             {{ formatAddress(addressStore.cache[s.building]) }}
           </li>
         </ul>
-        <p v-else class="border-t border-grey-200 px-4 py-3 text-sm text-grey-700">
+        <p v-else class="border-grey-200 text-grey-700 border-t px-4 py-3 text-sm">
           Nog geen adressen. Begin hierboven met zoeken.
         </p>
       </Card>
 
       <div>
         <Card v-if="!selected" class="flex items-center justify-center py-12">
-          <p class="text-sm text-grey-700">Selecteer een adres om te bewerken.</p>
+          <p class="text-grey-700 text-sm">Selecteer een adres om te bewerken.</p>
         </Card>
         <SampleForm
+          ref="sampleForm"
           v-else
           :sample="selected"
           :saving="saving"
@@ -268,7 +308,7 @@ function previous() {
       <!-- Map column (2xl+ only). Plain bordered div, not <Card> — see #244. -->
       <div class="hidden 2xl:sticky 2xl:top-4 2xl:block">
         <div
-          class="overflow-hidden rounded-md border border-grey-200 bg-white 2xl:h-[calc(100vh-8rem)] 2xl:min-h-[480px]"
+          class="border-grey-200 overflow-hidden rounded-md border bg-white 2xl:h-[calc(100vh-8rem)] 2xl:min-h-[480px]"
         >
           <SampleMap
             v-if="mapPins.length"
@@ -278,7 +318,7 @@ function previous() {
           />
           <div
             v-else
-            class="flex h-full items-center justify-center px-4 text-center text-xs text-grey-700"
+            class="text-grey-700 flex h-full items-center justify-center px-4 text-center text-xs"
           >
             Voeg een adres toe om de locatie op de kaart te zien.
           </div>

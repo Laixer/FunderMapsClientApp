@@ -48,11 +48,34 @@ const emit = defineEmits<{
 /** Editable copy. Reset whenever the parent passes a new sample. */
 const form = ref<IInquirySample>(cloneDeep(props.sample))
 
+/**
+ * The last state that is known to be on the server, so "has this been edited"
+ * is answered by comparison rather than by a flag someone has to remember to
+ * set. Re-baselined on save and on switching samples.
+ */
+const baseline = ref<string>(JSON.stringify(props.sample))
+
+const isDirty = computed(() => JSON.stringify(form.value) !== baseline.value)
+
+// Surfaced so the parent can refuse to switch away from unsaved work.
+defineExpose({ isDirty })
+
 watch(
   () => props.sample.id,
   () => {
     form.value = cloneDeep(props.sample)
+    baseline.value = JSON.stringify(props.sample)
   },
+)
+
+// A save round-trips through the parent, which hands back the stored sample;
+// that is the moment the edits stop being unsaved.
+watch(
+  () => props.sample,
+  (sample) => {
+    if (sample.id === form.value.id) baseline.value = JSON.stringify(sample)
+  },
+  { deep: true },
 )
 
 function clearProvenance(key: ProvenanceKey) {
@@ -143,9 +166,19 @@ function onSave() {
         </h3>
         <p v-if="form.building" class="text-grey-700 text-xs">Pand: {{ form.building }}</p>
       </div>
-      <div class="flex shrink-0 gap-2">
+      <div class="flex shrink-0 items-center gap-2">
+        <!-- Unsaved work should be visible before it is at risk, not only when
+             you try to leave. -->
+        <span
+          v-if="isDirty"
+          class="text-grey-700 flex items-center gap-1.5 text-xs"
+          :title="t('sample.unsavedHint')"
+        >
+          <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-500" />
+          {{ t('sample.unsaved') }}
+        </span>
         <Button label="Verwijderen" danger @click="emit('delete')" />
-        <Button label="Opslaan" type="submit" :disabled="saving" @click="onSave" />
+        <Button label="Opslaan" type="submit" :disabled="saving || !isDirty" @click="onSave" />
       </div>
     </header>
 

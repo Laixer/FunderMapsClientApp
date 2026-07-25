@@ -1,3 +1,5 @@
+import { ref } from 'vue'
+
 /**
  * Keyboard shortcuts, declared once.
  *
@@ -75,3 +77,29 @@ export function isTypingTarget(target: EventTarget | null): boolean {
  * unhurried, short enough that a stray `g` does not hijack a later keystroke.
  */
 export const SEQUENCE_TIMEOUT_MS = 1200
+
+/**
+ * How many modals are currently on screen.
+ *
+ * `Modal` bumps this on mount and releases it on unmount, so every dialog in the
+ * app — confirm, reject, the shortcut overlay itself — gets the same treatment
+ * without opting in. Without it, pressing `j` behind an open dialog would move
+ * the selection in the table underneath.
+ */
+const openModals = ref(0)
+
+export function acquireModalLock(): () => void {
+  openModals.value++
+  let released = false
+  return () => {
+    // Idempotent: a double release would let the count drift below zero and
+    // wedge the shortcuts on permanently.
+    if (released) return
+    released = true
+    openModals.value--
+  }
+}
+
+export function isModalOpen(): boolean {
+  return openModals.value > 0
+}

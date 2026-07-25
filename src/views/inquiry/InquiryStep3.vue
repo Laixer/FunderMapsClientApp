@@ -18,6 +18,7 @@ import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import { AUDIT_STATUS, inquiryTypeLabel } from '@/services/inquiryEnums'
 import { formatDate } from '@/utils/date'
+import { confirmAction } from '@/services/confirm'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useAddressStore } from '@/stores/address'
 
@@ -65,7 +66,12 @@ onBeforeMount(load)
 
 async function submit() {
   if (!canSubmit.value || submitting.value) return
-  if (!confirm('Aanbieden ter review?')) return
+  const ok = await confirmAction({
+    title: 'Aanbieden ter review?',
+    body: 'De beoordelaar krijgt bericht en het rapport wordt vergrendeld tot de controle klaar is.',
+    confirmLabel: 'Aanbieden',
+  })
+  if (!ok) return
   submitting.value = true
   error.value = null
   try {
@@ -88,14 +94,14 @@ function previous() {
     <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'inquiry-list' }"
-        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
+        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
       >
         ← {{ t('inquiry.view.back') }}
       </RouterLink>
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-2xl font-semibold text-grey-800">Controle</h2>
-          <p v-if="inquiry" class="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-grey-700">
+          <h2 class="text-grey-800 text-2xl font-semibold">Controle</h2>
+          <p v-if="inquiry" class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
             <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
             <span aria-hidden="true">·</span>
             <span>{{ formatDate(inquiry.documentDate) }}</span>
@@ -125,9 +131,7 @@ function previous() {
     <Card v-else-if="inquiry">
       <div class="space-y-6">
         <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
-            Rapport
-          </h4>
+          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">Rapport</h4>
           <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
             <dt class="text-grey-700">Naam</dt>
             <dd class="text-grey-800">{{ inquiry.documentName }}</dd>
@@ -143,13 +147,13 @@ function previous() {
 
             <template v-if="inquiry.note">
               <dt class="text-grey-700">Notitie</dt>
-              <dd class="whitespace-pre-wrap text-grey-800">{{ inquiry.note }}</dd>
+              <dd class="text-grey-800 whitespace-pre-wrap">{{ inquiry.note }}</dd>
             </template>
           </dl>
         </section>
 
         <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
+          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">
             Adressen ({{ samples.length }})
           </h4>
           <Alert v-if="samples.length === 0" type="warning">
@@ -157,7 +161,7 @@ function previous() {
           </Alert>
           <SampleOverview v-else :samples="samples" />
 
-          <p v-if="!canSubmit && samples.length > 0" class="mt-3 text-sm text-grey-700">
+          <p v-if="!canSubmit && samples.length > 0" class="text-grey-700 mt-3 text-sm">
             Dit rapport kan niet meer worden ingediend in de huidige status.
           </p>
         </section>

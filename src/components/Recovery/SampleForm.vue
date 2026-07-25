@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, watch, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import cloneDeep from 'lodash-es/cloneDeep'
 
 import Card from '@/components/Common/Card.vue'
@@ -36,16 +37,37 @@ const emit = defineEmits<{
   delete: []
 }>()
 
+const { t } = useI18n()
+
 const contractors: Ref<IContractor[]> = ref([])
 
 /** Editable copy. Reset whenever the parent passes a new sample. */
 const form = ref<IRecoverySample>(cloneDeep(props.sample))
 
+/**
+ * The last state known to be on the server. Comparison beats a manual flag: no
+ * field can be added later and forgotten. Same mechanism as the inquiry form.
+ */
+const baseline = ref<string>(JSON.stringify(props.sample))
+
+const isDirty = computed(() => JSON.stringify(form.value) !== baseline.value)
+
+defineExpose({ isDirty })
+
 watch(
   () => props.sample.id,
   () => {
     form.value = cloneDeep(props.sample)
+    baseline.value = JSON.stringify(props.sample)
   },
+)
+
+watch(
+  () => props.sample,
+  (sample) => {
+    if (sample.id === form.value.id) baseline.value = JSON.stringify(sample)
+  },
+  { deep: true },
 )
 
 const contractorOptions = computed(() =>
@@ -97,25 +119,31 @@ function onSave() {
 <template>
   <Card class="List col-span-3 lg:col-span-2">
     <header
-      class="-mx-5 -mt-5 flex flex-wrap items-center justify-between gap-4 border-b border-grey-200 px-5 py-4"
+      class="border-grey-200 -mx-5 -mt-5 flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4"
     >
       <div class="min-w-0 flex-1">
         <h3 class="heading-3 wrap-break-word">
           {{ formatAddress(addressStore.cache[form.building]) }}
         </h3>
-        <p v-if="form.building" class="text-xs text-grey-700">Pand: {{ form.building }}</p>
+        <p v-if="form.building" class="text-grey-700 text-xs">Pand: {{ form.building }}</p>
       </div>
-      <div class="flex shrink-0 gap-2">
+      <div class="flex shrink-0 items-center gap-2">
+        <span
+          v-if="isDirty"
+          class="text-grey-700 flex items-center gap-1.5 text-xs"
+          :title="t('sample.unsavedHint')"
+        >
+          <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-500" />
+          {{ t('sample.unsaved') }}
+        </span>
         <Button label="Verwijderen" danger @click="emit('delete')" />
-        <Button label="Opslaan" type="submit" :disabled="saving" @click="onSave" />
+        <Button label="Opslaan" type="submit" :disabled="saving || !isDirty" @click="onSave" />
       </div>
     </header>
 
     <div class="space-y-8">
       <section>
-        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
-          Herstel
-        </h4>
+        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Herstel</h4>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Select
             v-model="form.type"
@@ -146,9 +174,7 @@ function onSave() {
       </section>
 
       <section>
-        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
-          Gevels
-        </h4>
+        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Gevels</h4>
         <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
           <CheckBox
             v-for="opt in FACADE_OPTIONS"
@@ -161,9 +187,7 @@ function onSave() {
       </section>
 
       <section>
-        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
-          Vergunning
-        </h4>
+        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Vergunning</h4>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input v-model="form.permit" label="Vergunningnummer" />
           <Input v-model="form.permitDate" label="Vergunningdatum" type="date" />
@@ -172,9 +196,7 @@ function onSave() {
       </section>
 
       <section>
-        <h4 class="mb-4 text-sm font-semibold uppercase tracking-wide text-grey-700">
-          Notitie
-        </h4>
+        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Notitie</h4>
         <Textarea v-model="form.note" placeholder="Optionele notitie…" :rows="4" />
       </section>
     </div>

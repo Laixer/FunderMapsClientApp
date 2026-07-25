@@ -18,6 +18,7 @@ import type { IRecoverySample } from '@/services/fundermaps/interfaces/IRecovery
 import { recoveryDocumentTypeLabel, AUDIT_STATUS } from '@/services/recoveryEnums'
 import { formatDate } from '@/utils/date'
 import { formatAddress } from '@/utils/address'
+import { confirmAction } from '@/services/confirm'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useAddressStore } from '@/stores/address'
 
@@ -65,7 +66,12 @@ onBeforeMount(load)
 
 async function submit() {
   if (!canSubmit.value || submitting.value) return
-  if (!confirm('Aanbieden ter review?')) return
+  const ok = await confirmAction({
+    title: 'Aanbieden ter review?',
+    body: 'De beoordelaar krijgt bericht en het dossier wordt vergrendeld tot de controle klaar is.',
+    confirmLabel: 'Aanbieden',
+  })
+  if (!ok) return
   submitting.value = true
   error.value = null
   try {
@@ -88,14 +94,14 @@ function previous() {
     <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'recovery-list' }"
-        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
+        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
       >
         ← {{ t('recovery.view.back') }}
       </RouterLink>
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 class="text-2xl font-semibold text-grey-800">Controle</h2>
-          <p v-if="recovery" class="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-grey-700">
+          <h2 class="text-grey-800 text-2xl font-semibold">Controle</h2>
+          <p v-if="recovery" class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
             <span>{{ recoveryDocumentTypeLabel(recovery.type) }}</span>
             <span aria-hidden="true">·</span>
             <span>{{ formatDate(recovery.documentDate) }}</span>
@@ -125,9 +131,7 @@ function previous() {
     <Card v-else-if="recovery">
       <div class="space-y-6">
         <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
-            Document
-          </h4>
+          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">Document</h4>
           <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
             <dt class="text-grey-700">Naam</dt>
             <dd class="text-grey-800">{{ recovery.documentName }}</dd>
@@ -143,32 +147,32 @@ function previous() {
 
             <template v-if="recovery.note">
               <dt class="text-grey-700">Notitie</dt>
-              <dd class="whitespace-pre-wrap text-grey-800">{{ recovery.note }}</dd>
+              <dd class="text-grey-800 whitespace-pre-wrap">{{ recovery.note }}</dd>
             </template>
           </dl>
         </section>
 
         <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
+          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">
             Adressen ({{ samples.length }})
           </h4>
           <Alert v-if="samples.length === 0" type="warning">
             Voeg minimaal één adres toe in stap 2 voordat je het herstel indient.
           </Alert>
-          <ul v-else class="overflow-hidden rounded-md border border-grey-200">
+          <ul v-else class="border-grey-200 overflow-hidden rounded-md border">
             <li
               v-for="s in samples"
               :key="s.id"
-              class="space-y-1 border-b border-grey-200 px-3 py-3 text-sm last:border-b-0"
+              class="border-grey-200 space-y-1 border-b px-3 py-3 text-sm last:border-b-0"
             >
-              <p class="font-medium text-grey-800">
+              <p class="text-grey-800 font-medium">
                 {{ formatAddress(addressStore.cache[s.building]) }}
               </p>
-              <p v-if="s.note" class="text-xs text-grey-700">{{ s.note }}</p>
+              <p v-if="s.note" class="text-grey-700 text-xs">{{ s.note }}</p>
             </li>
           </ul>
 
-          <p v-if="!canSubmit && samples.length > 0" class="mt-3 text-sm text-grey-700">
+          <p v-if="!canSubmit && samples.length > 0" class="text-grey-700 mt-3 text-sm">
             Dit herstel kan niet meer worden ingediend in de huidige status.
           </p>
         </section>

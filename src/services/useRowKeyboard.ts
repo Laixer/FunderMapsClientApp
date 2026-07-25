@@ -8,7 +8,7 @@
 
 import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 
-import { isTypingTarget } from '@/services/shortcuts'
+import { isModalOpen, isTypingTarget } from '@/services/shortcuts'
 
 export interface RowKeyboardOptions<T> {
   rows: Ref<T[]>
@@ -62,6 +62,7 @@ export function useRowKeyboard<T extends { id: string | number }>(options: RowKe
 
   function onKeydown(event: KeyboardEvent) {
     if (event.metaKey || event.ctrlKey || event.altKey) return
+    if (isModalOpen()) return
     if (isTypingTarget(event.target)) return
 
     switch (event.key) {
