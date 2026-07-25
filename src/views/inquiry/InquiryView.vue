@@ -12,11 +12,13 @@ import StatusBadge from '@/components/Common/StatusBadge.vue'
 import Spinner from '@/components/Common/Spinner.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
 import SampleOverview from '@/components/Inquiry/SampleOverview.vue'
+import DossierProgress from '@/components/Common/DossierProgress.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import { AUDIT_STATUS, inquiryTypeLabel } from '@/services/inquiryEnums'
+import { countFilledSampleFields } from '@/services/sampleFields'
 import { formatDate } from '@/utils/date'
 import { getErrorMessage } from '@/services/fundermaps/errors'
 import { useSessionStore } from '@/stores/session'
@@ -57,6 +59,18 @@ const isPendingReview = computed(() => status.value === AUDIT_STATUS.PENDING_REV
 // Escape hatch for "approved but an error surfaced later" — restricted to org
 // admins (issue #250). The API's /reset is an unconditional → pending move.
 const isReopenable = computed(() => status.value === AUDIT_STATUS.DONE)
+
+/**
+ * How far the entry actually got, counted rather than asserted. A reviewer's
+ * first question is "is this finished?", and 14 addresses of which 3 are empty
+ * shells answers it faster than opening 14 panels.
+ */
+const completeness = computed(() => {
+  const total = samples.value.length
+  const withFoundationType = samples.value.filter((s) => s.foundationType !== null).length
+  const empty = samples.value.filter((s) => countFilledSampleFields(s) === 0).length
+  return { total, withFoundationType, empty }
+})
 
 async function load() {
   try {
@@ -157,7 +171,7 @@ async function handleDelete() {
     <div class="mb-8 space-y-3">
       <RouterLink
         :to="{ name: 'inquiry-list' }"
-        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
+        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
       >
         ← {{ t('inquiry.view.back') }}
       </RouterLink>
@@ -166,10 +180,10 @@ async function handleDelete() {
         <div class="flex flex-wrap items-end justify-between gap-3">
           <div>
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-2xl font-semibold text-grey-800">{{ inquiry.documentName }}</h2>
+              <h2 class="text-grey-800 text-2xl font-semibold">{{ inquiry.documentName }}</h2>
               <StatusBadge :status="inquiry.state.auditStatus" />
             </div>
-            <p class="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-grey-700">
+            <p class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
               <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
               <span aria-hidden="true">·</span>
               <span>{{ formatDate(inquiry.documentDate) }}</span>
@@ -218,54 +232,77 @@ async function handleDelete() {
       <span v-if="false">{{ t('common.loading') }}</span>
     </Card>
 
-    <Card v-else-if="inquiry">
-      <div class="space-y-6">
-        <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
-            Details
-          </h4>
-          <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt class="text-grey-700">Opsteller</dt>
-            <dd class="text-grey-800">{{ inquiry.attribution.creatorName ?? '—' }}</dd>
-
-            <dt class="text-grey-700">Beoordelaar</dt>
-            <dd class="text-grey-800">{{ inquiry.attribution.reviewerName ?? '—' }}</dd>
-
-            <dt class="text-grey-700">Uitvoerder</dt>
-            <dd class="text-grey-800">{{ inquiry.attribution.contractorName ?? '—' }}</dd>
-
-            <dt class="text-grey-700">Inspectie</dt>
-            <dd class="text-grey-800">{{ inquiry.inspection ? 'Ja' : 'Nee' }}</dd>
-
-            <dt class="text-grey-700">Voegmeting</dt>
-            <dd class="text-grey-800">{{ inquiry.jointMeasurement ? 'Ja' : 'Nee' }}</dd>
-
-            <dt class="text-grey-700">Vloermeting</dt>
-            <dd class="text-grey-800">{{ inquiry.floorMeasurement ? 'Ja' : 'Nee' }}</dd>
-
-            <dt class="text-grey-700">F3O standaard</dt>
-            <dd class="text-grey-800">{{ inquiry.standardF3o ? 'Ja' : 'Nee' }}</dd>
-
-            <template v-if="inquiry.note">
-              <dt class="text-grey-700">Notitie</dt>
-              <dd class="whitespace-pre-wrap text-grey-800">{{ inquiry.note }}</dd>
+    <template v-else-if="inquiry">
+      <!-- The journey first: where this sits and who is up. The document's own
+           metadata is secondary — it does not change, and nobody is waiting on it. -->
+      <DossierProgress
+        class="mb-4"
+        :status="inquiry.state.auditStatus"
+        :create-date="inquiry.record.createDate"
+        :document-date="inquiry.documentDate"
+        :creator-name="inquiry.attribution.creatorName"
+        :reviewer-name="inquiry.attribution.reviewerName"
+      >
+        <template #facts>
+          <dt class="text-grey-700">Adressen</dt>
+          <dd class="text-grey-800">
+            <template v-if="completeness.total === 0">nog geen</template>
+            <template v-else>
+              {{ completeness.total }}
+              <span class="text-grey-700">
+                · {{ completeness.withFoundationType }} met funderingstype
+              </span>
+              <span v-if="completeness.empty" class="text-red-800">
+                · {{ completeness.empty }} nog leeg
+              </span>
             </template>
-          </dl>
-        </section>
+          </dd>
+        </template>
+      </DossierProgress>
 
-        <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
-            Adressen ({{ samples.length }})
-          </h4>
-          <p v-if="samples.length === 0" class="text-sm text-grey-700">
-            Nog geen adressen toegevoegd.
-          </p>
-          <!-- Reviewing? Open everything up — the reviewer should see the data,
+      <Card>
+        <div class="space-y-6">
+          <section>
+            <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">
+              Details
+            </h4>
+            <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
+              <dt class="text-grey-700">Uitvoerder</dt>
+              <dd class="text-grey-800">{{ inquiry.attribution.contractorName ?? '—' }}</dd>
+
+              <dt class="text-grey-700">Inspectie</dt>
+              <dd class="text-grey-800">{{ inquiry.inspection ? 'Ja' : 'Nee' }}</dd>
+
+              <dt class="text-grey-700">Voegmeting</dt>
+              <dd class="text-grey-800">{{ inquiry.jointMeasurement ? 'Ja' : 'Nee' }}</dd>
+
+              <dt class="text-grey-700">Vloermeting</dt>
+              <dd class="text-grey-800">{{ inquiry.floorMeasurement ? 'Ja' : 'Nee' }}</dd>
+
+              <dt class="text-grey-700">F3O standaard</dt>
+              <dd class="text-grey-800">{{ inquiry.standardF3o ? 'Ja' : 'Nee' }}</dd>
+
+              <template v-if="inquiry.note">
+                <dt class="text-grey-700">Notitie</dt>
+                <dd class="text-grey-800 whitespace-pre-wrap">{{ inquiry.note }}</dd>
+              </template>
+            </dl>
+          </section>
+
+          <section>
+            <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">
+              Adressen ({{ samples.length }})
+            </h4>
+            <p v-if="samples.length === 0" class="text-grey-700 text-sm">
+              Nog geen adressen toegevoegd.
+            </p>
+            <!-- Reviewing? Open everything up — the reviewer should see the data,
                not a list of addresses (issue #263, item 7). -->
-          <SampleOverview v-else :samples="samples" :expanded="isPendingReview" />
-        </section>
-      </div>
-    </Card>
+            <SampleOverview v-else :samples="samples" :expanded="isPendingReview" />
+          </section>
+        </div>
+      </Card>
+    </template>
 
     <RejectModal v-if="showRejectModal" @close="showRejectModal = false" @submit="handleReject" />
   </MainWrapper>
