@@ -13,7 +13,9 @@ import Spinner from '@/components/Common/Spinner.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
 import SampleOverview from '@/components/Inquiry/SampleOverview.vue'
 import DossierProgress from '@/components/Common/DossierProgress.vue'
+import DocumentCard from '@/components/Common/DocumentCard.vue'
 import type { DossierEvent } from '@/services/pipeline'
+import type { DocumentFileInfo } from '@/services/documentFile'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
@@ -38,6 +40,8 @@ const inquiryId = computed(() => Number(route.params.id))
 const inquiry: Ref<IInquiry | null> = ref(null)
 const samples: Ref<IInquirySample[]> = ref([])
 const events: Ref<DossierEvent[]> = ref([])
+const documentFile: Ref<DocumentFileInfo | null> = ref(null)
+const documentLoading = ref(true)
 const loading = ref(true)
 const error: Ref<string | null> = ref(null)
 const actionError: Ref<string | null> = ref(null)
@@ -99,6 +103,17 @@ async function load() {
     events.value = await api.inquiry.getEvents(inquiryId.value)
   } catch {
     events.value = []
+  }
+
+  // Fetched on load rather than on click, because the card needs the signed
+  // link to render a thumbnail. Non-fatal: a dossier is still readable without
+  // its source file.
+  try {
+    documentFile.value = await api.inquiry.getDownload(inquiryId.value)
+  } catch {
+    documentFile.value = null
+  } finally {
+    documentLoading.value = false
   }
 }
 
@@ -171,15 +186,6 @@ async function handleReject(message: string) {
   }
 }
 
-async function handleDownload() {
-  try {
-    const { accessLink } = await api.inquiry.getDownload(inquiryId.value)
-    window.open(accessLink, '_blank', 'noopener')
-  } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
-  }
-}
-
 async function handleDelete() {
   const ok = await confirmAction({
     title: 'Rapport verwijderen?',
@@ -226,8 +232,10 @@ async function handleDelete() {
             <span>{{ formatDate(inquiry.documentDate) }}</span>
           </p>
         </div>
+        <!-- The source document moved out of here into its own card, where it
+             can carry its real name, size and a preview. One obvious place for
+             it beats a button that said only "Document". -->
         <div class="flex flex-wrap gap-2">
-          <Button outline label="Document" @click="handleDownload" />
           <Button v-if="isEditable && canWrite" outline label="Bewerken" @click="goEdit" />
           <Button
             v-if="canSubmitForReview && canWrite"
@@ -296,6 +304,8 @@ async function handleDelete() {
           </dd>
         </template>
       </DossierProgress>
+
+      <DocumentCard class="mb-4" :file="documentFile" :loading="documentLoading" />
 
       <Card>
         <div class="space-y-6">

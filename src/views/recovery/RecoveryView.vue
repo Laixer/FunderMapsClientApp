@@ -12,7 +12,9 @@ import StatusBadge from '@/components/Common/StatusBadge.vue'
 import Spinner from '@/components/Common/Spinner.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
 import DossierProgress from '@/components/Common/DossierProgress.vue'
+import DocumentCard from '@/components/Common/DocumentCard.vue'
 import type { DossierEvent } from '@/services/pipeline'
+import type { DocumentFileInfo } from '@/services/documentFile'
 
 import api from '@/services/fundermaps'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
@@ -42,6 +44,8 @@ const recoveryId = computed(() => Number(route.params.id))
 const recovery: Ref<IRecovery | null> = ref(null)
 const samples: Ref<IRecoverySample[]> = ref([])
 const events: Ref<DossierEvent[]> = ref([])
+const documentFile: Ref<DocumentFileInfo | null> = ref(null)
+const documentLoading = ref(true)
 const loading = ref(true)
 const error: Ref<string | null> = ref(null)
 const actionError: Ref<string | null> = ref(null)
@@ -102,6 +106,17 @@ async function load() {
     events.value = await api.recovery.getEvents(recoveryId.value)
   } catch {
     events.value = []
+  }
+
+  // Fetched on load rather than on click, because the card needs the signed
+  // link to render a thumbnail. Non-fatal: a dossier is still readable without
+  // its source file.
+  try {
+    documentFile.value = await api.recovery.getDownload(recoveryId.value)
+  } catch {
+    documentFile.value = null
+  } finally {
+    documentLoading.value = false
   }
 }
 
@@ -170,15 +185,6 @@ async function handleReject(message: string) {
   }
 }
 
-async function handleDownload() {
-  try {
-    const { accessLink } = await api.recovery.getDownload(recoveryId.value)
-    window.open(accessLink, '_blank', 'noopener')
-  } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
-  }
-}
-
 async function handleDelete() {
   const ok = await confirmAction({
     title: 'Herstel verwijderen?',
@@ -226,7 +232,6 @@ async function handleDelete() {
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <Button outline label="Document" @click="handleDownload" />
           <Button v-if="isEditable && canWrite" outline label="Bewerken" @click="goEdit" />
           <Button
             v-if="canSubmitForReview && canWrite"
@@ -290,6 +295,8 @@ async function handleDelete() {
           </dd>
         </template>
       </DossierProgress>
+
+      <DocumentCard class="mb-4" :file="documentFile" :loading="documentLoading" />
 
       <Card>
         <div class="space-y-6">
