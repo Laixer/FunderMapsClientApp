@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+
+import Pill from '@/components/Common/Pill.vue'
 import { statusMeta } from '@/services/inquiryEnums'
 
+/**
+ * A dossier's audit status as a pill. The one place the status integer turns
+ * into something a person can read, so the label and the colour can never
+ * disagree between two screens.
+ */
 const props = defineProps<{ status: number | null | undefined }>()
 
 const meta = computed(() => statusMeta(props.status))
 </script>
 
 <template>
-  <span
-    class="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium"
-    :class="meta.classes"
-  >
-    {{ meta.label }}
-  </span>
+  <Pill :label="meta.label" :tone="meta.tone" />
 </template>

@@ -26,8 +26,8 @@
  * is, `create_date`, `document_date`, and attribution.
  */
 
-import type { IconName } from '@/components/Common/icons'
 import { AUDIT_STATUS, statusMeta } from '@/services/inquiryEnums'
+import type { Tone } from '@/services/tone'
 
 /** Which attribution role carries a stage. */
 export type StageRole = 'creator' | 'reviewer'
@@ -115,19 +115,17 @@ export function stageState(stageIndex: number, pos: Position): StageState {
   return pos.returned ? 'blocked' : 'current'
 }
 
-/**
- * How loudly to say it. `attention` is "someone is being waited on",
- * `critical` is "something went wrong and needs undoing" — the two look alike
- * in a state machine and read very differently across a desk.
- */
-export type NextStepTone = 'neutral' | 'attention' | 'critical' | 'positive'
-
 export interface NextStep {
   /** Who has to move. `null` when nobody does. */
   role: StageRole | 'admin' | null
   title: string
   detail: string
-  tone: NextStepTone
+  /**
+   * Green when the ball is in your court, blue when you are waiting on someone
+   * else, red when something came back. The two middle cases look alike in a
+   * state machine and read very differently across a desk.
+   */
+  tone: Tone
 }
 
 /**
@@ -143,21 +141,21 @@ export function nextStep(status: number | null | undefined): NextStep {
         role: 'creator',
         title: 'Invoer starten',
         detail: 'Er zijn nog geen gegevens ingevoerd voor dit dossier.',
-        tone: 'neutral',
+        tone: 'green',
       }
     case AUDIT_STATUS.PENDING:
       return {
         role: 'creator',
         title: 'Invoer afmaken en aanbieden',
         detail: 'Zodra de adressen compleet zijn kan het dossier ter controle worden aangeboden.',
-        tone: 'neutral',
+        tone: 'green',
       }
     case AUDIT_STATUS.PENDING_REVIEW:
       return {
         role: 'reviewer',
         title: 'Wacht op controle',
         detail: 'De beoordelaar moet de invoer goedkeuren of met een reden afkeuren.',
-        tone: 'attention',
+        tone: 'blue',
       }
     case AUDIT_STATUS.REJECTED:
       return {
@@ -167,14 +165,14 @@ export function nextStep(status: number | null | undefined): NextStep {
         // motivation nowhere but the mail, so point at both.
         detail:
           'De beoordelaar heeft het dossier teruggestuurd. De reden staat in de tijdlijn, of anders in de mail aan de opsteller.',
-        tone: 'critical',
+        tone: 'red',
       }
     case AUDIT_STATUS.DONE:
       return {
         role: null,
         title: 'Afgerond',
         detail: 'De gegevens zijn vastgesteld. Alleen een beheerder kan het dossier heropenen.',
-        tone: 'positive',
+        tone: 'green',
       }
     case AUDIT_STATUS.DISCARDED:
       return {
@@ -223,32 +221,29 @@ export interface DossierEvent {
 
 export interface DossierEventMeta {
   label: string
-  icon: IconName
-  /** Tailwind text colour for the marker. */
-  tone: string
+  tone: Tone
 }
 
 /**
- * Only `rejected` gets a colour. A trail where every row shouts is a trail
- * nobody scans; the one entry that means "this came back" should be the one
- * that catches the eye.
+ * Only the two that changed the dossier's direction get a colour. A trail where
+ * every row shouts is a trail nobody scans; "this came back" and "this is
+ * settled" should be the entries that catch the eye.
  */
 export const EVENT_META: Record<DossierEventKind, DossierEventMeta> = {
-  created: { label: 'Aangemaakt', icon: 'clipboard', tone: 'text-grey-700' },
-  submitted: { label: 'Aangeboden ter controle', icon: 'arrowRight', tone: 'text-grey-700' },
-  approved: { label: 'Goedgekeurd', icon: 'check', tone: 'text-green-700' },
-  rejected: { label: 'Afgekeurd', icon: 'alert', tone: 'text-red-800' },
-  reopened: { label: 'Heropend', icon: 'switch', tone: 'text-grey-700' },
-  imported: { label: 'Geïmporteerd', icon: 'plus', tone: 'text-grey-700' },
-  proposed: { label: 'Voorgesteld door de pijplijn', icon: 'target', tone: 'text-grey-700' },
+  created: { label: 'Aangemaakt', tone: 'neutral' },
+  submitted: { label: 'Aangeboden ter controle', tone: 'neutral' },
+  approved: { label: 'Goedgekeurd', tone: 'green' },
+  rejected: { label: 'Afgekeurd', tone: 'red' },
+  reopened: { label: 'Heropend', tone: 'amber' },
+  imported: { label: 'Geïmporteerd', tone: 'neutral' },
+  proposed: { label: 'Voorgesteld door de pijplijn', tone: 'blue' },
 }
 
 export function eventMeta(kind: string): DossierEventMeta {
   return (
     EVENT_META[kind as DossierEventKind] ?? {
       label: kind,
-      icon: 'info',
-      tone: 'text-grey-700',
+      tone: 'neutral',
     }
   )
 }

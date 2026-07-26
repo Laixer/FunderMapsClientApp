@@ -6,8 +6,8 @@ import Button from '@/components/Common/Buttons/Button.vue'
 import { currentConfirm, resolveConfirm } from '@/services/confirm'
 
 /**
- * Host for `confirmAction()`. Mounted once by the layout shell; renders only
- * while a question is outstanding.
+ * Host for `confirmAction()`. Mounted once by the shell; renders only while a
+ * question is outstanding.
  */
 const request = computed(() => currentConfirm.value)
 
@@ -32,14 +32,14 @@ onBeforeUnmount(() => {
 
 <template>
   <Modal v-if="request" :title="request.title" @close="resolveConfirm(false)">
-    <p v-if="request.body" class="text-grey-800 text-sm whitespace-pre-line">
+    <p v-if="request.body" class="text-md whitespace-pre-line text-body">
       {{ request.body }}
     </p>
 
     <template #footer>
-      <Button outline :label="request.cancelLabel ?? 'Annuleren'" @click="resolveConfirm(false)" />
+      <Button :label="request.cancelLabel ?? 'Annuleren'" @click="resolveConfirm(false)" />
       <Button
-        :danger="request.danger"
+        :variant="request.danger ? 'danger' : 'primary'"
         :label="request.confirmLabel ?? 'Doorgaan'"
         @click="resolveConfirm(true)"
       />

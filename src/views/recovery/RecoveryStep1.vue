@@ -1,28 +1,34 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { z } from 'zod'
 
-import MainWrapper from '@/components/Layout/MainWrapper.vue'
-import Card from '@/components/Common/Card.vue'
+import AppShell from '@/components/Layout/AppShell.vue'
+import WizardHeader from '@/components/Layout/WizardHeader.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
-import Alert from '@/components/Common/Alert.vue'
-import Input from '@/components/Common/Inputs/Input.vue'
-import Select from '@/components/Common/Inputs/Select.vue'
-import Textarea from '@/components/Common/Inputs/Textarea.vue'
-import Spinner from '@/components/Common/Spinner.vue'
-import WizardSteps from '@/components/Common/WizardSteps.vue'
-import { RouterLink } from 'vue-router'
+import Callout from '@/components/Common/Callout.vue'
+import Dropzone, { type AttachedFile } from '@/components/Common/Dropzone.vue'
+import Field from '@/components/Common/Field.vue'
+import Panel from '@/components/Common/Panel.vue'
 
 import api from '@/services/fundermaps'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { IUser } from '@/services/fundermaps/interfaces/IUser'
-import { RECOVERY_DOCUMENT_TYPE_LABELS } from '@/services/recoveryEnums'
-import useValidation from '@/services/useValidation'
-import { getErrorMessage } from '@/services/fundermaps/errors'
+import { describeFailure } from '@/services/fundermaps/errors'
+import type { SelectOption } from '@/services/options'
+import { RECOVERY_DOCUMENT_TYPE_OPTIONS } from '@/services/recoveryEnums'
+import { toastError, toastSuccess } from '@/services/toast'
+import { formatTime } from '@/utils/date'
+import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { recoverySteps } from '@/services/wizard'
 
-const { t } = useI18n()
+/**
+ * Step 1 of the herstel wizard — the same shape as the inquiry's, with the
+ * fields a repair dossier actually has.
+ *
+ * There is no preset list here: a repair document is a permit, a report or an
+ * owner's evidence, and which one it is comes straight off the document rather
+ * than from a working style worth a shortcut.
+ */
 const route = useRoute()
 const router = useRouter()
 
@@ -34,115 +40,152 @@ const isNew = computed(() => recoveryId.value === null)
 
 const loading = ref(true)
 const saving = ref(false)
-const saveError: Ref<string | null> = ref(null)
-const uploadError: Ref<string | null> = ref(null)
 const uploading = ref(false)
+const uploadError: Ref<string | null> = ref(null)
+const savedAt = ref<string | null>(null)
+const showErrors = ref(false)
 
 const contractors: Ref<IContractor[]> = ref([])
 const reviewers: Ref<IUser[]> = ref([])
+const dataOwnerName = ref('')
 
-const formData = ref({
+const form = ref({
   documentName: '',
   type: null as number | null,
   documentDate: '',
   documentFile: '',
   contractor: null as number | null,
-  reviewer: '',
+  reviewer: null as string | null,
   note: '',
 })
 
-const schema = z
-  .object({
-    documentName: z.string().min(1, 'Naam is verplicht.').max(64, 'Maximaal 64 tekens.'),
-    type: z.number().int('Kies een type.'),
-    documentDate: z.string().min(1, 'Datum is verplicht.'),
-    documentFile: z.string().min(1, 'Upload eerst een document.'),
-    contractor: z.number().int('Kies een uitvoerder.'),
-    reviewer: z.string().guid('Kies een beoordelaar.'),
-    note: z.string(),
-  })
-  .strict()
+const attached = ref<AttachedFile | null>(null)
 
-const { validate, isValid, getStatus, getError } = useValidation(schema, formData)
-
-const typeOptions = computed(() =>
-  Object.entries(RECOVERY_DOCUMENT_TYPE_LABELS).map(([k, label]) => ({
-    value: Number(k),
-    label,
-  })),
-)
-const contractorOptions = computed(() =>
+const contractorOptions = computed<SelectOption[]>(() =>
   contractors.value.map((c) => ({ value: c.id, label: c.name })),
 )
-const reviewerOptions = computed(() =>
+
+const reviewerOptions = computed<SelectOption[]>(() =>
   reviewers.value.map((r) => ({
     value: r.id,
-    label:
-      [r.given_name, r.family_name].filter(Boolean).join(' ').trim() || r.email,
+    label: [r.given_name, r.family_name].filter(Boolean).join(' ').trim() || r.email,
   })),
 )
 
-async function onUpload(e: Event) {
-  const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
+const errors = computed<Record<string, string | null>>(() => ({
+  documentName: !form.value.documentName.trim()
+    ? 'Geef het dossier een naam.'
+    : form.value.documentName.length > 64
+      ? 'Maximaal 64 tekens.'
+      : null,
+  type: form.value.type === null ? 'Kies een documenttype.' : null,
+  documentDate: !form.value.documentDate ? 'Vul de documentdatum in.' : null,
+  contractor: form.value.contractor === null ? 'Kies een uitvoerder.' : null,
+  reviewer: !form.value.reviewer ? 'Kies een beoordelaar.' : null,
+  documentFile: !form.value.documentFile ? 'Upload eerst het brondocument.' : null,
+}))
+
+const isValid = computed(() => Object.values(errors.value).every((error) => error === null))
+
+function errorFor(field: string): string | null {
+  return showErrors.value ? errors.value[field] ?? null : null
+}
+
+function nameFromFile(filename: string): string {
+  const dot = filename.lastIndexOf('.')
+  return (dot > 0 ? filename.slice(0, dot) : filename).slice(0, 64)
+}
+
+async function onPick(file: File) {
   uploadError.value = null
   uploading.value = true
+  attached.value = { name: file.name, sizeBytes: file.size, uploaded: false }
   try {
     const { name } = await api.recovery.uploadDocument(file)
-    formData.value.documentFile = name
+    form.value.documentFile = name
+    attached.value = { name: file.name, sizeBytes: file.size, uploaded: true }
+    if (!form.value.documentName.trim()) form.value.documentName = nameFromFile(file.name)
   } catch (err) {
-    uploadError.value = getErrorMessage(err) ?? 'Upload mislukt.'
+    uploadError.value = describeFailure(err, 'Uploaden van het document is niet gelukt.')
+    attached.value = null
   } finally {
     uploading.value = false
   }
 }
 
-async function onSubmit() {
-  if (saving.value) return
-  saveError.value = null
-  await validate()
-  if (!isValid.value) return
+function onRemove() {
+  attached.value = null
+  form.value.documentFile = ''
+}
+
+function body() {
+  return {
+    documentName: form.value.documentName.trim(),
+    type: form.value.type!,
+    documentDate: form.value.documentDate,
+    documentFile: form.value.documentFile,
+    note: form.value.note,
+    attribution: {
+      reviewer: form.value.reviewer!,
+      contractor: form.value.contractor!,
+    },
+  }
+}
+
+/** Creating on the first save is what lets step 2 attach panden to a real record. */
+async function persist(): Promise<number | null> {
+  showErrors.value = true
+  if (!isValid.value || saving.value) return null
 
   saving.value = true
   try {
-    const body = {
-      documentName: formData.value.documentName,
-      type: formData.value.type!,
-      documentDate: formData.value.documentDate,
-      documentFile: formData.value.documentFile,
-      note: formData.value.note,
-      attribution: {
-        reviewer: formData.value.reviewer,
-        contractor: formData.value.contractor!,
-      },
-    }
     if (isNew.value) {
-      const created = await api.recovery.create(body)
-      router.push({ name: 'recovery-edit-2', params: { id: created.id } })
-    } else {
-      await api.recovery.update(recoveryId.value!, body)
-      router.push({ name: 'recovery-edit-2', params: { id: recoveryId.value! } })
+      const created = await api.recovery.create(body())
+      savedAt.value = new Date().toISOString()
+      await router.replace({ name: 'recovery-edit-1', params: { id: created.id } })
+      return created.id
     }
+    await api.recovery.update(recoveryId.value!, body())
+    savedAt.value = new Date().toISOString()
+    return recoveryId.value
   } catch (err) {
-    saveError.value = getErrorMessage(err) ?? t('error.generic')
+    toastError(describeFailure(err, 'Opslaan is niet gelukt.'))
+    return null
   } finally {
     saving.value = false
   }
 }
 
+async function saveDraft() {
+  const id = await persist()
+  if (id !== null) toastSuccess('Concept opgeslagen.')
+}
+
+async function next() {
+  const id = await persist()
+  if (id !== null) router.push({ name: 'recovery-edit-2', params: { id } })
+}
+
+const draftStatus = computed(() => {
+  if (saving.value) return 'bezig met opslaan…'
+  if (savedAt.value) return `concept · opgeslagen ${formatTime(savedAt.value)}`
+  if (!isNew.value) return `#${recoveryId.value} · wijzigingen nog niet opgeslagen`
+  return 'concept · nog niet opgeslagen'
+})
+
+const steps = computed(() => recoverySteps(recoveryId.value))
+
+useActionShortcuts(() => ({ '⌘S': () => void saveDraft(), '⌘↵': () => void next() }))
+
 onBeforeMount(async () => {
   try {
-    const [c, r] = await Promise.all([
-      api.contractor.list(),
-      api.reviewer.list(),
-    ])
+    const [c, r] = await Promise.all([api.contractor.list(), api.reviewer.list()])
     contractors.value = c
     reviewers.value = r
 
     if (!isNew.value) {
       const recovery = await api.recovery.getById(recoveryId.value!)
-      formData.value = {
+      form.value = {
         documentName: recovery.documentName,
         type: recovery.type,
         documentDate: recovery.documentDate?.slice(0, 10) ?? '',
@@ -151,9 +194,13 @@ onBeforeMount(async () => {
         reviewer: recovery.attribution.reviewer,
         note: recovery.note ?? '',
       }
+      dataOwnerName.value = recovery.attribution.dataOwnerName ?? ''
+      if (recovery.documentFile) {
+        attached.value = { name: 'Gekoppeld document', sizeBytes: null, uploaded: true }
+      }
     }
   } catch (err) {
-    saveError.value = getErrorMessage(err) ?? t('error.generic')
+    toastError(describeFailure(err, 'De gegevens konden niet worden opgehaald.'))
   } finally {
     loading.value = false
   }
@@ -161,133 +208,121 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <MainWrapper>
-    <div class="mb-8 space-y-3">
-      <RouterLink
-        :to="{ name: 'recovery-list' }"
-        class="inline-flex items-center gap-1 text-xs font-medium text-grey-700 hover:text-grey-800"
-      >
-        ← {{ t('recovery.view.back') }}
-      </RouterLink>
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 class="text-2xl font-semibold text-grey-800">
-            {{ isNew ? 'Nieuw herstel' : 'Herstel bewerken' }}
-          </h2>
-          <p class="mt-0.5 text-sm text-grey-700">
-            Vul de basisgegevens van het herstel-dossier in en upload het document.
-          </p>
-        </div>
-      </div>
-      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="1" />
-    </div>
+  <AppShell :crumb="isNew ? 'Nieuw herstel' : 'Herstel bewerken'">
+    <WizardHeader
+      :title="isNew ? 'Nieuw herstel' : 'Herstel bewerken'"
+      :status="draftStatus"
+      :steps="steps"
+      :current="1"
+      connected
+    >
+      <template #actions>
+        <Button label="Annuleren" @click="router.push({ name: 'recovery-list' })" />
+        <Button
+          label="Concept opslaan"
+          shortcut="⌘S"
+          :disabled="saving || uploading"
+          @click="saveDraft"
+        />
+        <Button
+          variant="primary"
+          label="Volgende: panden"
+          shortcut="⌘↵"
+          :disabled="!isValid || saving || uploading"
+          @click="next"
+        />
+      </template>
+    </WizardHeader>
 
-    <Alert v-if="saveError" :closeable="true" class="mb-3" @close="saveError = null">
-      {{ saveError }}
-    </Alert>
+    <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-drawer)] items-start gap-4.5 px-6 py-5">
+      <div class="flex min-w-0 flex-col gap-4">
+        <p class="text-lg text-muted">
+          Basisgegevens en document — de panden volgen in stap 2. Je kunt tussentijds opslaan als
+          concept.
+        </p>
 
-    <Card v-if="loading" class="flex justify-center py-8">
-      <Spinner />
-      <span v-if="false">{{ t('common.loading') }}</span>
-    </Card>
-
-    <Card v-else>
-      <form class="space-y-8" @submit.prevent="onSubmit">
-        <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
-            Document
-          </h4>
-          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <Input
-              v-model="formData.documentName"
+        <Panel caption="DOCUMENT" meta="4 verplichte velden">
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+            <Field
+              v-model="form.documentName"
               label="Naam"
               required
-              :validationStatus="getStatus('documentName')"
-              :validationMessage="getError('documentName')"
+              placeholder="bijv. Vergunning Baan 60W"
+              hint="wordt voorgesteld op basis van de bestandsnaam"
+              :error="errorFor('documentName')"
             />
-
-            <Select
-              v-model="formData.type"
+            <Field
+              v-model="form.type"
               label="Documenttype"
-              :options="typeOptions"
-              placeholder="Kies een type"
+              kind="select"
               required
-              :validationStatus="getStatus('type')"
-              :validationMessage="getError('type')"
+              :options="RECOVERY_DOCUMENT_TYPE_OPTIONS"
+              empty-label="Kies een type"
+              :error="errorFor('type')"
             />
-
-            <Input
-              v-model="formData.documentDate"
-              label="Datum"
-              type="date"
+            <Field
+              v-model="form.documentDate"
+              label="Documentdatum"
+              kind="date"
               required
-              :validationStatus="getStatus('documentDate')"
-              :validationMessage="getError('documentDate')"
+              :error="errorFor('documentDate')"
             />
-
-            <Select
-              v-model="formData.contractor"
+            <Field
+              v-model="form.contractor"
               label="Uitvoerder"
+              kind="select"
+              required
               :options="contractorOptions"
-              placeholder="Kies een uitvoerder"
-              required
-              :validationStatus="getStatus('contractor')"
-              :validationMessage="getError('contractor')"
+              empty-label="Kies een uitvoerder"
+              :error="errorFor('contractor')"
             />
-
-            <Select
-              v-model="formData.reviewer"
+            <Field
+              v-model="dataOwnerName"
+              label="Data-eigenaar"
+              placeholder="wordt bij opslaan bepaald"
+              disabled
+              hint="standaard je eigen organisatie"
+            />
+            <Field
+              v-model="form.reviewer"
               label="Beoordelaar"
-              :options="reviewerOptions"
-              placeholder="Kies een beoordelaar"
+              kind="select"
               required
-              :validationStatus="getStatus('reviewer')"
-              :validationMessage="getError('reviewer')"
+              :options="reviewerOptions"
+              empty-label="Kies een beoordelaar"
+              hint="krijgt het dossier na aanbieden"
+              :error="errorFor('reviewer')"
             />
           </div>
-        </section>
+        </Panel>
 
-        <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
-            Bestand
-          </h4>
-          <div class="space-y-2">
-            <input
-              type="file"
-              accept="application/pdf,image/*"
-              :disabled="uploading"
-              class="block w-full text-sm text-grey-800"
-              @change="onUpload"
-            />
-            <p v-if="uploading" class="text-sm text-grey-700">Bezig met uploaden…</p>
-            <p v-if="formData.documentFile" class="text-sm text-green-800">
-              Document gekoppeld: {{ formData.documentFile }}
-            </p>
-            <Alert v-if="uploadError" :closeable="true" @close="uploadError = null">
-              {{ uploadError }}
-            </Alert>
-            <p v-if="getStatus('documentFile') === 'error'" class="text-sm text-red-500">
-              {{ getError('documentFile') }}
-            </p>
-          </div>
-        </section>
-
-        <section>
-          <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-grey-700">
-            Notitie
-          </h4>
-          <Textarea v-model="formData.note" placeholder="Optionele notitie…" :rows="4" />
-        </section>
-
-        <div class="flex justify-end gap-2 border-t border-grey-200 pt-6">
-          <Button
-            lg
-            label="Opslaan en verder"
-            type="submit"
-            :disabled="saving || uploading"
+        <Panel caption="NOTITIE">
+          <Field
+            v-model="form.note"
+            kind="textarea"
+            :rows="4"
+            placeholder="Optionele notitie voor de beoordelaar…"
           />
-        </div>
-      </form>
-    </Card>
-  </MainWrapper>
+        </Panel>
+      </div>
+
+      <aside class="flex flex-col gap-4">
+        <Panel caption="BRONDOCUMENT">
+          <Dropzone
+            :file="attached"
+            :uploading="uploading"
+            :error="uploadError ?? errorFor('documentFile')"
+            @pick="onPick"
+            @remove="onRemove"
+            @reject="uploadError = $event"
+          />
+        </Panel>
+
+        <Callout tone="green" title="Hierna: panden" plain>
+          Zoek de panden waar het herstel is uitgevoerd; per pand leg je het hersteltype, de gevels
+          en de vergunning vast.
+        </Callout>
+      </aside>
+    </div>
+  </AppShell>
 </template>

@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
 
-import CloseBtn from '@/components/Common/Buttons/CloseBtn.vue'
 import { acquireModalLock } from '@/services/shortcuts'
 
 const props = withDefaults(
   defineProps<{
     title?: string
     closeable?: boolean
+    /** Wider sheet, for a document preview. */
+    wide?: boolean
   }>(),
-  {
-    title: '',
-    closeable: true,
-  },
+  { title: '', closeable: true, wide: false },
 )
 
 const emit = defineEmits(['close'])
@@ -41,21 +39,28 @@ function handleBackdrop() {
 
 <template>
   <div
-    class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/30 p-4"
+    class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/35 p-6 backdrop-blur-[2px]"
     @click.self="handleBackdrop"
   >
     <div
-      class="border-grey-200 relative w-full max-w-xl rounded-md border bg-white shadow-lg"
+      class="studio-fade w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-overlay"
+      :class="wide ? 'max-w-3xl' : 'max-w-lg'"
       role="dialog"
-      aria-describedby="dialog-label"
       aria-modal="true"
+      :aria-label="title || undefined"
     >
-      <header class="border-grey-200 flex items-center justify-between gap-3 border-b px-5 py-3">
-        <h4 v-if="title" id="dialog-label" class="text-grey-800 text-base font-semibold">
-          {{ title }}
-        </h4>
+      <header class="flex items-center gap-3 border-b border-divider px-5 py-3.5">
+        <h2 v-if="title" class="text-2xl font-display font-bold text-ink">{{ title }}</h2>
         <slot v-else name="header" />
-        <CloseBtn v-if="closeable" :small="true" @close="emit('close')" />
+        <button
+          v-if="closeable"
+          type="button"
+          class="ml-auto shrink-0 px-1 text-[18px] leading-none text-ghost hover:text-strong"
+          aria-label="Sluiten"
+          @click="emit('close')"
+        >
+          ×
+        </button>
       </header>
 
       <div class="space-y-4 px-5 py-4">
@@ -64,7 +69,7 @@ function handleBackdrop() {
 
       <footer
         v-if="$slots.footer"
-        class="border-grey-200 flex items-center justify-end gap-2 border-t px-5 py-3"
+        class="flex items-center justify-end gap-2 border-t border-divider px-5 py-3"
       >
         <slot name="footer" />
       </footer>

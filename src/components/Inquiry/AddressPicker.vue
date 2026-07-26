@@ -5,20 +5,27 @@ import { useDebounceFn } from '@vueuse/core'
 import api from '@/services/fundermaps'
 import type { IPDOKSuggestion } from '@/services/fundermaps/interfaces/IPDOKSuggestion'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
-import { getErrorMessage } from '@/services/fundermaps/errors'
+import { describeFailure } from '@/services/fundermaps/errors'
 
-const emit = defineEmits<{
-  pick: [address: IAddress]
-}>()
+/**
+ * Find a pand by address.
+ *
+ * Two hops, because PDOK and our geocoder speak different dialects: PDOK's
+ * suggest endpoint returns its own internal ids, which have to be resolved to a
+ * BAG NUMMERAANDUIDING before the geocoder will recognise them. Both hops
+ * happen on pick, so typing stays cheap.
+ */
+const emit = defineEmits<{ pick: [address: IAddress] }>()
 
 const query = ref('')
 const suggestions = ref<IPDOKSuggestion[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 const resolving = ref(false)
+const cursor = ref(0)
 
 const search = useDebounceFn(async (q: string) => {
-  if (!q.trim() || q.trim().length < 3) {
+  if (q.trim().length < 3) {
     suggestions.value = []
     return
   }
@@ -26,8 +33,9 @@ const search = useDebounceFn(async (q: string) => {
     loading.value = true
     error.value = null
     suggestions.value = await api.pdok.suggest(q)
+    cursor.value = 0
   } catch (e) {
-    error.value = getErrorMessage(e) ?? 'Adres ophalen mislukt.'
+    error.value = describeFailure(e, 'Adressen zoeken is niet gelukt.')
   } finally {
     loading.value = false
   }
@@ -35,53 +43,67 @@ const search = useDebounceFn(async (q: string) => {
 
 watch(query, (q) => search(q))
 
-async function pick(s: IPDOKSuggestion) {
-  if (resolving.value) return
+async function pick(suggestion: IPDOKSuggestion | undefined) {
+  if (!suggestion || resolving.value) return
   try {
     resolving.value = true
     error.value = null
-    // PDOK suggest returns its own internal id (e.g. `adr-...`); our geocoder
-    // only understands BAG NUMMERAANDUIDING/PAND ids. Look up the BAG id first.
-    const bagId = await api.pdok.lookupNummeraanduidingId(s.id)
+    const bagId = await api.pdok.lookupNummeraanduidingId(suggestion.id)
     if (!bagId) {
       error.value = 'Geen BAG-id gevonden voor dit adres.'
       return
     }
-    const resolved = await api.geocoder.getAddress(bagId)
-    emit('pick', resolved)
+    emit('pick', await api.geocoder.getAddress(bagId))
     query.value = ''
     suggestions.value = []
   } catch (e) {
-    error.value = getErrorMessage(e) ?? 'Adres niet gevonden.'
+    error.value = describeFailure(e, 'Dit adres kon niet worden opgezocht.')
   } finally {
     resolving.value = false
   }
 }
+
+function move(delta: number) {
+  if (!suggestions.value.length) return
+  cursor.value = Math.max(0, Math.min(suggestions.value.length - 1, cursor.value + delta))
+}
 </script>
 
 <template>
-  <div class="space-y-2">
-    <input
-      v-model="query"
-      type="text"
-      placeholder="Zoek adres (straat huisnummer, plaats)…"
-      class="w-full rounded border border-grey-400 p-2"
-      autocomplete="off"
-    />
-    <p v-if="loading" class="text-sm text-grey-700">Zoeken…</p>
-    <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
+  <div class="flex flex-col gap-2">
+    <div class="flex items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5">
+      <span aria-hidden="true" class="text-base text-faint">⌕</span>
+      <input
+        v-model="query"
+        type="text"
+        class="studio-control"
+        placeholder="Straat huisnummer, plaats"
+        autocomplete="off"
+        aria-label="Adres zoeken"
+        @keydown.down.prevent="move(1)"
+        @keydown.up.prevent="move(-1)"
+        @keydown.enter.prevent="pick(suggestions[cursor])"
+      />
+    </div>
 
-    <ul v-if="suggestions.length" class="divide-y divide-grey-200 rounded border border-grey-200">
+    <p v-if="resolving" class="text-sm text-muted">Adres opzoeken…</p>
+    <p v-else-if="loading" class="text-sm text-muted">Zoeken…</p>
+    <p v-if="error" class="text-sm text-red">{{ error }}</p>
+
+    <ul v-if="suggestions.length" class="overflow-hidden rounded-lg border border-line">
       <li
-        v-for="s in suggestions"
-        :key="s.id"
-        class="cursor-pointer px-3 py-2 text-sm hover:bg-grey-100"
-        @click="pick(s)"
+        v-for="(suggestion, i) in suggestions"
+        :key="suggestion.id"
+        class="text-md cursor-pointer border-b border-divider px-2.5 py-1.5 text-body last:border-b-0"
+        :class="i === cursor ? 'bg-blue-wash' : 'hover:bg-raised'"
+        @click="pick(suggestion)"
+        @mousemove="cursor = i"
       >
-        {{ s.weergavenaam }}
+        {{ suggestion.weergavenaam }}
       </li>
     </ul>
-    <p v-else-if="query.length >= 3 && !loading" class="text-sm text-grey-700">
+
+    <p v-else-if="query.trim().length >= 3 && !loading" class="text-sm text-muted">
       Geen suggesties.
     </p>
   </div>

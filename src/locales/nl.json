@@ -94,7 +94,8 @@
     "discardTitle": "Wijzigingen niet opslaan?",
     "discardBody": "De wijzigingen aan {address} zijn nog niet opgeslagen en gaan verloren.",
     "discardConfirm": "Niet opslaan",
-    "discardCancel": "Terug"
+    "discardCancel": "Terug",
+    "removeAddress": "Dit adres verwijderen"
   },
   "home": {
     "title": "Vandaag",

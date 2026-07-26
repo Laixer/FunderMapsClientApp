@@ -1,21 +1,24 @@
 import { ref } from 'vue'
 
+import { GOTO_ROUTES } from '@/services/navigation'
+
 /**
  * Keyboard shortcuts, declared once.
  *
  * Ad, Ton, Yorick and Don live in this app all day; reaching for the mouse to
- * change page or focus the search box is a tax paid hundreds of times. The
- * bindings below are the ones worth muscle memory — and because they are
- * declared rather than scattered through handlers, the help overlay is
- * generated from the same list that implements them, so it cannot drift.
+ * change page, focus the search box or approve a dossier is a tax paid hundreds
+ * of times. The bindings below are the ones worth muscle memory — and because
+ * they are declared rather than scattered through handlers, the sidebar
+ * cheatsheet, the help overlay and the command palette are all generated from
+ * the same list that implements them, so they cannot drift.
  *
- * Dutch mnemonics on purpose: the UI is Dutch, so `g r` is *rapportages* and
- * `g h` is *herstel*. Choosing `g r`/`g h` over English initials keeps the two
- * that sit next to each other in the sidebar distinct.
+ * Two conventions: `g` + a Dutch initial jumps somewhere (`g r` is
+ * *rapportages*, `g h` is *herstel*), and anything that writes takes a modifier
+ * or Shift (`⌘S` save, `⇧A` approve) so it can never fire from a stray keypress.
  */
 
 export interface Shortcut {
-  /** Rendered in the overlay; a space means "then", as in `g` then `v`. */
+  /** Rendered in the overlay; a space means "then", as in `g` then `w`. */
   keys: string
   label: string
 }
@@ -25,20 +28,47 @@ export interface ShortcutGroup {
   shortcuts: Shortcut[]
 }
 
-/** Route each `g` sequence jumps to. Also the source of the overlay's list. */
-export const GOTO_ROUTES: Record<string, { route: string; label: string }> = {
-  v: { route: 'home', label: 'Vandaag' },
-  r: { route: 'inquiry-list', label: 'Rapportages' },
-  h: { route: 'recovery-list', label: 'Herstel' },
+export { GOTO_ROUTES }
+
+/**
+ * Whether this machine uses ⌘ rather than Ctrl. Read once — a keyboard does
+ * not change mid-session, and the value is baked into rendered labels.
+ */
+export const IS_APPLE =
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform ?? '')
+
+/** The modifier this user is actually looking at on their own keyboard. */
+export const MOD = IS_APPLE ? '⌘' : 'Ctrl+'
+
+/**
+ * Render a binding for display.
+ *
+ * Bindings are written the Mac way everywhere in the code (`⌘S`, `⌘↵`) because
+ * one canonical spelling keeps the handler, the cheatsheet and the button hint
+ * in step. This is the one place that translates: a ⌘ on a keyboard that has no
+ * ⌘ key is a shortcut nobody tries.
+ */
+export function keyLabel(spec: string): string {
+  return spec.replace('⌘', MOD)
 }
+
+/** The three worth pinning to the sidebar. The rest live behind `?`. */
+export const SIDEBAR_HINTS: readonly Shortcut[] = [
+  { keys: 'J', label: 'Volgende dossier' },
+  { keys: '⇧A', label: 'Goedkeuren' },
+  { keys: keyLabel('⌘S'), label: 'Opslaan' },
+]
 
 export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
   {
     title: 'Navigatie',
-    shortcuts: Object.entries(GOTO_ROUTES).map(([key, { label }]) => ({
-      keys: `g ${key}`,
-      label,
-    })),
+    shortcuts: [
+      { keys: keyLabel('⌘K'), label: 'Zoeken of springen' },
+      ...Object.entries(GOTO_ROUTES).map(([key, { label }]) => ({
+        keys: `g ${key}`,
+        label,
+      })),
+    ],
   },
   {
     title: 'Lijst',
@@ -50,8 +80,19 @@ export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
     ],
   },
   {
-    title: 'Algemeen',
+    title: 'Dossier',
     shortcuts: [
+      { keys: '⇧E', label: 'Bewerken' },
+      { keys: '⇧S', label: 'Aanbieden ter review' },
+      { keys: '⇧A', label: 'Goedkeuren' },
+      { keys: '⇧R', label: 'Afkeuren' },
+    ],
+  },
+  {
+    title: 'Invoer',
+    shortcuts: [
+      { keys: keyLabel('⌘S'), label: 'Nu opslaan' },
+      { keys: keyLabel('⌘↵'), label: 'Volgende stap' },
       { keys: '?', label: 'Dit overzicht' },
       { keys: 'Esc', label: 'Sluiten of focus loslaten' },
     ],

@@ -1,78 +1,75 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, type Ref } from 'vue'
+import { computed, onBeforeMount, ref, watch, type Ref } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 
-import MainWrapper from '@/components/Layout/MainWrapper.vue'
-import Card from '@/components/Common/Card.vue'
+import AppShell from '@/components/Layout/AppShell.vue'
+import WizardHeader from '@/components/Layout/WizardHeader.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
-import Alert from '@/components/Common/Alert.vue'
+import EmptyState from '@/components/Common/EmptyState.vue'
+import MapPanel from '@/components/Common/MapPanel.vue'
 import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
+import BuildingContext from '@/components/Inquiry/BuildingContext.vue'
 import SampleForm from '@/components/Recovery/SampleForm.vue'
-import Spinner from '@/components/Common/Spinner.vue'
-import WizardSteps from '@/components/Common/WizardSteps.vue'
-import SampleMap, { type SamplePin } from '@/components/Mapbox/SampleMap.vue'
-import { RouterLink } from 'vue-router'
 
+import type { SamplePin } from '@/components/Mapbox/SampleMap.vue'
 import api from '@/services/fundermaps'
+import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
 import type {
   IRecoverySample,
   IRecoverySampleInput,
 } from '@/services/fundermaps/interfaces/IRecoverySample'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
+import { describeFailure } from '@/services/fundermaps/errors'
 import { confirmAction } from '@/services/confirm'
-import { getErrorMessage } from '@/services/fundermaps/errors'
+import { RECOVERY_TYPE_LABELS } from '@/services/recoveryEnums'
+import { toastError } from '@/services/toast'
 import { formatAddress } from '@/utils/address'
+import { formatTime } from '@/utils/date'
+import { keyLabel } from '@/services/shortcuts'
+import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { recoverySteps } from '@/services/wizard'
 import { useAddressStore } from '@/stores/address'
 
-const { t } = useI18n()
+/**
+ * Step 2 of the herstel wizard — the same three-pane editor as Invoer.
+ *
+ * "Adressen" on the inquiry side; panden here. A recovery sample keys on the
+ * BAG PAND id rather than on an address row, so the picker's resolved address
+ * is cached under `building_id` and the labels come from there.
+ */
 const route = useRoute()
 const router = useRouter()
-
-const recoveryId = computed(() => Number(route.params.id))
 const addressStore = useAddressStore()
 
+const recoveryId = computed(() => Number(route.params.id))
+
+const recovery: Ref<IRecovery | null> = ref(null)
 const samples: Ref<IRecoverySample[]> = ref([])
 const loading = ref(true)
 const saving = ref(false)
-const loadError: Ref<string | null> = ref(null)
-const actionError: Ref<string | null> = ref(null)
+const savedAt = ref<string | null>(null)
+const buildingSearch = ref('')
+const showPicker = ref(false)
 
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
 
-// Map markers — one per sample whose building has resolved coordinates.
-// Recovery samples key on the BAG PAND id; the geocoder /address/:id route
-// accepts that and returns the building's centroid lat/lng, so the pin
-// derivation mirrors the inquiry side. Samples whose building lacks a geom
-// just don't render a pin (the list + form still work).
-const mapPins = computed<SamplePin[]>(() => {
-  const out: SamplePin[] = []
-  for (const s of samples.value) {
-    const a = addressStore.cache[s.building]
-    if (a && a.latitude != null && a.longitude != null) {
-      out.push({ id: s.id, lat: a.latitude, lng: a.longitude })
-    }
-  }
-  return out
-})
-
-function handleMapSelect(id: string | number): void {
-  if (typeof id === 'number') selectSample(id)
-}
+const sampleForm = ref<{ flush: () => void } | null>(null)
 
 async function load() {
   try {
     loading.value = true
-    loadError.value = null
-    samples.value = await api.recoverySample.listAll(recoveryId.value)
-    // Cache labels keyed by building id (PAND).
-    await addressStore.ensureMany(samples.value.map((s) => s.building))
-    if (selectedId.value === null && samples.value.length > 0) {
-      selectedId.value = samples.value[0].id
-    }
+    const [r, s] = await Promise.all([
+      api.recovery.getById(recoveryId.value),
+      api.recoverySample.listAll(recoveryId.value),
+    ])
+    recovery.value = r
+    samples.value = s
+    // Cached by building id (PAND) — recovery samples have no address row.
+    await addressStore.ensureMany(s.map((sample) => sample.building))
+    if (selectedId.value === null && s.length) selectedId.value = s[0]!.id
   } catch (e) {
-    loadError.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'De panden konden niet worden opgehaald.'))
   } finally {
     loading.value = false
   }
@@ -80,29 +77,23 @@ async function load() {
 
 onBeforeMount(load)
 
-/** Handle on the open form, so we can ask whether it has unsaved edits. */
-const sampleForm = ref<{ isDirty: boolean } | null>(null)
+const buildingRows = computed(() =>
+  samples.value.map((sample) => ({
+    id: sample.id,
+    label: formatAddress(addressStore.cache[sample.building]),
+    type: RECOVERY_TYPE_LABELS[sample.type] ?? 'Onbekend',
+  })),
+)
 
-/**
- * Switching address discards whatever is typed — `SampleForm` re-clones from the
- * new sample. Ask before throwing the work away.
- */
-async function confirmLeavingCurrent(): Promise<boolean> {
-  if (!sampleForm.value?.isDirty) return true
-  return await confirmAction({
-    title: t('sample.discardTitle'),
-    body: t('sample.discardBody', {
-      address: formatAddress(addressStore.cache[selected.value?.building ?? '']),
-    }),
-    confirmLabel: t('sample.discardConfirm'),
-    cancelLabel: t('sample.discardCancel'),
-    danger: true,
-  })
-}
+const visibleBuildings = computed(() => {
+  const q = buildingSearch.value.trim().toLowerCase()
+  if (!q) return buildingRows.value
+  return buildingRows.value.filter((row) => row.label.toLowerCase().includes(q))
+})
 
-async function selectSample(id: number) {
+function selectSample(id: number) {
   if (id === selectedId.value) return
-  if (!(await confirmLeavingCurrent())) return
+  sampleForm.value?.flush()
   selectedId.value = id
 }
 
@@ -121,209 +112,244 @@ function emptyInput(buildingId: string): IRecoverySampleInput {
   }
 }
 
-function cloneInputFrom(s: IRecoverySample, buildingId: string): IRecoverySampleInput {
+function cloneInputFrom(source: IRecoverySample, buildingId: string): IRecoverySampleInput {
   return {
     address: buildingId,
-    note: s.note,
-    status: s.status,
-    type: s.type,
-    pileType: s.pileType,
-    facade: s.facade,
-    permit: s.permit,
-    permitDate: s.permitDate,
-    recoveryDate: s.recoveryDate,
-    contractor: s.contractor,
+    note: source.note,
+    status: source.status,
+    type: source.type,
+    pileType: source.pileType,
+    facade: source.facade,
+    permit: source.permit,
+    permitDate: source.permitDate,
+    recoveryDate: source.recoveryDate,
+    contractor: source.contractor,
   }
 }
 
 async function handlePick(address: IAddress) {
-  // Adding an address selects it, which swaps the form out just as surely as
-  // clicking one in the list.
-  if (!(await confirmLeavingCurrent())) return
+  sampleForm.value?.flush()
+  showPicker.value = false
   saving.value = true
-  actionError.value = null
-  // Cache the resolved address so the new sample renders with a label
-  // immediately. Recovery samples key on building id, not gfm id.
+  // Recovery samples key on building id, not the gfm address id.
   addressStore.cache[address.building_id] = address
   try {
     const payload = selected.value
       ? cloneInputFrom(selected.value, address.building_id)
       : emptyInput(address.building_id)
     const created = await api.recoverySample.create(recoveryId.value, payload)
-    samples.value.unshift(created)
+    samples.value = [created, ...samples.value]
     selectedId.value = created.id
   } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'Het pand kon niet worden toegevoegd.'))
   } finally {
     saving.value = false
   }
 }
 
+/** Optimistic, with a rollback to the server's copy when the write fails. */
 async function handleSave(data: IRecoverySampleInput) {
-  if (!selected.value) return
+  const target = selected.value
+  if (!target) return
+
+  const previous = { ...target }
+  const index = samples.value.findIndex((s) => s.id === target.id)
+  if (index >= 0) samples.value[index] = { ...target, ...data, building: target.building }
+
   saving.value = true
-  actionError.value = null
   try {
-    await api.recoverySample.update(recoveryId.value, selected.value.id, data)
-    const fresh = await api.recoverySample.getById(recoveryId.value, selected.value.id)
-    const idx = samples.value.findIndex((s) => s.id === fresh.id)
-    if (idx >= 0) samples.value[idx] = fresh
+    await api.recoverySample.update(recoveryId.value, target.id, data)
+    savedAt.value = new Date().toISOString()
   } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
+    if (index >= 0) samples.value[index] = previous
+    toastError(describeFailure(e, 'Opslaan van dit pand is niet gelukt.'))
   } finally {
     saving.value = false
   }
 }
 
 async function handleDelete() {
-  if (!selected.value) return
-  const label = formatAddress(addressStore.cache[selected.value.building])
+  const target = selected.value
+  if (!target) return
+  const label = formatAddress(addressStore.cache[target.building])
   const ok = await confirmAction({
-    title: `Adres verwijderen?`,
-    body: `${label} en alle ingevoerde waarnemingen voor dit adres verdwijnen. Dit kan niet ongedaan worden gemaakt.`,
+    title: 'Pand verwijderen?',
+    body: `${label} en alle vastgelegde herstel-gegevens voor dit pand verdwijnen. Dit kan niet ongedaan worden gemaakt.`,
     confirmLabel: 'Verwijderen',
     danger: true,
   })
   if (!ok) return
-  saving.value = true
-  actionError.value = null
+
   try {
-    await api.recoverySample.remove(recoveryId.value, selected.value.id)
-    const removedId = selected.value.id
-    samples.value = samples.value.filter((s) => s.id !== removedId)
+    await api.recoverySample.remove(recoveryId.value, target.id)
+    samples.value = samples.value.filter((s) => s.id !== target.id)
     selectedId.value = samples.value[0]?.id ?? null
   } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
-  } finally {
-    saving.value = false
+    toastError(describeFailure(e, 'Verwijderen is niet gelukt.'))
   }
 }
 
-/**
- * Leaving the wizard step abandons the open form just as switching address does
- * — "Vorige", "Volgende", the breadcrumb, and the browser's back button all land
- * here. Returning false keeps you where you are.
- */
-onBeforeRouteLeave(async () => await confirmLeavingCurrent())
+const pins = computed<SamplePin[]>(() => {
+  const sample = selected.value
+  if (!sample) return []
+  const address = addressStore.cache[sample.building]
+  return address?.latitude != null && address.longitude != null
+    ? [{ id: sample.id, lat: address.latitude, lng: address.longitude }]
+    : []
+})
+
+const headerStatus = computed(() => {
+  const parts = [`#${recoveryId.value}`]
+  if (saving.value) parts.push('opslaan…')
+  else if (savedAt.value) parts.push(`autosave ${formatTime(savedAt.value)}`)
+  else parts.push('autosave aan')
+  parts.push(`${keyLabel('⌘S')} om te forceren`)
+  return parts.join(' · ')
+})
+
+const steps = computed(() => recoverySteps(recoveryId.value))
+
+onBeforeRouteLeave(() => {
+  sampleForm.value?.flush()
+})
+
+function previous() {
+  router.push({ name: 'recovery-edit-1', params: { id: recoveryId.value } })
+}
 
 function next() {
   router.push({ name: 'recovery-edit-3', params: { id: recoveryId.value } })
 }
 
-function previous() {
-  router.push({ name: 'recovery-edit-1', params: { id: recoveryId.value } })
-}
+useActionShortcuts(() => ({ '⌘S': () => sampleForm.value?.flush(), '⌘↵': next }))
+
+watch(
+  () => loading.value,
+  (isLoading) => {
+    if (!isLoading && samples.value.length === 0) showPicker.value = true
+  },
+)
 </script>
 
 <template>
-  <MainWrapper>
-    <div class="mb-8 space-y-3">
-      <RouterLink
-        :to="{ name: 'recovery-list' }"
-        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
-      >
-        ← {{ t('recovery.view.back') }}
-      </RouterLink>
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 class="text-grey-800 text-2xl font-semibold">Adressen</h2>
-          <p class="text-grey-700 mt-0.5 text-sm">
-            Zoek adressen en vul per locatie de herstel-gegevens in.
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <Button lg outline label="Vorige" @click="previous" />
-          <Button lg label="Volgende" @click="next" />
-        </div>
-      </div>
-      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="2" />
-    </div>
-
-    <Alert v-if="loadError" :closeable="true" class="mb-3" @close="loadError = null">
-      {{ loadError }}
-    </Alert>
-    <Alert v-if="actionError" :closeable="true" class="mb-3" @close="actionError = null">
-      {{ actionError }}
-    </Alert>
-
-    <Card v-if="loading" class="flex justify-center py-8">
-      <Spinner />
-      <span v-if="false">{{ t('common.loading') }}</span>
-    </Card>
-
-    <!-- Layout: stacked on mobile, addresses+form at lg, addresses+form+map
-         at 2xl. The map is an optional spatial-context aid — show it only
-         when there's room for the middle col to stay comfortable (~512px
-         at the 2xl breakpoint, vs ~256px if we ran 3-col already at xl). -->
-    <div
-      v-else
-      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
+  <AppShell :crumb="recovery ? `Invoer · ${recovery.documentName}` : 'Invoer'" fill>
+    <WizardHeader
+      :title="recovery ? `Invoer · ${recovery.documentName}` : 'Invoer'"
+      :status="headerStatus"
+      :steps="steps"
+      :current="2"
     >
-      <Card class="!p-0">
-        <header class="border-grey-200 border-b px-4 py-3">
-          <h3 class="text-grey-800 text-sm font-semibold">Adressen ({{ samples.length }})</h3>
-          <p class="text-grey-700 mt-0.5 text-xs">
-            Zoek een adres en klik op een suggestie om toe te voegen.
-          </p>
-        </header>
+      <template #actions>
+        <span class="text-base text-muted">
+          {{ samples.length }} {{ samples.length === 1 ? 'pand' : 'panden' }}
+        </span>
+        <Button label="Vorige" @click="previous" />
+        <Button variant="primary" label="Volgende" shortcut="⌘↵" @click="next" />
+      </template>
+    </WizardHeader>
 
-        <div class="px-4 py-3">
-          <AddressPicker @pick="handlePick" />
+    <div
+      class="grid min-h-0 flex-1 grid-cols-[var(--spacing-addresses)_minmax(0,1fr)_var(--spacing-context)]"
+    >
+      <div class="flex min-h-0 flex-col overflow-y-auto border-r border-line bg-surface">
+        <div class="flex flex-col gap-2 border-b border-divider px-3.5 py-3">
+          <h2 class="studio-label">PANDEN ({{ samples.length }})</h2>
+          <div class="flex items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5">
+            <span aria-hidden="true" class="text-base text-faint">⌕</span>
+            <input
+              v-model="buildingSearch"
+              type="text"
+              class="studio-control"
+              placeholder="Zoek pand…"
+              aria-label="Zoek in de panden van dit dossier"
+            />
+          </div>
         </div>
 
-        <ul v-if="samples.length" class="divide-grey-200 border-grey-200 divide-y border-t">
-          <li
-            v-for="s in samples"
-            :key="s.id"
-            class="cursor-pointer px-4 py-2 text-sm transition-colors"
-            :class="
-              s.id === selectedId
-                ? 'bg-grey-100 text-grey-800 font-semibold'
-                : 'text-grey-800 hover:bg-grey-100'
-            "
-            @click="selectSample(s.id)"
-          >
-            {{ formatAddress(addressStore.cache[s.building]) }}
-          </li>
-        </ul>
-        <p v-else class="border-grey-200 text-grey-700 border-t px-4 py-3 text-sm">
-          Nog geen adressen. Begin hierboven met zoeken.
-        </p>
-      </Card>
-
-      <div>
-        <Card v-if="!selected" class="flex items-center justify-center py-12">
-          <p class="text-grey-700 text-sm">Selecteer een adres om te bewerken.</p>
-        </Card>
-        <SampleForm
-          ref="sampleForm"
-          v-else
-          :sample="selected"
-          :saving="saving"
-          @save="handleSave"
-          @delete="handleDelete"
-        />
-      </div>
-
-      <!-- Map column (2xl+ only). Plain bordered div, not <Card> — see #244. -->
-      <div class="hidden 2xl:sticky 2xl:top-4 2xl:block">
-        <div
-          class="border-grey-200 overflow-hidden rounded-md border bg-white 2xl:h-[calc(100vh-8rem)] 2xl:min-h-[480px]"
+        <button
+          v-for="building in visibleBuildings"
+          :key="building.id"
+          type="button"
+          class="flex flex-col gap-1 border-b border-canvas py-2.5 pr-3.5 pl-[11px] text-left"
+          :class="
+            building.id === selectedId
+              ? 'border-l-[3px] border-l-green bg-green-wash'
+              : 'border-l-[3px] border-l-transparent hover:bg-raised'
+          "
+          @click="selectSample(building.id)"
         >
-          <SampleMap
-            v-if="mapPins.length"
-            :pins="mapPins"
-            :selected-id="selectedId"
-            @select="handleMapSelect"
-          />
-          <div
-            v-else
-            class="text-grey-700 flex h-full items-center justify-center px-4 text-center text-xs"
+          <span class="text-md truncate font-semibold text-body">{{ building.label }}</span>
+          <span class="text-xs text-faint">{{ building.type }}</span>
+        </button>
+
+        <p v-if="!visibleBuildings.length && buildingSearch" class="text-md px-3.5 py-3 text-muted">
+          Geen pand gevonden voor “{{ buildingSearch }}”.
+        </p>
+
+        <div class="border-t border-divider px-3.5 py-3">
+          <button
+            v-if="!showPicker"
+            type="button"
+            class="text-md w-full rounded-lg border border-dashed border-line-strong bg-surface px-2.5 py-1.5 text-subtle hover:border-line-hover hover:text-strong"
+            @click="showPicker = true"
           >
-            Voeg een adres toe om de locatie op de kaart te zien.
+            + Pand toevoegen
+          </button>
+          <div v-else class="flex flex-col gap-2">
+            <AddressPicker @pick="handlePick" />
+            <button
+              type="button"
+              class="text-sm self-start text-subtle underline underline-offset-2"
+              @click="showPicker = false"
+            >
+              annuleren
+            </button>
           </div>
         </div>
       </div>
+
+      <div class="min-w-0 overflow-y-auto px-5 py-4.5">
+        <EmptyState v-if="loading">Panden ophalen…</EmptyState>
+
+        <SampleForm
+          v-else-if="selected"
+          ref="sampleForm"
+          :key="selected.id"
+          :sample="selected"
+          :saving="saving"
+          @save="handleSave"
+        />
+
+        <EmptyState v-else dashed>
+          Dit dossier heeft nog geen panden. Zoek er links één op om te beginnen.
+        </EmptyState>
+      </div>
+
+      <aside class="flex min-h-0 flex-col overflow-y-auto border-l border-line bg-surface">
+        <MapPanel
+          :pins="pins"
+          height="250px"
+          :selected-id="selectedId"
+          empty-message="Geen bekende locatie voor dit pand."
+        />
+
+        <div class="flex flex-col gap-4 p-4">
+          <div v-if="selected">
+            <h2 class="studio-label mb-2">BEKEND OP DIT PAND</h2>
+            <BuildingContext :building="selected.building" />
+          </div>
+
+          <div v-if="selected" class="border-t border-divider pt-3.5">
+            <button
+              type="button"
+              class="text-md font-semibold text-red hover:underline"
+              @click="handleDelete"
+            >
+              Dit pand verwijderen
+            </button>
+          </div>
+        </div>
+      </aside>
     </div>
-  </MainWrapper>
+  </AppShell>
 </template>

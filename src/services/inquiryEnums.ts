@@ -4,6 +4,8 @@
  * format) — see `~/Projects/FunderMapsApi/src/lib/inquiry-serializer.ts`.
  */
 
+import type { Tone } from '@/services/tone'
+
 /** Audit status codes per the inquiry state machine. */
 export const AUDIT_STATUS = {
   TODO: 0,
@@ -18,21 +20,26 @@ export type AuditStatus = (typeof AUDIT_STATUS)[keyof typeof AUDIT_STATUS]
 
 export interface StatusMeta {
   label: string
-  /** Tailwind classes for the status pill (bg + text). */
-  classes: string
+  /**
+   * Which of the studio's five voices this status speaks in — see
+   * `services/tone.ts`. A tone rather than a class string, so a pill, a nav
+   * dot, a KPI tile and a phase card can all render the same status without
+   * agreeing on a shape first.
+   */
+  tone: Tone
 }
 
 export const STATUS_META: Record<number, StatusMeta> = {
-  0: { label: 'Nog te beoordelen', classes: 'bg-grey-200 text-grey-800' },
-  1: { label: 'In bewerking', classes: 'bg-yellow-100 text-grey-800' },
-  2: { label: 'Afgerond', classes: 'bg-green-100 text-green-800' },
-  3: { label: 'Afgevallen', classes: 'bg-grey-200 text-grey-700' },
-  4: { label: 'Te controleren', classes: 'bg-blue-100 text-blue-900' },
-  5: { label: 'Afgekeurd', classes: 'bg-red-50 text-red-800' },
+  0: { label: 'Nog te beoordelen', tone: 'neutral' },
+  1: { label: 'In bewerking', tone: 'amber' },
+  2: { label: 'Afgerond', tone: 'green' },
+  3: { label: 'Afgevallen', tone: 'neutral' },
+  4: { label: 'Te controleren', tone: 'blue' },
+  5: { label: 'Afgekeurd', tone: 'red' },
 }
 
 export function statusMeta(status: number | null | undefined): StatusMeta {
-  return STATUS_META[status ?? -1] ?? { label: 'Onbekend', classes: 'bg-grey-200 text-grey-800' }
+  return STATUS_META[status ?? -1] ?? { label: 'Onbekend', tone: 'neutral' }
 }
 
 /** Inquiry type integer → Dutch label. From legacy `config/enums.js typeOptions`. */

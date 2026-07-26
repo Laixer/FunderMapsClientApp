@@ -4,7 +4,7 @@
  * format) — see `~/Projects/FunderMapsApi/src/lib/recovery-serializer.ts`.
  */
 
-import type { SelectOption } from '@/components/Common/Inputs/Select.vue'
+import type { SelectOption } from '@/services/options'
 
 export { AUDIT_STATUS, STATUS_META, statusMeta } from './inquiryEnums'
 export type { AuditStatus, StatusMeta } from './inquiryEnums'

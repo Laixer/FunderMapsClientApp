@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueList.vue'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import {
   SAMPLE_SECTIONS,
+  fullLabel,
   isSampleFieldFilled,
   type SampleFieldDef,
 } from '@/services/sampleFields'
 import { formatDate } from '@/utils/date'
 
+/**
+ * One address, read-only, with the empty fields left out.
+ *
+ * A reviewer wants to see what was observed, not to count the fifty things that
+ * were not. Sections with nothing in them disappear entirely, which turns a
+ * sixty-row table into the handful of lines that carry the finding.
+ */
 const props = defineProps<{ sample: IInquirySample }>()
 
 function display(field: SampleFieldDef): string {
@@ -29,30 +38,31 @@ function display(field: SampleFieldDef): string {
 const filledSections = computed(() =>
   SAMPLE_SECTIONS.map((section) => ({
     title: section.title,
-    fields: section.fields.filter((f) => isSampleFieldFilled(props.sample[f.key])),
-  })).filter((section) => section.fields.length > 0),
+    items: section.fields
+      .filter((field) => isSampleFieldFilled(props.sample[field.key]))
+      .map<KeyValueItem>((field) => ({
+        label: fullLabel(field),
+        value: display(field),
+        mono: field.kind === 'number' || field.kind === 'date',
+      })),
+  })).filter((section) => section.items.length > 0),
 )
 
 const isEmpty = computed(() => filledSections.value.length === 0 && !props.sample.note)
 </script>
 
 <template>
-  <p v-if="isEmpty" class="text-sm text-grey-700">Geen velden ingevuld.</p>
-  <div v-else class="space-y-5">
+  <p v-if="isEmpty" class="text-md text-muted">Geen velden ingevuld.</p>
+
+  <div v-else class="flex flex-col gap-4">
     <section v-for="section in filledSections" :key="section.title">
-      <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-grey-700">
-        {{ section.title }}
-      </h5>
-      <dl class="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-[minmax(16rem,22rem)_1fr]">
-        <template v-for="field in section.fields" :key="field.key">
-          <dt class="text-grey-700">{{ field.label }}</dt>
-          <dd class="text-grey-800">{{ display(field) }}</dd>
-        </template>
-      </dl>
+      <h4 class="studio-label mb-1.5">{{ section.title.toUpperCase() }}</h4>
+      <KeyValueList :items="section.items" ratio="40%" />
     </section>
+
     <section v-if="sample.note">
-      <h5 class="mb-2 text-xs font-semibold uppercase tracking-wide text-grey-700">Notitie</h5>
-      <p class="whitespace-pre-wrap text-sm text-grey-800">{{ sample.note }}</p>
+      <h4 class="studio-label mb-1.5">NOTITIE</h4>
+      <p class="text-md whitespace-pre-wrap text-body">{{ sample.note }}</p>
     </section>
   </div>
 </template>

@@ -1,86 +1,104 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, reactive, ref, type Ref } from 'vue'
+import { computed, onBeforeMount, reactive, ref, watch, type Ref } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import MainWrapper from '@/components/Layout/MainWrapper.vue'
-import Card from '@/components/Common/Card.vue'
+import AppShell from '@/components/Layout/AppShell.vue'
+import WizardHeader from '@/components/Layout/WizardHeader.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
-import Alert from '@/components/Common/Alert.vue'
+import Callout from '@/components/Common/Callout.vue'
+import EmptyState from '@/components/Common/EmptyState.vue'
+import MapPanel from '@/components/Common/MapPanel.vue'
+import ProgressBar from '@/components/Common/ProgressBar.vue'
 import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import BuildingContext from '@/components/Inquiry/BuildingContext.vue'
 import SampleForm from '@/components/Inquiry/SampleForm.vue'
-import Spinner from '@/components/Common/Spinner.vue'
-import WizardSteps from '@/components/Common/WizardSteps.vue'
-import SampleMap, { type SamplePin } from '@/components/Mapbox/SampleMap.vue'
-import { RouterLink } from 'vue-router'
 
+import type { SamplePin } from '@/components/Mapbox/SampleMap.vue'
 import api from '@/services/fundermaps'
+import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type {
   IInquirySample,
   IInquirySampleInput,
 } from '@/services/fundermaps/interfaces/IInquirySample'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
+import { describeFailure } from '@/services/fundermaps/errors'
 import { confirmAction } from '@/services/confirm'
-import { getErrorMessage } from '@/services/fundermaps/errors'
-import { formatAddress } from '@/utils/address'
-import { useAddressStore } from '@/stores/address'
 import { inheritedFrom, type SampleProvenance } from '@/services/sampleProvenance'
+import {
+  SAMPLE_FIELD_COUNT,
+  countFilledSampleFields,
+  sampleCompleteness,
+} from '@/services/sampleFields'
+import { findingsFor } from '@/services/sampleValidation'
+import { toastError } from '@/services/toast'
+import { formatAddress } from '@/utils/address'
+import { formatTime } from '@/utils/date'
+import { keyLabel } from '@/services/shortcuts'
+import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { inquirySteps } from '@/services/wizard'
+import { useAddressStore } from '@/stores/address'
 
-const { t } = useI18n()
+/**
+ * Invoer — the wizard's second step, rebuilt as a three-pane editor.
+ *
+ * Addresses on the left, the form in the middle, the building's context on the
+ * right. All three scroll independently under a header that never moves, so
+ * working through a terrace is one continuous motion instead of a page load per
+ * house.
+ *
+ * The right pane is the part that changes how the job feels. It holds what is
+ * already known about *this pand* — earlier QuickScans, a completed repair, an
+ * open terugmelding — and any cross-field findings, written as sentences. Both
+ * used to be things you found out later, from a reviewer.
+ *
+ * Saving is automatic and per-field (see `SampleForm`). Navigation flushes a
+ * pending write but never waits for it: nothing here should ever make someone
+ * sit and watch a spinner before they can look at the next address.
+ */
 const route = useRoute()
 const router = useRouter()
-
-const inquiryId = computed(() => Number(route.params.id))
+const { t } = useI18n()
 const addressStore = useAddressStore()
 
+const inquiryId = computed(() => Number(route.params.id))
+
+const inquiry: Ref<IInquiry | null> = ref(null)
 const samples: Ref<IInquirySample[]> = ref([])
 const loading = ref(true)
 const saving = ref(false)
-const loadError: Ref<string | null> = ref(null)
-const actionError: Ref<string | null> = ref(null)
+const savedAt = ref<string | null>(null)
+const addressSearch = ref('')
+const showPicker = ref(false)
 
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
 
+const sampleForm = ref<{ flush: () => void } | null>(null)
+
 /**
  * Per-sample record of which fields were prefilled from another address rather
  * than entered for this one. Held here rather than in the form so it survives
- * switching between addresses; it lives for the session only until phase 2
+ * switching between addresses; it lives for the session only, until phase 2
  * persists it on the sample.
  */
 const provenanceBySample = reactive<Record<number, SampleProvenance>>({})
 
-// Map markers — one per sample whose address has resolved coordinates.
-// `latitude` / `longitude` come back null from the geocoder when the
-// linked building has no geometry; those samples simply don't render a
-// pin (the list + form still work).
-const mapPins = computed<SamplePin[]>(() => {
-  const out: SamplePin[] = []
-  for (const s of samples.value) {
-    const a = addressStore.cache[s.address]
-    if (a && a.latitude != null && a.longitude != null) {
-      out.push({ id: s.id, lat: a.latitude, lng: a.longitude })
-    }
-  }
-  return out
-})
-
-function handleMapSelect(id: string | number): void {
-  if (typeof id === 'number') selectSample(id)
-}
+/* ------------------------------------------------------------------- load */
 
 async function load() {
   try {
     loading.value = true
-    loadError.value = null
-    samples.value = await api.inquirySample.listAll(inquiryId.value)
-    await addressStore.ensureMany(samples.value.map((s) => s.address))
-    if (selectedId.value === null && samples.value.length > 0) {
-      selectedId.value = samples.value[0].id
-    }
+    const [i, s] = await Promise.all([
+      api.inquiry.getById(inquiryId.value),
+      api.inquirySample.listAll(inquiryId.value),
+    ])
+    inquiry.value = i
+    samples.value = s
+    await addressStore.ensureMany(s.map((sample) => sample.address))
+    if (selectedId.value === null && s.length) selectedId.value = s[0]!.id
   } catch (e) {
-    loadError.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'De adressen konden niet worden opgehaald.'))
   } finally {
     loading.value = false
   }
@@ -88,104 +106,119 @@ async function load() {
 
 onBeforeMount(load)
 
-/** Handle on the open form, so we can ask whether it has unsaved edits. */
-const sampleForm = ref<{ isDirty: boolean } | null>(null)
+/* -------------------------------------------------------------- left pane */
+
+const addressRows = computed(() =>
+  samples.value.map((sample) => ({
+    id: sample.id,
+    label: formatAddress(addressStore.cache[sample.address]),
+    filled: countFilledSampleFields(sample),
+    ratio: sampleCompleteness(sample),
+  })),
+)
+
+const visibleAddresses = computed(() => {
+  const q = addressSearch.value.trim().toLowerCase()
+  if (!q) return addressRows.value
+  return addressRows.value.filter((row) => row.label.toLowerCase().includes(q))
+})
 
 /**
- * Switching address discards whatever is typed — `SampleForm` re-clones from the
- * new sample. That used to happen silently, which in a 61-field form across a
- * terrace of addresses is a real way to lose an afternoon. Ask first.
+ * Switching address flushes whatever is pending and moves on. It does not ask,
+ * because with autosave there is nothing to lose — which is the entire reason
+ * the "wijzigingen niet opslaan?" dialog is gone.
  */
-async function confirmLeavingCurrent(): Promise<boolean> {
-  if (!sampleForm.value?.isDirty) return true
-  return await confirmAction({
-    title: t('sample.discardTitle'),
-    body: t('sample.discardBody', {
-      address: formatAddress(addressStore.cache[selected.value?.address ?? '']),
-    }),
-    confirmLabel: t('sample.discardConfirm'),
-    cancelLabel: t('sample.discardCancel'),
-    danger: true,
-  })
-}
-
-async function selectSample(id: number) {
+function selectSample(id: number) {
   if (id === selectedId.value) return
-  if (!(await confirmLeavingCurrent())) return
+  sampleForm.value?.flush()
   selectedId.value = id
 }
 
+/* ------------------------------------------------------------------ writes */
+
+/**
+ * A sample with nothing filled in.
+ *
+ * Every nullable column is listed explicitly because create and update are full
+ * replacements: an omitted key is not "leave it alone", it is "no value", and
+ * the API validates the ones it expects to see. The list is spelled out rather
+ * than derived from `SAMPLE_SECTIONS` because it is the *wire* shape — it has
+ * to stay right even for a column the form has not started rendering yet.
+ */
+const BLANK_SAMPLE: Record<string, null> = Object.fromEntries(
+  [
+    'note',
+    'builtYear',
+    'substructure',
+    'cpt',
+    'monitoringWell',
+    'groundwaterLevelTemp',
+    'groundLevel',
+    'groundwaterLevelNet',
+    'foundationType',
+    'enforcementTerm',
+    'recoveryAdvised',
+    'damageCause',
+    'damageCharacteristics',
+    'constructionPile',
+    'woodType',
+    'woodEncroachment',
+    'constructionLevel',
+    'woodLevel',
+    'pileDiameterTop',
+    'pileDiameterBottom',
+    'pileHeadLevel',
+    'pileTipLevel',
+    'foundationDepth',
+    'masonLevel',
+    'concreteChargerLength',
+    'pileDistanceLength',
+    'woodPenetrationDepth',
+    'overallQuality',
+    'woodQuality',
+    'constructionQuality',
+    'woodCapacityHorizontalQuality',
+    'pileWoodCapacityVerticalQuality',
+    'carryingCapacityQuality',
+    'masonQuality',
+    'woodQualityNecessity',
+    'crackIndoorRestored',
+    'crackIndoorType',
+    'crackIndoorSize',
+    'crackFacadeFrontRestored',
+    'crackFacadeFrontType',
+    'crackFacadeFrontSize',
+    'crackFacadeBackRestored',
+    'crackFacadeBackType',
+    'crackFacadeBackSize',
+    'crackFacadeLeftRestored',
+    'crackFacadeLeftType',
+    'crackFacadeLeftSize',
+    'crackFacadeRightRestored',
+    'crackFacadeRightType',
+    'crackFacadeRightSize',
+    'deformedFacade',
+    'thresholdUpdownSkewed',
+    'thresholdFrontLevel',
+    'thresholdBackLevel',
+    'skewedParallel',
+    'skewedParallelFacade',
+    'skewedPerpendicular',
+    'skewedPerpendicularFacade',
+    'settlementSpeed',
+    'skewedWindowFrame',
+    'facadeScanRisk',
+  ].map((key) => [key, null]),
+)
+
 function emptyInput(addressId: string): IInquirySampleInput {
-  return {
-    address: addressId,
-    note: null,
-    builtYear: null,
-    substructure: null,
-    cpt: null,
-    monitoringWell: null,
-    groundwaterLevelTemp: null,
-    groundLevel: null,
-    groundwaterLevelNet: null,
-    foundationType: null,
-    enforcementTerm: null,
-    recoveryAdvised: null,
-    damageCause: null,
-    damageCharacteristics: null,
-    constructionPile: null,
-    woodType: null,
-    woodEncroachment: null,
-    constructionLevel: null,
-    woodLevel: null,
-    pileDiameterTop: null,
-    pileDiameterBottom: null,
-    pileHeadLevel: null,
-    pileTipLevel: null,
-    foundationDepth: null,
-    masonLevel: null,
-    concreteChargerLength: null,
-    pileDistanceLength: null,
-    woodPenetrationDepth: null,
-    overallQuality: null,
-    woodQuality: null,
-    constructionQuality: null,
-    woodCapacityHorizontalQuality: null,
-    pileWoodCapacityVerticalQuality: null,
-    carryingCapacityQuality: null,
-    masonQuality: null,
-    woodQualityNecessity: null,
-    crackIndoorRestored: null,
-    crackIndoorType: null,
-    crackIndoorSize: null,
-    crackFacadeFrontRestored: null,
-    crackFacadeFrontType: null,
-    crackFacadeFrontSize: null,
-    crackFacadeBackRestored: null,
-    crackFacadeBackType: null,
-    crackFacadeBackSize: null,
-    crackFacadeLeftRestored: null,
-    crackFacadeLeftType: null,
-    crackFacadeLeftSize: null,
-    crackFacadeRightRestored: null,
-    crackFacadeRightType: null,
-    crackFacadeRightSize: null,
-    deformedFacade: null,
-    thresholdUpdownSkewed: null,
-    thresholdFrontLevel: null,
-    thresholdBackLevel: null,
-    skewedParallel: null,
-    skewedParallelFacade: null,
-    skewedPerpendicular: null,
-    skewedPerpendicularFacade: null,
-    settlementSpeed: null,
-    skewedWindowFrame: null,
-    facadeScanRisk: null,
-  }
+  return { ...BLANK_SAMPLE, address: addressId } as unknown as IInquirySampleInput
 }
 
-function cloneInputFrom(s: IInquirySample, addressId: string): IInquirySampleInput {
-  const { id, inquiry, building, createDate, updateDate, deleteDate, ...rest } = s
+function cloneInputFrom(source: IInquirySample, addressId: string): IInquirySampleInput {
+  const { id, inquiry: _inquiry, building, createDate, updateDate, deleteDate, ...rest } = source
   void id
-  void inquiry
+  void _inquiry
   void building
   void createDate
   void updateDate
@@ -194,215 +227,298 @@ function cloneInputFrom(s: IInquirySample, addressId: string): IInquirySampleInp
 }
 
 async function handlePick(address: IAddress) {
-  // Adding an address selects it, which swaps the form out just as surely as
-  // clicking one in the list.
-  if (!(await confirmLeavingCurrent())) return
+  sampleForm.value?.flush()
+  showPicker.value = false
   saving.value = true
-  actionError.value = null
-  // Cache the resolved address right away so the new sample renders with
-  // a human-readable label as soon as it shows up in the list.
+
+  // Cache the resolved address right away so the new sample renders with a
+  // human-readable label as soon as it shows up in the list.
   addressStore.cache[address.id] = address
+
   try {
-    // Prefill from the currently-selected sample so users don't re-type
-    // shared fields when adding multiple addresses to one inquiry.
+    // Prefill from the currently-selected sample so nobody re-types the shared
+    // fields across a terrace of near-identical houses.
     const source = selected.value
     const payload = source ? cloneInputFrom(source, address.id) : emptyInput(address.id)
     const created = await api.inquirySample.create(inquiryId.value, payload)
-    // Record what the prefill carried across, so the form can show which
-    // values describe this address and which merely rode along.
+    // Record what the prefill carried across, so the form can show which values
+    // describe this address and which merely rode along.
     if (source) {
       provenanceBySample[created.id] = inheritedFrom(payload, {
         id: source.id,
         address: formatAddress(addressStore.cache[source.address]),
       })
     }
-    samples.value.unshift(created)
+    samples.value = [created, ...samples.value]
     selectedId.value = created.id
   } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
-  } finally {
-    saving.value = false
-  }
-}
-
-async function handleSave(data: IInquirySampleInput) {
-  if (!selected.value) return
-  saving.value = true
-  actionError.value = null
-  try {
-    await api.inquirySample.update(inquiryId.value, selected.value.id, data)
-    const fresh = await api.inquirySample.getById(inquiryId.value, selected.value.id)
-    const idx = samples.value.findIndex((s) => s.id === fresh.id)
-    if (idx >= 0) samples.value[idx] = fresh
-  } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
-  } finally {
-    saving.value = false
-  }
-}
-
-async function handleDelete() {
-  if (!selected.value) return
-  const label = formatAddress(addressStore.cache[selected.value.address])
-  const ok = await confirmAction({
-    title: `Adres verwijderen?`,
-    body: `${label} en alle ingevoerde waarnemingen voor dit adres verdwijnen. Dit kan niet ongedaan worden gemaakt.`,
-    confirmLabel: 'Verwijderen',
-    danger: true,
-  })
-  if (!ok) return
-  saving.value = true
-  actionError.value = null
-  try {
-    await api.inquirySample.remove(inquiryId.value, selected.value.id)
-    const removedId = selected.value.id
-    delete provenanceBySample[removedId]
-    samples.value = samples.value.filter((s) => s.id !== removedId)
-    selectedId.value = samples.value[0]?.id ?? null
-  } catch (e) {
-    actionError.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'Het adres kon niet worden toegevoegd.'))
   } finally {
     saving.value = false
   }
 }
 
 /**
- * Leaving the wizard step abandons the open form just as switching address does
- * — "Vorige", "Volgende", the breadcrumb, and the browser's back button all land
- * here. Returning false keeps you where you are.
+ * Optimistic: the edited values go into the list immediately so the completeness
+ * counts move as you type, and are rolled back to the server's copy if the
+ * write fails.
  */
-onBeforeRouteLeave(async () => await confirmLeavingCurrent())
+async function handleSave(data: IInquirySampleInput) {
+  const target = selected.value
+  if (!target) return
+
+  const previous = { ...target }
+  const index = samples.value.findIndex((s) => s.id === target.id)
+  if (index >= 0) samples.value[index] = { ...target, ...data }
+
+  saving.value = true
+  try {
+    await api.inquirySample.update(inquiryId.value, target.id, data)
+    savedAt.value = new Date().toISOString()
+  } catch (e) {
+    if (index >= 0) samples.value[index] = previous
+    toastError(describeFailure(e, 'Opslaan van dit adres is niet gelukt.'))
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleDelete() {
+  const target = selected.value
+  if (!target) return
+  const label = formatAddress(addressStore.cache[target.address])
+  const ok = await confirmAction({
+    title: 'Adres verwijderen?',
+    body: `${label} en alle ingevoerde waarnemingen voor dit adres verdwijnen. Dit kan niet ongedaan worden gemaakt.`,
+    confirmLabel: 'Verwijderen',
+    danger: true,
+  })
+  if (!ok) return
+
+  try {
+    await api.inquirySample.remove(inquiryId.value, target.id)
+    delete provenanceBySample[target.id]
+    samples.value = samples.value.filter((s) => s.id !== target.id)
+    selectedId.value = samples.value[0]?.id ?? null
+  } catch (e) {
+    toastError(describeFailure(e, 'Verwijderen is niet gelukt.'))
+  }
+}
+
+/* ------------------------------------------------------------- right pane */
+
+const findings = computed(() => (selected.value ? findingsFor(selected.value) : []))
+
+const pins = computed<SamplePin[]>(() => {
+  const sample = selected.value
+  if (!sample) return []
+  const address = addressStore.cache[sample.address]
+  // Coordinates come back null when the linked building has no geometry.
+  return address?.latitude != null && address.longitude != null
+    ? [{ id: sample.id, lat: address.latitude, lng: address.longitude }]
+    : []
+})
+
+/* ----------------------------------------------------------------- header */
+
+const totals = computed(() => ({
+  filled: samples.value.reduce((n, s) => n + countFilledSampleFields(s), 0),
+  possible: samples.value.length * SAMPLE_FIELD_COUNT,
+}))
+
+const headerStatus = computed(() => {
+  const parts = [`#${inquiryId.value}`]
+  if (saving.value) parts.push('opslaan…')
+  else if (savedAt.value) parts.push(`autosave ${formatTime(savedAt.value)}`)
+  else parts.push('autosave aan')
+  parts.push(`${keyLabel('⌘S')} om te forceren`)
+  return parts.join(' · ')
+})
+
+const steps = computed(() => inquirySteps(inquiryId.value))
+
+// Leaving flushes what is pending, then goes. It does not wait for the request:
+// a save in flight will land whether or not this view is still mounted.
+onBeforeRouteLeave(() => {
+  sampleForm.value?.flush()
+})
+
+function previous() {
+  router.push({ name: 'inquiry-edit-1', params: { id: inquiryId.value } })
+}
 
 function next() {
   router.push({ name: 'inquiry-edit-3', params: { id: inquiryId.value } })
 }
 
-function previous() {
-  router.push({ name: 'inquiry-edit-1', params: { id: inquiryId.value } })
-}
+useActionShortcuts(() => ({
+  '⌘S': () => sampleForm.value?.flush(),
+  '⌘↵': next,
+}))
+
+// A dossier with no addresses opens straight into the picker: there is nothing
+// else to do on this screen, and hiding the only action behind a button would
+// just be a click.
+watch(
+  () => loading.value,
+  (isLoading) => {
+    if (!isLoading && samples.value.length === 0) showPicker.value = true
+  },
+)
 </script>
 
 <template>
-  <MainWrapper>
-    <div class="mb-8 space-y-3">
-      <RouterLink
-        :to="{ name: 'inquiry-list' }"
-        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
-      >
-        ← {{ t('inquiry.view.back') }}
-      </RouterLink>
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 class="text-grey-800 text-2xl font-semibold">Adressen</h2>
-          <p class="text-grey-700 mt-0.5 text-sm">
-            Zoek adressen en vul per locatie de bevindingen in.
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <Button lg outline label="Vorige" @click="previous" />
-          <Button lg label="Volgende" @click="next" />
-        </div>
-      </div>
-      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="2" />
-    </div>
-
-    <Alert v-if="loadError" :closeable="true" class="mb-3" @close="loadError = null">
-      {{ loadError }}
-    </Alert>
-    <Alert v-if="actionError" :closeable="true" class="mb-3" @close="actionError = null">
-      {{ actionError }}
-    </Alert>
-
-    <Card v-if="loading" class="flex justify-center py-8">
-      <Spinner />
-      <span v-if="false">{{ t('common.loading') }}</span>
-    </Card>
-
-    <!-- Layout: stacked on mobile, addresses+form at lg, addresses+form+map
-         at 2xl. The map is an optional spatial-context aid — show it only
-         when there's room for the middle col to stay comfortable (~512px
-         at the 2xl breakpoint, vs ~256px if we ran 3-col already at xl). -->
-    <div
-      v-else
-      class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[26rem_minmax(0,1fr)] 2xl:grid-cols-[26rem_minmax(0,1fr)_32rem]"
+  <AppShell :crumb="inquiry ? `Invoer · ${inquiry.documentName}` : 'Invoer'" fill>
+    <WizardHeader
+      :title="inquiry ? `Invoer · ${inquiry.documentName}` : 'Invoer'"
+      :status="headerStatus"
+      :steps="steps"
+      :current="2"
     >
-      <Card class="!p-0">
-        <header class="border-grey-200 border-b px-4 py-3">
-          <h3 class="text-grey-800 text-sm font-semibold">Adressen ({{ samples.length }})</h3>
-          <p class="text-grey-700 mt-0.5 text-xs">
-            Zoek een adres en klik op een suggestie om toe te voegen.
-          </p>
-        </header>
+      <template #actions>
+        <span class="text-base text-muted">
+          {{ totals.filled }} / {{ totals.possible }} velden
+        </span>
+        <Button label="Vorige" @click="previous" />
+        <Button variant="primary" label="Volgende" shortcut="⌘↵" @click="next" />
+      </template>
+    </WizardHeader>
 
-        <div class="px-4 py-3">
-          <AddressPicker @pick="handlePick" />
+    <div
+      class="grid min-h-0 flex-1 grid-cols-[var(--spacing-addresses)_minmax(0,1fr)_var(--spacing-context)]"
+    >
+      <!-- Left: the addresses in this dossier -->
+      <div class="flex min-h-0 flex-col overflow-y-auto border-r border-line bg-surface">
+        <div class="flex flex-col gap-2 border-b border-divider px-3.5 py-3">
+          <h2 class="studio-label">ADRESSEN ({{ samples.length }})</h2>
+          <div class="flex items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5">
+            <span aria-hidden="true" class="text-base text-faint">⌕</span>
+            <input
+              v-model="addressSearch"
+              type="text"
+              class="studio-control"
+              placeholder="Zoek adres…"
+              aria-label="Zoek in de adressen van dit dossier"
+            />
+          </div>
         </div>
 
-        <ul v-if="samples.length" class="divide-grey-200 border-grey-200 divide-y border-t">
-          <li
-            v-for="s in samples"
-            :key="s.id"
-            class="cursor-pointer px-4 py-2 text-sm transition-colors"
-            :class="
-              s.id === selectedId
-                ? 'bg-grey-100 text-grey-800 font-semibold'
-                : 'text-grey-800 hover:bg-grey-100'
-            "
-            @click="selectSample(s.id)"
-          >
-            {{ formatAddress(addressStore.cache[s.address]) }}
-          </li>
-        </ul>
-        <p v-else class="border-grey-200 text-grey-700 border-t px-4 py-3 text-sm">
-          Nog geen adressen. Begin hierboven met zoeken.
-        </p>
-      </Card>
-
-      <div>
-        <Card v-if="!selected" class="flex items-center justify-center py-12">
-          <p class="text-grey-700 text-sm">Selecteer een adres om te bewerken.</p>
-        </Card>
-        <template v-else>
-          <!-- What's already known about this building (issue #263, item 3) —
-               spot double or conflicting work before filling in the form. -->
-          <BuildingContext
-            :building="selected.building"
-            :exclude-inquiry="inquiryId"
-            class="mb-4"
-          />
-          <SampleForm
-            ref="sampleForm"
-            v-model:provenance="provenanceBySample[selected.id]"
-            :sample="selected"
-            :saving="saving"
-            @save="handleSave"
-            @delete="handleDelete"
-          />
-        </template>
-      </div>
-
-      <!-- Map column (2xl+ only). Sticky so the operator keeps a spatial
-           reference while scrolling the sample form. Plain bordered div,
-           not <Card> — Card's body has auto height and would collapse
-           SampleMap's h-full to zero (#244). -->
-      <div class="hidden 2xl:sticky 2xl:top-4 2xl:block">
-        <div
-          class="border-grey-200 overflow-hidden rounded-md border bg-white 2xl:h-[calc(100vh-8rem)] 2xl:min-h-[480px]"
+        <button
+          v-for="address in visibleAddresses"
+          :key="address.id"
+          type="button"
+          class="flex flex-col gap-1.5 border-b border-canvas px-3.5 py-2.5 text-left"
+          :class="
+            address.id === selectedId
+              ? 'border-l-[3px] border-l-green bg-green-wash pl-[11px]'
+              : 'border-l-[3px] border-l-transparent pl-[11px] hover:bg-raised'
+          "
+          @click="selectSample(address.id)"
         >
-          <SampleMap
-            v-if="mapPins.length"
-            :pins="mapPins"
-            :selected-id="selectedId"
-            @select="handleMapSelect"
-          />
-          <div
-            v-else
-            class="text-grey-700 flex h-full items-center justify-center px-4 text-center text-xs"
+          <span class="text-md truncate font-semibold text-body">{{ address.label }}</span>
+          <span
+            class="text-xs font-mono"
+            :class="address.filled ? 'text-green-ink' : 'text-red'"
           >
-            Voeg een adres toe om de locatie op de kaart te zien.
+            {{ address.filled }} velden
+          </span>
+          <ProgressBar
+            :value="address.ratio"
+            :tone="address.filled ? 'green' : 'red'"
+            :label="address.label"
+          />
+        </button>
+
+        <p
+          v-if="!visibleAddresses.length && addressSearch"
+          class="text-md px-3.5 py-3 text-muted"
+        >
+          Geen adres gevonden voor “{{ addressSearch }}”.
+        </p>
+
+        <div class="border-t border-divider px-3.5 py-3">
+          <button
+            v-if="!showPicker"
+            type="button"
+            class="text-md w-full rounded-lg border border-dashed border-line-strong bg-surface px-2.5 py-1.5 text-subtle hover:border-line-hover hover:text-strong"
+            @click="showPicker = true"
+          >
+            + Adres toevoegen
+          </button>
+          <div v-else class="flex flex-col gap-2">
+            <AddressPicker @pick="handlePick" />
+            <button
+              type="button"
+              class="text-sm self-start text-subtle underline underline-offset-2"
+              @click="showPicker = false"
+            >
+              annuleren
+            </button>
           </div>
         </div>
       </div>
+
+      <!-- Centre: the form for the selected address -->
+      <div class="min-w-0 overflow-y-auto px-5 py-4.5">
+        <template v-if="loading">
+          <EmptyState>Adressen ophalen…</EmptyState>
+        </template>
+
+        <SampleForm
+          v-else-if="selected"
+          ref="sampleForm"
+          :key="selected.id"
+          v-model:provenance="provenanceBySample[selected.id]"
+          :sample="selected"
+          :findings="findings"
+          :saving="saving"
+          @save="handleSave"
+        />
+
+        <EmptyState v-else dashed>
+          Dit dossier heeft nog geen adressen. Zoek er links één op om te beginnen.
+        </EmptyState>
+      </div>
+
+      <!-- Right: where this pand is, and what is already known about it -->
+      <aside class="flex min-h-0 flex-col overflow-y-auto border-l border-line bg-surface">
+        <MapPanel
+          :pins="pins"
+          height="250px"
+          :selected-id="selectedId"
+          empty-message="Geen bekende locatie voor dit adres."
+        />
+
+        <div class="flex flex-col gap-4 p-4">
+          <div v-if="selected">
+            <h2 class="studio-label mb-2">BEKEND OP DIT PAND</h2>
+            <BuildingContext :building="selected.building" :exclude-inquiry="inquiryId" />
+          </div>
+
+          <!-- Cross-field findings, as sentences. Never blocking: the
+               Netherlands has genuinely strange buildings in it, and a tool
+               that refuses to record what the report says is a tool people
+               work around. -->
+          <Callout
+            v-for="finding in findings"
+            :key="finding.id"
+            tone="amber"
+            title="Controleer dit"
+          >
+            {{ finding.message }}
+          </Callout>
+
+          <div v-if="selected" class="border-t border-divider pt-3.5">
+            <button
+              type="button"
+              class="text-md font-semibold text-red hover:underline"
+              @click="handleDelete"
+            >
+              {{ t('sample.removeAddress') }}
+            </button>
+          </div>
+        </div>
+      </aside>
     </div>
-  </MainWrapper>
+  </AppShell>
 </template>

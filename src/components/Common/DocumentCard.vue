@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 
 import Icon from '@/components/Common/Icon.vue'
 import Modal from '@/components/Common/Modal.vue'
-import Spinner from '@/components/Common/Spinner.vue'
+import Panel from '@/components/Common/Panel.vue'
 import {
   displayFilename,
   extensionOf,
@@ -33,6 +33,7 @@ const showFullSize = ref(false)
 const previewFailed = ref(false)
 
 const label = computed(() => displayFilename(props.file))
+
 const meta = computed(() => {
   const parts: string[] = []
   const ext = extensionOf(props.file)
@@ -55,47 +56,44 @@ function open() {
 </script>
 
 <template>
-  <div class="border-grey-200 rounded-md border bg-white p-4">
-    <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">Brondocument</h4>
+  <Panel caption="BRONDOCUMENT">
+    <p v-if="loading" class="text-md text-muted">Laden…</p>
 
-    <p v-if="loading" class="text-grey-700 flex items-center gap-2 text-sm">
-      <Spinner />
-    </p>
-
-    <p v-else-if="!file" class="text-grey-700 text-sm">Het document kon niet worden opgehaald.</p>
+    <p v-else-if="!file" class="text-md text-muted">Het document kon niet worden opgehaald.</p>
 
     <button
       v-else
       type="button"
-      class="hover:bg-grey-100 group -m-2 flex w-full items-center gap-3 rounded p-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500"
+      class="group flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-left hover:border-line-hover hover:bg-raised"
       @click="open"
     >
-      <!-- Thumbnail for images, glyph for everything else. -->
+      <!-- Thumbnail for images, striped placeholder for everything else — the
+           stripe reads as "a page" without pretending to be one. -->
       <img
         v-if="showThumbnail"
         :src="file.accessLink"
         :alt="label"
-        class="border-grey-200 h-12 w-12 shrink-0 rounded border object-cover"
+        class="h-[42px] w-[34px] shrink-0 rounded-sm border border-line object-cover"
         loading="lazy"
         @error="previewFailed = true"
       />
       <span
         v-else
-        class="bg-grey-100 text-grey-700 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded"
+        class="inline-flex h-[42px] w-[34px] shrink-0 items-center justify-center rounded-sm border border-line bg-canvas text-faint"
       >
-        <Icon :name="fileIcon(file)" size="md" />
+        <Icon :name="fileIcon(file)" size="sm" />
       </span>
 
       <span class="min-w-0 flex-1">
         <!-- The storage GUID lives in the tooltip: useless as a label, but the
              only way to find the object in Spaces when something is wrong. -->
         <span
-          class="text-grey-800 block truncate text-sm font-medium group-hover:text-green-700"
+          class="text-lg block truncate font-semibold text-body group-hover:text-green-ink"
           :title="file.storageName"
         >
           {{ label }}
         </span>
-        <span class="text-grey-700 block text-xs">
+        <span class="text-xs block font-mono text-faint">
           {{ meta || 'onbekend formaat' }}
           <!-- Only 22% of inquiries carry a file_resources row, so say plainly
                that the name is missing rather than implying the file is odd. -->
@@ -103,25 +101,23 @@ function open() {
         </span>
       </span>
 
-      <Icon
-        :name="showThumbnail ? 'eye' : 'arrowRight'"
-        size="sm"
-        class="text-grey-400 shrink-0 group-hover:text-green-700"
-      />
+      <span aria-hidden="true" class="shrink-0 text-faint group-hover:text-green-ink">
+        {{ showThumbnail ? '⤢' : '→' }}
+      </span>
     </button>
 
-    <Modal v-if="showFullSize" :title="label" @close="showFullSize = false">
-      <img :src="file!.accessLink" :alt="label" class="mx-auto max-h-[70vh] w-auto rounded" />
+    <Modal v-if="showFullSize" :title="label" wide @close="showFullSize = false">
+      <img :src="file!.accessLink" :alt="label" class="mx-auto max-h-[70vh] w-auto rounded-xl" />
       <template #footer>
         <a
           :href="file!.accessLink"
           target="_blank"
           rel="noopener"
-          class="text-sm font-medium text-green-700 underline underline-offset-2"
+          class="text-md font-semibold text-green-ink underline underline-offset-2"
         >
           Downloaden
         </a>
       </template>
     </Modal>
-  </div>
+  </Panel>
 </template>

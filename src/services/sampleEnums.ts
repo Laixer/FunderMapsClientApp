@@ -4,7 +4,7 @@
  * TS API serializer's enumToInt mapping).
  */
 
-import type { SelectOption } from '@/components/Common/Inputs/Select.vue'
+import type { SelectOption } from '@/services/options'
 
 export const SUBSTRUCTURE_OPTIONS: SelectOption[] = [
   { value: 0, label: 'Kelder' },

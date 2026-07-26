@@ -10,9 +10,11 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { GOTO_ROUTES, isModalOpen, isTypingTarget, SEQUENCE_TIMEOUT_MS } from '@/services/shortcuts'
+import { useStudioStore } from '@/stores/studio'
 
 export function useGlobalShortcuts() {
   const router = useRouter()
+  const studio = useStudioStore()
   const showShortcuts = ref(false)
 
   /** Set while a `g` is armed, cleared on use or on timeout. */
@@ -34,10 +36,10 @@ export function useGlobalShortcuts() {
   }
 
   /**
-   * Focus the page's search box, if it has one. Located by id rather than by a
-   * store or a ref chain: the list views already give theirs a stable id, and a
-   * shortcut that silently does nothing on a page without search is the correct
-   * behaviour anyway.
+   * Focus the page's search box, if it has one. Located by type rather than
+   * through a store or a ref chain: the list views render exactly one
+   * `type="search"`, and a shortcut that silently does nothing on a page
+   * without search is the correct behaviour anyway.
    */
   function focusSearch(): boolean {
     const el = document.querySelector<HTMLInputElement>('input[type="search"]')
@@ -48,8 +50,22 @@ export function useGlobalShortcuts() {
   }
 
   function onKeydown(event: KeyboardEvent) {
-    // Never steal a keystroke from a text field, and never from a shortcut that
-    // belongs to the browser or the OS.
+    // ⌘K is the one binding that works everywhere, including from inside a text
+    // field and with a dialog up — it is how you get out of wherever you are,
+    // so it is checked before every other rule.
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault()
+      studio.togglePalette()
+      return
+    }
+
+    if (event.key === 'Escape' && studio.paletteOpen) {
+      event.preventDefault()
+      studio.closePalette()
+      return
+    }
+
+    // Never steal a keystroke that belongs to the browser or the OS.
     if (event.metaKey || event.ctrlKey || event.altKey) return
 
     // A dialog owns the keyboard while it is up. Escape still gets through, so

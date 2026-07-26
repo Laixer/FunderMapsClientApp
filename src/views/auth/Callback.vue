@@ -3,7 +3,6 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import Spinner from '@/components/Common/Spinner.vue'
 import { exchangeCode, logoutRedirect } from '@/services/oidc'
 import { useSessionStore } from '@/stores/session'
 
@@ -24,12 +23,14 @@ onMounted(async () => {
   try {
     await exchangeCode(code, typeof state === 'string' ? state : '')
     await sessionStore.authenticateFromAccessToken()
-    router.replace({ name: 'inquiry-list' })
+    // Lands on the Werkbank rather than the archive: the first thing anyone
+    // wants after signing in is their own queue.
+    router.replace({ name: 'home' })
   } catch {
     // A callback failure is NOT a credentials problem — the code was issued.
-    // It usually means the live SSO session belongs to an account that can't
-    // use this app (e.g. one signed in via maps.fundermaps.com). Don't mislabel
-    // it as "wrong password"; offer a working escape (signOut() below).
+    // It usually means the live SSO session belongs to an account that cannot
+    // use this app (e.g. one signed in via maps.fundermaps.com). Do not
+    // mislabel it as "wrong password"; offer a working escape.
     failed.value = true
   }
 })
@@ -44,20 +45,20 @@ function signOut() {
 </script>
 
 <template>
-  <!-- Neutral loading while the code is exchanged — deliberately NOT the
-       AuthWrapper login chrome, so the hand-off back from the auth app doesn't
-       flash a login-page look before landing on the app. -->
-  <div class="grid min-h-screen place-content-center px-6 text-center">
+  <!-- Neutral while the code is exchanged — deliberately not the AuthWrapper
+       chrome, so the hand-off back from the auth app does not flash a
+       login-page look before landing on the app. -->
+  <div class="grid min-h-screen place-content-center gap-4 bg-canvas px-6 text-center">
     <template v-if="failed">
-      <p class="text-sm text-grey-700">{{ t('auth.loginFailed') }}</p>
+      <p class="text-lg text-body">{{ t('auth.loginFailed') }}</p>
       <button
         type="button"
-        class="mt-4 inline-flex items-center justify-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500"
+        class="text-md inline-flex h-8 items-center justify-center rounded-lg border border-green-hover bg-green px-3 font-semibold text-white hover:bg-green-hover"
         @click="signOut"
       >
         {{ t('auth.signInOtherAccount') }}
       </button>
     </template>
-    <Spinner v-else />
+    <p v-else class="text-md text-muted">Bezig met inloggen…</p>
   </div>
 </template>

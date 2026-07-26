@@ -1,5 +1,24 @@
 @import 'tailwindcss';
 
+/*
+ * FunderMaps Data Studio — design tokens.
+ *
+ * The studio is a dense desktop workspace, so the palette is built for
+ * separation at small sizes rather than contrast between big blocks: white
+ * surfaces on a light grey canvas, hairline borders instead of shadows, and one
+ * saturated colour per meaning (green = ours/primary, blue = under review,
+ * amber = draft/warning, red = danger).
+ *
+ * Names are semantic on purpose. `line`, `muted` and `ink` survive a palette
+ * change; `grey-200` does not, and a screen full of `grey-200` tells you
+ * nothing about which greys are load-bearing.
+ *
+ * Note on naming: Tailwind derives `text-*` utilities from both `--text-*`
+ * (size) and `--color-*` (colour), so the two scales must not share a word.
+ * That is why the line colours are `line`/`line-strong` rather than
+ * `border`/`border-strong`, and why the sizes use the plain xs…5xl ladder.
+ */
+
 @theme {
   --color-*: initial;
   --color-transparent: transparent;
@@ -8,136 +27,213 @@
   --color-black: #000000;
   --color-white: #ffffff;
 
-  --color-blue-100: #e7f6fd;
-  --color-blue-200: #d1edfb;
-  --color-blue-500: #17a4ea;
-  --color-blue-900: #191e3c;
+  /* Surfaces. `raised` is the hover/zebra tint, `sunken` the inset-field grey. */
+  --color-canvas: #f4f6f8;
+  --color-surface: #ffffff;
+  --color-raised: #fafbfc;
+  --color-sunken: #f7f8fa;
 
-  --color-green-50: #ecfdf5;
-  --color-green-100: #e9faf3;
-  --color-green-200: #afecd4;
-  --color-green-300: #6ee7b7;
-  --color-green-400: #34d399;
-  --color-green-500: #28cc8b;
-  --color-green-700: #149d67;
-  --color-green-800: #065f46;
+  /* Lines. `divider` separates rows, `line` frames cards, `line-strong` controls. */
+  --color-divider: #f2f4f7;
+  --color-line: #e6e9ee;
+  --color-line-strong: #dfe4ea;
+  --color-line-hover: #cfd6df;
+  --color-line-dashed: #cfd9e2;
 
-  --color-grey-100: #f6f7f8;
-  --color-grey-200: #e8eaf1;
-  --color-grey-400: #ced0da;
-  --color-grey-700: #7f8fa4;
-  --color-grey-800: #3d5372;
+  /*
+   * Text, darkest to lightest. `ink` for headings and numerals, `body` for
+   * everything you read, `strong` for emphasised UI text, `muted` for secondary
+   * facts, `faint` for mono metadata, `label` for uppercase captions.
+   */
+  --color-ink: #26313f;
+  --color-body: #3b4a5c;
+  --color-strong: #43505f;
+  --color-muted: #7c8797;
+  --color-subtle: #8c96a4;
+  --color-faint: #9aa4b2;
+  --color-label: #a7b0bd;
+  --color-ghost: #c3cad4;
 
-  --color-red-50: #fef2f2;
-  --color-red-200: #fecaca;
-  --color-red-400: #f87171;
-  --color-red-500: #ed1c24;
-  --color-red-800: #991b1b;
+  /* Green — primary actions, "ours", done. */
+  --color-green: #17b978;
+  --color-green-hover: #14a86c;
+  --color-green-tint: #e9f8f1;
+  --color-green-wash: #f2fbf7;
+  --color-green-border: #d7f0e5;
+  --color-green-edge: #bfe6d5;
+  --color-green-ink: #12875a;
+  --color-green-deep: #146c4b;
+  --color-green-soft: #4d7a68;
+  --color-green-spark: #cdeee0;
 
-  --color-yellow-100: #fffaf0;
-  --color-yellow-500: #ffcc69;
+  /* Blue — informational, under review, row selection. */
+  --color-blue: #2f6fdb;
+  --color-blue-tint: #eef4ff;
+  --color-blue-wash: #f5f9ff;
+  --color-blue-border: #dbe6fb;
+  --color-blue-ink: #2f5fbd;
+  --color-blue-soft: #7c96cf;
+  --color-blue-spark: #d8e4fa;
 
-  --color-legenda-default-10: #85dbbe;
-  --color-legenda-default-20: #7edf9a;
-  --color-legenda-default-30: #79e370;
-  --color-legenda-default-40: #7ee587;
-  --color-legenda-default-50: #96ed51;
-  --color-legenda-default-60: #bdf450;
-  --color-legenda-default-70: #d3e14d;
-  --color-legenda-default-80: #c9b441;
-  --color-legenda-default-90: #b59e3c;
-  --color-legenda-default-100: #9d592d;
-  --color-legenda-default-110: #8c3a28;
-  --color-legenda-default-120: #7b2a2d;
+  /* Amber — draft, unconfirmed, cross-field warnings. */
+  --color-amber: #e79c15;
+  --color-amber-tint: #fff6e5;
+  --color-amber-wash: #fff8ec;
+  --color-amber-border: #f6e4c3;
+  --color-amber-field: #f0c98a;
+  --color-amber-ink: #a9700a;
+  --color-amber-soft: #97764a;
+  --color-amber-spark: #f6e6c8;
 
-  --color-legenda-risk-10: #42ff33;
-  --color-legenda-risk-20: #d1ff33;
-  --color-legenda-risk-30: #ffec33;
-  --color-legenda-risk-40: #ffac33;
-  --color-legenda-risk-50: #ff5533;
+  /* Red — destructive and error. Never a large filled block. */
+  --color-red: #c4443c;
+  --color-red-tint: #fdeeee;
+  --color-red-wash: #fdf4f4;
+  --color-red-border: #f0d6d6;
+  --color-red-ink: #a5322b;
+  --color-red-spark: #f4dede;
 
-  --color-legenda-blue-10: #e1f1fd;
-  --color-legenda-blue-20: #bce4fb;
-  --color-legenda-blue-30: #81cff8;
-  --color-legenda-blue-40: #3eb7f2;
-  --color-legenda-blue-50: #17a4ea;
-  --color-legenda-blue-60: #087ec1;
-  --color-legenda-blue-70: #08659c;
-  --color-legenda-blue-80: #0b5581;
-  --color-legenda-blue-90: #0f476b;
-  --color-legenda-blue-100: #0a2e47;
+  /*
+   * Risk ramp, kept from the previous palette. A data encoding owned by the
+   * domain (QuickScan risk classes, the map legend), not UI chrome, so it is
+   * unaffected by the restyle.
+   */
+  --color-risk-10: #42ff33;
+  --color-risk-20: #d1ff33;
+  --color-risk-30: #ffec33;
+  --color-risk-40: #ffac33;
+  --color-risk-50: #ff5533;
 
-  --font-sans: 'Greycliff CF', Arial, sans-serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Outfit', 'Manrope', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
+  /*
+   * A dense ladder. Body sits at 12.5px and metadata at 11.5px: small for a
+   * website, right for a tool someone reads all day at arm's length.
+   */
   --text-*: initial;
-  --text-tag: 0.6875rem;
-  --text-tag--line-height: 1;
-  --text-tag--letter-spacing: 0.025em;
-  --text-tag--font-weight: 800;
-  --text-sm: 0.875rem;
-  --text-sm--line-height: 1.5;
-  --text-base: 1rem;
+  --text-2xs: 0.625rem; /* 10px    — kbd hints, step numerals */
+  --text-2xs--line-height: 1.4;
+  --text-xs: 0.65625rem; /* 10.5px  — pane labels, mono micro-meta */
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.71875rem; /* 11.5px  — card captions, pills, mono meta */
+  --text-sm--line-height: 1.45;
+  --text-base: 0.75rem; /* 12px    — table type column, dense prose */
   --text-base--line-height: 1.5;
-  --text-lg: clamp(1.125rem, 1.0637rem + 0.2614vw, 1.25rem);
-  --text-lg--line-height: 1.125;
-  --text-lg--letter-spacing: -0.02em;
-  --text-xl: clamp(1.25rem, 1.0049rem + 1.0458vw, 1.75rem);
-  --text-xl--line-height: 1.125;
-  --text-xl--letter-spacing: -0.02em;
-  --text-2xl: clamp(1.875rem, 1.6912rem + 0.7843vw, 2.25rem);
-  --text-2xl--line-height: 1.125;
-  --text-2xl--letter-spacing: -0.02em;
-  --text-3xl: clamp(2.25rem, 1.9436rem + 1.3072vw, 2.875rem);
-  --text-3xl--line-height: 1.125;
-  --text-3xl--letter-spacing: -0.02em;
-  --text-4xl: clamp(2.5rem, 2.0711rem + 1.8301vw, 3.375rem);
-  --text-4xl--line-height: 1.125;
-  --text-4xl--letter-spacing: -0.001em;
+  --text-md: 0.78125rem; /* 12.5px  — the default */
+  --text-md--line-height: 1.5;
+  --text-lg: 0.8125rem; /* 13px    — row names, card titles */
+  --text-lg--line-height: 1.45;
+  --text-xl: 0.84375rem; /* 13.5px  — sidebar nav, page subtitles */
+  --text-xl--line-height: 1.4;
+  --text-2xl: 1.125rem; /* 18px    — wizard sub-header titles */
+  --text-2xl--line-height: 1.2;
+  --text-2xl--letter-spacing: -0.017em;
+  --text-3xl: 1.25rem; /* 20px    — inspector + pane titles */
+  --text-3xl--line-height: 1.15;
+  --text-3xl--letter-spacing: -0.015em;
+  --text-4xl: 1.625rem; /* 26px    — dossier titles */
+  --text-4xl--line-height: 1.1;
+  --text-4xl--letter-spacing: -0.019em;
+  --text-5xl: 1.6875rem; /* 27px    — page headings */
+  --text-5xl--line-height: 1.1;
+  --text-5xl--letter-spacing: -0.019em;
+  --text-6xl: 1.875rem; /* 30px    — KPI numerals */
+  --text-6xl--line-height: 1;
+  --text-6xl--letter-spacing: -0.033em;
 
-  --shadow-hover: 0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
-  --shadow-card: 0 10px 20px 0px rgb(0 0 0 / 0.1), 0 4px 4px 0px rgb(0 0 0 / 0.1);
-  --shadow-float: 0px 5px 15px 0px rgb(44 45 60 / 0.2);
+  --radius-*: initial;
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 8px; /* controls */
+  --radius-xl: 10px; /* inner cards */
+  --radius-2xl: 12px; /* cards */
+  --radius-3xl: 14px; /* the command palette */
+  --radius-full: 9999px;
+
+  /*
+   * Cards carry a 1px border and no shadow — at this density a shadow on every
+   * card turns the page to mush. Only what floats above the page gets one.
+   */
+  --shadow-overlay: 0 24px 60px rgb(20 30 45 / 0.22);
+  --shadow-segment: 0 1px 2px rgb(20 30 45 / 0.06);
+
+  /* The shell assumes a desktop; below this it scrolls rather than reflows. */
+  --spacing-shell: 1528px;
+  --spacing-content: 1280px;
+  --spacing-sidebar: 248px;
+  --spacing-topbar: 54px;
+  --spacing-inspector: 380px;
+  --spacing-rail: 316px;
+  --spacing-aside: 330px;
+  --spacing-drawer: 340px;
+  --spacing-addresses: 262px;
+  --spacing-context: 320px;
+  --spacing-table-min: 880px;
 }
 
 html {
   color-scheme: light;
-  accent-color: var(--color-green-500);
-  scroll-behavior: smooth;
+  accent-color: var(--color-green);
   -webkit-text-size-adjust: 100%;
 }
 
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 ::selection {
-  background-color: var(--color-green-100);
-  color: var(--color-green-800);
+  background-color: #c8f0dd;
+  color: var(--color-green-deep);
 }
 
 /*
- * Tailwind v4's Preflight leaves buttons on the browser default arrow cursor —
- * a deliberate change from v3. Only `.button` and `.link` opted back in, so
- * every hand-rolled <button> in the app (the document card, the "bevestigen"
- * provenance controls, the user menu, alert dismissals) looked unclickable.
- * Fixed once here rather than by sprinkling `cursor-pointer`, so buttons added
- * later inherit it.
- *
- * `:not(:disabled)` preserves `.button:disabled`, which deliberately reverts to
- * the default cursor.
+ * Tailwind v4's Preflight leaves buttons on the browser default arrow cursor.
+ * Restored once here rather than by sprinkling `cursor-pointer`, so buttons
+ * added later inherit it. `:not(:disabled)` keeps the default cursor on
+ * disabled controls, which is the correct signal.
  */
 button:not(:disabled),
 [role='button']:not(:disabled) {
   cursor: pointer;
 }
 
-.button:focus-visible {
-  outline: 2px solid var(--color-green-500);
-  outline-offset: 2px;
+/*
+ * One focus ring for the whole app: 2px green, offset so it never sits on the
+ * control's own border. Through `:focus-visible`, so it shows for keyboard
+ * users and stays out of the way of the mouse.
+ */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 1px;
 }
 
-.button {
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease,
-    box-shadow 150ms ease;
+/*
+ * Motion is limited to the palette's fade-in. Hover and focus are instant
+ * colour changes — in a tool you use for hours, an eased hover on every row is
+ * a delay you feel without ever seeing.
+ */
+@keyframes studio-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.studio-fade {
+  animation: studio-fade 140ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -149,22 +245,4 @@ button:not(:disabled),
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-.card {
-  box-shadow:
-    0 1px 2px 0 rgb(0 0 0 / 0.04),
-    0 1px 3px 0 rgb(0 0 0 / 0.06);
-}
-
-tr.is-selected-row td {
-  background-color: var(--color-green-100) !important;
-}
-
-.List .bh-table-responsive tbody tr:hover td {
-  background-color: var(--color-grey-100);
-  cursor: pointer;
-}
-.List .bh-table-responsive tbody tr.is-selected-row:hover td {
-  background-color: var(--color-green-100) !important;
 }
