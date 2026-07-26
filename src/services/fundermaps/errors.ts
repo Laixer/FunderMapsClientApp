@@ -78,3 +78,20 @@ export function getErrorMessage(err: unknown): string | null {
   }
   return null
 }
+
+/**
+ * What to put in front of a person when a write fails.
+ *
+ * `getErrorMessage` returns whatever the server said, which for this API is
+ * often a bare `"not found"` or a validation blob — true, and useless as the
+ * only thing on screen. This leads with the sentence *we* can write ("Opslaan
+ * van dit adres is niet gelukt") and keeps the server's own words after it,
+ * where they help whoever ends up reading the support thread.
+ */
+export function describeFailure(err: unknown, whatFailed: string): string {
+  const detail = getErrorMessage(err)?.trim()
+  if (!detail) return whatFailed
+  // Some endpoints already answer with a full Dutch sentence; do not say it twice.
+  if (detail.toLowerCase() === whatFailed.toLowerCase()) return whatFailed
+  return `${whatFailed} (${detail})`
+}

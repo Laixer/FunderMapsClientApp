@@ -1,16 +1,21 @@
 /**
  * Field descriptors for inquiry samples: every field of the sample form with
- * its Dutch label, display kind, enum options and input constraints — grouped
- * in the same sections and order the form renders them.
+ * its Dutch label, display kind, unit, enum options and input constraints —
+ * grouped in the same sections and order the form renders them.
  *
- * This is the single definition of "what a sample looks like". Three things
+ * This is the single definition of "what a sample looks like". Four things
  * render from it: the editable form (`components/Inquiry/SampleForm.vue`, via
- * `SampleField.vue`), the reviewer-facing overview (issue #263, item 7), and
- * the read-only detail. Add a field here and it appears in all three — there
- * is no separate list to keep in sync.
+ * `SampleField.vue`), the reviewer-facing overview, the read-only detail, and
+ * the completeness counts on the dossier page. Add a field here and it appears
+ * in all four — there is no second list to keep in sync.
+ *
+ * Units are a separate property rather than part of the label because the form
+ * renders them *inside* the control, on the right, so that a column of depths
+ * stays aligned on its digits. The read-only views, which have no control to
+ * put a suffix in, append `unit` to the label instead.
  */
 
-import type { SelectOption } from '@/components/Common/Inputs/Select.vue'
+import type { SelectOption } from '@/services/options'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import {
   SUBSTRUCTURE_OPTIONS,
@@ -35,16 +40,20 @@ export interface SampleFieldDef {
   /**
    * Standalone label. Carries enough context to be read on its own, because
    * the overview and read-only views list fields without their section
-   * grouping — hence "Voorgevel scheur — grootte (mm)" rather than "Grootte".
+   * grouping — hence "Voorgevel scheur — grootte" rather than "Grootte".
    */
   label: string
   /**
-   * Label to use inside the form, where the surrounding row already supplies
-   * the context. Falls back to `label` when absent.
+   * Label to use inside the form, where the surrounding section already
+   * supplies the context. Falls back to `label` when absent.
    */
   shortLabel?: string
   kind: SampleFieldKind
+  /** Rendered inside the control as a suffix: `m NAP`, `mm`, `mm/jaar`. */
+  unit?: string
   options?: SelectOption[]
+  /** A sentence under the control, for a field whose meaning is not obvious. */
+  hint?: string
   /** Native number-input constraints. Only meaningful for `kind: 'number'`. */
   min?: number
   max?: number
@@ -65,10 +74,10 @@ export interface SampleSectionDef {
  * A height in metres relative to NAP. Negative is ordinary — most of the
  * Netherlands sits below sea level.
  */
-const LEVEL = { min: -999.99, max: 999.99, step: 0.01 } as const
+const LEVEL = { kind: 'number', unit: 'm NAP', min: -999.99, max: 999.99, step: 0.01 } as const
 
 /** A physical length or diameter, so never negative. */
-const MEASURE = { min: 0, max: 999.99, step: 0.01 } as const
+const MEASURE = { kind: 'number', min: 0, max: 999.99, step: 0.01 } as const
 
 export const SAMPLE_SECTIONS: SampleSectionDef[] = [
   {
@@ -78,22 +87,18 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       { key: 'substructure', label: 'Onderbouw', kind: 'enum', options: SUBSTRUCTURE_OPTIONS },
       { key: 'cpt', label: 'Sondering', kind: 'text' },
       { key: 'monitoringWell', label: 'Peilbuis', kind: 'text' },
-      { key: 'groundLevel', label: 'Maaiveldhoogte (m NAP)', kind: 'number', ...LEVEL },
+      { key: 'groundLevel', label: 'Maaiveldhoogte', ...LEVEL },
       {
         key: 'groundwaterLevelTemp',
-        label: 'Grondwaterstand tijdens inspectie (m NAP)',
-        kind: 'number',
+        label: 'Grondwaterstand tijdens inspectie',
+        shortLabel: 'Grondwater bij inspectie',
         ...LEVEL,
       },
-      {
-        key: 'groundwaterLevelNet',
-        label: 'Grondwaterstand (m NAP)',
-        kind: 'number',
-        ...LEVEL,
-      },
+      { key: 'groundwaterLevelNet', label: 'Grondwaterstand', ...LEVEL },
       {
         key: 'recoveryAdvised',
         label: 'Hersteladvies / funderingsherstel noodzakelijk',
+        shortLabel: 'Herstel geadviseerd',
         kind: 'bool',
       },
     ],
@@ -140,40 +145,25 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       },
       {
         key: 'constructionLevel',
-        label: 'Onderkant constructie (opbouw op fundering)',
-        kind: 'number',
+        label: 'Onderkant constructie',
+        hint: 'opbouw op de fundering',
         ...LEVEL,
       },
-      {
-        key: 'woodLevel',
-        label: 'Bovenkant funderingshout (m NAP)',
-        kind: 'number',
-        ...LEVEL,
-      },
+      { key: 'woodLevel', label: 'Bovenkant funderingshout', ...LEVEL },
       {
         key: 'foundationDepth',
-        label: 'Onderkant fundering (m NAP), alleen bij niet-onderheide fundering',
-        kind: 'number',
+        label: 'Onderkant fundering',
+        hint: 'alleen bij een niet-onderheide fundering',
         ...LEVEL,
       },
-      { key: 'masonLevel', label: 'Onderkant metselwerk (m NAP)', kind: 'number', ...LEVEL },
-      { key: 'pileDiameterTop', label: 'Paaldiameter top', kind: 'number', ...MEASURE },
-      { key: 'pileDiameterBottom', label: 'Paaldiameter onder', kind: 'number', ...MEASURE },
-      { key: 'pileHeadLevel', label: 'Paalkop niveau', kind: 'number', ...LEVEL },
-      { key: 'pileTipLevel', label: 'Paalpunt niveau', kind: 'number', ...LEVEL },
-      {
-        key: 'concreteChargerLength',
-        label: 'Lengte betonoplanger (m)',
-        kind: 'number',
-        ...MEASURE,
-      },
-      { key: 'pileDistanceLength', label: 'Paalafstand', kind: 'number', ...MEASURE },
-      {
-        key: 'woodPenetrationDepth',
-        label: 'Indringingswaarde (mm)',
-        kind: 'number',
-        ...MEASURE,
-      },
+      { key: 'masonLevel', label: 'Onderkant metselwerk', ...LEVEL },
+      { key: 'pileDiameterTop', label: 'Paaldiameter top', unit: 'mm', ...MEASURE },
+      { key: 'pileDiameterBottom', label: 'Paaldiameter onder', unit: 'mm', ...MEASURE },
+      { key: 'pileHeadLevel', label: 'Paalkop niveau', ...LEVEL },
+      { key: 'pileTipLevel', label: 'Paalpunt niveau', ...LEVEL },
+      { key: 'concreteChargerLength', label: 'Lengte betonoplanger', unit: 'm', ...MEASURE },
+      { key: 'pileDistanceLength', label: 'Paalafstand', unit: 'm', ...MEASURE },
+      { key: 'woodPenetrationDepth', label: 'Indringingswaarde', unit: 'mm', ...MEASURE },
     ],
   },
   {
@@ -226,9 +216,10 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       },
       {
         key: 'crackIndoorSize',
-        label: 'Inpandige scheur — grootte (mm)',
-        shortLabel: 'Grootte (mm)',
+        label: 'Inpandige scheur — grootte',
+        shortLabel: 'Grootte',
         kind: 'number',
+        unit: 'mm',
       },
       {
         key: 'crackIndoorRestored',
@@ -244,9 +235,10 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       },
       {
         key: 'crackFacadeFrontSize',
-        label: 'Voorgevel scheur — grootte (mm)',
-        shortLabel: 'Grootte (mm)',
+        label: 'Voorgevel scheur — grootte',
+        shortLabel: 'Grootte',
         kind: 'number',
+        unit: 'mm',
       },
       {
         key: 'crackFacadeFrontRestored',
@@ -262,9 +254,10 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       },
       {
         key: 'crackFacadeBackSize',
-        label: 'Achtergevel scheur — grootte (mm)',
-        shortLabel: 'Grootte (mm)',
+        label: 'Achtergevel scheur — grootte',
+        shortLabel: 'Grootte',
         kind: 'number',
+        unit: 'mm',
       },
       {
         key: 'crackFacadeBackRestored',
@@ -280,9 +273,10 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       },
       {
         key: 'crackFacadeLeftSize',
-        label: 'Linkergevel scheur — grootte (mm)',
-        shortLabel: 'Grootte (mm)',
+        label: 'Linkergevel scheur — grootte',
+        shortLabel: 'Grootte',
         kind: 'number',
+        unit: 'mm',
       },
       {
         key: 'crackFacadeLeftRestored',
@@ -298,9 +292,10 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       },
       {
         key: 'crackFacadeRightSize',
-        label: 'Rechtergevel scheur — grootte (mm)',
-        shortLabel: 'Grootte (mm)',
+        label: 'Rechtergevel scheur — grootte',
+        shortLabel: 'Grootte',
         kind: 'number',
+        unit: 'mm',
       },
       {
         key: 'crackFacadeRightRestored',
@@ -317,45 +312,52 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       {
         key: 'thresholdUpdownSkewed',
         label: 'Scheefstand onder-/bovendorpel aanwezig',
+        shortLabel: 'Scheefstand dorpel',
         kind: 'bool',
       },
-      {
-        key: 'thresholdFrontLevel',
-        label: 'Drempelniveau voorzijde (m NAP)',
-        kind: 'number',
-        ...LEVEL,
-      },
-      {
-        key: 'thresholdBackLevel',
-        label: 'Drempelniveau achterzijde (m NAP)',
-        kind: 'number',
-        ...LEVEL,
-      },
-      { key: 'skewedParallel', label: 'Lintvoegmeting (mm/m)', kind: 'number', ...MEASURE },
+      { key: 'thresholdFrontLevel', label: 'Drempelniveau voorzijde', ...LEVEL },
+      { key: 'thresholdBackLevel', label: 'Drempelniveau achterzijde', ...LEVEL },
+      { key: 'skewedParallel', label: 'Lintvoegmeting', unit: 'mm/m', ...MEASURE },
       {
         key: 'skewedParallelFacade',
         label: 'Lintvoegmeting beoordeling',
         kind: 'enum',
         options: ROTATION_OPTIONS,
       },
-      { key: 'skewedPerpendicular', label: 'Loodmeting (mm/m)', kind: 'number', ...MEASURE },
+      { key: 'skewedPerpendicular', label: 'Loodmeting', unit: 'mm/m', ...MEASURE },
       {
         key: 'skewedPerpendicularFacade',
         label: 'Loodmeting beoordeling',
         kind: 'enum',
         options: ROTATION_OPTIONS,
       },
-      { key: 'settlementSpeed', label: 'Zakkingssnelheid (mm/jaar)', kind: 'number', step: 0.01 },
+      { key: 'settlementSpeed', label: 'Zakkingssnelheid', kind: 'number', unit: 'mm/jaar', step: 0.01 },
       { key: 'skewedWindowFrame', label: 'Scheve kozijnen', kind: 'bool' },
       {
         key: 'facadeScanRisk',
         label: 'Risicoklasse QuickScan / Fase 0',
+        shortLabel: 'Risicoklasse',
         kind: 'enum',
         options: FACADE_SCAN_RISK_OPTIONS,
       },
     ],
   },
 ]
+
+/**
+ * Every field on a sample, flattened. The denominator behind "44 / 58 velden"
+ * and the per-address completeness bars — derived from the registry rather than
+ * written down, so it cannot fall out of step with the form.
+ */
+export const ALL_SAMPLE_FIELDS: readonly SampleFieldDef[] = SAMPLE_SECTIONS.flatMap((s) => s.fields)
+
+/** `+ 1` for the note, which lives outside the registry but is still a field. */
+export const SAMPLE_FIELD_COUNT = ALL_SAMPLE_FIELDS.length + 1
+
+/** Label plus unit, for the read-only views that have no control to hang a suffix in. */
+export function fullLabel(field: SampleFieldDef): string {
+  return field.unit ? `${field.label} (${field.unit})` : field.label
+}
 
 /** A field counts as filled when it has an actual value; `false` is a value. */
 export function isSampleFieldFilled(value: unknown): boolean {
@@ -364,8 +366,16 @@ export function isSampleFieldFilled(value: unknown): boolean {
 
 /** Number of filled form fields on a sample (note included). */
 export function countFilledSampleFields(sample: IInquirySample): number {
-  const fields = SAMPLE_SECTIONS.flatMap((s) => s.fields).filter((f) =>
-    isSampleFieldFilled(sample[f.key]),
-  ).length
+  const fields = ALL_SAMPLE_FIELDS.filter((f) => isSampleFieldFilled(sample[f.key])).length
   return fields + (sample.note ? 1 : 0)
+}
+
+/** How many of a section's fields carry a value — the `x van y gevuld` meta. */
+export function countFilledInSection(sample: IInquirySample, section: SampleSectionDef): number {
+  return section.fields.filter((f) => isSampleFieldFilled(sample[f.key])).length
+}
+
+/** How complete one address is, 0–1 — what the progress bars are drawn from. */
+export function sampleCompleteness(sample: IInquirySample): number {
+  return countFilledSampleFields(sample) / SAMPLE_FIELD_COUNT
 }

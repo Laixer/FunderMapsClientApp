@@ -14,7 +14,6 @@
  * change; the sidebar link covers them.
  */
 
-import type { IconName } from '@/components/Common/icons'
 import type { IInquiryListOpts } from '@/services/fundermaps/endpoints/inquiry'
 import { AUDIT_STATUS } from '@/services/inquiryEnums'
 
@@ -24,7 +23,6 @@ export type LaneRole = 'reviewer' | 'creator'
 export interface Lane {
   key: string
   title: string
-  icon: IconName
   /** Shown instead of a table when the lane is clear — good news, said plainly. */
   empty: string
   role: LaneRole
@@ -40,7 +38,6 @@ export const LANES: readonly Lane[] = [
   {
     key: 'review',
     title: 'Te controleren door jou',
-    icon: 'bell',
     empty: 'Niks te controleren.',
     role: 'reviewer',
     statuses: [AUDIT_STATUS.PENDING_REVIEW],
@@ -48,7 +45,6 @@ export const LANES: readonly Lane[] = [
   {
     key: 'rejected',
     title: 'Afgekeurd — wacht op jou',
-    icon: 'alert',
     empty: 'Geen afgekeurde rapportages.',
     role: 'creator',
     statuses: [AUDIT_STATUS.REJECTED],
@@ -57,7 +53,6 @@ export const LANES: readonly Lane[] = [
   {
     key: 'entry',
     title: 'Jouw invoer, nog niet aangeboden',
-    icon: 'clipboard',
     empty: 'Geen openstaande invoer.',
     role: 'creator',
     statuses: [AUDIT_STATUS.TODO, AUDIT_STATUS.PENDING],

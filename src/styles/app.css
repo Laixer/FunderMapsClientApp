@@ -1,15 +1,102 @@
+/*
+ * The hand-written CSS tree. Kept deliberately thin: the studio is built from
+ * Tailwind utilities on components, so this holds only what a utility class
+ * cannot express — the @font-face declarations, the two caption styles that
+ * appear on nearly every card, and the primitives that have to reach inside
+ * markup the app does not own (native form controls, the MapLibre canvas).
+ *
+ * `@reference` gives `@apply` and `theme()` access to the tokens without
+ * emitting them twice; that is why this file is imported separately in
+ * `main.ts` rather than from `style.css`.
+ */
+
 @reference "../style.css";
 
 @import "./base/index.css";
-@import "./components/index.css";
-@import "./utilities/index.css";
-@import "./pages/index.css";
 
-.chart {
-  width: 100%;
-  height: 100%;
+/*
+ * The two section captions.
+ *
+ * Every card in the studio is introduced by one of these rather than by a
+ * heading: `caption` (11.5px) for a card's own title row, `label` (10.5px) for
+ * a group inside a side pane. They are classes rather than a component because
+ * they appear inside flex rows next to counts, chips and buttons, where an
+ * extra wrapper element would fight the layout.
+ */
+.studio-caption {
+  @apply text-sm font-bold tracking-[0.05em] text-subtle uppercase;
 }
 
-.markdown p {
-  margin-bottom: 1rem;
+.studio-label {
+  @apply text-xs font-bold tracking-[0.08em] text-label uppercase;
+}
+
+/*
+ * Native controls, normalised.
+ *
+ * The studio's fields are 32px tall with an 8px radius and a hairline border,
+ * and the browser's own chrome fights that: number inputs grow spinners that
+ * push the unit suffix around, date inputs place a picker glyph that cannot be
+ * restyled, and selects paint a system arrow in the wrong grey. `Field`
+ * supplies its own chevron and unit suffix, so the native furniture is removed
+ * here once rather than per input.
+ */
+.studio-control {
+  @apply text-md w-full min-w-0 border-0 bg-transparent p-0 text-body outline-none;
+}
+
+.studio-control::placeholder {
+  @apply text-label;
+}
+
+/* Spinners steal ~16px from a 32px control and are useless for measurements. */
+.studio-control[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.studio-control[type="number"]::-webkit-outer-spin-button,
+.studio-control[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* The picker still opens on click; only its glyph goes, since Field draws one. */
+.studio-control[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+}
+
+select.studio-control {
+  appearance: none;
+  cursor: pointer;
+}
+
+textarea.studio-control {
+  @apply resize-y;
+}
+
+/*
+ * MapLibre paints its own controls and attribution into the map container,
+ * out of Vue's reach — so they are restyled here to match the studio's chrome.
+ */
+.maplibregl-ctrl-group {
+  @apply overflow-hidden rounded-md border border-line bg-surface;
+  box-shadow: none !important;
+}
+
+.maplibregl-ctrl-group button {
+  @apply h-7 w-7 border-0 text-muted;
+}
+
+.maplibregl-ctrl-group button + button {
+  @apply border-t border-divider;
+}
+
+.maplibregl-ctrl-group button:hover {
+  @apply bg-raised;
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  @apply text-2xs;
 }

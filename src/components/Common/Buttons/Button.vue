@@ -1,49 +1,75 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import { keyLabel } from '@/services/shortcuts'
+
 /**
- * Basic button — small radius, flat, framed.
- * Variants are mutually exclusive: link / ghost / outline / muted / danger / (default solid).
- * Sizes: default (compact) or lg (page-level primary actions).
+ * The studio's button.
+ *
+ * Four variants, and the interesting one is `danger`: a white button with red
+ * text and a red-tinted border, not a filled red block. "Verwijderen" sits next
+ * to "Aanbieden ter review" in the dossier header, and a solid red slab there
+ * would out-shout the action people actually came to perform. Destructive is
+ * marked, not amplified.
+ *
+ * Every button is 32px tall to match the fields, so a form's action row lines
+ * up with the controls above it.
  */
+const props = withDefaults(
+  defineProps<{
+    label?: string
+    type?: 'button' | 'submit' | 'reset'
+    variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
+    disabled?: boolean
+    /** Mono keyboard hint rendered inside the button, e.g. `⌘↵`. */
+    shortcut?: string
+    /** Stretch to the container — for a dropzone action or an inspector button. */
+    block?: boolean
+  }>(),
+  { type: 'button', variant: 'secondary', disabled: false, block: false },
+)
 
-const { link, ghost, outline, muted, danger, lg } = defineProps({
-  label: { type: String, default: 'Button' },
-  type: { type: String, default: 'button' },
-  disabled: { type: Boolean, default: false },
-  link: { type: Boolean, default: false },
-  ghost: { type: Boolean, default: false },
-  outline: { type: Boolean, default: false },
-  muted: { type: Boolean, default: false },
-  danger: { type: Boolean, default: false },
-  lg: { type: Boolean, default: false },
-})
+const VARIANTS = {
+  primary:
+    'bg-green border-green-hover text-white hover:bg-green-hover disabled:bg-line-hover disabled:border-line-hover',
+  secondary:
+    'bg-surface border-line-strong text-strong hover:border-line-hover disabled:text-label disabled:hover:border-line-strong',
+  danger: 'bg-surface border-red-border text-red hover:bg-red-wash disabled:text-label',
+  ghost:
+    'bg-transparent border-transparent text-muted hover:bg-sunken hover:text-strong disabled:text-label',
+} as const
 
-const btnClass = computed<string[]>(() => {
-  const classes: string[] = []
+/**
+ * `shrink-0` is the default so a button in a crowded header row keeps its label
+ * on one line. `block` is the deliberate exception — it shares the row with a
+ * sibling (the inspector's "Dossier openen" + "Invoer" pair), where refusing to
+ * shrink is what pushed the second button off a 380px pane. The two are
+ * mutually exclusive rather than layered, so neither depends on which utility
+ * happens to come later in the stylesheet.
+ */
+const classes = computed(() => [
+  VARIANTS[props.variant],
+  props.block ? 'min-w-0 flex-1 justify-center' : 'shrink-0',
+])
 
-  if (link) {
-    classes.push('button-link')
-    return classes
-  }
-
-  if (ghost) classes.push('button--ghost', 'group')
-  else if (danger)
-    classes.push('button--solid', '!bg-red-500', 'hover:!bg-red-800', 'disabled:!bg-grey-400', 'group')
-  else if (outline) classes.push('button--outline', 'group')
-  else if (muted) classes.push('button--solid', '!bg-grey-700', 'hover:!bg-grey-800', 'group')
-  else classes.push('button--solid', 'group')
-
-  if (lg) classes.push('button--lg')
-
-  return classes
-})
+/** Bindings are written the Mac way in code; this is where they meet a keyboard. */
+const shortcutLabel = computed(() => (props.shortcut ? keyLabel(props.shortcut) : null))
 </script>
 
 <template>
-  <button :type="(type as any)" class="button" :class="btnClass" :disabled="disabled">
+  <button
+    :type="type"
+    :disabled="disabled"
+    class="text-md inline-flex h-8 items-center gap-2 rounded-lg border px-3 font-semibold whitespace-nowrap disabled:cursor-default"
+    :class="classes"
+  >
     <slot name="before" />
-    <span class="button__label">{{ label }}</span>
+    <slot>{{ label }}</slot>
+    <!-- The shortcut rides inside the button rather than in a tooltip: an
+         accelerator nobody can see is an accelerator nobody learns. -->
+    <span v-if="shortcutLabel" class="text-2xs font-mono opacity-70" aria-hidden="true">
+      {{ shortcutLabel }}
+    </span>
     <slot name="after" />
   </button>
 </template>

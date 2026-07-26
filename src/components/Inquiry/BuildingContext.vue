@@ -2,14 +2,27 @@
 import { ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import StatusBadge from '@/components/Common/StatusBadge.vue'
+import EmptyState from '@/components/Common/EmptyState.vue'
+import { TONE_DOT } from '@/services/tone'
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
-import { inquiryTypeLabel } from '@/services/inquiryEnums'
+import { inquiryTypeLabel, statusMeta } from '@/services/inquiryEnums'
 import { recoveryDocumentTypeLabel } from '@/services/recoveryEnums'
-import { formatDate } from '@/utils/date'
+import { formatDateShort } from '@/utils/date'
 
+/**
+ * What is already known about this pand.
+ *
+ * The single most valuable thing to show while someone is typing a QuickScan:
+ * whether this building already has one, whether it has been repaired, whether
+ * a resident reported something last month. Catching a duplicate or a
+ * contradiction here costs a glance; catching it after approval costs a
+ * correction that has already reached the map.
+ *
+ * Best-effort throughout — this is context, and the form must never wait on it
+ * or fail with it.
+ */
 const props = defineProps<{
   building: string
   /** Inquiry to leave out of the overview (the one being edited). */
@@ -34,13 +47,12 @@ watch(
         api.inquiry.getByBuilding(building),
         api.recovery.getByBuilding(building),
       ])
-      // A newer request may have started while this one was in flight;
-      // only the response for the current building may land.
+      // A newer request may have started while this one was in flight; only the
+      // response for the current building may land.
       if (building !== props.building) return
       inquiries.value = i.filter((x) => x.id !== props.excludeInquiry)
       recoveries.value = r
     } catch {
-      // Context is best-effort decoration — never block the form on it.
       if (building === props.building) failed.value = true
     } finally {
       if (building === props.building) loading.value = false
@@ -51,48 +63,63 @@ watch(
 </script>
 
 <template>
-  <div class="rounded-md border border-grey-200 bg-white px-4 py-3">
-    <h4 class="text-xs font-semibold uppercase tracking-wide text-grey-700">
-      Bekend op dit pand
-    </h4>
-    <p v-if="loading" class="mt-1 text-sm text-grey-700">Laden…</p>
-    <p v-else-if="failed" class="mt-1 text-sm text-grey-700">
+  <div class="flex flex-col gap-2">
+    <p v-if="loading" class="text-sm text-muted">Laden…</p>
+    <p v-else-if="failed" class="text-sm text-muted">
       Bestaande onderzoeken konden niet worden opgehaald.
     </p>
-    <p v-else-if="!inquiries.length && !recoveries.length" class="mt-1 text-sm text-grey-700">
-      Geen eerdere onderzoeken of herstel bekend.
-    </p>
-    <ul v-else class="mt-2 space-y-1.5">
-      <li
-        v-for="i in inquiries"
-        :key="`inquiry-${i.id}`"
-        class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
+    <EmptyState v-else-if="!inquiries.length && !recoveries.length">
+      Geen eerder onderzoek of herstel op dit pand.
+    </EmptyState>
+
+    <template v-else>
+      <RouterLink
+        v-for="row in inquiries"
+        :key="`inquiry-${row.id}`"
+        :to="{ name: 'inquiry-view', params: { id: row.id } }"
+        target="_blank"
+        class="group flex items-center gap-2.5 rounded-xl border border-line px-2.5 py-2 hover:border-line-hover hover:bg-raised"
       >
-        <RouterLink
-          :to="{ name: 'inquiry-view', params: { id: i.id } }"
-          target="_blank"
-          class="font-medium text-grey-800 hover:underline"
-        >
-          {{ inquiryTypeLabel(i.type) }}
-        </RouterLink>
-        <span class="text-xs text-grey-700">{{ formatDate(i.documentDate) }}</span>
-        <StatusBadge :status="i.state?.auditStatus" />
-      </li>
-      <li
-        v-for="r in recoveries"
-        :key="`recovery-${r.id}`"
-        class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
+        <span
+          aria-hidden="true"
+          class="h-1.5 w-1.5 shrink-0 rounded-full"
+          :class="TONE_DOT[statusMeta(row.state?.auditStatus).tone]"
+        />
+        <span class="min-w-0 flex-1">
+          <span class="text-md block truncate font-semibold text-body">
+            {{ inquiryTypeLabel(row.type) }}
+          </span>
+          <span class="text-xs block font-mono text-faint">
+            #{{ row.id }} · {{ formatDateShort(row.documentDate) }} ·
+            {{ statusMeta(row.state?.auditStatus).label.toLowerCase() }}
+          </span>
+        </span>
+        <span aria-hidden="true" class="shrink-0 text-ghost group-hover:text-strong">→</span>
+      </RouterLink>
+
+      <RouterLink
+        v-for="row in recoveries"
+        :key="`recovery-${row.id}`"
+        :to="{ name: 'recovery-view', params: { id: row.id } }"
+        target="_blank"
+        class="group flex items-center gap-2.5 rounded-xl border border-line px-2.5 py-2 hover:border-line-hover hover:bg-raised"
       >
-        <RouterLink
-          :to="{ name: 'recovery-view', params: { id: r.id } }"
-          target="_blank"
-          class="font-medium text-grey-800 hover:underline"
-        >
-          Herstel: {{ recoveryDocumentTypeLabel(r.type) }}
-        </RouterLink>
-        <span class="text-xs text-grey-700">{{ formatDate(r.documentDate) }}</span>
-        <StatusBadge :status="r.state?.auditStatus" />
-      </li>
-    </ul>
+        <span
+          aria-hidden="true"
+          class="h-1.5 w-1.5 shrink-0 rounded-full"
+          :class="TONE_DOT[statusMeta(row.state?.auditStatus).tone]"
+        />
+        <span class="min-w-0 flex-1">
+          <span class="text-md block truncate font-semibold text-body">
+            Herstel: {{ recoveryDocumentTypeLabel(row.type) }}
+          </span>
+          <span class="text-xs block font-mono text-faint">
+            #{{ row.id }} · {{ formatDateShort(row.documentDate) }} ·
+            {{ statusMeta(row.state?.auditStatus).label.toLowerCase() }}
+          </span>
+        </span>
+        <span aria-hidden="true" class="shrink-0 text-ghost group-hover:text-strong">→</span>
+      </RouterLink>
+    </template>
   </div>
 </template>

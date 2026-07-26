@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, watch, type Ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import cloneDeep from 'lodash-es/cloneDeep'
 
-import Card from '@/components/Common/Card.vue'
-import Input from '@/components/Common/Inputs/Input.vue'
-import Select from '@/components/Common/Inputs/Select.vue'
-import CheckBox from '@/components/Common/Inputs/CheckBox.vue'
-import Textarea from '@/components/Common/Inputs/Textarea.vue'
-import Button from '@/components/Common/Buttons/Button.vue'
+import Field from '@/components/Common/Field.vue'
+import Panel from '@/components/Common/Panel.vue'
+import Pill from '@/components/Common/Pill.vue'
+import ToggleChip from '@/components/Common/ToggleChip.vue'
 
 import api from '@/services/fundermaps'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
@@ -16,92 +12,44 @@ import type {
   IRecoverySample,
   IRecoverySampleInput,
 } from '@/services/fundermaps/interfaces/IRecoverySample'
-import { formatAddress } from '@/utils/address'
-import { useAddressStore } from '@/stores/address'
+import type { SelectOption } from '@/services/options'
 import {
   RECOVERY_STATUS_OPTIONS,
   RECOVERY_TYPE_OPTIONS,
   PILE_TYPE_OPTIONS,
   FACADE_OPTIONS,
 } from '@/services/recoveryEnums'
+import { formatAddress } from '@/utils/address'
+import { useAddressStore } from '@/stores/address'
 
+/**
+ * One building's worth of repair details, autosaved as you type.
+ *
+ * Same contract as the inquiry form: the parent owns the writing, this owns the
+ * editing, and `flush()` exists so navigation can push a pending save out
+ * without waiting on it. Far fewer fields than an inquiry sample — a repair is
+ * a handful of facts about work that was done, not a survey.
+ */
 const props = defineProps<{
   sample: IRecoverySample
+  /** True while a write for this sample is in flight. */
   saving?: boolean
 }>()
 
+const emit = defineEmits<{ save: [data: IRecoverySampleInput] }>()
+
 const addressStore = useAddressStore()
-
-const emit = defineEmits<{
-  save: [data: IRecoverySampleInput]
-  delete: []
-}>()
-
-const { t } = useI18n()
-
 const contractors: Ref<IContractor[]> = ref([])
 
-/** Editable copy. Reset whenever the parent passes a new sample. */
-const form = ref<IRecoverySample>(cloneDeep(props.sample))
+/** Editable copy. Reset whenever the parent passes a different sample. */
+const form = ref<IRecoverySample>({ ...props.sample })
 
-/**
- * The last state known to be on the server. Comparison beats a manual flag: no
- * field can be added later and forgotten. Same mechanism as the inquiry form.
- */
-const baseline = ref<string>(JSON.stringify(props.sample))
+const AUTOSAVE_MS = 600
+let timer: ReturnType<typeof setTimeout> | null = null
+const dirty = ref(false)
 
-const isDirty = computed(() => JSON.stringify(form.value) !== baseline.value)
-
-defineExpose({ isDirty })
-
-watch(
-  () => props.sample.id,
-  () => {
-    form.value = cloneDeep(props.sample)
-    baseline.value = JSON.stringify(props.sample)
-  },
-)
-
-watch(
-  () => props.sample,
-  (sample) => {
-    if (sample.id === form.value.id) baseline.value = JSON.stringify(sample)
-  },
-  { deep: true },
-)
-
-const contractorOptions = computed(() =>
-  contractors.value.map((c) => ({ value: c.id, label: c.name })),
-)
-
-const facadeSet = computed({
-  get: () => new Set(form.value.facade ?? []),
-  set: (v: Set<number>) => {
-    form.value.facade = Array.from(v).sort((a, b) => a - b)
-  },
-})
-
-function toggleFacade(value: number) {
-  const next = new Set(facadeSet.value)
-  if (next.has(value)) next.delete(value)
-  else next.add(value)
-  facadeSet.value = next
-}
-
-function isFacadeChecked(value: number): boolean {
-  return facadeSet.value.has(value)
-}
-
-onBeforeMount(async () => {
-  try {
-    contractors.value = await api.contractor.list()
-  } catch {
-    /* contractor list is non-critical here */
-  }
-})
-
-function onSave() {
-  emit('save', {
+function payload(): IRecoverySampleInput {
+  return {
     address: form.value.building,
     note: form.value.note,
     status: form.value.status,
@@ -112,93 +60,177 @@ function onSave() {
     permitDate: form.value.permitDate,
     recoveryDate: form.value.recoveryDate,
     contractor: form.value.contractor,
-  })
+  }
 }
+
+function schedule() {
+  dirty.value = true
+  if (timer) clearTimeout(timer)
+  timer = setTimeout(() => {
+    timer = null
+    dirty.value = false
+    emit('save', payload())
+  }, AUTOSAVE_MS)
+}
+
+function flush() {
+  if (timer) {
+    clearTimeout(timer)
+    timer = null
+  }
+  if (!dirty.value) return
+  dirty.value = false
+  emit('save', payload())
+}
+
+defineExpose({ flush })
+
+watch(
+  () => props.sample.id,
+  () => {
+    // Switching building must not carry the outgoing one's pending write into
+    // the incoming one's payload.
+    flush()
+    form.value = { ...props.sample }
+  },
+)
+
+// Every control writes through here, so scheduling a save can never be
+// forgotten on a field added later.
+function set<K extends keyof IRecoverySample>(key: K, value: IRecoverySample[K]) {
+  form.value[key] = value
+  schedule()
+}
+
+const contractorOptions = computed<SelectOption[]>(() =>
+  contractors.value.map((c) => ({ value: c.id, label: c.name })),
+)
+
+function isFacadeOn(value: number): boolean {
+  return (form.value.facade ?? []).includes(value)
+}
+
+function toggleFacade(value: number) {
+  const current = new Set(form.value.facade ?? [])
+  if (current.has(value)) current.delete(value)
+  else current.add(value)
+  set(
+    'facade',
+    Array.from(current).sort((a, b) => a - b),
+  )
+}
+
+onBeforeMount(async () => {
+  try {
+    contractors.value = await api.contractor.list()
+  } catch {
+    // The contractor list is a convenience here; losing it costs one dropdown.
+  }
+})
+
+const addressLabel = computed(() => formatAddress(addressStore.cache[form.value.building]))
+
+const saveState = computed(() => {
+  if (props.saving) return { label: 'Opslaan…', tone: 'blue' as const }
+  if (dirty.value) return { label: 'Niet opgeslagen', tone: 'amber' as const }
+  return { label: 'Opgeslagen', tone: 'green' as const }
+})
 </script>
 
 <template>
-  <Card class="List col-span-3 lg:col-span-2">
-    <header
-      class="border-grey-200 -mx-5 -mt-5 flex flex-wrap items-center justify-between gap-4 border-b px-5 py-4"
-    >
-      <div class="min-w-0 flex-1">
-        <h3 class="heading-3 wrap-break-word">
-          {{ formatAddress(addressStore.cache[form.building]) }}
-        </h3>
-        <p v-if="form.building" class="text-grey-700 text-xs">Pand: {{ form.building }}</p>
+  <div class="flex flex-col gap-4">
+    <header class="flex items-center gap-3">
+      <div class="min-w-0">
+        <h2 class="text-3xl font-display font-bold break-words text-ink">{{ addressLabel }}</h2>
+        <p v-if="form.building" class="text-xs font-mono text-faint">{{ form.building }}</p>
       </div>
-      <div class="flex shrink-0 items-center gap-2">
-        <span
-          v-if="isDirty"
-          class="text-grey-700 flex items-center gap-1.5 text-xs"
-          :title="t('sample.unsavedHint')"
-        >
-          <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-500" />
-          {{ t('sample.unsaved') }}
-        </span>
-        <Button label="Verwijderen" danger @click="emit('delete')" />
-        <Button label="Opslaan" type="submit" :disabled="saving || !isDirty" @click="onSave" />
-      </div>
+      <Pill class="ml-auto" :label="saveState.label" :tone="saveState.tone" />
     </header>
 
-    <div class="space-y-8">
-      <section>
-        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Herstel</h4>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Select
-            v-model="form.type"
-            label="Hersteltype"
-            :options="RECOVERY_TYPE_OPTIONS"
-            placeholder="-"
-            required
-          />
-          <Select
-            v-model="form.status"
-            label="Status"
-            :options="RECOVERY_STATUS_OPTIONS"
-            placeholder="-"
-          />
-          <Select
-            v-model="form.pileType"
-            label="Type funderingsbalk"
-            :options="PILE_TYPE_OPTIONS"
-            placeholder="-"
-          />
-          <Select
-            v-model="form.contractor"
-            label="Uitvoerder"
-            :options="contractorOptions"
-            placeholder="-"
-          />
-        </div>
-      </section>
+    <Panel caption="HERSTEL">
+      <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+        <Field
+          :model-value="form.type"
+          label="Hersteltype"
+          kind="select"
+          required
+          :options="RECOVERY_TYPE_OPTIONS"
+          empty-label="—"
+          @update:model-value="(v: unknown) => set('type', (v ?? 5) as number)"
+        />
+        <Field
+          :model-value="form.status"
+          label="Status"
+          kind="select"
+          :options="RECOVERY_STATUS_OPTIONS"
+          empty-label="—"
+          @update:model-value="(v: unknown) => set('status', v as number | null)"
+        />
+        <Field
+          :model-value="form.pileType"
+          label="Type funderingsbalk"
+          kind="select"
+          :options="PILE_TYPE_OPTIONS"
+          empty-label="—"
+          @update:model-value="(v: unknown) => set('pileType', v as number | null)"
+        />
+        <Field
+          :model-value="form.contractor"
+          label="Uitvoerder"
+          kind="select"
+          :options="contractorOptions"
+          empty-label="—"
+          @update:model-value="(v: unknown) => set('contractor', v as number | null)"
+        />
+      </div>
+    </Panel>
 
-      <section>
-        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Gevels</h4>
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <CheckBox
-            v-for="opt in FACADE_OPTIONS"
-            :key="opt.value"
-            :modelValue="isFacadeChecked(opt.value)"
-            :label="opt.label"
-            @update:modelValue="toggleFacade(opt.value)"
-          />
-        </div>
-      </section>
+    <Panel caption="GEVELS">
+      <!-- Four chips rather than four checkboxes: this is one question with a
+           multiple answer ("which facades were done"), and chips read as a set.
+           `items-start` keeps each chip the width of its own label. -->
+      <div class="flex flex-wrap items-start gap-2">
+        <ToggleChip
+          v-for="option in FACADE_OPTIONS"
+          :key="option.value"
+          :model-value="isFacadeOn(option.value)"
+          :label="option.label"
+          @update:model-value="toggleFacade(option.value)"
+        />
+      </div>
+    </Panel>
 
-      <section>
-        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Vergunning</h4>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Input v-model="form.permit" label="Vergunningnummer" />
-          <Input v-model="form.permitDate" label="Vergunningdatum" type="date" />
-          <Input v-model="form.recoveryDate" label="Uitvoeringsdatum" type="date" />
-        </div>
-      </section>
+    <Panel caption="VERGUNNING">
+      <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+        <Field
+          :model-value="form.permit"
+          label="Vergunningnummer"
+          mono
+          @update:model-value="(v: unknown) => set('permit', v as string | null)"
+        />
+        <Field
+          :model-value="form.permitDate"
+          label="Vergunningdatum"
+          kind="date"
+          @update:model-value="(v: unknown) => set('permitDate', v as string | null)"
+        />
+        <Field
+          :model-value="form.recoveryDate"
+          label="Uitvoeringsdatum"
+          kind="date"
+          @update:model-value="(v: unknown) => set('recoveryDate', v as string | null)"
+        />
+      </div>
+    </Panel>
 
-      <section>
-        <h4 class="text-grey-700 mb-4 text-sm font-semibold tracking-wide uppercase">Notitie</h4>
-        <Textarea v-model="form.note" placeholder="Optionele notitie…" :rows="4" />
-      </section>
-    </div>
-  </Card>
+    <Panel caption="NOTITIE">
+      <Field
+        :model-value="form.note"
+        kind="textarea"
+        :rows="4"
+        placeholder="Optionele notitie bij dit pand…"
+        @update:model-value="(v: unknown) => set('note', v as string | null)"
+      />
+    </Panel>
+  </div>
 </template>

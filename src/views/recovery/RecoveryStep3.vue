@@ -1,53 +1,62 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 
-import MainWrapper from '@/components/Layout/MainWrapper.vue'
-import Card from '@/components/Common/Card.vue'
+import AppShell from '@/components/Layout/AppShell.vue'
+import WizardHeader from '@/components/Layout/WizardHeader.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
-import Alert from '@/components/Common/Alert.vue'
+import Callout from '@/components/Common/Callout.vue'
+import EmptyState from '@/components/Common/EmptyState.vue'
+import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueList.vue'
+import Panel from '@/components/Common/Panel.vue'
+import Pill from '@/components/Common/Pill.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
-import Spinner from '@/components/Common/Spinner.vue'
-import WizardSteps from '@/components/Common/WizardSteps.vue'
-import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
 import type { IRecoverySample } from '@/services/fundermaps/interfaces/IRecoverySample'
-import { recoveryDocumentTypeLabel, AUDIT_STATUS } from '@/services/recoveryEnums'
-import { formatDate } from '@/utils/date'
-import { formatAddress } from '@/utils/address'
+import { describeFailure } from '@/services/fundermaps/errors'
+import {
+  AUDIT_STATUS,
+  FACADE_LABELS,
+  recoveryDocumentTypeLabel,
+  recoveryStatusLabel,
+  recoveryTypeLabel,
+} from '@/services/recoveryEnums'
 import { confirmAction } from '@/services/confirm'
-import { getErrorMessage } from '@/services/fundermaps/errors'
+import { toastError, toastSuccess } from '@/services/toast'
+import { formatAddress } from '@/utils/address'
+import { formatDateShort } from '@/utils/date'
+import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { recoverySteps } from '@/services/wizard'
 import { useAddressStore } from '@/stores/address'
+import { useSessionStore } from '@/stores/session'
+import { useStudioStore } from '@/stores/studio'
 
-const { t } = useI18n()
+/**
+ * Step 3 of the herstel wizard — read it back, then hand it over.
+ *
+ * The check that matters here is "hersteltype onbekend": a repair recorded
+ * without saying what kind of repair it was carries almost none of its value
+ * into the map, and `5 / unknown` is the default a new sample starts at, so it
+ * is easy to leave behind.
+ */
 const route = useRoute()
 const router = useRouter()
+const addressStore = useAddressStore()
+const sessionStore = useSessionStore()
+const studio = useStudioStore()
 
 const recoveryId = computed(() => Number(route.params.id))
-const addressStore = useAddressStore()
 
 const recovery: Ref<IRecovery | null> = ref(null)
 const samples: Ref<IRecoverySample[]> = ref([])
 const loading = ref(true)
 const submitting = ref(false)
-const error: Ref<string | null> = ref(null)
-
-const canSubmit = computed(() => {
-  if (!recovery.value) return false
-  const s = recovery.value.state.auditStatus
-  return (
-    samples.value.length > 0 &&
-    (s === AUDIT_STATUS.TODO || s === AUDIT_STATUS.PENDING || s === AUDIT_STATUS.REJECTED)
-  )
-})
 
 async function load() {
   try {
     loading.value = true
-    error.value = null
     const [r, s] = await Promise.all([
       api.recovery.getById(recoveryId.value),
       api.recoverySample.listAll(recoveryId.value),
@@ -56,7 +65,7 @@ async function load() {
     samples.value = s
     await addressStore.ensureMany(s.map((row) => row.building))
   } catch (e) {
-    error.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'Het dossier kon niet worden opgehaald.'))
   } finally {
     loading.value = false
   }
@@ -64,21 +73,61 @@ async function load() {
 
 onBeforeMount(load)
 
+const canSubmit = computed(() => {
+  const status = recovery.value?.state.auditStatus
+  return (
+    samples.value.length > 0 &&
+    (status === AUDIT_STATUS.TODO ||
+      status === AUDIT_STATUS.PENDING ||
+      status === AUDIT_STATUS.REJECTED)
+  )
+})
+
+/** `5` is the `unknown` member of recovery_type, and the default a sample starts at. */
+const unknownType = computed(() => samples.value.filter((s) => s.type === 5))
+
+const summary = computed<KeyValueItem[]>(() => {
+  const row = recovery.value
+  if (!row) return []
+  return [
+    { label: 'Naam', value: row.documentName },
+    { label: 'Documenttype', value: recoveryDocumentTypeLabel(row.type) },
+    { label: 'Documentdatum', value: formatDateShort(row.documentDate), mono: true },
+    { label: 'Opsteller', value: row.attribution.creatorName },
+    { label: 'Beoordelaar', value: row.attribution.reviewerName },
+    { label: 'Uitvoerder', value: row.attribution.contractorName },
+    ...(row.note ? [{ label: 'Notitie', value: row.note }] : []),
+  ]
+})
+
+function facades(sample: IRecoverySample): string {
+  if (!sample.facade?.length) return '—'
+  return sample.facade.map((value) => FACADE_LABELS[value] ?? String(value)).join(', ')
+}
+
 async function submit() {
   if (!canSubmit.value || submitting.value) return
+
   const ok = await confirmAction({
     title: 'Aanbieden ter review?',
-    body: 'De beoordelaar krijgt bericht en het dossier wordt vergrendeld tot de controle klaar is.',
+    body: [
+      'De beoordelaar krijgt bericht en het dossier wordt vergrendeld tot de controle klaar is.',
+      ...(unknownType.value.length
+        ? [`Let op: ${unknownType.value.length} pand(en) hebben nog hersteltype "Onbekend".`]
+        : []),
+    ].join('\n\n'),
     confirmLabel: 'Aanbieden',
   })
   if (!ok) return
+
   submitting.value = true
-  error.value = null
   try {
     await api.recovery.submitForReview(recoveryId.value)
+    toastSuccess('Aangeboden ter review.')
+    studio.refreshCounts(sessionStore.currentUser?.id)
     router.push({ name: 'recovery-view', params: { id: recoveryId.value } })
   } catch (e) {
-    error.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'Aanbieden is niet gelukt.'))
   } finally {
     submitting.value = false
   }
@@ -87,96 +136,101 @@ async function submit() {
 function previous() {
   router.push({ name: 'recovery-edit-2', params: { id: recoveryId.value } })
 }
+
+const steps = computed(() => recoverySteps(recoveryId.value))
+
+useActionShortcuts((): Record<string, () => void> =>
+  canSubmit.value ? { '⌘↵': () => void submit() } : {},
+)
 </script>
 
 <template>
-  <MainWrapper>
-    <div class="mb-8 space-y-3">
-      <RouterLink
-        :to="{ name: 'recovery-list' }"
-        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
-      >
-        ← {{ t('recovery.view.back') }}
-      </RouterLink>
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 class="text-grey-800 text-2xl font-semibold">Controle</h2>
-          <p v-if="recovery" class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
-            <span>{{ recoveryDocumentTypeLabel(recovery.type) }}</span>
-            <span aria-hidden="true">·</span>
-            <span>{{ formatDate(recovery.documentDate) }}</span>
-            <StatusBadge :status="recovery.state.auditStatus" />
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <Button lg outline label="Vorige" @click="previous" />
-          <Button
-            lg
-            label="Aanbieden ter review"
-            :disabled="!canSubmit || submitting"
-            @click="submit"
-          />
-        </div>
-      </div>
-      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="3" />
-    </div>
+  <AppShell :crumb="recovery ? `Controle · ${recovery.documentName}` : 'Controle'">
+    <WizardHeader
+      :title="recovery ? `Controle · ${recovery.documentName}` : 'Controle'"
+      :status="`#${recoveryId} · ${samples.length} ${samples.length === 1 ? 'pand' : 'panden'}`"
+      :steps="steps"
+      :current="3"
+    >
+      <template #actions>
+        <StatusBadge v-if="recovery" :status="recovery.state.auditStatus" />
+        <Button label="Vorige" @click="previous" />
+        <Button
+          variant="primary"
+          label="Aanbieden ter review"
+          shortcut="⌘↵"
+          :disabled="!canSubmit || submitting"
+          @click="submit"
+        />
+      </template>
+    </WizardHeader>
 
-    <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">{{ error }}</Alert>
+    <div class="flex flex-col gap-4 px-6 py-5">
+      <EmptyState v-if="loading">Dossier ophalen…</EmptyState>
 
-    <Card v-if="loading" class="flex justify-center py-8">
-      <Spinner />
-      <span v-if="false">{{ t('common.loading') }}</span>
-    </Card>
+      <template v-else-if="recovery">
+        <Callout v-if="!samples.length" tone="red" title="Nog geen panden">
+          Voeg minstens één pand toe in stap 2 voordat je dit dossier aanbiedt.
+          <template #action>
+            <Button label="Naar invoer" @click="previous" />
+          </template>
+        </Callout>
 
-    <Card v-else-if="recovery">
-      <div class="space-y-6">
-        <section>
-          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">Document</h4>
-          <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt class="text-grey-700">Naam</dt>
-            <dd class="text-grey-800">{{ recovery.documentName }}</dd>
+        <Callout
+          v-else-if="unknownType.length"
+          tone="amber"
+          :title="`${unknownType.length} ${unknownType.length === 1 ? 'pand heeft' : 'panden hebben'} nog hersteltype “Onbekend”`"
+        >
+          Zonder hersteltype zegt het dossier wel dát er hersteld is, maar niet hoe — en dat is
+          precies wat de kaart ervan gebruikt.
+          <template #action>
+            <Button label="Naar invoer" @click="previous" />
+          </template>
+        </Callout>
 
-            <dt class="text-grey-700">Opsteller</dt>
-            <dd class="text-grey-800">{{ recovery.attribution.creatorName ?? '—' }}</dd>
+        <Callout v-else tone="green" title="Klaar om aan te bieden">
+          Alle {{ samples.length }} panden hebben een hersteltype.
+        </Callout>
 
-            <dt class="text-grey-700">Beoordelaar</dt>
-            <dd class="text-grey-800">{{ recovery.attribution.reviewerName ?? '—' }}</dd>
-
-            <dt class="text-grey-700">Uitvoerder</dt>
-            <dd class="text-grey-800">{{ recovery.attribution.contractorName ?? '—' }}</dd>
-
-            <template v-if="recovery.note">
-              <dt class="text-grey-700">Notitie</dt>
-              <dd class="text-grey-800 whitespace-pre-wrap">{{ recovery.note }}</dd>
+        <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-aside)] items-start gap-4">
+          <Panel flush>
+            <template #header>
+              <span class="text-lg font-bold text-strong">Panden</span>
+              <span class="text-xs font-mono text-faint">{{ samples.length }}</span>
             </template>
-          </dl>
-        </section>
 
-        <section>
-          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">
-            Adressen ({{ samples.length }})
-          </h4>
-          <Alert v-if="samples.length === 0" type="warning">
-            Voeg minimaal één adres toe in stap 2 voordat je het herstel indient.
-          </Alert>
-          <ul v-else class="border-grey-200 overflow-hidden rounded-md border">
-            <li
-              v-for="s in samples"
-              :key="s.id"
-              class="border-grey-200 space-y-1 border-b px-3 py-3 text-sm last:border-b-0"
-            >
-              <p class="text-grey-800 font-medium">
-                {{ formatAddress(addressStore.cache[s.building]) }}
-              </p>
-              <p v-if="s.note" class="text-grey-700 text-xs">{{ s.note }}</p>
-            </li>
-          </ul>
+            <ul v-if="samples.length">
+              <li
+                v-for="sample in samples"
+                :key="sample.id"
+                class="flex flex-col gap-1.5 border-b border-divider px-4 py-3 last:border-b-0"
+              >
+                <div class="flex items-center gap-2.5">
+                  <span class="text-lg min-w-0 flex-1 truncate font-semibold text-body">
+                    {{ formatAddress(addressStore.cache[sample.building]) }}
+                  </span>
+                  <Pill
+                    :label="recoveryTypeLabel(sample.type)"
+                    :tone="sample.type === 5 ? 'amber' : 'green'"
+                  />
+                </div>
+                <p class="text-sm font-mono text-faint">
+                  {{ recoveryStatusLabel(sample.status) }} · gevels: {{ facades(sample) }}
+                  <template v-if="sample.recoveryDate">
+                    · uitgevoerd {{ formatDateShort(sample.recoveryDate) }}
+                  </template>
+                </p>
+                <p v-if="sample.note" class="text-md text-muted">{{ sample.note }}</p>
+              </li>
+            </ul>
+            <EmptyState v-else>Nog geen panden toegevoegd.</EmptyState>
+          </Panel>
 
-          <p v-if="!canSubmit && samples.length > 0" class="text-grey-700 mt-3 text-sm">
-            Dit herstel kan niet meer worden ingediend in de huidige status.
-          </p>
-        </section>
-      </div>
-    </Card>
-  </MainWrapper>
+          <Panel caption="DOSSIER">
+            <KeyValueList :items="summary" ratio="42%" />
+          </Panel>
+        </div>
+      </template>
+    </div>
+  </AppShell>
 </template>

@@ -16,24 +16,22 @@ function chords(keys: string): string[] {
 </script>
 
 <template>
-  <Modal title="Sneltoetsen" @close="$emit('close')">
+  <Modal title="Sneltoetsen" wide @close="$emit('close')">
     <div class="grid gap-6 sm:grid-cols-2">
       <section v-for="group in SHORTCUT_GROUPS" :key="group.title">
-        <h5 class="text-grey-700 mb-2 text-xs font-semibold tracking-wide uppercase">
-          {{ group.title }}
-        </h5>
-        <dl class="space-y-1.5">
+        <h3 class="studio-caption mb-2.5">{{ group.title }}</h3>
+        <dl class="flex flex-col gap-1.5">
           <div
             v-for="shortcut in group.shortcuts"
             :key="shortcut.keys"
             class="flex items-baseline justify-between gap-3"
           >
-            <dt class="text-grey-800 text-sm">{{ shortcut.label }}</dt>
+            <dt class="text-md text-body">{{ shortcut.label }}</dt>
             <dd class="flex shrink-0 items-center gap-1">
               <kbd
                 v-for="key in chords(shortcut.keys)"
                 :key="key"
-                class="border-grey-200 bg-grey-100 text-grey-800 rounded border px-1.5 py-0.5 font-mono text-xs"
+                class="text-xs rounded-sm border border-line bg-canvas px-1.5 py-0.5 font-mono text-strong"
               >
                 {{ key }}
               </kbd>

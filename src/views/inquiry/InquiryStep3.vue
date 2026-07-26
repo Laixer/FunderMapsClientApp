@@ -1,53 +1,59 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 
-import MainWrapper from '@/components/Layout/MainWrapper.vue'
-import Card from '@/components/Common/Card.vue'
+import AppShell from '@/components/Layout/AppShell.vue'
+import WizardHeader from '@/components/Layout/WizardHeader.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
-import Alert from '@/components/Common/Alert.vue'
+import Callout from '@/components/Common/Callout.vue'
+import EmptyState from '@/components/Common/EmptyState.vue'
+import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueList.vue'
+import Panel from '@/components/Common/Panel.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
-import Spinner from '@/components/Common/Spinner.vue'
-import WizardSteps from '@/components/Common/WizardSteps.vue'
 import SampleOverview from '@/components/Inquiry/SampleOverview.vue'
-import { RouterLink } from 'vue-router'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
+import { describeFailure } from '@/services/fundermaps/errors'
 import { AUDIT_STATUS, inquiryTypeLabel } from '@/services/inquiryEnums'
-import { formatDate } from '@/utils/date'
+import { countFilledSampleFields } from '@/services/sampleFields'
+import { findingsFor } from '@/services/sampleValidation'
 import { confirmAction } from '@/services/confirm'
-import { getErrorMessage } from '@/services/fundermaps/errors'
+import { toastError, toastSuccess } from '@/services/toast'
+import { formatAddress } from '@/utils/address'
+import { formatDateShort } from '@/utils/date'
+import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { inquirySteps } from '@/services/wizard'
 import { useAddressStore } from '@/stores/address'
+import { useSessionStore } from '@/stores/session'
+import { useStudioStore } from '@/stores/studio'
 
-const { t } = useI18n()
+/**
+ * Step 3 — read it back, then hand it over.
+ *
+ * The last chance to catch something before a reviewer's time is spent on it,
+ * so the page leads with what is *wrong* rather than with what is there: empty
+ * addresses, missing foundation types, and every cross-field finding across the
+ * whole dossier collected into one list. Below that, the dossier as the
+ * reviewer will see it.
+ */
 const route = useRoute()
 const router = useRouter()
+const addressStore = useAddressStore()
+const sessionStore = useSessionStore()
+const studio = useStudioStore()
 
 const inquiryId = computed(() => Number(route.params.id))
-const addressStore = useAddressStore()
 
 const inquiry: Ref<IInquiry | null> = ref(null)
 const samples: Ref<IInquirySample[]> = ref([])
 const loading = ref(true)
 const submitting = ref(false)
-const error: Ref<string | null> = ref(null)
-
-const canSubmit = computed(() => {
-  if (!inquiry.value) return false
-  const s = inquiry.value.state.auditStatus
-  return (
-    samples.value.length > 0 &&
-    (s === AUDIT_STATUS.TODO || s === AUDIT_STATUS.PENDING || s === AUDIT_STATUS.REJECTED)
-  )
-})
 
 async function load() {
   try {
     loading.value = true
-    error.value = null
     const [i, s] = await Promise.all([
       api.inquiry.getById(inquiryId.value),
       api.inquirySample.listAll(inquiryId.value),
@@ -56,7 +62,7 @@ async function load() {
     samples.value = s
     await addressStore.ensureMany(s.map((row) => row.address))
   } catch (e) {
-    error.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'Het dossier kon niet worden opgehaald.'))
   } finally {
     loading.value = false
   }
@@ -64,21 +70,97 @@ async function load() {
 
 onBeforeMount(load)
 
+const canSubmit = computed(() => {
+  const status = inquiry.value?.state.auditStatus
+  return (
+    samples.value.length > 0 &&
+    (status === AUDIT_STATUS.TODO ||
+      status === AUDIT_STATUS.PENDING ||
+      status === AUDIT_STATUS.REJECTED)
+  )
+})
+
+/* ------------------------------------------------------------- the checks */
+
+const emptyAddresses = computed(() =>
+  samples.value.filter((s) => countFilledSampleFields(s) === 0),
+)
+
+const withoutFoundationType = computed(() =>
+  samples.value.filter((s) => s.foundationType === null),
+)
+
+/**
+ * Every cross-field finding in the dossier, tagged with the address it belongs
+ * to. Collected here rather than left in the editor because this is the moment
+ * someone reads the whole thing at once — one list of eight beats eight visits.
+ */
+const findings = computed(() =>
+  samples.value.flatMap((sample) =>
+    findingsFor(sample).map((finding) => ({
+      id: `${sample.id}-${finding.id}`,
+      address: formatAddress(addressStore.cache[sample.address]),
+      message: finding.message,
+    })),
+  ),
+)
+
+const isClean = computed(
+  () =>
+    samples.value.length > 0 &&
+    !emptyAddresses.value.length &&
+    !withoutFoundationType.value.length &&
+    !findings.value.length,
+)
+
+const summary = computed<KeyValueItem[]>(() => {
+  const row = inquiry.value
+  if (!row) return []
+  return [
+    { label: 'Naam', value: row.documentName },
+    { label: 'Type', value: inquiryTypeLabel(row.type) },
+    { label: 'Documentdatum', value: formatDateShort(row.documentDate), mono: true },
+    { label: 'Opsteller', value: row.attribution.creatorName },
+    { label: 'Beoordelaar', value: row.attribution.reviewerName },
+    { label: 'Uitvoerder', value: row.attribution.contractorName },
+    ...(row.note ? [{ label: 'Notitie', value: row.note }] : []),
+  ]
+})
+
+/* ----------------------------------------------------------------- submit */
+
 async function submit() {
   if (!canSubmit.value || submitting.value) return
+
+  const warnings: string[] = []
+  if (emptyAddresses.value.length) {
+    warnings.push(`${emptyAddresses.value.length} adres(sen) zijn nog helemaal leeg.`)
+  }
+  if (withoutFoundationType.value.length) {
+    warnings.push(`${withoutFoundationType.value.length} adres(sen) missen een funderingstype.`)
+  }
+  if (findings.value.length) {
+    warnings.push(`${findings.value.length} waarde(n) zijn nog niet gecontroleerd.`)
+  }
+
   const ok = await confirmAction({
     title: 'Aanbieden ter review?',
-    body: 'De beoordelaar krijgt bericht en het rapport wordt vergrendeld tot de controle klaar is.',
+    body: [
+      'De beoordelaar krijgt bericht en het rapport wordt vergrendeld tot de controle klaar is.',
+      ...(warnings.length ? [`Let op: ${warnings.join(' ')}`] : []),
+    ].join('\n\n'),
     confirmLabel: 'Aanbieden',
   })
   if (!ok) return
+
   submitting.value = true
-  error.value = null
   try {
     await api.inquiry.submitForReview(inquiryId.value)
+    toastSuccess('Aangeboden ter review.')
+    studio.refreshCounts(sessionStore.currentUser?.id)
     router.push({ name: 'inquiry-view', params: { id: inquiryId.value } })
   } catch (e) {
-    error.value = getErrorMessage(e) ?? t('error.generic')
+    toastError(describeFailure(e, 'Aanbieden is niet gelukt.'))
   } finally {
     submitting.value = false
   }
@@ -87,85 +169,106 @@ async function submit() {
 function previous() {
   router.push({ name: 'inquiry-edit-2', params: { id: inquiryId.value } })
 }
+
+const steps = computed(() => inquirySteps(inquiryId.value))
+
+useActionShortcuts((): Record<string, () => void> =>
+  canSubmit.value ? { '⌘↵': () => void submit() } : {},
+)
 </script>
 
 <template>
-  <MainWrapper>
-    <div class="mb-8 space-y-3">
-      <RouterLink
-        :to="{ name: 'inquiry-list' }"
-        class="text-grey-700 hover:text-grey-800 inline-flex items-center gap-1 text-xs font-medium"
-      >
-        ← {{ t('inquiry.view.back') }}
-      </RouterLink>
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 class="text-grey-800 text-2xl font-semibold">Controle</h2>
-          <p v-if="inquiry" class="text-grey-700 mt-0.5 flex flex-wrap items-center gap-2 text-sm">
-            <span>{{ inquiryTypeLabel(inquiry.type) }}</span>
-            <span aria-hidden="true">·</span>
-            <span>{{ formatDate(inquiry.documentDate) }}</span>
-            <StatusBadge :status="inquiry.state.auditStatus" />
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <Button lg outline label="Vorige" @click="previous" />
-          <Button
-            lg
-            label="Aanbieden ter review"
-            :disabled="!canSubmit || submitting"
-            @click="submit"
-          />
-        </div>
-      </div>
-      <WizardSteps :steps="['Gegevens', 'Adressen', 'Controle']" :current="3" />
-    </div>
+  <AppShell :crumb="inquiry ? `Controle · ${inquiry.documentName}` : 'Controle'">
+    <WizardHeader
+      :title="inquiry ? `Controle · ${inquiry.documentName}` : 'Controle'"
+      :status="`#${inquiryId} · ${samples.length} ${samples.length === 1 ? 'adres' : 'adressen'}`"
+      :steps="steps"
+      :current="3"
+    >
+      <template #actions>
+        <StatusBadge v-if="inquiry" :status="inquiry.state.auditStatus" />
+        <Button label="Vorige" @click="previous" />
+        <Button
+          variant="primary"
+          label="Aanbieden ter review"
+          shortcut="⌘↵"
+          :disabled="!canSubmit || submitting"
+          @click="submit"
+        />
+      </template>
+    </WizardHeader>
 
-    <Alert v-if="error" :closeable="true" class="mb-3" @close="error = null">{{ error }}</Alert>
+    <div class="flex flex-col gap-4 px-6 py-5">
+      <EmptyState v-if="loading">Dossier ophalen…</EmptyState>
 
-    <Card v-if="loading" class="flex justify-center py-8">
-      <Spinner />
-      <span v-if="false">{{ t('common.loading') }}</span>
-    </Card>
+      <template v-else-if="inquiry">
+        <Callout v-if="!samples.length" tone="red" title="Nog geen adressen">
+          Voeg minstens één adres toe in stap 2 voordat je dit dossier aanbiedt.
+          <template #action>
+            <Button label="Naar invoer" @click="previous" />
+          </template>
+        </Callout>
 
-    <Card v-else-if="inquiry">
-      <div class="space-y-6">
-        <section>
-          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">Rapport</h4>
-          <dl class="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
-            <dt class="text-grey-700">Naam</dt>
-            <dd class="text-grey-800">{{ inquiry.documentName }}</dd>
+        <Callout v-else-if="isClean" tone="green" title="Klaar om aan te bieden">
+          Alle {{ samples.length }} adressen zijn gevuld, hebben een funderingstype en er zijn geen
+          waarden die elkaar tegenspreken.
+        </Callout>
 
-            <dt class="text-grey-700">Opsteller</dt>
-            <dd class="text-grey-800">{{ inquiry.attribution.creatorName ?? '—' }}</dd>
-
-            <dt class="text-grey-700">Beoordelaar</dt>
-            <dd class="text-grey-800">{{ inquiry.attribution.reviewerName ?? '—' }}</dd>
-
-            <dt class="text-grey-700">Uitvoerder</dt>
-            <dd class="text-grey-800">{{ inquiry.attribution.contractorName ?? '—' }}</dd>
-
-            <template v-if="inquiry.note">
-              <dt class="text-grey-700">Notitie</dt>
-              <dd class="text-grey-800 whitespace-pre-wrap">{{ inquiry.note }}</dd>
+        <template v-else>
+          <Callout
+            v-if="emptyAddresses.length"
+            tone="amber"
+            :title="`${emptyAddresses.length} ${emptyAddresses.length === 1 ? 'adres is' : 'adressen zijn'} nog leeg`"
+          >
+            {{ emptyAddresses.map((s) => formatAddress(addressStore.cache[s.address])).join(', ') }}
+            <template #action>
+              <Button label="Naar invoer" @click="previous" />
             </template>
-          </dl>
-        </section>
+          </Callout>
 
-        <section>
-          <h4 class="text-grey-700 mb-3 text-xs font-semibold tracking-wide uppercase">
-            Adressen ({{ samples.length }})
-          </h4>
-          <Alert v-if="samples.length === 0" type="warning">
-            Voeg minimaal één adres toe in stap 2 voordat je het rapport indient.
-          </Alert>
-          <SampleOverview v-else :samples="samples" />
+          <Callout
+            v-if="withoutFoundationType.length"
+            tone="amber"
+            :title="`${withoutFoundationType.length} ${withoutFoundationType.length === 1 ? 'adres mist' : 'adressen missen'} een funderingstype`"
+          >
+            Zonder funderingstype werkt het adres niet door in de kaart en de producten.
+            <template #action>
+              <Button label="Naar invoer" @click="previous" />
+            </template>
+          </Callout>
 
-          <p v-if="!canSubmit && samples.length > 0" class="text-grey-700 mt-3 text-sm">
-            Dit rapport kan niet meer worden ingediend in de huidige status.
-          </p>
-        </section>
-      </div>
-    </Card>
-  </MainWrapper>
+          <Panel v-if="findings.length" caption="TE CONTROLEREN WAARDEN" :meta="String(findings.length)">
+            <ul class="flex flex-col gap-2">
+              <li
+                v-for="finding in findings"
+                :key="finding.id"
+                class="text-md flex gap-2.5 border-b border-canvas pb-2 last:border-b-0 last:pb-0"
+              >
+                <span aria-hidden="true" class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber" />
+                <span class="min-w-0">
+                  <span class="block font-semibold text-body">{{ finding.address }}</span>
+                  <span class="block text-muted">{{ finding.message }}</span>
+                </span>
+              </li>
+            </ul>
+          </Panel>
+        </template>
+
+        <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-aside)] items-start gap-4">
+          <Panel flush>
+            <template #header>
+              <span class="text-lg font-bold text-strong">Adressen</span>
+              <span class="text-xs font-mono text-faint">{{ samples.length }}</span>
+            </template>
+            <SampleOverview v-if="samples.length" :samples="samples" />
+            <EmptyState v-else>Nog geen adressen toegevoegd.</EmptyState>
+          </Panel>
+
+          <Panel caption="RAPPORT">
+            <KeyValueList :items="summary" ratio="42%" />
+          </Panel>
+        </div>
+      </template>
+    </div>
+  </AppShell>
 </template>

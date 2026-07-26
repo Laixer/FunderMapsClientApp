@@ -4,14 +4,20 @@ import { storeToRefs } from 'pinia'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
-import ExitIcon from '@assets/svg/icons/exit.svg'
-
 import { useSessionStore } from '@/stores/session'
 import { logoutRedirect } from '@/services/oidc'
 
+/**
+ * Who you are, at the foot of the rail.
+ *
+ * The second line — organisation and role — is not decoration: this app shows
+ * different actions to a verifier and a writer, and "why can't I approve this?"
+ * is answered faster by a line that says `FunderMaps B.V. · Beoordelaar` than
+ * by a support thread.
+ */
 const { t } = useI18n()
 const sessionStore = useSessionStore()
-const { currentUser } = storeToRefs(sessionStore)
+const { currentUser, orgRole } = storeToRefs(sessionStore)
 
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
@@ -32,6 +38,20 @@ const initials = computed(() => {
   const last = (u.family_name?.[0] ?? '').toUpperCase()
   if (first || last) return `${first}${last}` || '??'
   return (u.email?.slice(0, 2) ?? '??').toUpperCase()
+})
+
+const ROLE_LABELS: Record<string, string> = {
+  superuser: 'Beheerder',
+  verifier: 'Beoordelaar',
+  writer: 'Opsteller',
+  reader: 'Lezer',
+}
+
+/** `Organisatie · Rol`, with whichever half we actually know. */
+const subtitle = computed(() => {
+  const org = currentUser.value?.organizations?.[0]?.name
+  const role = orgRole.value ? ROLE_LABELS[orgRole.value] : null
+  return [org, role].filter(Boolean).join(' · ') || '—'
 })
 
 const isAdministrator = computed(() => currentUser.value?.role === 'administrator')
@@ -56,54 +76,54 @@ function handleLogout() {
 </script>
 
 <template>
-  <div ref="root" class="relative">
+  <div ref="root" class="relative border-t border-divider pt-3">
     <button
       type="button"
-      class="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500"
+      class="flex w-full items-center gap-2.5 rounded-lg px-1 py-1 text-left hover:bg-sunken"
       :aria-expanded="open"
       aria-haspopup="menu"
       @click="open = !open"
     >
       <span
-        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-800"
+        class="text-xs inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-green-tint font-bold text-green-ink"
         aria-hidden="true"
       >
         {{ initials }}
       </span>
-      <span class="hidden text-sm font-medium text-grey-800 sm:inline">{{ userName }}</span>
+      <span class="min-w-0 flex-1">
+        <span class="text-md block truncate font-semibold text-strong">{{ userName }}</span>
+        <span class="text-xs block truncate text-faint">{{ subtitle }}</span>
+      </span>
     </button>
 
-    <!-- Opens upward: this menu lives at the bottom of the fixed full-height
-         sidebar, so a downward dropdown would render below the viewport and the
+    <!-- Opens upward: this menu lives at the bottom of the full-height sidebar,
+         so a downward dropdown would render below the viewport and the
          logout/app-switcher items would be unclickable. -->
     <div
       v-if="open"
       role="menu"
-      class="absolute bottom-full left-0 z-50 mb-2 w-56 rounded-lg border border-grey-200 bg-white py-2 shadow-card"
+      class="studio-fade absolute bottom-full left-0 z-50 mb-2 w-full overflow-hidden rounded-xl border border-line bg-surface py-1.5 shadow-overlay"
     >
-      <p class="px-4 pb-1 text-xs font-semibold tracking-wide text-grey-700 uppercase">
-        {{ t('userMenu.apps') }}
-      </p>
+      <p class="studio-label px-3 py-1.5">{{ t('userMenu.apps') }}</p>
       <a
         v-for="app in apps"
         :key="app.url"
         :href="app.url"
         role="menuitem"
-        class="block px-4 py-2 text-sm text-grey-800 hover:bg-grey-100"
+        class="text-md block px-3 py-2 text-body hover:bg-canvas"
         @click="open = false"
       >
         {{ app.label }}
       </a>
 
-      <hr class="my-2 border-grey-200" />
+      <hr class="my-1.5 border-divider" />
 
       <button
         type="button"
         role="menuitem"
-        class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 hover:bg-red-50"
+        class="text-md flex w-full items-center gap-2 px-3 py-2 text-left text-red hover:bg-red-wash"
         @click="handleLogout"
       >
-        <ExitIcon class="aspect-square h-3.5" aria-hidden="true" />
         {{ t('auth.logout') }}
       </button>
     </div>
