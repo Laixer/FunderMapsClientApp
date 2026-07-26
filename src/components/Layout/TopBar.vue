@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 
 import Button from '@/components/Common/Buttons/Button.vue'
+import Icon from '@/components/Common/Icon.vue'
 
 /**
  * A 54px translucent strip: where you are on the left, the one global action on
@@ -31,11 +32,18 @@ const router = useRouter()
     </nav>
 
     <div class="ml-auto flex items-center gap-2">
+      <!-- A bare plus, not a document glyph: the label already names the noun,
+           so the icon's job is to say *create*. And on a filled button the
+           outline of a circle-plus competes with the button's own edge. -->
       <Button
         variant="primary"
         label="Nieuwe rapportage"
         @click="router.push({ name: 'inquiry-new' })"
-      />
+      >
+        <template #before>
+          <Icon name="plus" size="xs" />
+        </template>
+      </Button>
     </div>
   </header>
 </template>
