@@ -30,7 +30,8 @@ import { useRowKeyboard } from '@/services/useRowKeyboard'
  */
 const router = useRouter()
 
-const PAGE_SIZE = 50
+/** Same page as the explorer — see `PAGE_SIZE` in `services/explorer.ts`. */
+const PAGE_SIZE = 20
 
 const rows: Ref<IRecovery[]> = ref([])
 const loading = ref(true)

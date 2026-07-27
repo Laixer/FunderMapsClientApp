@@ -34,8 +34,17 @@ export interface ExplorerQuery {
   page: number
 }
 
-/** How many rows a page of the explorer holds. */
-export const PAGE_SIZE = 50
+/**
+ * How many rows a page of the explorer holds.
+ *
+ * Twenty, not fifty: at 34–38px a row, twenty is about what a desktop viewport
+ * shows without scrolling, so Volgende replaces the scrollbar instead of coming
+ * after it. It also costs the client-side type filter less — that one narrows
+ * the page rather than the query, and a smaller page is a smaller thing to
+ * narrow, so `filterByType` leans harder on the caveat the popover already
+ * states.
+ */
+export const PAGE_SIZE = 20
 
 export function emptyQuery(): ExplorerQuery {
   return { q: '', status: [], type: [], mine: null, sort: null, order: 'desc', page: 1 }
