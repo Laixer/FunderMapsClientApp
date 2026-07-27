@@ -28,10 +28,35 @@ export interface ExplorerQuery {
   type: number[]
   /** Restrict to rows where you are the reviewer or the creator. */
   mine: 'reviewer' | 'creator' | null
-  sort: SortField | null
+  /** Always set — see `DEFAULT_SORT`. There is no "unsorted". */
+  sort: SortField
   order: 'asc' | 'desc'
   /** 1-based. */
   page: number
+}
+
+/**
+ * What the explorer sorts by when nobody has said otherwise — including every
+ * built-in view.
+ *
+ * There used to be no answer to that: leaving `sort` off let `GET /inquiry`
+ * fall back to `coalesce(update_date, create_date) DESC`, which sounds like
+ * recency and is not. The #973 backfill stamped one identical `update_date`
+ * onto 20,950 of 26,671 inquiries, so four rows in five sat in a single tie
+ * group in an order no one chose and `LIMIT`/`OFFSET` does not promise to keep
+ * stable between two pages. "Alles" only looked sorted.
+ *
+ * `document_date` descending instead: newest first, on the one date the table
+ * actually shows, so the claim can be checked by reading down the Datum column
+ * rather than taken on faith. The API ends every ordering on the primary key
+ * (FunderMapsApi #101), which is what makes paging through it total.
+ */
+export const DEFAULT_SORT: SortField = 'document_date'
+export const DEFAULT_ORDER: 'asc' | 'desc' = 'desc'
+
+/** Whether the query still carries the ordering it started with. */
+export function isDefaultSort(query: ExplorerQuery): boolean {
+  return query.sort === DEFAULT_SORT && query.order === DEFAULT_ORDER
 }
 
 /**
@@ -47,7 +72,15 @@ export interface ExplorerQuery {
 export const PAGE_SIZE = 20
 
 export function emptyQuery(): ExplorerQuery {
-  return { q: '', status: [], type: [], mine: null, sort: null, order: 'desc', page: 1 }
+  return {
+    q: '',
+    status: [],
+    type: [],
+    mine: null,
+    sort: DEFAULT_SORT,
+    order: DEFAULT_ORDER,
+    page: 1,
+  }
 }
 
 export interface SavedView {
@@ -156,7 +189,9 @@ export function describeSort(sort: SortField, order: 'asc' | 'desc'): string {
 
 export function parseQuery(raw: Record<string, unknown>): ExplorerQuery {
   const page = Number(raw.page)
-  const sort = SORT_FIELDS.find((field) => field === raw.sort) ?? null
+  // An unknown or absent `?sort=` lands on the default rather than on nothing:
+  // a link someone hand-edited should show a sorted list, not an arbitrary one.
+  const sort = SORT_FIELDS.find((field) => field === raw.sort) ?? DEFAULT_SORT
   return {
     q: typeof raw.q === 'string' ? raw.q : '',
     status: ints(raw.status, (n) => statusMeta(n).label !== 'Onbekend'),
@@ -179,7 +214,7 @@ export function toRouteQuery(query: ExplorerQuery, viewKey: string): LocationQue
   if (query.status.length) out.status = query.status.join(',')
   if (query.type.length) out.type = query.type.join(',')
   if (query.mine) out.mine = query.mine
-  if (query.sort) {
+  if (!isDefaultSort(query)) {
     out.sort = query.sort
     out.order = query.order
   }
@@ -189,7 +224,12 @@ export function toRouteQuery(query: ExplorerQuery, viewKey: string): LocationQue
 
 /** A saved view's stored shape, merged over the empty query. */
 export function fromView(view: SavedView): ExplorerQuery {
-  return { ...emptyQuery(), ...view.query }
+  const merged = { ...emptyQuery(), ...view.query }
+  // Views saved before the explorer had a default ordering stored `sort: null`,
+  // and they live in someone's `localStorage` rather than in a table we can
+  // migrate. Anything the sort no longer recognises falls back to the default.
+  const sort = SORT_FIELDS.find((field) => field === merged.sort)
+  return { ...merged, sort: sort ?? DEFAULT_SORT, order: merged.order === 'asc' ? 'asc' : 'desc' }
 }
 
 /* -------------------------------------------------------------- API mapping */
@@ -211,10 +251,11 @@ export function toListOpts(query: ExplorerQuery, userId: string | null): IInquir
   if (query.status.length) opts.status = [...query.status]
   if (query.mine === 'creator' && userId) opts.creator = userId
   if (query.mine === 'reviewer' && userId) opts.reviewer = userId
-  if (query.sort) {
-    opts.sort = query.sort
-    opts.order = query.order
-  }
+  // Always sent, default included. Letting the parameter fall away would hand
+  // the ordering back to the endpoint's fallback, which is the one thing this
+  // module exists to stop happening — see `DEFAULT_SORT`.
+  opts.sort = query.sort
+  opts.order = query.order
   return opts
 }
 
@@ -275,13 +316,16 @@ export function chipsFor(query: ExplorerQuery): Chip[] {
   // The sort is not a filter, but it belongs here for the same reason the
   // filters do: it changes which rows you see first, it survives in a shared
   // link, and half of what you can sort on (opsteller) has no column in the
-  // table to carry an arrow. Clearing it returns to the API's own ordering.
-  if (query.sort) {
+  // table to carry an arrow.
+  //
+  // Only once it differs from the default, though. A chip that is present on
+  // every screen is furniture, and its × would be a button that does nothing.
+  if (!isDefaultSort(query)) {
     chips.push({
       id: 'sort',
       label: 'sortering',
       value: describeSort(query.sort, query.order),
-      clear: (q) => ({ ...q, sort: null, order: 'desc', page: 1 }),
+      clear: (q) => ({ ...q, sort: DEFAULT_SORT, order: DEFAULT_ORDER, page: 1 }),
     })
   }
 
