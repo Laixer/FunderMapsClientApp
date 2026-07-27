@@ -3,7 +3,13 @@ import { computed, ref } from 'vue'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 
 import { INQUIRY_TYPE_LABELS, STATUS_META } from '@/services/inquiryEnums'
-import { SORT_OPTIONS, sortOption, type ExplorerQuery, type SortField } from '@/services/explorer'
+import {
+  SORT_OPTIONS,
+  isDefaultSort,
+  sortOption,
+  type ExplorerQuery,
+  type SortField,
+} from '@/services/explorer'
 
 /**
  * The `+ Filter` popover.
@@ -62,14 +68,16 @@ function setMine(value: 'reviewer' | 'creator' | null) {
 /**
  * Picking a column sorts it descending — newest, highest, most recent first is
  * what people mean by "sorteer op datum". Picking the column it already sorts
- * on turns sorting off again, so the same button is both the on and the off.
+ * on flips the direction, because there is no "off" to return to: the explorer
+ * is always sorted by something (see `DEFAULT_SORT`), so the only question a
+ * second click can answer is which end you want.
  */
 function setSort(value: SortField) {
-  const off = props.query.sort === value
+  const active = props.query.sort === value
   emit('update', {
     ...props.query,
-    sort: off ? null : value,
-    order: off ? 'desc' : props.query.order,
+    sort: value,
+    order: active ? (props.query.order === 'desc' ? 'asc' : 'desc') : 'desc',
     page: 1,
   })
 }
@@ -80,13 +88,11 @@ function setOrder(order: 'asc' | 'desc') {
 
 /** The active column's own words for its two directions. */
 const direction = computed(() => {
-  const option = props.query.sort ? sortOption(props.query.sort) : null
-  return option
-    ? [
-        { value: 'desc' as const, label: option.desc },
-        { value: 'asc' as const, label: option.asc },
-      ]
-    : []
+  const option = sortOption(props.query.sort)
+  return [
+    { value: 'desc' as const, label: option.desc },
+    { value: 'asc' as const, label: option.asc },
+  ]
 })
 </script>
 
@@ -196,9 +202,9 @@ const direction = computed(() => {
           </button>
         </div>
 
-        <!-- The direction only exists once a column does, and its words come
-             from that column: "oudste eerst" beats "oplopend" on a date. -->
-        <div v-if="direction.length" class="mt-2 flex flex-wrap items-center gap-1.5">
+        <!-- The direction's words come from the column it applies to:
+             "oudste eerst" beats "oplopend" on a date. -->
+        <div class="mt-2 flex flex-wrap items-center gap-1.5">
           <button
             v-for="option in direction"
             :key="option.value"
@@ -217,12 +223,8 @@ const direction = computed(() => {
         </div>
 
         <p class="text-sm mt-2 text-label">
-          <template v-if="query.sort">
-            Klik dezelfde kolom nog eens om terug te gaan naar de standaardvolgorde.
-          </template>
-          <template v-else>
-            Zonder keuze houdt de API haar eigen volgorde aan (laatst gewijzigd eerst).
-          </template>
+          Klik dezelfde kolom nog eens om de richting om te draaien.
+          <template v-if="isDefaultSort(query)">Dit is de standaardvolgorde.</template>
         </p>
         <p v-if="query.sort === 'type' || query.sort === 'status'" class="text-sm mt-1 text-label">
           Type en status volgen de volgorde van de database-enum: dat groepeert de rijen,

@@ -182,16 +182,17 @@ const sortField = computed(() =>
   Object.keys(SORT_KEYS).find((field) => SORT_KEYS[field] === query.value.sort) ?? null,
 )
 
-// desc → asc → back to default recency ordering. Descending first, because
-// that is what "sorteer op datum" means, and because the filter popover's sort
-// section starts there too — two controls writing one piece of state should not
-// disagree about which way the first click points.
+// A new column sorts descending; the same column again flips the direction.
+// There is no third click that switches sorting off, because the explorer is
+// always sorted by something — see `DEFAULT_SORT`. Descending first, because
+// that is what "sorteer op datum" means, and because the filter popover starts
+// there too: two controls writing one piece of state should not disagree about
+// which way the first click points.
 function onSort(field: string) {
   const key = SORT_KEYS[field]
   if (!key) return
   if (query.value.sort !== key) push({ ...query.value, sort: key, order: 'desc', page: 1 })
-  else if (query.value.order === 'desc') push({ ...query.value, order: 'asc', page: 1 })
-  else push({ ...query.value, sort: null, order: 'desc', page: 1 })
+  else push({ ...query.value, order: query.value.order === 'desc' ? 'asc' : 'desc', page: 1 })
 }
 
 const selectedIds = ref<Set<string | number>>(new Set())

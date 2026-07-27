@@ -15,6 +15,7 @@
  */
 
 import type { IInquiryListOpts } from '@/services/fundermaps/endpoints/inquiry'
+import { DEFAULT_ORDER, DEFAULT_SORT } from '@/services/explorer'
 import { AUDIT_STATUS } from '@/services/inquiryEnums'
 
 /** Which side of the dossier the lane puts you on. */
@@ -74,6 +75,12 @@ export function laneQuery(lane: Lane, userId: string): IInquiryListOpts {
     status: lane.statuses,
     ...(lane.role === 'reviewer' ? { reviewer: userId } : { creator: userId }),
     limit: LANE_FETCH,
+    // Sorted for the same reason the explorer is, and it shows more here: a
+    // lane displays the first eight of the fifty it fetches, so without an
+    // ordering those eight are eight arbitrary rows out of a tie group the
+    // #973 backfill made 20,950 rows wide. Newest first — see `DEFAULT_SORT`.
+    sort: DEFAULT_SORT,
+    order: DEFAULT_ORDER,
   }
 }
 
