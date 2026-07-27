@@ -32,6 +32,7 @@ import {
 } from '@/services/pipeline'
 import { remember } from '@/services/recents'
 import { countFilledSampleFields, sampleCompleteness } from '@/services/sampleFields'
+import { findingsFor } from '@/services/sampleValidation'
 import { toastError, toastSuccess } from '@/services/toast'
 import { confirmAction } from '@/services/confirm'
 import { formatAddress } from '@/utils/address'
@@ -248,6 +249,23 @@ const addressRows = computed(() =>
   })),
 )
 
+/**
+ * Everything the entry says that is worth a second look, tagged with the
+ * address it belongs to — the same list step 3 shows the person handing the
+ * dossier over, shown again to the person taking it. A reviewer who has to
+ * re-derive "an archiefonderzoek should not carry a handhavingstermijn" for
+ * every dossier will eventually not derive it.
+ */
+const findings = computed(() =>
+  samples.value.flatMap((sample) =>
+    findingsFor(sample, inquiry.value?.type).map((finding) => ({
+      id: `${sample.id}-${finding.id}`,
+      address: formatAddress(addressStore.cache[sample.address]),
+      message: finding.message,
+    })),
+  ),
+)
+
 /* ----------------------------------------------------------------- actions */
 
 function goEdit() {
@@ -441,6 +459,22 @@ useActionShortcuts(() => {
                 </template>
               </Callout>
             </div>
+          </Panel>
+
+          <Panel v-if="findings.length" caption="TE CONTROLEREN WAARDEN" :meta="String(findings.length)">
+            <ul class="flex flex-col gap-2">
+              <li
+                v-for="finding in findings"
+                :key="finding.id"
+                class="text-md flex gap-2.5 border-b border-canvas pb-2 last:border-b-0 last:pb-0"
+              >
+                <span aria-hidden="true" class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber" />
+                <span class="min-w-0">
+                  <span class="block font-semibold text-body">{{ finding.address }}</span>
+                  <span class="block text-muted">{{ finding.message }}</span>
+                </span>
+              </li>
+            </ul>
           </Panel>
 
           <div class="grid grid-cols-2 items-start gap-4">

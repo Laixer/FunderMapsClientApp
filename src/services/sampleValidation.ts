@@ -1,11 +1,16 @@
 /**
- * Cross-field checks on one address, phrased as sentences.
+ * Checks on one address, phrased as sentences.
  *
- * Every rule here is about two fields that disagree — the kind of mistake a
- * per-field validator cannot see. A depth of 5 is a perfectly good number; a
- * groundwater level of 5 m NAP under a ground level of 3,4 m NAP means the
- * water is standing above the street, which almost always means someone typed
- * centimetres into a metres field.
+ * Two kinds live here. Most are about two fields that disagree — the kind of
+ * mistake a per-field validator cannot see. A depth of 5 is a perfectly good
+ * number; a groundwater level of 5 m NAP under a ground level of 3,4 m NAP
+ * means the water is standing above the street, which almost always means
+ * someone typed centimetres into a metres field.
+ *
+ * The rest are about the *kind of report* the address sits in: a funderings-
+ * onderzoek that never measured anything, an archiefonderzoek carrying values
+ * nobody could have observed from an archive. Those read the inquiry type, so
+ * they only fire where the type is known.
  *
  * The output is deliberately prose and deliberately non-blocking. These are
  * *suspicions*, not errors: the Netherlands has genuinely strange buildings in
@@ -15,6 +20,8 @@
  */
 
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
+import { INQUIRY_TYPE } from '@/services/inquiryEnums'
+import { isSampleFieldFilled } from '@/services/sampleFields'
 
 export interface SampleFinding {
   id: string
@@ -31,8 +38,134 @@ function isNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
 }
 
-export function findingsFor(sample: IInquirySample): SampleFinding[] {
+/** `a, b en c` — a list a person can read out loud. */
+function enumerate(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? ''
+  return `${parts.slice(0, -1).join(', ')} en ${parts[parts.length - 1]}`
+}
+
+/* ------------------------------------------------- rules per inquiry type */
+
+/**
+ * One "onderdeel" as the rules talk about it: a name, and the field or fields
+ * that record it. A part counts as filled when *any* of its keys carries a
+ * value — a lintvoegmeting is present whether the entry holds the measured
+ * mm/m, the assessment, or both.
+ */
+interface SamplePart {
+  /** Reads mid-sentence, so lower case unless the term itself is capitalised. */
+  label: string
+  keys: ReadonlyArray<keyof IInquirySample>
+}
+
+const PART = {
+  enforcementTerm: { label: 'handhavingstermijn', keys: ['enforcementTerm'] },
+  overallQuality: { label: 'algehele funderingskwaliteit', keys: ['overallQuality'] },
+  woodLevel: { label: 'bovenkant funderingshout', keys: ['woodLevel'] },
+  skewedParallel: {
+    label: 'lintvoegmeting',
+    keys: ['skewedParallel', 'skewedParallelFacade'],
+  },
+  skewedPerpendicular: {
+    label: 'loodmeting',
+    keys: ['skewedPerpendicular', 'skewedPerpendicularFacade'],
+  },
+  // "Geen" is one of the crack types, so an address without a single crack
+  // field is an unanswered question rather than a building without cracks.
+  // `restored` is left out on purpose: it says what happened to a crack, not
+  // that one was looked for.
+  cracks: {
+    label: 'scheurregistratie',
+    keys: [
+      'crackIndoorType',
+      'crackIndoorSize',
+      'crackFacadeFrontType',
+      'crackFacadeFrontSize',
+      'crackFacadeBackType',
+      'crackFacadeBackSize',
+      'crackFacadeLeftType',
+      'crackFacadeLeftSize',
+      'crackFacadeRightType',
+      'crackFacadeRightSize',
+    ],
+  },
+  facadeScan: { label: 'risicoklasse QuickScan / Fase 0', keys: ['facadeScanRisk'] },
+} as const satisfies Record<string, SamplePart>
+
+function isPartFilled(sample: IInquirySample, part: SamplePart): boolean {
+  return part.keys.some((key) => isSampleFieldFilled(sample[key]))
+}
+
+/**
+ * The id every field in the rule appears in, because `SampleForm` hangs a
+ * finding on a field by looking for the field's key inside the finding's id —
+ * so one sentence about three missing parts lights up all three controls.
+ */
+function partsId(prefix: string, parts: SamplePart[]): string {
+  return [prefix, ...parts.flatMap((p) => p.keys)].join('-')
+}
+
+/**
+ * Rules Don wrote down for the two report types where "which fields belong
+ * here" is not a matter of taste:
+ *
+ *  1. a funderingsonderzoek states a handhavingstermijn, an algehele
+ *     funderingskwaliteit and a bovenkant funderingshout;
+ *  2. it also carries the inspection itself — lintvoeg, lood, scheuren;
+ *  3. an archiefonderzoek carries none of gevelscan, algehele kwaliteit or
+ *     handhavingstermijn, because nobody stood in front of the building.
+ *
+ * Each rule is one sentence rather than one per field: three callouts saying
+ * "ontbreekt" is a wall, and the reviewer needs the rule, not the tally.
+ */
+function typeFindings(sample: IInquirySample, inquiryType: number): SampleFinding[] {
   const findings: SampleFinding[] = []
+
+  if (inquiryType === INQUIRY_TYPE.FOUNDATION_RESEARCH) {
+    const required = [PART.enforcementTerm, PART.overallQuality, PART.woodLevel]
+    const missing = required.filter((part) => !isPartFilled(sample, part))
+    if (missing.length) {
+      findings.push({
+        id: partsId('foundation-research-missing', missing),
+        message: `Funderingsonderzoek: ${enumerate(missing.map((p) => p.label))} niet ingevuld — ${
+          missing.length === 1 ? 'dat onderdeel hoort' : 'die onderdelen horen'
+        } bij dit onderzoekstype vastgelegd te zijn.`,
+      })
+    }
+
+    const inspection = [PART.skewedParallel, PART.skewedPerpendicular, PART.cracks]
+    const missingInspection = inspection.filter((part) => !isPartFilled(sample, part))
+    if (missingInspection.length) {
+      findings.push({
+        id: partsId('foundation-research-missing-inspection', missingInspection),
+        message: `Funderingsonderzoek: ${enumerate(missingInspection.map((p) => p.label))} ontbreekt — de inspectiegegevens horen bij dit onderzoekstype vastgelegd te zijn.`,
+      })
+    }
+  }
+
+  if (inquiryType === INQUIRY_TYPE.ARCHIVE_RESEARCH) {
+    const forbidden = [PART.facadeScan, PART.overallQuality, PART.enforcementTerm]
+    const present = forbidden.filter((part) => isPartFilled(sample, part))
+    if (present.length) {
+      findings.push({
+        id: partsId('archive-research-unexpected', present),
+        message: `Archiefonderzoek: ${enumerate(present.map((p) => p.label))} ingevuld — ${
+          present.length === 1 ? 'dat onderdeel komt' : 'die onderdelen komen'
+        } niet uit een archiefonderzoek, controleer het onderzoekstype.`,
+      })
+    }
+  }
+
+  return findings
+}
+
+/**
+ * @param inquiryType the dossier's type, when the caller knows it. Left out,
+ *   the per-type rules simply do not run — a finding needs a fact behind it.
+ */
+export function findingsFor(sample: IInquirySample, inquiryType?: number | null): SampleFinding[] {
+  const findings: SampleFinding[] =
+    inquiryType === null || inquiryType === undefined ? [] : typeFindings(sample, inquiryType)
 
   const {
     groundLevel,

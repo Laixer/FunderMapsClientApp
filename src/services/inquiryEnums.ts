@@ -64,3 +64,15 @@ export const INQUIRY_TYPE_LABELS: Record<number, string> = {
 export function inquiryTypeLabel(type: number | null | undefined): string {
   return INQUIRY_TYPE_LABELS[type ?? -1] ?? 'Onbekend'
 }
+
+/**
+ * The two types that carry entry rules of their own — see
+ * `services/sampleValidation.ts`. Named rather than written as bare integers,
+ * because `type === 11` is a fact about the wire format and
+ * `type === INQUIRY_TYPE.FOUNDATION_RESEARCH` is a fact about the domain.
+ * Values match `FunderMaps.Core/Types/InquiryType.cs`.
+ */
+export const INQUIRY_TYPE = {
+  ARCHIVE_RESEARCH: 7,
+  FOUNDATION_RESEARCH: 11,
+} as const

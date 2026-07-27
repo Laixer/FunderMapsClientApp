@@ -54,7 +54,8 @@ One required `VITE_` var (see `.env.example`):
 - **`services/`** — the app's logic, deliberately kept out of components so it can be
   tested and reused: `explorer.ts` (the explorer's query object ⇄ URL ⇄ list options, saved
   views, filter chips), `pipeline.ts` (dossier lifecycle), `sampleFields.ts` (the sample
-  field registry), `sampleValidation.ts` (cross-field findings), `sampleProvenance.ts`,
+  field registry), `sampleValidation.ts` (cross-field findings plus the per-inquiry-type
+  entry rules), `sampleProvenance.ts`,
   `worklist.ts` (Werkbank lanes), `navigation.ts` + `shortcuts.ts` + `useActionShortcuts.ts`
   (the keyboard layer), `palette.ts`, `tone.ts` (the five semantic colours), `toast.ts`,
   `recents.ts`, `wizard.ts`, and the `*Enums.ts` int↔label tables.

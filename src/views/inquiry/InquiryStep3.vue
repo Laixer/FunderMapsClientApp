@@ -97,7 +97,7 @@ const withoutFoundationType = computed(() =>
  */
 const findings = computed(() =>
   samples.value.flatMap((sample) =>
-    findingsFor(sample).map((finding) => ({
+    findingsFor(sample, inquiry.value?.type).map((finding) => ({
       id: `${sample.id}-${finding.id}`,
       address: formatAddress(addressStore.cache[sample.address]),
       message: finding.message,
