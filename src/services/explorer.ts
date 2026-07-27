@@ -98,15 +98,52 @@ function ints(raw: unknown, valid: (n: number) => boolean): number[] {
   return out
 }
 
-const SORT_FIELDS: readonly SortField[] = [
-  'id',
-  'document_name',
-  'type',
-  'document_date',
-  'creator',
-  'reviewer',
-  'status',
+/* -------------------------------------------------------------- sort fields */
+
+export interface SortOption {
+  value: SortField
+  label: string
+  /** What the two directions actually mean for this column. */
+  asc: string
+  desc: string
+}
+
+/**
+ * The sortable columns, in the order the filter popover offers them.
+ *
+ * Each direction gets a label of its own rather than a shared
+ * "oplopend / aflopend": on a date column that is a word people have to
+ * translate into "oudste eerst" before they can use it, and translating a
+ * control is how you end up clicking it twice to find out what it does.
+ *
+ * `creator` and `reviewer` sort on the user's e-mail address server-side —
+ * which is the string the table shows, so A→Z means what it looks like.
+ * `type` and `status` sort on the PostgreSQL enum's declaration order: that
+ * groups the rows, but the order between groups carries no meaning (in
+ * `report.audit_status`, `rejected` precedes `pending_review`). Said out loud
+ * in the popover rather than dressed up as a ranking.
+ */
+export const SORT_OPTIONS: readonly SortOption[] = [
+  { value: 'document_date', label: 'Datum', asc: 'oudste eerst', desc: 'nieuwste eerst' },
+  { value: 'id', label: 'ID', asc: 'laagste eerst', desc: 'hoogste eerst' },
+  { value: 'document_name', label: 'Naam', asc: 'A → Z', desc: 'Z → A' },
+  { value: 'type', label: 'Type', asc: 'oplopend', desc: 'aflopend' },
+  { value: 'status', label: 'Status', asc: 'oplopend', desc: 'aflopend' },
+  { value: 'creator', label: 'Opsteller', asc: 'A → Z', desc: 'Z → A' },
+  { value: 'reviewer', label: 'Beoordelaar', asc: 'A → Z', desc: 'Z → A' },
 ]
+
+const SORT_FIELDS: readonly SortField[] = SORT_OPTIONS.map((option) => option.value)
+
+export function sortOption(field: SortField): SortOption {
+  return SORT_OPTIONS.find((option) => option.value === field) ?? SORT_OPTIONS[0]
+}
+
+/** `datum · nieuwste eerst` — the sort as one readable phrase. */
+export function describeSort(sort: SortField, order: 'asc' | 'desc'): string {
+  const option = sortOption(sort)
+  return `${option.label.toLowerCase()} · ${order === 'asc' ? option.asc : option.desc}`
+}
 
 export function parseQuery(raw: Record<string, unknown>): ExplorerQuery {
   const page = Number(raw.page)
@@ -195,7 +232,7 @@ const MINE_LABELS: Record<'reviewer' | 'creator', string> = {
   creator: 'ik stelde op',
 }
 
-/** One removable chip per active filter — see `FilterChip`. */
+/** One removable chip per active filter, plus one for the sort — see `FilterChip`. */
 export function chipsFor(query: ExplorerQuery): Chip[] {
   const chips: Chip[] = []
 
@@ -223,6 +260,19 @@ export function chipsFor(query: ExplorerQuery): Chip[] {
       label: 'toewijzing',
       value: MINE_LABELS[query.mine],
       clear: (q) => ({ ...q, mine: null, page: 1 }),
+    })
+  }
+
+  // The sort is not a filter, but it belongs here for the same reason the
+  // filters do: it changes which rows you see first, it survives in a shared
+  // link, and half of what you can sort on (opsteller) has no column in the
+  // table to carry an arrow. Clearing it returns to the API's own ordering.
+  if (query.sort) {
+    chips.push({
+      id: 'sort',
+      label: 'sortering',
+      value: describeSort(query.sort, query.order),
+      clear: (q) => ({ ...q, sort: null, order: 'desc', page: 1 }),
     })
   }
 
@@ -258,7 +308,16 @@ export function saveView(label: string, query: ExplorerQuery): SavedView {
     // updates the view instead of stacking two tabs with the same name.
     key: `custom:${label.toLowerCase().replace(/\s+/g, '-')}`,
     label,
-    query: { q: query.q, status: query.status, type: query.type, mine: query.mine },
+    // The sort travels with the view: "te controleren, oudste eerst" is one
+    // saved question, not a filter plus a setting you have to reapply.
+    query: {
+      q: query.q,
+      status: query.status,
+      type: query.type,
+      mine: query.mine,
+      sort: query.sort,
+      order: query.order,
+    },
     builtin: false,
   }
   const next = [...customViews().filter((v) => v.key !== view.key), view]
