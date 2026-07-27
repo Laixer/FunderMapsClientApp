@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 
 import { INQUIRY_TYPE_LABELS, STATUS_META } from '@/services/inquiryEnums'
-import type { ExplorerQuery } from '@/services/explorer'
+import { SORT_OPTIONS, sortOption, type ExplorerQuery, type SortField } from '@/services/explorer'
 
 /**
  * The `+ Filter` popover.
@@ -16,6 +16,13 @@ import type { ExplorerQuery } from '@/services/explorer'
  * Everything applies immediately. There is no Apply button, because the result
  * count is right next to the popover and watching it move is the fastest way to
  * tell whether you asked the right question.
+ *
+ * Sorting lives here too, under a rule of its own — one column at a time,
+ * unlike the filters above it. The table headers can already sort, but only on
+ * the six columns that happen to be on screen and only by cycling
+ * asc → desc → off, which is three clicks to say "op opsteller, Z → A". This
+ * says it in two, names both directions, and covers the columns the table does
+ * not show.
  */
 const props = defineProps<{ query: ExplorerQuery }>()
 
@@ -51,6 +58,36 @@ function setType(value: number) {
 function setMine(value: 'reviewer' | 'creator' | null) {
   emit('update', { ...props.query, mine: props.query.mine === value ? null : value, page: 1 })
 }
+
+/**
+ * Picking a column sorts it descending — newest, highest, most recent first is
+ * what people mean by "sorteer op datum". Picking the column it already sorts
+ * on turns sorting off again, so the same button is both the on and the off.
+ */
+function setSort(value: SortField) {
+  const off = props.query.sort === value
+  emit('update', {
+    ...props.query,
+    sort: off ? null : value,
+    order: off ? 'desc' : props.query.order,
+    page: 1,
+  })
+}
+
+function setOrder(order: 'asc' | 'desc') {
+  emit('update', { ...props.query, order, page: 1 })
+}
+
+/** The active column's own words for its two directions. */
+const direction = computed(() => {
+  const option = props.query.sort ? sortOption(props.query.sort) : null
+  return option
+    ? [
+        { value: 'desc' as const, label: option.desc },
+        { value: 'asc' as const, label: option.asc },
+      ]
+    : []
+})
 </script>
 
 <template>
@@ -61,7 +98,7 @@ function setMine(value: 'reviewer' | 'creator' | null) {
       :aria-expanded="open"
       @click="open = !open"
     >
-      + Filter
+      Filteren &amp; sorteren
     </button>
 
     <div
@@ -134,6 +171,63 @@ function setMine(value: 'reviewer' | 'creator' | null) {
         <!-- Said plainly rather than hidden: `GET /inquiry` has no type filter,
              so this one narrows the page you are looking at, not the query. -->
         <p class="text-sm mt-2 text-label">Type filtert de zichtbare pagina, niet de hele set.</p>
+      </section>
+
+      <!-- Sorting is a different verb from filtering, so it sits below a rule
+           rather than as a fourth chip group. Unlike the sets above it, this
+           one is single-choice: the API sorts on one column. -->
+      <section class="border-t border-divider pt-3.5">
+        <h3 class="studio-label mb-2">SORTEREN OP</h3>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="option in SORT_OPTIONS"
+            :key="option.value"
+            type="button"
+            class="text-base rounded-full border px-2.5 py-1 font-medium"
+            :class="
+              query.sort === option.value
+                ? 'border-blue-border bg-blue-tint text-blue-ink'
+                : 'border-line bg-surface text-muted hover:border-line-hover'
+            "
+            :aria-pressed="query.sort === option.value"
+            @click="setSort(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <!-- The direction only exists once a column does, and its words come
+             from that column: "oudste eerst" beats "oplopend" on a date. -->
+        <div v-if="direction.length" class="mt-2 flex flex-wrap items-center gap-1.5">
+          <button
+            v-for="option in direction"
+            :key="option.value"
+            type="button"
+            class="text-base rounded-full border px-2.5 py-1 font-medium"
+            :class="
+              query.order === option.value
+                ? 'border-blue-border bg-blue-tint text-blue-ink'
+                : 'border-line bg-surface text-muted hover:border-line-hover'
+            "
+            :aria-pressed="query.order === option.value"
+            @click="setOrder(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <p class="text-sm mt-2 text-label">
+          <template v-if="query.sort">
+            Klik dezelfde kolom nog eens om terug te gaan naar de standaardvolgorde.
+          </template>
+          <template v-else>
+            Zonder keuze houdt de API haar eigen volgorde aan (laatst gewijzigd eerst).
+          </template>
+        </p>
+        <p v-if="query.sort === 'type' || query.sort === 'status'" class="text-sm mt-1 text-label">
+          Type en status volgen de volgorde van de database-enum: dat groepeert de rijen,
+          maar rangschikt ze niet.
+        </p>
       </section>
     </div>
   </div>
