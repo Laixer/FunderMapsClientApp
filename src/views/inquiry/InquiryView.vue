@@ -72,20 +72,21 @@ const showRejectModal = ref(false)
 
 const status = computed(() => inquiry.value?.state?.auditStatus ?? null)
 
-// Editable until the inquiry is approved (DONE). Discarded inquiries are also
-// frozen — they are a deliberate close-out, not active work.
+// The three states the API will actually accept a write in — `requireWritable`
+// in FunderMapsApi allows todo, pending and rejected and 403s everything else.
+// Handing back the dossier locks it: a reviewer reading a report that is being
+// edited underneath them is the reason the lock exists, and it is what the
+// "Aanbieden ter review?" dialog already promises. Approval locks it too, until
+// an admin reopens it; a rejection hands it back and editing resumes.
 const isEditable = computed(
-  () =>
-    status.value !== null &&
-    status.value !== AUDIT_STATUS.DONE &&
-    status.value !== AUDIT_STATUS.DISCARDED,
-)
-const canSubmitForReview = computed(
   () =>
     status.value === AUDIT_STATUS.TODO ||
     status.value === AUDIT_STATUS.PENDING ||
     status.value === AUDIT_STATUS.REJECTED,
 )
+// The same three states by construction: a dossier you may still write to is a
+// dossier you may still hand over. One list, so the two cannot drift apart.
+const canSubmitForReview = isEditable
 const isPendingReview = computed(() => status.value === AUDIT_STATUS.PENDING_REVIEW)
 // Escape hatch for "approved but an error surfaced later" — restricted to org
 // admins (issue #250). The API's /reset is an unconditional → pending move.
