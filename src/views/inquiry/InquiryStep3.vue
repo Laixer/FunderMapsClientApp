@@ -34,9 +34,12 @@ import { useStudioStore } from '@/stores/studio'
  *
  * The last chance to catch something before a reviewer's time is spent on it,
  * so the page leads with what is *wrong* rather than with what is there: empty
- * addresses, missing foundation types, and every cross-field finding across the
- * whole dossier collected into one list. Below that, the dossier as the
- * reviewer will see it.
+ * addresses and every cross-field finding across the whole dossier collected
+ * into one list. Below that, the dossier as the reviewer will see it.
+ *
+ * A missing foundation type is *not* one of those wrongs — a sample records what
+ * the report observed, and plenty of reports observe an address without ever
+ * establishing its foundation type.
  */
 const route = useRoute()
 const router = useRouter()
@@ -86,10 +89,6 @@ const emptyAddresses = computed(() =>
   samples.value.filter((s) => countFilledSampleFields(s) === 0),
 )
 
-const withoutFoundationType = computed(() =>
-  samples.value.filter((s) => s.foundationType === null),
-)
-
 /**
  * Every cross-field finding in the dossier, tagged with the address it belongs
  * to. Collected here rather than left in the editor because this is the moment
@@ -109,7 +108,6 @@ const isClean = computed(
   () =>
     samples.value.length > 0 &&
     !emptyAddresses.value.length &&
-    !withoutFoundationType.value.length &&
     !findings.value.length,
 )
 
@@ -135,9 +133,6 @@ async function submit() {
   const warnings: string[] = []
   if (emptyAddresses.value.length) {
     warnings.push(`${emptyAddresses.value.length} adres(sen) zijn nog helemaal leeg.`)
-  }
-  if (withoutFoundationType.value.length) {
-    warnings.push(`${withoutFoundationType.value.length} adres(sen) missen een funderingstype.`)
   }
   if (findings.value.length) {
     warnings.push(`${findings.value.length} waarde(n) zijn nog niet gecontroleerd.`)
@@ -210,8 +205,8 @@ useActionShortcuts((): Record<string, () => void> =>
         </Callout>
 
         <Callout v-else-if="isClean" tone="green" title="Klaar om aan te bieden">
-          Alle {{ samples.length }} adressen zijn gevuld, hebben een funderingstype en er zijn geen
-          waarden die elkaar tegenspreken.
+          Alle {{ samples.length }} adressen zijn gevuld en er zijn geen waarden die elkaar
+          tegenspreken.
         </Callout>
 
         <template v-else>
@@ -221,17 +216,6 @@ useActionShortcuts((): Record<string, () => void> =>
             :title="`${emptyAddresses.length} ${emptyAddresses.length === 1 ? 'adres is' : 'adressen zijn'} nog leeg`"
           >
             {{ emptyAddresses.map((s) => formatAddress(addressStore.cache[s.address])).join(', ') }}
-            <template #action>
-              <Button label="Naar invoer" @click="previous" />
-            </template>
-          </Callout>
-
-          <Callout
-            v-if="withoutFoundationType.length"
-            tone="amber"
-            :title="`${withoutFoundationType.length} ${withoutFoundationType.length === 1 ? 'adres mist' : 'adressen missen'} een funderingstype`"
-          >
-            Zonder funderingstype werkt het adres niet door in de kaart en de producten.
             <template #action>
               <Button label="Naar invoer" @click="previous" />
             </template>
