@@ -157,16 +157,12 @@ const step = computed(() => nextStep(status.value))
  */
 const blocker = computed<string | null>(() => {
   if (!canSubmitForReview.value) return null
-  const { total, withFoundationType, empty } = completeness.value
+  const { total, empty } = completeness.value
   if (total === 0) return 'Dit dossier heeft nog geen adressen. Voeg er minstens één toe in stap 2.'
   if (empty > 0) {
     return empty === 1
       ? '1 van de adressen is nog helemaal leeg. Zodra dat gevuld is kan het dossier ter controle.'
       : `${empty} van de ${total} adressen zijn nog helemaal leeg. Zodra die gevuld zijn kan het dossier ter controle.`
-  }
-  const missing = total - withFoundationType
-  if (missing > 0) {
-    return `${missing} van de ${total} adressen mist een funderingstype. Zodra dat gevuld is kan het dossier ter controle.`
   }
   return null
 })
