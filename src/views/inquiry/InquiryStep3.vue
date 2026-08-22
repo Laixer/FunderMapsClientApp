@@ -96,7 +96,11 @@ const emptyAddresses = computed(() =>
  */
 const findings = computed(() =>
   samples.value.flatMap((sample) =>
-    findingsFor(sample, inquiry.value?.type, inquiry.value?.documentDate).map((finding) => ({
+    findingsFor(sample, {
+      inquiryType: inquiry.value?.type,
+      documentDate: inquiry.value?.documentDate,
+      bagBuiltYear: addressStore.cache[sample.address]?.built_year,
+    }).map((finding) => ({
       id: `${sample.id}-${finding.id}`,
       address: formatAddress(addressStore.cache[sample.address]),
       message: finding.message,

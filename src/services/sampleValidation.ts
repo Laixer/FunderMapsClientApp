@@ -169,15 +169,42 @@ function typeFindings(sample: IInquirySample, inquiryType: number): SampleFindin
 const WOOD_PILE_TYPES: ReadonlySet<number> = new Set([0, 1, 2, 10])
 
 /**
- * @param inquiryType the dossier's type, when the caller knows it. Left out,
- *   the per-type rules simply do not run — a finding needs a fact behind it.
- * @param documentDate the dossier's document date, for the bouwjaar rule.
+ * What the caller knows about the dossier and the building, beyond the sample
+ * itself. Every key is optional: a rule that needs a fact the caller does not
+ * have simply does not run.
  */
-export function findingsFor(
-  sample: IInquirySample,
-  inquiryType?: number | null,
-  documentDate?: string | null,
-): SampleFinding[] {
+export interface SampleContext {
+  /** The dossier's type — drives the per-type rules. */
+  inquiryType?: number | null
+  /** The dossier's document date — for the "bouwjaar = rapportjaar" rule. */
+  documentDate?: string | null
+  /**
+   * BAG construction year of the sample's building (`IAddress.built_year`),
+   * for the "bouwjaar vs BAG" rules. BAG marks unknown as year 1005.
+   */
+  bagBuiltYear?: string | null
+}
+
+/** BAG's "unknown" construction years sit around 1000–1009; nothing real is older. */
+const BAG_YEAR_KNOWN_FROM = 1100
+
+/** How far a typed bouwjaar may sit from the BAG year before it is called out. */
+const BAG_YEAR_TOLERANCE = 30
+
+function yearOf(date: string | null | undefined): number {
+  if (!date) return NaN
+  const year = new Date(date).getFullYear()
+  return Number.isFinite(year) ? year : NaN
+}
+
+/** `1931` and `1913`: the same four digits in another order. */
+function sameDigits(a: number, b: number): boolean {
+  const sort = (n: number) => String(n).split('').sort().join('')
+  return sort(a) === sort(b)
+}
+
+export function findingsFor(sample: IInquirySample, context: SampleContext = {}): SampleFinding[] {
+  const { inquiryType, documentDate, bagBuiltYear } = context
   const findings: SampleFinding[] =
     inquiryType === null || inquiryType === undefined ? [] : typeFindings(sample, inquiryType)
 
@@ -292,12 +319,48 @@ export function findingsFor(
         message: `Bouwjaar ${year} ligt in de toekomst.`,
       })
     }
-    const documentYear = documentDate ? new Date(documentDate).getFullYear() : NaN
+    const documentYear = yearOf(documentDate)
     if (Number.isFinite(year) && Number.isFinite(documentYear) && year === documentYear) {
       findings.push({
         id: 'builtYear-is-document-year',
         message: `Bouwjaar ${year} is gelijk aan het jaar van het rapport — alleen invullen als het document het bouwjaar noemt; anders leeg laten, dan geldt het BAG-bouwjaar.`,
       })
+    }
+
+    // Against the register. The audit found the typical shapes: a century
+    // slip (2027 for 1927), swapped digits (1931 for 1913), and values decades
+    // off with no pattern. The first two are called out at any distance; the
+    // rest past a tolerance, because BAG years are "circa" for old stock. A
+    // typed year *older* than BAG can be right — the drawing may describe a
+    // previous building on the plot — so that direction is phrased as a
+    // question, the other as a check.
+    const bagYear = yearOf(bagBuiltYear)
+    if (
+      Number.isFinite(year) &&
+      Number.isFinite(bagYear) &&
+      bagYear >= BAG_YEAR_KNOWN_FROM &&
+      year !== bagYear
+    ) {
+      const gap = year - bagYear
+      if (Math.abs(gap) === 100) {
+        findings.push({
+          id: 'builtYear-century-off-bag',
+          message: `Bouwjaar ${year} scheelt precies een eeuw met het BAG-bouwjaar ${bagYear} — eeuwverschuiving?`,
+        })
+      } else if (sameDigits(year, bagYear)) {
+        findings.push({
+          id: 'builtYear-digits-swapped-bag',
+          message: `Bouwjaar ${year} heeft dezelfde cijfers als het BAG-bouwjaar ${bagYear} — cijfers verwisseld?`,
+        })
+      } else if (Math.abs(gap) > BAG_YEAR_TOLERANCE) {
+        findings.push({
+          id: 'builtYear-far-from-bag',
+          message:
+            gap > 0
+              ? `Bouwjaar ${year} ligt ${gap} jaar na het BAG-bouwjaar ${bagYear} — staat dit jaar echt in het document?`
+              : `Bouwjaar ${year} ligt ${-gap} jaar vóór het BAG-bouwjaar ${bagYear} — kan kloppen als de tekening een vorig pand op dit adres betreft, anders controleren.`,
+        })
+      }
     }
   }
 

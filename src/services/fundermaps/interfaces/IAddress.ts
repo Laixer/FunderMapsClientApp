@@ -19,6 +19,13 @@ export interface IAddress {
   street: string | null
   city: string | null
   building_id: string
+  /**
+   * BAG construction year of the linked pand, as a date (year precision).
+   * Null when the building row is missing; BAG itself encodes "unknown" as
+   * year 1005 — treat anything before 1100 as unknown. Optional because
+   * cached rows from before the API shipped it lack the key.
+   */
+  built_year?: string | null
   latitude: number | null
   longitude: number | null
 }
