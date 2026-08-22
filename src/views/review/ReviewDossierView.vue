@@ -4,7 +4,10 @@ import { useRoute, useRouter } from 'vue-router'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
+import Callout from '@/components/Common/Callout.vue'
 import EmptyState from '@/components/Common/EmptyState.vue'
+import Field from '@/components/Common/Field.vue'
+import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueList.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import api from '@/services/fundermaps'
@@ -19,13 +22,15 @@ import { FOUNDATION_TYPE_OPTIONS } from '@/services/sampleEnums'
 /**
  * Judging one submission.
  *
- * The screen puts three things side by side, because a value on its own cannot
- * be judged: what the model proposes, the passage it read that from, and the
- * document itself. If the citation matches the page, the answer is sound.
+ * A proposed value cannot be judged on its own, so three things sit together:
+ * what the pipeline read, the passage it read it from, and the document itself.
+ * If the citation matches the page, the answer is sound — which is exactly how
+ * Don worked through 83 of these by hand, and how every real fault in the
+ * pipeline has been found so far.
  *
- * Decisions are per field. A document routinely yields six values where five
- * are solid and one is a stretch, and a single verdict for the whole document
- * would either discard the good ones or wave the bad one through.
+ * Decisions are per value. A document routinely yields six where five are solid
+ * and one is a stretch; one verdict for the whole thing would either discard
+ * the good ones or wave the bad one through.
  */
 const route = useRoute()
 const router = useRouter()
@@ -34,7 +39,7 @@ const data = ref<IReviewDossier | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const busy = ref<number | null>(null)
-const done = ref<Record<number, VerdictOutcome>>({})
+const decided = ref<Record<number, VerdictOutcome>>({})
 const notes = ref<Record<number, string>>({})
 const corrections = ref<Record<number, string>>({})
 const openedAt = Date.now()
@@ -59,14 +64,45 @@ const FIELD_LABEL: Record<string, string> = {
   grondwaterstand: 'Grondwaterstand',
 }
 
-const open = computed(() => (data.value?.fields ?? []).filter((f) => !done.value[f.id]))
-const artifactFor = (f: IProposedField) =>
-  data.value?.artifacts.find((a) => a.id === f.artifactId) ?? null
+const open = computed(() => (data.value?.fields ?? []).filter((f) => !decided.value[f.id]))
+const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
 
-/** The model reasoned rather than read. Worth saying plainly, not hiding. */
+/** The model reasoned rather than read. Said plainly, not hidden. */
 const isInferred = (f: IProposedField) => /^\s*afgeleid\s*:/i.test(f.evidence ?? '')
-/** The source was not allowed to establish this field — a QuickScan quoting us. */
+/** The source was not allowed to establish this field — a QuickScan quoting us back. */
 const isRefused = (f: IProposedField) => f.state === 'rejected'
+
+const metaLine = computed(() => {
+  const d = data.value?.dossier
+  if (!d) return ''
+  const when = new Date(d.receivedAt).toLocaleDateString('nl-NL', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+  return [d.externalRef ?? 'zonder kenmerk', `via ${d.channel}`, `ontvangen ${when}`].join(' · ')
+})
+
+const documentDetails = computed<KeyValueItem[]>(() =>
+  (data.value?.artifacts ?? []).flatMap((a) => [
+    { label: 'Bestand', value: a.originalFilename ?? a.storageKey },
+    { label: "Pagina's", value: a.pageCount != null ? String(a.pageCount) : '—' },
+    { label: 'Gelezen als', value: a.lane === 'text' ? 'tekst' : 'afbeelding' },
+  ]),
+)
+
+const provenance = computed<KeyValueItem[]>(() => {
+  const f = data.value?.fields[0]
+  return f ? [
+    { label: 'Model', value: f.model },
+    { label: 'Prompt', value: f.promptVersion },
+  ] : []
+})
+
+/** Signed links expire; opening in a new tab keeps the review screen intact. */
+function openArtifact(link: string) {
+  window.open(link, '_blank', 'noopener')
+}
 
 async function decide(f: IProposedField, outcome: VerdictOutcome) {
   busy.value = f.id
@@ -78,7 +114,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
       note: notes.value[f.id]?.trim() || null,
       reviewSeconds: Math.round((Date.now() - openedAt) / 1000),
     })
-    done.value = { ...done.value, [f.id]: outcome }
+    decided.value = { ...decided.value, [f.id]: outcome }
   } catch (e) {
     error.value = describeFailure(e, 'Het oordeel kon niet worden opgeslagen.')
   } finally {
@@ -88,122 +124,160 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
 </script>
 
 <template>
-  <AppShell crumb="Controle" fill>
+  <AppShell :crumb="data?.dossier.subject ?? 'Controle'">
     <div
-      class="flex shrink-0 items-baseline gap-3 border-b border-line bg-surface px-6 py-3"
+      class="grid grid-cols-[minmax(0,1fr)_var(--spacing-aside)] items-start gap-4.5 px-6 py-6"
     >
-      <h1 class="text-lg font-bold text-ink">
-        {{ data?.dossier.subject ?? 'Dossier' }}
-      </h1>
-      <p class="text-md flex-1 text-muted">
-        <span v-if="data">
-          Kenmerk {{ data.dossier.externalRef ?? '—' }} · via {{ data.dossier.channel }}
-        </span>
-      </p>
-      <Button variant="ghost" @click="router.push({ name: 'review-queue' })">
-        Terug naar de lijst
-      </Button>
-    </div>
+      <div class="flex min-w-0 flex-col gap-4">
+        <header v-if="data" class="flex items-start gap-3.5">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <h1 class="text-4xl font-display font-bold break-words text-ink">
+                {{ data.dossier.subject ?? 'Dossier' }}
+              </h1>
+              <Pill :label="`${open.length} te beoordelen`" tone="blue" />
+            </div>
+            <p class="text-sm mt-1 font-mono text-faint">{{ metaLine }}</p>
+          </div>
+          <div class="ml-auto flex shrink-0 gap-2">
+            <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue' })" />
+          </div>
+        </header>
 
-    <div
-      v-if="error"
-      class="text-md shrink-0 border-b border-red bg-red-tint px-6 py-2.5 text-red"
-    >
-      {{ error }}
-    </div>
+        <Panel v-if="loading" caption="VOORSTELLEN">
+          <EmptyState>Dossier ophalen…</EmptyState>
+        </Panel>
 
-    <div class="min-h-0 flex-1 overflow-auto px-6 py-4">
-      <EmptyState v-if="loading" dashed>Bezig met laden…</EmptyState>
-      <EmptyState v-else-if="data && open.length === 0" dashed>
-        Alles op dit dossier is beoordeeld.
-      </EmptyState>
+        <Callout v-else-if="error" tone="red" title="Er ging iets mis">
+          {{ error }}
+        </Callout>
 
-      <div v-else-if="data" class="flex flex-col gap-3">
-      <Panel v-for="f in open" :key="f.id" :caption="FIELD_LABEL[f.field] ?? f.field">
-        <div class="flex flex-col gap-3 md:flex-row">
-          <!-- the document, so the citation can be checked against it -->
-          <a
-            v-if="artifactFor(f)"
-            :href="artifactFor(f)!.accessLink"
-            target="_blank"
-            rel="noopener"
-            class="text-md w-48 shrink-0 font-medium text-blue-ink underline-offset-2 hover:underline"
+        <template v-else-if="data">
+          <Callout
+            v-if="open.length === 0"
+            tone="green"
+            title="Alles beoordeeld"
           >
-            Open origineel →
-            <span class="block text-sm text-faint">
-              {{ artifactFor(f)!.originalFilename }}
-              ({{ artifactFor(f)!.pageCount }} pag., {{ artifactFor(f)!.lane }})
-            </span>
-          </a>
+            Er staan geen voorstellen meer open op dit dossier.
+          </Callout>
 
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-baseline gap-3">
-              <span class="text-lg font-bold text-ink">{{ f.value ?? '—' }}</span>
-              <span class="text-md font-mono tabular-nums text-faint">{{ f.confidence }}</span>
-              <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" />
-              <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" />
-              <Pill v-else-if="f.state === 'auto_accepted'" label="hoge zekerheid" tone="green" />
+          <Panel
+            v-for="f in open"
+            :key="f.id"
+            :caption="(FIELD_LABEL[f.field] ?? f.field).toUpperCase()"
+            :meta="f.confidence ?? undefined"
+          >
+            <div class="flex flex-col gap-3.5">
+              <div class="flex flex-wrap items-center gap-2.5">
+                <span class="text-4xl font-display font-bold text-ink">{{ f.value ?? '—' }}</span>
+                <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" />
+                <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" />
+                <Pill
+                  v-else-if="f.state === 'auto_accepted'"
+                  label="hoge zekerheid"
+                  tone="green"
+                />
+              </div>
+
+              <!-- The citation is the thing being judged, not the value. -->
+              <p class="text-md border-l-2 border-line-strong pl-3 text-muted">
+                {{ f.evidence ?? 'Geen citaat meegegeven.' }}
+              </p>
+
+              <Callout
+                v-if="isRefused(f)"
+                tone="red"
+                title="Dit document mag dit veld niet vaststellen"
+              >
+                Een QuickScan of funderingsrisicorapport toont FunderMaps-gegevens. Overnemen
+                zou onze eigen uitkomst opnieuw invoeren.
+              </Callout>
+
+              <div class="grid grid-cols-2 items-start gap-4">
+                <Field
+                  v-if="f.field === 'funderingstype'"
+                  v-model="corrections[f.id]"
+                  kind="select"
+                  label="Andere waarde"
+                  :options="FOUNDATION_TYPE_OPTIONS"
+                  hint="Alleen invullen als het voorstel niet klopt."
+                />
+                <Field
+                  v-else
+                  v-model="corrections[f.id]"
+                  label="Andere waarde"
+                  hint="Alleen invullen als het voorstel niet klopt."
+                />
+                <Field
+                  v-model="notes[f.id]"
+                  kind="textarea"
+                  :rows="2"
+                  label="Toelichting"
+                  hint="Waarom klopt het niet? Dit stuurt de volgende versie van de pipeline."
+                />
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <Button
+                  variant="primary"
+                  label="Overnemen"
+                  :disabled="busy === f.id || isRefused(f)"
+                  @click="decide(f, 'confirmed')"
+                />
+                <Button
+                  label="Aanpassen"
+                  :disabled="busy === f.id || !corrections[f.id]"
+                  @click="decide(f, 'corrected')"
+                />
+                <Button
+                  variant="danger"
+                  label="Afkeuren"
+                  :disabled="busy === f.id"
+                  @click="decide(f, 'rejected')"
+                />
+              </div>
             </div>
+          </Panel>
 
-            <blockquote class="text-md mt-2 border-l-2 border-line-strong pl-3 text-muted">
-              {{ f.evidence ?? 'Geen citaat meegegeven.' }}
-            </blockquote>
-
-            <div class="mt-3 flex flex-wrap items-center gap-2">
-              <Button
-                :disabled="busy === f.id || isRefused(f)"
-                @click="decide(f, 'confirmed')"
+          <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settled.length)">
+            <ul class="flex flex-col gap-2">
+              <li
+                v-for="f in settled"
+                :key="f.id"
+                class="text-md flex gap-2.5 border-b border-canvas pb-2 last:border-b-0 last:pb-0"
               >
-                Overnemen
-              </Button>
+                <span aria-hidden="true" class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-green" />
+                <span class="min-w-0">
+                  <span class="block font-semibold text-body">
+                    {{ FIELD_LABEL[f.field] ?? f.field }} — {{ f.value }}
+                  </span>
+                  <span class="block text-muted">{{ decided[f.id] }}</span>
+                </span>
+              </li>
+            </ul>
+          </Panel>
+        </template>
+      </div>
 
-              <select
-                v-if="f.field === 'funderingstype'"
-                v-model="corrections[f.id]"
-                class="text-md h-8 rounded-lg border border-line bg-surface px-2.5 text-body"
-              >
-                <option value="">Aanpassen naar…</option>
-                <option v-for="o in FOUNDATION_TYPE_OPTIONS" :key="String(o.value)" :value="o.label">
-                  {{ o.label }}
-                </option>
-              </select>
-              <input
-                v-else
-                v-model="corrections[f.id]"
-                placeholder="Aanpassen naar…"
-                class="text-md h-8 rounded-lg border border-line bg-surface px-2.5 text-body"
-              />
-
-              <Button
-                variant="secondary"
-                :disabled="busy === f.id || !corrections[f.id]"
-                @click="decide(f, 'corrected')"
-              >
-                Aanpassen
-              </Button>
-              <Button
-                variant="ghost"
-                :disabled="busy === f.id"
-                @click="decide(f, 'rejected')"
-              >
-                Afkeuren
-              </Button>
-            </div>
-
-            <!--
-              The reason matters more than the tally. Every improvement to this
-              pipeline so far came from someone explaining why a value was
-              wrong, not from the score moving.
-            -->
-            <input
-              v-model="notes[f.id]"
-              placeholder="Waarom? (bij afkeuren of aanpassen — dit stuurt de volgende versie)"
-              class="text-md mt-2 h-8 w-full rounded-lg border border-line bg-surface px-2.5 text-body placeholder:text-faint"
+      <aside class="sticky top-[calc(var(--spacing-topbar)+1.5rem)] flex flex-col gap-4">
+        <Panel caption="DOCUMENT">
+          <div class="flex flex-col gap-3">
+            <KeyValueList v-if="documentDetails.length" :items="documentDetails" />
+            <EmptyState v-else>Geen document.</EmptyState>
+            <Button
+              v-for="a in data?.artifacts ?? []"
+              :key="a.id"
+              label="Open origineel"
+              block
+              @click="openArtifact(a.accessLink)"
             />
           </div>
-        </div>
-      </Panel>
-      </div>
+        </Panel>
+
+        <Panel v-if="provenance.length" caption="GELEZEN DOOR">
+          <KeyValueList :items="provenance" />
+        </Panel>
+      </aside>
     </div>
   </AppShell>
 </template>
