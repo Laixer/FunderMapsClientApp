@@ -160,10 +160,24 @@ function typeFindings(sample: IInquirySample, inquiryType: number): SampleFindin
 }
 
 /**
+ * Wooden piles taper: the head is the wide end. Only a concrete pile with an
+ * enlarged tip (verzwaardepuntpaal) is legitimately wider at the bottom, so
+ * the "pile widens downward" suspicion is raised for wood alone — Yorick's
+ * ruling, 2026-08-22. Values are `FOUNDATION_TYPE_OPTIONS` in sampleEnums:
+ * Hout, Hout: Amsterdam, Hout: Rotterdam, Hout met oplanger.
+ */
+const WOOD_PILE_TYPES: ReadonlySet<number> = new Set([0, 1, 2, 10])
+
+/**
  * @param inquiryType the dossier's type, when the caller knows it. Left out,
  *   the per-type rules simply do not run — a finding needs a fact behind it.
+ * @param documentDate the dossier's document date, for the bouwjaar rule.
  */
-export function findingsFor(sample: IInquirySample, inquiryType?: number | null): SampleFinding[] {
+export function findingsFor(
+  sample: IInquirySample,
+  inquiryType?: number | null,
+  documentDate?: string | null,
+): SampleFinding[] {
   const findings: SampleFinding[] =
     inquiryType === null || inquiryType === undefined ? [] : typeFindings(sample, inquiryType)
 
@@ -180,6 +194,7 @@ export function findingsFor(sample: IInquirySample, inquiryType?: number | null)
     damageCause,
     foundationType,
     builtYear,
+    settlementSpeed,
   } = sample
 
   if (isNumber(groundLevel) && isNumber(groundwaterLevelNet) && groundwaterLevelNet > groundLevel) {
@@ -217,11 +232,22 @@ export function findingsFor(sample: IInquirySample, inquiryType?: number | null)
   if (
     isNumber(pileDiameterTop) &&
     isNumber(pileDiameterBottom) &&
-    pileDiameterBottom > pileDiameterTop
+    pileDiameterBottom > pileDiameterTop &&
+    isNumber(foundationType) &&
+    WOOD_PILE_TYPES.has(foundationType)
   ) {
     findings.push({
       id: 'pile-widens',
-      message: `Paaldiameter onder (${nl(pileDiameterBottom)}) is groter dan boven (${nl(pileDiameterTop)}) — ongebruikelijk voor een geheide paal.`,
+      message: `Paaldiameter onder (${nl(pileDiameterBottom)}) is groter dan boven (${nl(pileDiameterTop)}) — bij een houten paal is de kop het brede eind; alleen een betonpaal met verzwaarde punt is onderaan breder.`,
+    })
+  }
+
+  // Zakking is entered negative (mm/jaar ≤ 0) — the API and the database
+  // refuse a positive value, so say so here before the save bounces.
+  if (isNumber(settlementSpeed) && settlementSpeed > 0) {
+    findings.push({
+      id: 'settlementSpeed-positive',
+      message: `Zakkingssnelheid ${nl(settlementSpeed)} mm/jaar is positief — zakking wordt negatief ingevoerd (−${nl(settlementSpeed)}).`,
     })
   }
 
@@ -253,12 +279,24 @@ export function findingsFor(sample: IInquirySample, inquiryType?: number | null)
 
   // `builtYear` is a date column carrying a construction year; a building from
   // after the document was written is a typo, not a time machine.
+  //
+  // It is only filled when the document states the year — otherwise it stays
+  // empty and the BAG year applies. The audit found thousands of rows where the
+  // report's own date had been typed in, so a match with the document year is
+  // called out: sometimes true, usually the wrong number.
   if (typeof builtYear === 'string' && builtYear) {
     const year = new Date(builtYear).getFullYear()
     if (Number.isFinite(year) && year > new Date().getFullYear()) {
       findings.push({
-        id: 'built-in-future',
+        id: 'builtYear-in-future',
         message: `Bouwjaar ${year} ligt in de toekomst.`,
+      })
+    }
+    const documentYear = documentDate ? new Date(documentDate).getFullYear() : NaN
+    if (Number.isFinite(year) && Number.isFinite(documentYear) && year === documentYear) {
+      findings.push({
+        id: 'builtYear-is-document-year',
+        message: `Bouwjaar ${year} is gelijk aan het jaar van het rapport — alleen invullen als het document het bouwjaar noemt; anders leeg laten, dan geldt het BAG-bouwjaar.`,
       })
     }
   }

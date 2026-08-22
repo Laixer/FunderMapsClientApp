@@ -308,7 +308,9 @@ async function handleDelete() {
 /* ------------------------------------------------------------- right pane */
 
 const findings = computed(() =>
-  selected.value ? findingsFor(selected.value, inquiry.value?.type) : [],
+  selected.value
+    ? findingsFor(selected.value, inquiry.value?.type, inquiry.value?.documentDate)
+    : [],
 )
 
 const pins = computed<SamplePin[]>(() => {
