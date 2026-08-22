@@ -6,6 +6,7 @@ import recovery from './endpoints/recovery'
 import recoverySample from './endpoints/recoverySample'
 import contractor from './endpoints/contractor'
 import reviewer from './endpoints/reviewer'
+import dataops from './endpoints/dataops'
 import geocoder from './endpoints/geocoder'
 import organization from './endpoints/organization'
 import pdok from './endpoints/pdok'
@@ -19,6 +20,7 @@ export default {
   recoverySample,
   contractor,
   reviewer,
+  dataops,
   geocoder,
   organization,
   pdok,

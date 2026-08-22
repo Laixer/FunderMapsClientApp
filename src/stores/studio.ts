@@ -24,6 +24,7 @@ export const useStudioStore = defineStore('studio', () => {
   const werkbank = ref<number | null>(null)
   const inquiries = ref<number | null>(null)
   const recoveries = ref<number | null>(null)
+  const controle = ref<number | null>(null)
 
   let inFlight: Promise<void> | null = null
 
@@ -31,6 +32,7 @@ export const useStudioStore = defineStore('studio', () => {
     werkbank: werkbank.value,
     inquiries: inquiries.value,
     recoveries: recoveries.value,
+    controle: controle.value,
   }))
 
   /**
@@ -53,6 +55,13 @@ export const useStudioStore = defineStore('studio', () => {
         api.recovery
           .getCount()
           .then(({ count }) => void (recoveries.value = count))
+          .catch(() => {}),
+        // The review queue has no count endpoint of its own: the queue is
+        // capped at 200 and a reviewer works it down, so its length is the
+        // number. One request instead of two.
+        api.dataops
+          .queue()
+          .then((rows) => void (controle.value = rows.length))
           .catch(() => {}),
       ]
 
@@ -89,6 +98,7 @@ export const useStudioStore = defineStore('studio', () => {
     counts,
     werkbank,
     inquiries,
+    controle,
     recoveries,
     refreshCounts,
     openPalette,

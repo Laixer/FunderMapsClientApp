@@ -71,6 +71,19 @@ const routes: RouteRecordRaw[] = [
   { name: 'inquiry-view', path: '/inquiry/:id', component: InquiryView },
 
   { name: 'recovery-list', path: '/recoveries', component: RecoveryList },
+
+  // The review lane. Everything here was read by the pipeline and is waiting
+  // for a person; nothing reaches report.* until a reviewer commits it.
+  {
+    name: 'review-queue',
+    path: '/review',
+    component: () => import('@/views/review/ReviewQueueView.vue'),
+  },
+  {
+    name: 'review-dossier',
+    path: '/review/:id',
+    component: () => import('@/views/review/ReviewDossierView.vue'),
+  },
   { name: 'recovery-new', path: '/recovery/create', component: RecoveryStep1 },
   { name: 'recovery-edit-1', path: '/recovery/:id/edit/1', component: RecoveryStep1 },
   { name: 'recovery-edit-2', path: '/recovery/:id/edit/2', component: RecoveryStep2 },

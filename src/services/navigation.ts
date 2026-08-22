@@ -20,7 +20,7 @@ export interface NavItem {
    * store fills these in; a route with no counter simply shows nothing rather
    * than a zero it cannot vouch for.
    */
-  counter?: 'werkbank' | 'inquiries' | 'recoveries'
+  counter?: 'werkbank' | 'inquiries' | 'recoveries' | 'controle'
 }
 
 export interface NavGroup {
@@ -35,6 +35,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       { route: 'home', label: 'Werkbank', key: 'w', counter: 'werkbank' },
       { route: 'inquiry-list', label: 'Rapportages', key: 'r', counter: 'inquiries' },
       { route: 'recovery-list', label: 'Herstel', key: 'h', counter: 'recoveries' },
+      { route: 'review-queue', label: 'Controle', key: 'c', counter: 'controle' },
     ],
   },
   {
