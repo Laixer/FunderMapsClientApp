@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
-import EmptyState from '@/components/Common/EmptyState.vue'
 import Pill from '@/components/Common/Pill.vue'
 import api from '@/services/fundermaps'
 import type { IReviewQueueItem } from '@/services/fundermaps/interfaces/IDataops'
@@ -15,7 +14,8 @@ import { describeFailure } from '@/services/fundermaps/errors'
  *
  * Everything here was read by the pipeline and is waiting for a person. It is a
  * waiting line rather than a feed: a terugmelding carries a 24–48 hour promise
- * to whoever sent it, so the oldest submission is always the one at the top.
+ * to whoever sent it, so the oldest submission is always at the top and
+ * anything past a week says so.
  */
 const router = useRouter()
 const rows = ref<IReviewQueueItem[]>([])
@@ -32,33 +32,31 @@ onBeforeMount(async () => {
   }
 })
 
-const columns: DataColumn[] = [
+const COLUMNS: DataColumn[] = [
   { field: 'externalRef', title: 'Kenmerk', width: '150px' },
   { field: 'subject', title: 'Document', width: 'minmax(280px,1fr)' },
-  { field: 'channel', title: 'Binnengekomen via', width: '150px' },
+  { field: 'channel', title: 'Via', width: '120px' },
   { field: 'open', title: 'Voorstellen', width: '110px', align: 'right' },
-  { field: 'receivedAt', title: 'Ontvangen', width: '150px' },
+  { field: 'receivedAt', title: 'Ontvangen', width: '170px' },
 ]
+
+const WEEK = 7 * 24 * 3600 * 1000
 
 const items = computed(() =>
   rows.value.map((r) => ({
-    ...r,
     id: r.id,
     externalRef: r.externalRef ?? '—',
     subject: r.subject ?? 'Zonder omschrijving',
-    receivedAtIso: r.receivedAt,
+    channel: r.channel,
+    open: r.open,
     receivedAt: new Date(r.receivedAt).toLocaleDateString('nl-NL', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
     }),
+    overdue: Date.now() - new Date(r.receivedAt).getTime() > WEEK,
   })),
 )
-
-/** Anything older than a week has broken the promise we made to the melder. */
-function overdue(iso: string): boolean {
-  return Date.now() - new Date(iso).getTime() > 7 * 24 * 3600 * 1000
-}
 
 function open(row: { id: number }) {
   router.push({ name: 'review-dossier', params: { id: row.id } })
@@ -66,40 +64,46 @@ function open(row: { id: number }) {
 </script>
 
 <template>
-  <AppShell crumb="Controle">
-    <div class="flex flex-col gap-4">
-      <header class="flex items-baseline justify-between">
-        <div>
-          <h1 class="text-xl font-semibold">Controle</h1>
-          <p class="text-md text-muted">
-            Documenten die de pipeline heeft gelezen. Niets hiervan staat in FunderMaps
-            tot u het overneemt.
-          </p>
-        </div>
-        <span v-if="!loading" class="font-mono text-md text-muted tabular-nums">
-          {{ rows.length }} open
-        </span>
-      </header>
+  <AppShell crumb="Controle" fill>
+    <div class="flex shrink-0 items-baseline gap-3 border-b border-line bg-surface px-6 py-3">
+      <h1 class="text-lg font-bold text-ink">Controle</h1>
+      <p class="text-md flex-1 text-muted">
+        Documenten die de pipeline heeft gelezen. Niets hiervan staat in FunderMaps tot
+        u het overneemt.
+      </p>
+      <span v-if="!loading" class="text-md font-mono tabular-nums text-faint">
+        {{ rows.length }} open
+      </span>
+    </div>
 
-      <EmptyState v-if="error" dashed>{{ error }}</EmptyState>
-      <EmptyState v-else-if="loading" dashed>Bezig met laden…</EmptyState>
-      <EmptyState v-else-if="rows.length === 0" dashed>
-        Niets te controleren. Alles wat binnenkwam is beoordeeld.
-      </EmptyState>
+    <div
+      v-if="error"
+      class="text-md shrink-0 border-b border-red bg-red-tint px-6 py-2.5 text-red"
+    >
+      {{ error }}
+    </div>
 
+    <div class="min-h-0 flex-1 overflow-auto bg-surface">
       <DataTable
-        v-else
         :rows="items"
-        :columns="columns"
+        :columns="COLUMNS"
+        :loading="loading"
+        empty-message="Niets te controleren. Alles wat binnenkwam is beoordeeld."
         @select="open"
       >
+        <template #externalRef="{ row }">
+          <span class="text-sm font-mono text-faint">{{ row.externalRef }}</span>
+        </template>
+        <template #subject="{ row }">
+          <span class="text-lg font-semibold text-body">{{ row.subject }}</span>
+        </template>
         <template #open="{ row }">
-          <span class="font-mono tabular-nums">{{ row.open }}</span>
+          <span class="font-mono tabular-nums text-strong">{{ row.open }}</span>
         </template>
         <template #receivedAt="{ row }">
           <span class="flex items-center gap-2">
-            {{ row.receivedAt }}
-            <Pill v-if="overdue(row.receivedAtIso)" label="te lang open" tone="amber" plain />
+            <span class="text-muted">{{ row.receivedAt }}</span>
+            <Pill v-if="row.overdue" label="te lang open" tone="amber" plain />
           </span>
         </template>
       </DataTable>

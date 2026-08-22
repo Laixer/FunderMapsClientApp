@@ -88,28 +88,37 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
 </script>
 
 <template>
-  <AppShell crumb="Controle">
-    <EmptyState v-if="loading" dashed>Bezig met laden…</EmptyState>
-    <EmptyState v-else-if="error" dashed>{{ error }}</EmptyState>
+  <AppShell crumb="Controle" fill>
+    <div
+      class="flex shrink-0 items-baseline gap-3 border-b border-line bg-surface px-6 py-3"
+    >
+      <h1 class="text-lg font-bold text-ink">
+        {{ data?.dossier.subject ?? 'Dossier' }}
+      </h1>
+      <p class="text-md flex-1 text-muted">
+        <span v-if="data">
+          Kenmerk {{ data.dossier.externalRef ?? '—' }} · via {{ data.dossier.channel }}
+        </span>
+      </p>
+      <Button variant="ghost" @click="router.push({ name: 'review-queue' })">
+        Terug naar de lijst
+      </Button>
+    </div>
 
-    <div v-else-if="data" class="flex flex-col gap-4">
-      <header class="flex items-baseline justify-between gap-4">
-        <div>
-          <h1 class="text-xl font-semibold">{{ data.dossier.subject ?? 'Dossier' }}</h1>
-          <p class="text-md text-muted">
-            Kenmerk {{ data.dossier.externalRef ?? '—' }} ·
-            binnengekomen via {{ data.dossier.channel }}
-          </p>
-        </div>
-        <Button variant="ghost" @click="router.push({ name: 'review-queue' })">
-          Terug naar de lijst
-        </Button>
-      </header>
+    <div
+      v-if="error"
+      class="text-md shrink-0 border-b border-red bg-red-tint px-6 py-2.5 text-red"
+    >
+      {{ error }}
+    </div>
 
-      <EmptyState v-if="open.length === 0" dashed>
+    <div class="min-h-0 flex-1 overflow-auto px-6 py-4">
+      <EmptyState v-if="loading" dashed>Bezig met laden…</EmptyState>
+      <EmptyState v-else-if="data && open.length === 0" dashed>
         Alles op dit dossier is beoordeeld.
       </EmptyState>
 
+      <div v-else-if="data" class="flex flex-col gap-3">
       <Panel v-for="f in open" :key="f.id" :caption="FIELD_LABEL[f.field] ?? f.field">
         <div class="flex flex-col gap-3 md:flex-row">
           <!-- the document, so the citation can be checked against it -->
@@ -118,10 +127,10 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             :href="artifactFor(f)!.accessLink"
             target="_blank"
             rel="noopener"
-            class="shrink-0 text-md font-medium text-accent underline-offset-2 hover:underline"
+            class="text-md w-48 shrink-0 font-medium text-blue-ink underline-offset-2 hover:underline"
           >
             Open origineel →
-            <span class="block text-sm text-muted">
+            <span class="block text-sm text-faint">
               {{ artifactFor(f)!.originalFilename }}
               ({{ artifactFor(f)!.pageCount }} pag., {{ artifactFor(f)!.lane }})
             </span>
@@ -129,14 +138,14 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
 
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-baseline gap-3">
-              <span class="text-lg font-semibold">{{ f.value ?? '—' }}</span>
-              <span class="font-mono text-md tabular-nums text-muted">{{ f.confidence }}</span>
+              <span class="text-lg font-bold text-ink">{{ f.value ?? '—' }}</span>
+              <span class="text-md font-mono tabular-nums text-faint">{{ f.confidence }}</span>
               <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" />
               <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" />
               <Pill v-else-if="f.state === 'auto_accepted'" label="hoge zekerheid" tone="green" />
             </div>
 
-            <blockquote class="mt-2 border-l-2 border-line-strong pl-3 text-md text-muted">
+            <blockquote class="text-md mt-2 border-l-2 border-line-strong pl-3 text-muted">
               {{ f.evidence ?? 'Geen citaat meegegeven.' }}
             </blockquote>
 
@@ -151,7 +160,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               <select
                 v-if="f.field === 'funderingstype'"
                 v-model="corrections[f.id]"
-                class="rounded-md border border-line-strong bg-raised px-2 py-1.5 text-md"
+                class="text-md h-8 rounded-lg border border-line bg-surface px-2.5 text-body"
               >
                 <option value="">Aanpassen naar…</option>
                 <option v-for="o in FOUNDATION_TYPE_OPTIONS" :key="String(o.value)" :value="o.label">
@@ -162,7 +171,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 v-else
                 v-model="corrections[f.id]"
                 placeholder="Aanpassen naar…"
-                class="rounded-md border border-line-strong bg-raised px-2 py-1.5 text-md"
+                class="text-md h-8 rounded-lg border border-line bg-surface px-2.5 text-body"
               />
 
               <Button
@@ -189,11 +198,12 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             <input
               v-model="notes[f.id]"
               placeholder="Waarom? (bij afkeuren of aanpassen — dit stuurt de volgende versie)"
-              class="mt-2 w-full rounded-md border border-line-strong bg-raised px-2 py-1.5 text-md"
+              class="text-md mt-2 h-8 w-full rounded-lg border border-line bg-surface px-2.5 text-body placeholder:text-faint"
             />
           </div>
         </div>
       </Panel>
+      </div>
     </div>
   </AppShell>
 </template>
