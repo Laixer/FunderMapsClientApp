@@ -309,7 +309,11 @@ async function handleDelete() {
 
 const findings = computed(() =>
   selected.value
-    ? findingsFor(selected.value, inquiry.value?.type, inquiry.value?.documentDate)
+    ? findingsFor(selected.value, {
+        inquiryType: inquiry.value?.type,
+        documentDate: inquiry.value?.documentDate,
+        bagBuiltYear: addressStore.cache[selected.value.address]?.built_year,
+      })
     : [],
 )
 
