@@ -74,6 +74,17 @@ const showPicker = ref(false)
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
 
+/**
+ * What the form currently holds for the selected address, saved or not. The
+ * list copy (`selected`) is rolled back when a write fails, which used to take
+ * the finding that explained the failure with it — the person saw a red toast
+ * and a field that looked fine (#1012). Findings read from here instead.
+ */
+const draft = ref<IInquirySample | null>(null)
+watch(selectedId, () => {
+  draft.value = null
+})
+
 const sampleForm = ref<{ flush: () => void } | null>(null)
 
 /**
@@ -309,7 +320,7 @@ async function handleDelete() {
 
 const findings = computed(() =>
   selected.value
-    ? findingsFor(selected.value, {
+    ? findingsFor(draft.value ?? selected.value, {
         inquiryType: inquiry.value?.type,
         documentDate: inquiry.value?.documentDate,
         bagBuiltYear: addressStore.cache[selected.value.address]?.built_year,
@@ -481,6 +492,7 @@ watch(
           :findings="findings"
           :saving="saving"
           @save="handleSave"
+          @draft="draft = $event"
         />
 
         <EmptyState v-else dashed>

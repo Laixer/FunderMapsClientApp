@@ -58,14 +58,45 @@ export class APICallError extends APIClientError {
 }
 
 /**
+ * The API answers a failed write in one of three shapes:
+ *  - `{ message }`                        — an AppError
+ *  - `{ message, errors: string[] }`      — a ValidationError; `message` is the
+ *                                           bare "Validation failed", the
+ *                                           reasons live in `errors`
+ *  - `{ success: false, error: ZodError }` — @hono/zod-validator's default;
+ *                                           the reasons live in `error.issues`
+ * The reasons are what a person needs ("zakking wordt negatief ingevoerd"),
+ * so they win over the headline whenever they are there.
+ */
+function messageFromBody(body: object): string | null {
+  const b = body as {
+    message?: unknown
+    error?: unknown
+    errors?: unknown
+  }
+  const reasons: string[] = []
+  if (Array.isArray(b.errors)) {
+    for (const e of b.errors) if (typeof e === 'string' && e.trim()) reasons.push(e.trim())
+  }
+  const issues = (b.error as { issues?: unknown } | undefined)?.issues
+  if (Array.isArray(issues)) {
+    for (const i of issues as { message?: unknown }[]) {
+      if (typeof i.message === 'string' && i.message.trim()) reasons.push(i.message.trim())
+    }
+  }
+  if (reasons.length) return reasons.join('; ')
+  if (typeof b.message === 'string' && b.message.trim()) return b.message
+  if (typeof b.error === 'string' && b.error.trim()) return b.error
+  return null
+}
+
+/**
  * Best-effort extraction of a human-readable message from a thrown API error.
  * Returns null if nothing useful can be found.
  */
 export function getErrorMessage(err: unknown): string | null {
   if (err instanceof APIErrorResponse && err.body && typeof err.body === 'object') {
-    const body = err.body as { message?: unknown; error?: unknown }
-    if (typeof body.message === 'string' && body.message.trim()) return body.message
-    if (typeof body.error === 'string' && body.error.trim()) return body.error
+    return messageFromBody(err.body)
   }
   if (err instanceof APIInputError || err instanceof APITokenError) {
     return err.message
