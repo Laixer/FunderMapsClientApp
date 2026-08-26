@@ -56,12 +56,9 @@ export const useStudioStore = defineStore('studio', () => {
           .getCount()
           .then(({ count }) => void (recoveries.value = count))
           .catch(() => {}),
-        // The review queue has no count endpoint of its own: the queue is
-        // capped at 200 and a reviewer works it down, so its length is the
-        // number. One request instead of two.
         api.dataops
-          .queue()
-          .then((rows) => void (controle.value = rows.length))
+          .queueCount()
+          .then(({ count }) => void (controle.value = count))
           .catch(() => {}),
       ]
 

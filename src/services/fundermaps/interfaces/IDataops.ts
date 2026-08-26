@@ -11,10 +11,22 @@ export interface IReviewQueueItem {
   channel: string
   subject: string | null
   externalRef: string | null
+  /** Melder-facing code (`FM2026-000042`); null on bulk drops. */
+  reference: string | null
+  /** `NL.IMBAG.PAND.*` the submission was filed under; null when unresolved. */
+  buildingId: string | null
   receivedAt: string
   inquiryId: number | null
-  /** Fields still needing a decision. */
+  /**
+   * Fields still needing a decision. Zero is a real state, not an empty
+   * queue: the pipeline read nothing off the document and a person has to
+   * look at it anyway.
+   */
   open: number
+  /** Documents on the dossier. */
+  files: number
+  /** Whether the pipeline has read it at all. False = ingest not run yet. */
+  read: boolean
 }
 
 /** What one page of a document turned out to be. Decides whether it was read at all. */
@@ -68,7 +80,7 @@ export interface IProposedField {
   confidence: string | null
   evidence: string | null
   evidencePage: number | null
-  /** pending · auto_accepted · confirmed · corrected · rejected · superseded */
+  /** pending · auto_accepted (legacy, treat as pending) · confirmed · corrected · rejected · superseded */
   state: string
   model: string
   promptVersion: string
@@ -89,6 +101,14 @@ export interface IReviewDossier {
 }
 
 export type VerdictOutcome = 'confirmed' | 'corrected' | 'rejected'
+
+export type DossierOutcome = 'accepted' | 'rejected' | 'duplicate'
+
+/** Closing a whole dossier. `note` is required unless accepting. */
+export interface IDossierOutcome {
+  outcome: DossierOutcome
+  note?: string | null
+}
 
 export interface IVerdict {
   fieldId: number

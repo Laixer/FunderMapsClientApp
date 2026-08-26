@@ -14,9 +14,11 @@ import type {
   IReviewDossier,
   IProposedField,
   VerdictOutcome,
+  DossierOutcome,
 } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { FOUNDATION_TYPE_OPTIONS } from '@/services/sampleEnums'
+import { useStudioStore } from '@/stores/studio'
 
 /**
  * Judging one submission.
@@ -33,6 +35,7 @@ import { FOUNDATION_TYPE_OPTIONS } from '@/services/sampleEnums'
  */
 const route = useRoute()
 const router = useRouter()
+const studio = useStudioStore()
 
 const data = ref<IReviewDossier | null>(null)
 const loading = ref(true)
@@ -44,6 +47,11 @@ const corrections = ref<Record<number, string>>({})
 const openedAt = Date.now()
 /** Which document is on screen. A dossier can carry several. */
 const shown = ref(0)
+
+/** Closing the dossier as a whole: the note, and whether the request is out. */
+const closeNote = ref('')
+const closing = ref(false)
+const closed = ref<DossierOutcome | null>(null)
 
 onBeforeMount(async () => {
   try {
@@ -68,8 +76,44 @@ const FIELD_LABEL: Record<string, string> = {
 const open = computed(() => (data.value?.fields ?? []).filter((f) => !decided.value[f.id]))
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
 
+/** Whether the pipeline has read this dossier at all. */
+const wasRead = computed(() => (data.value?.artifacts ?? []).some((a) => a.pages.length > 0))
+/**
+ * Read, and found nothing. The most common shape on the wood corpus (55% of
+ * documents are photographs) and the one this screen exists for: a person
+ * looks at the document and either throws the dossier out or enters it by hand.
+ */
+const nothingProposed = computed(
+  () => !loading.value && !!data.value && data.value.fields.length === 0,
+)
+/** The model was sure and quoted a passage. Still a proposal — nothing is accepted for you. */
+const isSure = (f: IProposedField) =>
+  Number(f.confidence ?? 0) >= 0.95 && !!f.evidence?.trim() && !isInferred(f)
+
 /** The model reasoned rather than read. Said plainly, not hidden. */
 const isInferred = (f: IProposedField) => /^\s*afgeleid\s*:/i.test(f.evidence ?? '')
+
+/**
+ * Close the dossier. `rejected` is the cat picture, the empty scan, the
+ * report filed under the wrong address; `duplicate` the same thing twice.
+ * Both need a word on why — that note is the most useful thing collected here.
+ */
+async function closeDossier(outcome: DossierOutcome) {
+  if (!data.value) return
+  closing.value = true
+  try {
+    await api.dataops.close(data.value.dossier.id, {
+      outcome,
+      note: closeNote.value.trim() || null,
+    })
+    closed.value = outcome
+    void studio.refreshCounts(null)
+  } catch (e) {
+    error.value = describeFailure(e, 'Het dossier kon niet worden gesloten.')
+  } finally {
+    closing.value = false
+  }
+}
 /** The source was not allowed to establish this field — a QuickScan quoting us back. */
 const isRefused = (f: IProposedField) => f.state === 'rejected'
 
@@ -137,7 +181,9 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
       <h1 class="text-lg min-w-0 truncate font-bold text-ink">
         {{ data.dossier.subject ?? 'Dossier' }}
       </h1>
-      <Pill :label="`${open.length} te beoordelen`" tone="blue" plain />
+      <Pill v-if="closed" :label="`gesloten: ${closed}`" tone="neutral" plain />
+      <Pill v-else-if="nothingProposed" label="geen voorstellen" tone="red" plain />
+      <Pill v-else :label="`${open.length} te beoordelen`" tone="blue" plain />
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint">{{ metaLine }}</p>
       <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue' })" />
     </header>
@@ -212,6 +258,25 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
         <div class="flex flex-col gap-3 p-4">
           <EmptyState v-if="loading">Dossier ophalen…</EmptyState>
 
+          <Callout v-else-if="closed" tone="neutral" title="Dossier gesloten">
+            Gesloten als <strong>{{ closed }}</strong>. Het staat niet meer in de controlelijst.
+          </Callout>
+
+          <Callout
+            v-else-if="nothingProposed && !wasRead"
+            tone="amber"
+            title="Nog niet gelezen"
+          >
+            De pipeline heeft dit dossier nog niet verwerkt. Bekijk het document zelf, of wacht
+            tot het gelezen is.
+          </Callout>
+
+          <Callout v-else-if="nothingProposed" tone="red" title="De pipeline vond niets">
+            Het document is gelezen, maar er is geen enkele waarde uit gehaald. Bekijk het zelf:
+            hoort het hier niet thuis, sluit het dossier dan hieronder. Bevat het wél gegevens,
+            voer ze dan in via een nieuwe rapportage.
+          </Callout>
+
           <Callout v-else-if="open.length === 0" tone="green" title="Alles beoordeeld">
             Er staan geen voorstellen meer open op dit dossier.
           </Callout>
@@ -227,7 +292,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 <span class="text-2xl font-display font-bold text-ink">{{ f.value ?? '—' }}</span>
                 <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" />
                 <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" />
-                <Pill v-else-if="f.state === 'auto_accepted'" label="hoge zekerheid" tone="green" />
+                <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" />
               </div>
 
               <!-- The citation is what is being judged, not the value. -->
@@ -298,6 +363,39 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 </span>
               </li>
             </ul>
+          </Panel>
+
+          <!-- Closing the whole dossier. Always available, because "this is
+               not about anything" is a judgement about the document, not
+               about one of its values. -->
+          <Panel v-if="!loading && data && !closed" caption="DOSSIER SLUITEN">
+            <div class="flex flex-col gap-3">
+              <Field
+                v-model="closeNote"
+                kind="textarea"
+                :rows="2"
+                label="Reden"
+                hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
+              />
+              <div class="flex flex-wrap gap-2">
+                <Button
+                  variant="danger"
+                  label="Afwijzen"
+                  :disabled="closing || !closeNote.trim()"
+                  @click="closeDossier('rejected')"
+                />
+                <Button
+                  label="Duplicaat"
+                  :disabled="closing || !closeNote.trim()"
+                  @click="closeDossier('duplicate')"
+                />
+                <Button
+                  label="Afgehandeld"
+                  :disabled="closing || open.length > 0"
+                  @click="closeDossier('accepted')"
+                />
+              </div>
+            </div>
           </Panel>
         </div>
       </aside>
