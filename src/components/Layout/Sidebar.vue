@@ -47,6 +47,8 @@ const OWNED_BY: Record<string, string> = {
   'recovery-edit-2': 'recovery-list',
   'recovery-edit-3': 'recovery-list',
   'recovery-new': 'recovery-new',
+  'review-queue': 'review-queue',
+  'review-dossier': 'review-queue',
 }
 
 function isActive(routeName: string): boolean {
