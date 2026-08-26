@@ -54,7 +54,16 @@ const props = defineProps<{
  */
 const provenance = defineModel<SampleProvenance>('provenance', { default: () => ({}) })
 
-const emit = defineEmits<{ save: [data: IInquirySampleInput] }>()
+const emit = defineEmits<{
+  save: [data: IInquirySampleInput]
+  /**
+   * The current, possibly unsaved, state of the form. Fires on every edit so
+   * the parent can judge what the person is *typing*, not only what the
+   * server last accepted — a write that bounces (#1012) must still leave its
+   * warning on screen.
+   */
+  draft: [data: IInquirySample]
+}>()
 
 const addressStore = useAddressStore()
 const sessionStore = useSessionStore()
@@ -82,6 +91,7 @@ function payload(): IInquirySampleInput {
 
 function schedule() {
   dirty.value = true
+  emit('draft', { ...form.value })
   if (timer) clearTimeout(timer)
   timer = setTimeout(() => {
     timer = null
