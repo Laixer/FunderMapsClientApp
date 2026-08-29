@@ -63,15 +63,60 @@ onBeforeMount(async () => {
   }
 })
 
-/** Dutch labels for the fields the pipeline can fill. */
+/**
+ * Dutch labels for the fields the pipeline can fill. Keys are the
+ * `report.inquiry_sample` column names (identifiers are English everywhere;
+ * only what a person reads is Dutch), plus `recovery_note`, which has no column.
+ */
 const FIELD_LABEL: Record<string, string> = {
-  funderingstype: 'Funderingstype',
-  bouwjaar: 'Bouwjaar',
-  funderingskwaliteit: 'Funderingskwaliteit',
-  herstel_geadviseerd: 'Herstel geadviseerd',
-  handhavingstermijn: 'Handhavingstermijn',
-  grondwaterstand: 'Grondwaterstand',
+  foundation_type: 'Funderingstype',
+  built_year: 'Bouwjaar',
+  foundation_quality: 'Funderingskwaliteit',
+  recovery_advised: 'Herstel geadviseerd',
+  recovery_note: 'Hersteladvies (toelichting)',
+  enforcement_term: 'Handhavingstermijn',
+  groundwater_level: 'Grondwaterstand',
+  wood_level: 'Bovenkant hout',
+  pile_head_level: 'Bovenkant paal',
+  pile_tip_level: 'Paalpuntniveau',
+  concrete_charger_length: 'Lengte betonoplanger',
 }
+
+/** Unit shown next to a value, so -2.324 is read as metres NAP and not millimetres. */
+const FIELD_UNIT: Record<string, string> = {
+  groundwater_level: 'm t.o.v. NAP',
+  wood_level: 'm t.o.v. NAP',
+  pile_head_level: 'm t.o.v. NAP',
+  pile_tip_level: 'm t.o.v. NAP',
+  concrete_charger_length: 'm',
+}
+
+/** Enum-coded values, shown in Dutch. The code is what gets stored. */
+const VALUE_LABEL: Record<string, Record<string, string>> = {
+  foundation_quality: {
+    bad: 'slecht',
+    mediocre: 'matig',
+    tolerable: 'redelijk',
+    good: 'goed',
+    mediocre_good: 'matig tot goed',
+    mediocre_bad: 'matig tot slecht',
+  },
+  enforcement_term: {
+    term5: '≤ 5 jaar',
+    term10: '≤ 10 jaar',
+    term15: '≤ 15 jaar',
+    term20: '≤ 20 jaar',
+    term25: '≤ 25 jaar',
+    term30: '≤ 30 jaar',
+    term40: '> 30 jaar',
+    term05: '0–5 jaar',
+    term510: '5–10 jaar',
+    term1020: '10–20 jaar',
+  },
+  recovery_advised: { true: 'ja', false: 'nee' },
+}
+const displayValue = (f: IProposedField) =>
+  f.value == null ? '—' : (VALUE_LABEL[f.field]?.[f.value] ?? f.value)
 
 const open = computed(() => (data.value?.fields ?? []).filter((f) => !decided.value[f.id]))
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
@@ -289,7 +334,10 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
           >
             <div class="flex flex-col gap-3" @focusin="focus(f)" @click="focus(f)">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-2xl font-display font-bold text-ink">{{ f.value ?? '—' }}</span>
+                <span class="text-2xl font-display font-bold text-ink">{{ displayValue(f) }}</span>
+                <span v-if="FIELD_UNIT[f.field] && f.value != null" class="text-md text-muted">
+                  {{ FIELD_UNIT[f.field] }}
+                </span>
                 <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" />
                 <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" />
                 <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" />
@@ -309,7 +357,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               </Callout>
 
               <Field
-                v-if="f.field === 'funderingstype'"
+                v-if="f.field === 'foundation_type'"
                 v-model="corrections[f.id]"
                 kind="select"
                 label="Andere waarde"
@@ -378,6 +426,11 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
               />
               <div class="flex flex-wrap gap-2">
+                <Button
+                  label="Geen gegevens"
+                  :disabled="closing"
+                  @click="closeDossier('no_data')"
+                />
                 <Button
                   variant="danger"
                   label="Afwijzen"

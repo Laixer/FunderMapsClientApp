@@ -60,4 +60,12 @@ export async function verdict(body: IVerdict) {
   })) as { ok: boolean }
 }
 
-export default { queue, queueCount, dossier, verdict, close }
+/** Close many at once — one transaction server-side, so 30 logos never half-close. */
+export async function closeMany(ids: number[], body: IDossierOutcome) {
+  return (await post({
+    endpoint: '/dataops/dossiers/outcome',
+    body: { ids, ...body } as unknown as Record<string, unknown>,
+  })) as { ok: boolean; closed: number }
+}
+
+export default { queue, queueCount, dossier, verdict, close, closeMany }

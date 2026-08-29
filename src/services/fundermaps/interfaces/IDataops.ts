@@ -74,7 +74,7 @@ export interface IReviewArtifact {
 export interface IProposedField {
   id: number
   artifactId: number
-  /** Column name in report.inquiry_sample. */
+  /** Column name in report.inquiry_sample (English), or `recovery_note`. */
   field: string
   value: string | null
   confidence: string | null
@@ -102,9 +102,14 @@ export interface IReviewDossier {
 
 export type VerdictOutcome = 'confirmed' | 'corrected' | 'rejected'
 
-export type DossierOutcome = 'accepted' | 'rejected' | 'duplicate'
+/**
+ * accepted · rejected · duplicate · no_data. `no_data` is "we looked, nothing
+ * to take" -- a logo, a street photo, a maintenance plan -- and is the one a
+ * reviewer reaches for most on a bulk drop.
+ */
+export type DossierOutcome = 'accepted' | 'rejected' | 'duplicate' | 'no_data'
 
-/** Closing a whole dossier. `note` is required unless accepting. */
+/** Closing a whole dossier. `note` is required for rejected and duplicate. */
 export interface IDossierOutcome {
   outcome: DossierOutcome
   note?: string | null
