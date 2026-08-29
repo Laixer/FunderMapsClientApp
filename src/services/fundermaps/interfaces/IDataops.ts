@@ -74,7 +74,7 @@ export interface IReviewArtifact {
 export interface IProposedField {
   id: number
   artifactId: number
-  /** Column name in report.inquiry_sample. */
+  /** Column name in report.inquiry_sample (English), or `recovery_note`. */
   field: string
   value: string | null
   confidence: string | null
