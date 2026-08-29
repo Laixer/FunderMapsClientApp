@@ -100,6 +100,7 @@ const FIELD_LABEL: Record<string, string> = {
   foundation_quality: 'Funderingskwaliteit',
   recovery_advised: 'Herstel geadviseerd',
   recovery_note: 'Hersteladvies (toelichting)',
+  follow_up_note: 'Vervolgadvies (onderzoek / monitoring)',
   enforcement_term: 'Handhavingstermijn',
   groundwater_level: 'Grondwaterstand',
   wood_level: 'Bovenkant hout',
