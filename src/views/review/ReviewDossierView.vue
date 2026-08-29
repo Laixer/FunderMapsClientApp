@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppShell from '@/components/Layout/AppShell.vue'
@@ -19,6 +19,7 @@ import type {
 import { describeFailure } from '@/services/fundermaps/errors'
 import { FOUNDATION_TYPE_OPTIONS } from '@/services/sampleEnums'
 import { useStudioStore } from '@/stores/studio'
+import { toastSuccess } from '@/services/toast'
 
 /**
  * Judging one submission.
@@ -44,7 +45,6 @@ const busy = ref<number | null>(null)
 const decided = ref<Record<number, VerdictOutcome>>({})
 const notes = ref<Record<number, string>>({})
 const corrections = ref<Record<number, string>>({})
-const openedAt = Date.now()
 /** Which document is on screen. A dossier can carry several. */
 const shown = ref(0)
 
@@ -53,7 +53,25 @@ const closeNote = ref('')
 const closing = ref(false)
 const closed = ref<DossierOutcome | null>(null)
 
-onBeforeMount(async () => {
+/**
+ * Load the dossier in the URL. A function rather than a one-off in
+ * onBeforeMount because closing a dossier navigates straight to the next
+ * one, and vue-router reuses this component for /review/:id → /review/:id —
+ * so every piece of per-dossier state is reset here, explicitly.
+ */
+let openedAt = Date.now()
+async function load() {
+  loading.value = true
+  error.value = null
+  data.value = null
+  busy.value = null
+  decided.value = {}
+  notes.value = {}
+  corrections.value = {}
+  shown.value = 0
+  closeNote.value = ''
+  closed.value = null
+  openedAt = Date.now()
   try {
     data.value = await api.dataops.dossier(Number(route.params.id))
   } catch (e) {
@@ -61,7 +79,15 @@ onBeforeMount(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onBeforeMount(load)
+watch(
+  () => route.params.id,
+  (id, prev) => {
+    if (id !== prev && route.name === 'review-dossier') load()
+  },
+)
 
 /**
  * Dutch labels for the fields the pipeline can fill. Keys are the
@@ -153,11 +179,39 @@ async function closeDossier(outcome: DossierOutcome) {
     })
     closed.value = outcome
     void studio.refreshCounts(null)
+    await openNext(data.value.dossier.id, outcome)
   } catch (e) {
     error.value = describeFailure(e, 'Het dossier kon niet worden gesloten.')
   } finally {
     closing.value = false
   }
+}
+
+const OUTCOME_LABEL: Record<DossierOutcome, string> = {
+  accepted: 'afgehandeld',
+  rejected: 'afgewezen',
+  duplicate: 'als duplicaat gesloten',
+  no_data: 'gesloten: geen gegevens',
+}
+
+/**
+ * Straight on to the next one. Closing a dossier is the end of a decision,
+ * not of a session: the reviewer's next move is always "the next oldest", and
+ * a trip through the list between every two dossiers is what breaks the pace
+ * (Yorick, 2026-08-29). The list is still one click away if they want it.
+ */
+async function openNext(closedId: number, outcome: DossierOutcome) {
+  toastSuccess(`Dossier #${closedId} ${OUTCOME_LABEL[outcome]}.`)
+  try {
+    const next = (await api.dataops.queue({ limit: 5 })).find((r) => r.id !== closedId)
+    if (next) {
+      await router.push({ name: 'review-dossier', params: { id: next.id } })
+      return
+    }
+  } catch {
+    // Falling back to the list is fine; the close itself already succeeded.
+  }
+  await router.push({ name: 'review-queue' })
 }
 /** The source was not allowed to establish this field — a QuickScan quoting us back. */
 const isRefused = (f: IProposedField) => f.state === 'rejected'
