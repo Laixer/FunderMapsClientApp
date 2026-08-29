@@ -73,6 +73,12 @@ const FIELD_LABEL: Record<string, string> = {
   grondwaterstand: 'Grondwaterstand',
 }
 
+/** Unit shown next to a value, so -2.324 is read as metres NAP and not millimetres. */
+const FIELD_UNIT: Record<string, string> = {
+  grondwaterstand: 'm t.o.v. NAP',
+  handhavingstermijn: 'jaar',
+}
+
 const open = computed(() => (data.value?.fields ?? []).filter((f) => !decided.value[f.id]))
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
 
@@ -290,6 +296,9 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             <div class="flex flex-col gap-3" @focusin="focus(f)" @click="focus(f)">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="text-2xl font-display font-bold text-ink">{{ f.value ?? '—' }}</span>
+                <span v-if="FIELD_UNIT[f.field] && f.value != null" class="text-md text-muted">
+                  {{ FIELD_UNIT[f.field] }}
+                </span>
                 <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" />
                 <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" />
                 <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" />
@@ -378,6 +387,11 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
               />
               <div class="flex flex-wrap gap-2">
+                <Button
+                  label="Geen gegevens"
+                  :disabled="closing"
+                  @click="closeDossier('no_data')"
+                />
                 <Button
                   variant="danger"
                   label="Afwijzen"

@@ -131,6 +131,47 @@ const items = computed(() =>
 function open(row: { id: number }) {
   router.push({ name: 'review-dossier', params: { id: row.id } })
 }
+
+/* ------------------------------------------------------------ bulk close */
+
+const selectedIds = ref<Set<string | number>>(new Set())
+const bulkNote = ref('')
+const bulkBusy = ref(false)
+
+function toggleRow(row: { id: number }) {
+  const next = new Set(selectedIds.value)
+  if (next.has(row.id)) next.delete(row.id)
+  else next.add(row.id)
+  selectedIds.value = next
+}
+
+function toggleAll() {
+  selectedIds.value =
+    selectedIds.value.size === items.value.length
+      ? new Set()
+      : new Set(items.value.map((row) => row.id))
+}
+
+/**
+ * Close every selected dossier with one outcome. One request, one transaction:
+ * the case this exists for is thirty logos in a row, and thirty sequential
+ * calls is how you half-close a queue.
+ */
+async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
+  const ids = [...selectedIds.value].map(Number)
+  if (!ids.length) return
+  bulkBusy.value = true
+  try {
+    await api.dataops.closeMany(ids, { outcome, note: bulkNote.value.trim() || null })
+    selectedIds.value = new Set()
+    bulkNote.value = ''
+    await Promise.all([load(), studio.refreshCounts(null)])
+  } catch (e) {
+    error.value = describeFailure(e, 'De dossiers konden niet worden gesloten.')
+  } finally {
+    bulkBusy.value = false
+  }
+}
 </script>
 
 <template>
@@ -171,11 +212,52 @@ function open(row: { id: number }) {
       {{ error }}
     </div>
 
+    <div
+      v-if="selectedIds.size"
+      class="flex shrink-0 flex-wrap items-center gap-3 border-b border-blue-border bg-blue-tint px-6 py-2"
+    >
+      <span class="text-md font-semibold text-blue-ink">{{ selectedIds.size }} geselecteerd</span>
+      <input
+        v-model="bulkNote"
+        type="text"
+        class="studio-control max-w-[360px] flex-1 rounded-md border border-line bg-surface px-2 py-1"
+        placeholder="Reden (verplicht bij afwijzen / duplicaat)"
+        aria-label="Reden voor sluiten"
+      />
+      <Button
+        label="Sluiten: geen gegevens"
+        :disabled="bulkBusy"
+        @click="closeSelected('no_data')"
+      />
+      <Button
+        variant="danger"
+        label="Afwijzen"
+        :disabled="bulkBusy || !bulkNote.trim()"
+        @click="closeSelected('rejected')"
+      />
+      <Button
+        label="Duplicaat"
+        :disabled="bulkBusy || !bulkNote.trim()"
+        @click="closeSelected('duplicate')"
+      />
+      <button
+        type="button"
+        class="text-md ml-auto font-semibold text-blue-ink underline underline-offset-2"
+        @click="selectedIds = new Set()"
+      >
+        Selectie wissen
+      </button>
+    </div>
+
     <div class="min-h-0 flex-1 overflow-auto bg-surface">
       <DataTable
         :rows="items"
         :columns="COLUMNS"
         :loading="loading"
+        :selected-ids="selectedIds"
+        selectable
+        @toggle="toggleRow"
+        @toggle-all="toggleAll"
         :empty-message="
           search
             ? `Niets gevonden voor “${search}”.`
