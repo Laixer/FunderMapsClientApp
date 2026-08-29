@@ -82,6 +82,10 @@ export interface IProposedField {
   evidencePage: number | null
   /** pending · auto_accepted (legacy, treat as pending) · confirmed · corrected · rejected · superseded */
   state: string
+  /** Per-address value: the address as the report wrote it; null = about the document as a whole. */
+  addressText: string | null
+  /** geocoder.address id it resolved to; null when it did not (the text is still shown). */
+  addressId: string | null
   model: string
   promptVersion: string
 }

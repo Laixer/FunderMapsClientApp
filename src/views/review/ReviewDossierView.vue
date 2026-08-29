@@ -118,6 +118,14 @@ const FIELD_LABEL: Record<string, string> = {
   cpt: 'Sondering',
   damage_cause: 'Schadeoorzaak',
   damage_characteristics: 'Schadebeeld',
+  crack_facade_front_type: 'Scheuren voorgevel',
+  crack_facade_back_type: 'Scheuren achtergevel',
+  crack_indoor_type: 'Scheuren inpandig',
+  skewed_parallel: 'Lintvoegmeting',
+  skewed_perpendicular: 'Loodmeting',
+  threshold_front_level: 'Drempelniveau voorzijde',
+  threshold_back_level: 'Drempelniveau achterzijde',
+  settlement_speed: 'Zakkingssnelheid',
 }
 
 /** Unit shown next to a value, so -2.324 is read as metres NAP and not millimetres. */
@@ -134,6 +142,11 @@ const FIELD_UNIT: Record<string, string> = {
   mason_level: 'm t.o.v. NAP',
   foundation_depth: 'm t.o.v. NAP',
   groundlevel: 'm t.o.v. NAP',
+  threshold_front_level: 'm t.o.v. NAP',
+  threshold_back_level: 'm t.o.v. NAP',
+  skewed_parallel: 'mm/m',
+  skewed_perpendicular: 'mm/m',
+  settlement_speed: 'mm/jaar',
 }
 
 /** Enum-coded values, shown in Dutch. The code is what gets stored. */
@@ -160,6 +173,9 @@ const VALUE_LABEL: Record<string, Record<string, string>> = {
   },
   recovery_advised: { true: 'ja', false: 'nee' },
   wood_type: { pine: 'grenen', spruce: 'vuren' },
+  crack_facade_front_type: { none: 'geen', nil: 'geen', small: 'licht', mediocre: 'matig', big: 'ernstig' },
+  crack_facade_back_type: { none: 'geen', nil: 'geen', small: 'licht', mediocre: 'matig', big: 'ernstig' },
+  crack_indoor_type: { none: 'geen', nil: 'geen', small: 'licht', mediocre: 'matig', big: 'ernstig' },
   wood_encroachment: {
     fungus_infection: 'schimmelaantasting',
     bio_infection: 'bacteriële aantasting',
@@ -199,6 +215,27 @@ const displayValue = (f: IProposedField) =>
   f.value == null ? '—' : (VALUE_LABEL[f.field]?.[f.value] ?? f.value)
 
 const open = computed(() => (data.value?.fields ?? []).filter((f) => !decided.value[f.id]))
+
+/**
+ * Open values grouped by address. A funderingsonderzoek covers a block; the
+ * report's own tables are per address, and so is report.inquiry_sample. The
+ * document-level group ("het rapport") comes first, then each address in the
+ * order the API returns them.
+ */
+const openByAddress = computed(() => {
+  const groups = new Map<string, IProposedField[]>()
+  for (const f of open.value) {
+    const key = f.addressText ?? ''
+    groups.set(key, [...(groups.get(key) ?? []), f])
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)))
+    .map(([address, fields]) => ({
+      address,
+      resolved: fields.some((f) => f.addressId),
+      fields,
+    }))
+})
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
 
 /** Whether the pipeline has read this dossier at all. */
@@ -434,8 +471,21 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             Er staan geen voorstellen meer open op dit dossier.
           </Callout>
 
+          <template v-for="group in openByAddress" :key="group.address">
+            <div
+              v-if="openByAddress.length > 1"
+              class="flex items-center gap-2 pt-2"
+            >
+              <span class="studio-label">{{ group.address || 'HET RAPPORT' }}</span>
+              <Pill
+                v-if="group.address"
+                :label="group.resolved ? 'adres herkend' : 'adres niet herkend'"
+                :tone="group.resolved ? 'green' : 'amber'"
+                plain
+              />
+            </div>
           <Panel
-            v-for="f in open"
+            v-for="f in group.fields"
             :key="f.id"
             :caption="(FIELD_LABEL[f.field] ?? f.field).toUpperCase()"
             :meta="f.confidence ?? undefined"
@@ -502,6 +552,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               </div>
             </div>
           </Panel>
+          </template>
 
           <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settled.length)">
             <ul class="flex flex-col gap-2">
