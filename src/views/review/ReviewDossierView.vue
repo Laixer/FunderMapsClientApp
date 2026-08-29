@@ -106,6 +106,18 @@ const FIELD_LABEL: Record<string, string> = {
   pile_head_level: 'Bovenkant paal',
   pile_tip_level: 'Paalpuntniveau',
   concrete_charger_length: 'Lengte betonoplanger',
+  pile_diameter_top: 'Paaldiameter kop',
+  pile_diameter_bottom: 'Paaldiameter punt',
+  pile_distance_length: 'Paalafstand (h.o.h.)',
+  wood_type: 'Houtsoort',
+  wood_penetration_depth: 'Indringingsdiepte hout',
+  wood_encroachment: 'Houtaantasting',
+  mason_level: 'Onderkant metselwerk',
+  foundation_depth: 'Aanlegniveau fundering',
+  groundlevel: 'Maaiveld',
+  cpt: 'Sondering',
+  damage_cause: 'Schadeoorzaak',
+  damage_characteristics: 'Schadebeeld',
 }
 
 /** Unit shown next to a value, so -2.324 is read as metres NAP and not millimetres. */
@@ -115,6 +127,13 @@ const FIELD_UNIT: Record<string, string> = {
   pile_head_level: 'm t.o.v. NAP',
   pile_tip_level: 'm t.o.v. NAP',
   concrete_charger_length: 'm',
+  pile_diameter_top: 'mm',
+  pile_diameter_bottom: 'mm',
+  pile_distance_length: 'm',
+  wood_penetration_depth: 'mm',
+  mason_level: 'm t.o.v. NAP',
+  foundation_depth: 'm t.o.v. NAP',
+  groundlevel: 'm t.o.v. NAP',
 }
 
 /** Enum-coded values, shown in Dutch. The code is what gets stored. */
@@ -140,6 +159,41 @@ const VALUE_LABEL: Record<string, Record<string, string>> = {
     term1020: '10–20 jaar',
   },
   recovery_advised: { true: 'ja', false: 'nee' },
+  wood_type: { pine: 'grenen', spruce: 'vuren' },
+  wood_encroachment: {
+    fungus_infection: 'schimmelaantasting',
+    bio_infection: 'bacteriële aantasting',
+    bio_fungus_infection: 'bacteriële + schimmelaantasting',
+  },
+  damage_cause: {
+    drainage: 'ontwatering',
+    construction_flaw: 'constructiefout',
+    drystand: 'droogstand',
+    overcharge: 'overbelasting',
+    overcharge_negative_cling: 'overbelasting + negatieve kleef',
+    negative_cling: 'negatieve kleef',
+    bio_infection: 'bacteriële aantasting',
+    fungus_infection: 'schimmelaantasting',
+    bio_fungus_infection: 'bacteriële + schimmelaantasting',
+    foundation_flaw: 'funderingsfout',
+    construction_heave: 'opdrukken constructie',
+    subsidence: 'zetting',
+    vegetation: 'begroeiing',
+    gas: 'gas',
+    vibrations: 'trillingen',
+    partial_foundation_recovery: 'gedeeltelijk funderingsherstel',
+    japanese_knotweed: 'Japanse duizendknoop',
+    groundwater_level_reduction: 'grondwaterstandverlaging',
+  },
+  damage_characteristics: {
+    jamming_door_window: 'klemmende deuren/ramen',
+    crack: 'scheuren',
+    skewed: 'scheefstand',
+    crawlspace_flooding: 'water in kruipruimte',
+    threshold_above_subsurface: 'dorpel boven maaiveld',
+    threshold_below_subsurface: 'dorpel onder maaiveld',
+    crooked_floor_wall: 'scheve vloer/wand',
+  },
 }
 const displayValue = (f: IProposedField) =>
   f.value == null ? '—' : (VALUE_LABEL[f.field]?.[f.value] ?? f.value)
