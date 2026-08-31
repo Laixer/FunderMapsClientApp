@@ -84,6 +84,14 @@ export function laneQuery(lane: Lane, userId: string): IInquiryListOpts {
   }
 }
 
+/** The same lane as a `/inquiry/stats` question: filters only, no paging. */
+export function laneCountQuery(lane: Lane, userId: string): IInquiryListOpts {
+  return {
+    status: lane.statuses,
+    ...(lane.role === 'reviewer' ? { reviewer: userId } : { creator: userId }),
+  }
+}
+
 /**
  * Route query that reproduces the lane in the full list view, so "alles
  * bekijken" lands on the same set rather than on everything.

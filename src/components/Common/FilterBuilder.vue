@@ -174,9 +174,6 @@ const direction = computed(() => {
             {{ type.label }}
           </button>
         </div>
-        <!-- Said plainly rather than hidden: `GET /inquiry` has no type filter,
-             so this one narrows the page you are looking at, not the query. -->
-        <p class="text-sm mt-2 text-label">Type filtert de zichtbare pagina, niet de hele set.</p>
       </section>
 
       <!-- Sorting is a different verb from filtering, so it sits below a rule

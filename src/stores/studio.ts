@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import api from '@/services/fundermaps'
-import { LANES, laneQuery } from '@/services/worklist'
+import { LANES, laneCountQuery } from '@/services/worklist'
 
 /**
  * Shell-level state: the counts in the sidebar, and whether the command
@@ -64,8 +64,8 @@ export const useStudioStore = defineStore('studio', () => {
 
       if (userId) {
         jobs.push(
-          Promise.all(LANES.map((lane) => api.inquiry.list(laneQuery(lane, userId))))
-            .then((results) => void (werkbank.value = results.reduce((n, r) => n + r.length, 0)))
+          Promise.all(LANES.map((lane) => api.inquiry.getCount(laneCountQuery(lane, userId))))
+            .then((results) => void (werkbank.value = results.reduce((n, r) => n + r.count, 0)))
             .catch(() => {}),
         )
       }

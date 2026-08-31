@@ -19,22 +19,38 @@ export interface IInquiryListOpts {
   q?: string
   /** auditStatus wire integers; combined as OR. */
   status?: number[]
+  /** Inquiry type wire integers; combined as OR. */
+  type?: number[]
   /** Attribution user ids. */
   creator?: string
   reviewer?: string
   /** Server-side sort column (see API docs) + direction. */
-  sort?: 'id' | 'document_name' | 'type' | 'document_date' | 'creator' | 'reviewer' | 'status'
+  sort?:
+    | 'id'
+    | 'document_name'
+    | 'type'
+    | 'document_date'
+    | 'create_date'
+    | 'creator'
+    | 'reviewer'
+    | 'status'
   order?: 'asc' | 'desc'
 }
 
-export async function list(opts: IInquiryListOpts = {}) {
+function filterParams(opts: IInquiryListOpts): Record<string, string> {
   const queryString: Record<string, string> = {}
-  if (opts.limit != null) queryString.limit = String(opts.limit)
-  if (opts.offset != null) queryString.offset = String(opts.offset)
   if (opts.q) queryString.q = opts.q
   if (opts.status?.length) queryString.status = opts.status.join(',')
+  if (opts.type?.length) queryString.type = opts.type.join(',')
   if (opts.creator) queryString.creator = opts.creator
   if (opts.reviewer) queryString.reviewer = opts.reviewer
+  return queryString
+}
+
+export async function list(opts: IInquiryListOpts = {}) {
+  const queryString = filterParams(opts)
+  if (opts.limit != null) queryString.limit = String(opts.limit)
+  if (opts.offset != null) queryString.offset = String(opts.offset)
   if (opts.sort) {
     queryString.sort = opts.sort
     queryString.order = opts.order ?? 'desc'
@@ -42,8 +58,12 @@ export async function list(opts: IInquiryListOpts = {}) {
   return (await get({ endpoint: '/inquiry', queryString })) as IInquiry[]
 }
 
-export async function getCount() {
-  return (await get({ endpoint: '/inquiry/stats' })) as IStats
+/**
+ * Exact count for a filter set — `/inquiry/stats` takes the list's filters
+ * (not its paging or sort), so a count can accompany any page truthfully.
+ */
+export async function getCount(opts: IInquiryListOpts = {}) {
+  return (await get({ endpoint: '/inquiry/stats', queryString: filterParams(opts) })) as IStats
 }
 
 export async function getById(id: number) {

@@ -20,7 +20,14 @@ import { recents, type RecentEntry } from '@/services/recents'
 import { toastError } from '@/services/toast'
 import type { Tone } from '@/services/tone'
 import { formatDateShort, formatRelative } from '@/utils/date'
-import { LANES, LANE_FETCH, LANE_PREVIEW, laneCountLabel, laneQuery } from '@/services/worklist'
+import {
+  LANES,
+  LANE_FETCH,
+  LANE_PREVIEW,
+  laneCountLabel,
+  laneCountQuery,
+  laneQuery,
+} from '@/services/worklist'
 import { useRowKeyboard } from '@/services/useRowKeyboard'
 import { useSessionStore } from '@/stores/session'
 
@@ -44,6 +51,12 @@ const { currentUser } = storeToRefs(useSessionStore())
 
 const loading = ref(true)
 const rowsByLane = ref<Record<string, IInquiry[]>>({})
+/**
+ * Exact lane totals from `/inquiry/stats`. `null` means the count did not
+ * come back, and the lane falls back to the capped "50+" floor — a lane must
+ * never show a number the data cannot support.
+ */
+const countByLane = ref<Record<string, number | null>>({})
 const archiveTotal = ref<number | null>(null)
 const recentlyOpened: Ref<RecentEntry[]> = ref([])
 
@@ -60,9 +73,22 @@ async function load() {
   try {
     loading.value = true
     // One request per lane, in parallel: independent queries, and the page is
-    // not useful until all of them have answered.
-    const results = await Promise.all(LANES.map((lane) => api.inquiry.list(laneQuery(lane, me))))
+    // not useful until all of them have answered. The exact counts ride along
+    // but may each fail on their own — rows without a count is a working page,
+    // a count without rows is not.
+    const [results, counts] = await Promise.all([
+      Promise.all(LANES.map((lane) => api.inquiry.list(laneQuery(lane, me)))),
+      Promise.all(
+        LANES.map((lane) =>
+          api.inquiry
+            .getCount(laneCountQuery(lane, me))
+            .then(({ count }) => count as number | null)
+            .catch(() => null),
+        ),
+      ),
+    ])
     rowsByLane.value = Object.fromEntries(LANES.map((lane, i) => [lane.key, results[i]!]))
+    countByLane.value = Object.fromEntries(LANES.map((lane, i) => [lane.key, counts[i]!]))
   } catch (e) {
     toastError(describeFailure(e, 'De werkbank kon niet worden geladen.'))
   } finally {
@@ -87,9 +113,18 @@ onBeforeMount(() => {
 // after this view has mounted.
 watch(currentUser, load)
 
-const waitingOnMe = computed(
-  () => reviewLane.value.length + rejectedLane.value.length + entryLane.value.length,
-)
+/** Best available number per lane: the exact count, or the fetched rows. */
+function laneTotal(key: string): number {
+  return countByLane.value[key] ?? rowsByLane.value[key]?.length ?? 0
+}
+
+/** The badge/tile text: exact when `/inquiry/stats` answered, "50+" when not. */
+function laneCount(key: string, rows: readonly unknown[]): string {
+  const exact = countByLane.value[key]
+  return exact != null ? exact.toLocaleString('nl-NL') : laneCountLabel(rows)
+}
+
+const waitingOnMe = computed(() => LANES.reduce((n, lane) => n + laneTotal(lane.key), 0))
 
 const subtitle = computed(() => {
   if (loading.value) return 'Je werk wordt opgehaald…'
@@ -117,7 +152,7 @@ const tiles = computed<Tile[]>(() => [
   {
     key: 'review',
     label: 'TE CONTROLEREN',
-    value: laneCountLabel(reviewLane.value),
+    value: laneCount('review', reviewLane.value),
     caption: reviewLane.value.length ? 'wacht op jouw oordeel' : 'niets open',
     tone: 'blue',
     query: { view: 'te-controleren' },
@@ -125,7 +160,7 @@ const tiles = computed<Tile[]>(() => [
   {
     key: 'rejected',
     label: 'AFGEKEURD',
-    value: laneCountLabel(rejectedLane.value),
+    value: laneCount('rejected', rejectedLane.value),
     caption: rejectedLane.value.length ? 'kwam terug naar jou' : 'niets open',
     tone: 'red',
     query: { view: 'afgekeurd' },
@@ -133,7 +168,7 @@ const tiles = computed<Tile[]>(() => [
   {
     key: 'entry',
     label: 'JOUW INVOER',
-    value: laneCountLabel(entryLane.value),
+    value: laneCount('entry', entryLane.value),
     caption: entryLane.value.length ? 'nog niet aangeboden' : 'niets open',
     tone: 'amber',
     query: { view: 'mijn-invoer' },
@@ -194,9 +229,9 @@ const { activeId } = useRowKeyboard({ rows: queue, onOpen: open })
 const distribution = computed(() => {
   const total = waitingOnMe.value || 1
   return [
-    { label: 'Te controleren', count: reviewLane.value.length, tone: 'blue' as Tone },
-    { label: 'Jouw invoer', count: entryLane.value.length, tone: 'amber' as Tone },
-    { label: 'Afgekeurd', count: rejectedLane.value.length, tone: 'red' as Tone },
+    { label: 'Te controleren', count: laneTotal('review'), tone: 'blue' as Tone },
+    { label: 'Jouw invoer', count: laneTotal('entry'), tone: 'amber' as Tone },
+    { label: 'Afgekeurd', count: laneTotal('rejected'), tone: 'red' as Tone },
   ].map((row) => ({ ...row, value: row.count / total }))
 })
 
@@ -251,7 +286,7 @@ function chipActive(types: number[] | null): boolean {
           <template #header>
             <span class="text-lg font-bold text-strong">Te controleren door jou</span>
             <span class="text-sm rounded-sm bg-green-tint px-1.5 py-px font-mono text-green-ink">
-              {{ laneCountLabel(reviewLane) }}
+              {{ laneCount('review', reviewLane) }}
             </span>
           </template>
 
@@ -301,10 +336,14 @@ function chipActive(types: number[] | null): boolean {
             <template v-if="filteredReview.length" #footer>
               <span class="text-base text-subtle">
                 {{ queue.length }} van
-                {{ typeFilter ? filteredReview.length : laneCountLabel(reviewLane) }} zichtbaar
-                <!-- The lane query is capped, so past the cap the count is a
-                     floor rather than a fact. Say so instead of implying it. -->
-                <template v-if="!typeFilter && reviewLane.length >= LANE_FETCH">
+                {{ typeFilter ? filteredReview.length : laneCount('review', reviewLane) }} zichtbaar
+                <!-- Only without an exact count is the capped fetch a floor
+                     rather than a fact. Say so instead of implying it. -->
+                <template
+                  v-if="
+                    !typeFilter && countByLane.review == null && reviewLane.length >= LANE_FETCH
+                  "
+                >
                   — mogelijk meer
                 </template>
               </span>

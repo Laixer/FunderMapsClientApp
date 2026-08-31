@@ -52,10 +52,9 @@ import { useSessionStore } from '@/stores/session'
  * between every two rows is what breaks it.
  *
  * The whole query lives in the URL, so a view is a link. Filtering, sorting and
- * paging are server-side through one options object (`toListOpts`); the one
- * exception is type, which `GET /inquiry` does not support and which is
- * therefore narrowed on the visible page — said out loud in the filter popover
- * rather than quietly half-working.
+ * paging are all server-side through one options object (`toListOpts`);
+ * `filterByType` re-narrows the page purely as belt-and-braces against an API
+ * that predates the `?type=` parameter.
  */
 const route = useRoute()
 const router = useRouter()
@@ -74,11 +73,16 @@ const views = ref<SavedView[]>([...BUILTIN_VIEWS])
 const rows: Ref<IInquiry[]> = ref([])
 const loading = ref(true)
 /**
- * A full page means there is probably another one. The list endpoint returns
- * rows and no total, so "1–50 van 1.284" is not a sentence this app can
- * truthfully write — it says "50 op deze pagina" and offers Volgende instead.
+ * The exact size of the current result set, from `/inquiry/stats` with the
+ * same filters. `null` while unanswered or failed — then the footer falls
+ * back to "N op deze pagina", which is all a page of rows can truthfully say.
  */
-const hasMore = computed(() => rows.value.length === PAGE_SIZE)
+const total = ref<number | null>(null)
+const hasMore = computed(() =>
+  total.value != null
+    ? query.value.page * PAGE_SIZE < total.value
+    : rows.value.length === PAGE_SIZE,
+)
 
 const visibleRows = computed(() => filterByType(rows.value, query.value.type))
 const chips = computed(() => chipsFor(query.value))
@@ -96,10 +100,24 @@ function push(next: ExplorerQuery, key = viewKey.value) {
   router.push({ name: 'inquiry-list', query: toRouteQuery(next, key) })
 }
 
+// Guards the fire-and-forget count against a faster next query: only the
+// newest load may write `total`, or page 3's count lands on page 4's rows.
+let loadToken = 0
+
 async function load() {
+  const token = ++loadToken
+  const opts = toListOpts(query.value, currentUser.value?.id ?? null)
+  // The count rides along but never gates the page: rows without a total is
+  // a working table, a total without rows is not. Cleared first — the old
+  // query's total over the new query's rows would be a wrong number.
+  total.value = null
+  api.inquiry
+    .getCount(opts)
+    .then(({ count }) => void (token === loadToken && (total.value = count)))
+    .catch(() => {})
   try {
     loading.value = true
-    rows.value = await api.inquiry.list(toListOpts(query.value, currentUser.value?.id ?? null))
+    rows.value = await api.inquiry.list(opts)
   } catch (e) {
     toastError(describeFailure(e, 'De rapportages konden niet worden opgehaald.'))
     rows.value = []
@@ -463,7 +481,12 @@ const MODES: { key: Mode; label: string }[] = [
 
             <template #footer>
               <span class="text-base text-subtle">
-                Pagina {{ query.page }} · {{ visibleRows.length }} op deze pagina
+                Pagina {{ query.page }} ·
+                {{
+                  total != null
+                    ? `${total.toLocaleString('nl-NL')} in totaal`
+                    : `${visibleRows.length} op deze pagina`
+                }}
               </span>
               <span class="ml-auto flex gap-1.5">
                 <Button
