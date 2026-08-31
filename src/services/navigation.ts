@@ -33,9 +33,11 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     title: 'WERK',
     items: [
       { route: 'home', label: 'Werkbank', key: 'w', counter: 'werkbank' },
+      // Controle directly under the Werkbank: it is the desk the day starts at
+      // now that documents arrive through the portal (Yorick, 2026-08-31).
+      { route: 'review-queue', label: 'Controle', key: 'c', counter: 'controle' },
       { route: 'inquiry-list', label: 'Rapportages', key: 'r', counter: 'inquiries' },
       { route: 'recovery-list', label: 'Herstel', key: 'h', counter: 'recoveries' },
-      { route: 'review-queue', label: 'Controle', key: 'c', counter: 'controle' },
     ],
   },
   {
