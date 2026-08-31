@@ -24,7 +24,7 @@ export interface ExplorerQuery {
   q: string
   /** auditStatus wire integers; combined as OR by the API. */
   status: number[]
-  /** Inquiry type integers. Applied client-side — see `filterByType`. */
+  /** Inquiry type wire integers; combined as OR by the API. */
   type: number[]
   /** Restrict to rows where you are the reviewer or the creator. */
   mine: 'reviewer' | 'creator' | null
@@ -64,10 +64,7 @@ export function isDefaultSort(query: ExplorerQuery): boolean {
  *
  * Twenty, not fifty: at 34–38px a row, twenty is about what a desktop viewport
  * shows without scrolling, so Volgende replaces the scrollbar instead of coming
- * after it. It also costs the client-side type filter less — that one narrows
- * the page rather than the query, and a smaller page is a smaller thing to
- * narrow, so `filterByType` leans harder on the caveat the popover already
- * states.
+ * after it.
  */
 export const PAGE_SIZE = 20
 
@@ -167,6 +164,10 @@ export interface SortOption {
  */
 export const SORT_OPTIONS: readonly SortOption[] = [
   { value: 'document_date', label: 'Datum', asc: 'oudste eerst', desc: 'nieuwste eerst' },
+  // When the dossier entered FunderMaps, as opposed to the date on the
+  // document itself — the invoerder's "what did we add lately" ordering
+  // (issue Laixer/FunderMaps#1011, item 4).
+  { value: 'create_date', label: 'Aangemaakt', asc: 'oudste eerst', desc: 'nieuwste eerst' },
   { value: 'id', label: 'ID', asc: 'laagste eerst', desc: 'hoogste eerst' },
   { value: 'document_name', label: 'Naam', asc: 'A → Z', desc: 'Z → A' },
   { value: 'type', label: 'Type', asc: 'oplopend', desc: 'aflopend' },
@@ -234,14 +235,7 @@ export function fromView(view: SavedView): ExplorerQuery {
 
 /* -------------------------------------------------------------- API mapping */
 
-/**
- * Turn the query into list options.
- *
- * `type` is absent on purpose: `GET /inquiry` takes no type filter, so type
- * narrowing happens client-side over the page — see `filterByType`. It is
- * called out here rather than silently dropped, because a filter that quietly
- * does nothing is worse than one that visibly filters only what is on screen.
- */
+/** Turn the query into list options. Every filter is server-side. */
 export function toListOpts(query: ExplorerQuery, userId: string | null): IInquiryListOpts {
   const opts: IInquiryListOpts = {
     limit: PAGE_SIZE,
@@ -249,6 +243,7 @@ export function toListOpts(query: ExplorerQuery, userId: string | null): IInquir
   }
   if (query.q.trim()) opts.q = query.q.trim()
   if (query.status.length) opts.status = [...query.status]
+  if (query.type.length) opts.type = [...query.type]
   if (query.mine === 'creator' && userId) opts.creator = userId
   if (query.mine === 'reviewer' && userId) opts.reviewer = userId
   // Always sent, default included. Letting the parameter fall away would hand
@@ -259,6 +254,11 @@ export function toListOpts(query: ExplorerQuery, userId: string | null): IInquir
   return opts
 }
 
+/**
+ * Belt-and-braces over the server's `?type=` filter: a no-op on a correctly
+ * filtered page, and the thing that keeps the table honest against an API
+ * that predates the parameter (which silently ignores it).
+ */
 export function filterByType<T extends { type: number | null }>(
   rows: T[],
   types: number[],
