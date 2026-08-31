@@ -279,6 +279,31 @@ async function closeDossier(outcome: DossierOutcome) {
   }
 }
 
+/** Values a person has taken over: what the commit will write. */
+const taken = computed(() => settled.value.filter((f) => decided.value[f.id] === 'confirmed' || decided.value[f.id] === 'corrected'))
+const committing = ref(false)
+
+/**
+ * Overnemen als rapportage: the judged values become an inquiry + samples, the
+ * document enters inquiry-report/, the dossier leaves the queue -- and the
+ * next one opens.
+ */
+async function commitDossier() {
+  if (!data.value) return
+  committing.value = true
+  try {
+    const r = await api.dataops.commit(data.value.dossier.id)
+    closed.value = 'accepted'
+    void studio.refreshCounts(null)
+    toastSuccess(`Rapportage #${r.inquiryId} aangemaakt met ${r.samples} adres${r.samples === 1 ? '' : 'sen'}.`)
+    await openNext(data.value.dossier.id, 'accepted')
+  } catch (e) {
+    error.value = describeFailure(e, 'Het dossier kon niet als rapportage worden overgenomen.')
+  } finally {
+    committing.value = false
+  }
+}
+
 const OUTCOME_LABEL: Record<DossierOutcome, string> = {
   accepted: 'afgehandeld',
   rejected: 'afgewezen',
@@ -587,8 +612,15 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               />
               <div class="flex flex-wrap gap-2">
                 <Button
+                  variant="primary"
+                  label="Overnemen als rapportage"
+                  :disabled="committing || closing || open.length > 0 || !taken.length"
+                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !taken.length ? 'Neem minstens een waarde over' : ''"
+                  @click="commitDossier"
+                />
+                <Button
                   label="Geen gegevens"
-                  :disabled="closing"
+                  :disabled="closing || committing"
                   @click="closeDossier('no_data')"
                 />
                 <Button
