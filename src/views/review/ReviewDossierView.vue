@@ -457,7 +457,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
         >
           <span class="min-w-0 flex-1 truncate font-mono">{{ current.originalFilename }}</span>
           <span>{{ current.pageCount }} pag.</span>
-          <span>{{ current.lane === 'text' ? 'tekst' : 'afbeelding' }}</span>
+          <span>{{ { text: 'tekst', vision: 'afbeelding', document: 'document' }[current.lane] ?? current.lane }}</span>
           <span v-if="data?.fields[0]" class="font-mono">{{ data.fields[0].model }}</span>
           <button
             type="button"
