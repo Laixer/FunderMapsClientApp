@@ -304,6 +304,55 @@ async function commitDossier() {
   }
 }
 
+/* -------------------------------------------------------------- timeline */
+
+const KIND_LABEL: Record<string, string> = {
+  received: 'ontvangen',
+  extraction: 'gelezen',
+  finding: 'controle',
+  verdict: 'oordeel',
+  remark: 'notitie',
+  question: 'vraag',
+  reply: 'antwoord',
+  status: 'status',
+}
+
+const entries = computed(() => data.value?.entries ?? [])
+const remarkText = ref('')
+const remarkBusy = ref(false)
+
+/** Append a note to the timeline and show it without a reload. */
+async function addRemark() {
+  const text = remarkText.value.trim()
+  if (!text || !data.value) return
+  remarkBusy.value = true
+  try {
+    await api.dataops.remark(data.value.dossier.id, text)
+    data.value.entries = [
+      ...data.value.entries,
+      {
+        id: -Date.now(),
+        at: new Date().toISOString(),
+        kind: 'remark',
+        actorKind: 'reviewer',
+        actor: null,
+        text,
+        visibleToMelder: false,
+      },
+    ]
+    remarkText.value = ''
+  } catch (e) {
+    error.value = describeFailure(e, 'De notitie kon niet worden opgeslagen.')
+  } finally {
+    remarkBusy.value = false
+  }
+}
+
+function entryWhen(at: string): string {
+  return new Date(at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) +
+    ' ' + new Date(at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+}
+
 const OUTCOME_LABEL: Record<DossierOutcome, string> = {
   accepted: 'afgehandeld',
   rejected: 'afgewezen',
@@ -596,6 +645,32 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 </span>
               </li>
             </ul>
+          </Panel>
+
+          <!-- The dossier's timeline: everything that happened, in order. The
+               melder's status page shows the visible subset of these same rows,
+               so reviewer and melder can never see two different stories. -->
+          <Panel v-if="entries.length" caption="VERLOOP" :meta="String(entries.length)">
+            <ul class="flex flex-col gap-1.5">
+              <li v-for="e in entries" :key="e.id" class="text-md flex gap-2.5">
+                <span class="text-sm w-[84px] shrink-0 font-mono text-faint">{{ entryWhen(e.at) }}</span>
+                <span class="min-w-0">
+                  <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ KIND_LABEL[e.kind] ?? e.kind }}</span>
+                  <span class="break-words text-muted">{{ e.text }}</span>
+                </span>
+              </li>
+            </ul>
+            <div class="mt-3 flex gap-2">
+              <input
+                v-model="remarkText"
+                type="text"
+                class="studio-control flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
+                placeholder="Notitie voor het dossier (intern)"
+                aria-label="Notitie toevoegen"
+                @keydown.enter="addRemark"
+              />
+              <Button label="Noteer" :disabled="remarkBusy || !remarkText.trim()" @click="addRemark" />
+            </div>
           </Panel>
 
           <!-- Closing the whole dossier. Always available, because "this is

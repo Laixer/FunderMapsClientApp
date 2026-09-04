@@ -79,4 +79,12 @@ export async function commit(id: number, body: { type?: string; documentDate?: s
   })) as { ok: boolean; inquiryId: number; samples: number; unresolved: string[] }
 }
 
-export default { queue, queueCount, dossier, verdict, close, closeMany, commit }
+/** A reviewer's internal note on the dossier — lands on the timeline, never mailed. */
+export async function remark(id: number, text: string) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/remark`,
+    body: { text } as unknown as Record<string, unknown>,
+  })) as { ok: boolean }
+}
+
+export default { queue, queueCount, dossier, verdict, close, closeMany, commit, remark }
