@@ -90,6 +90,20 @@ export interface IProposedField {
   promptVersion: string
 }
 
+/** One line of the dossier's append-only timeline (§11.1). */
+export interface IDossierEntry {
+  id: number
+  at: string
+  /** received · extraction · finding · verdict · remark · question · reply · status */
+  kind: string
+  /** melder · reviewer · pipeline · model · system */
+  actorKind: string
+  actor: string | null
+  /** The human-readable line, Dutch. */
+  text: string
+  visibleToMelder: boolean
+}
+
 export interface IReviewDossier {
   dossier: {
     id: number
@@ -102,6 +116,7 @@ export interface IReviewDossier {
   }
   artifacts: IReviewArtifact[]
   fields: IProposedField[]
+  entries: IDossierEntry[]
 }
 
 export type VerdictOutcome = 'confirmed' | 'corrected' | 'rejected'
