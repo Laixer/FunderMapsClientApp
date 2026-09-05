@@ -87,4 +87,12 @@ export async function remark(id: number, text: string) {
   })) as { ok: boolean }
 }
 
-export default { queue, queueCount, dossier, verdict, close, closeMany, commit, remark }
+/** A question to the melder — mailed via Resend, answered by reply straight into the timeline. */
+export async function question(id: number, text: string) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/question`,
+    body: { text } as unknown as Record<string, unknown>,
+  })) as { ok: boolean }
+}
+
+export default { queue, queueCount, dossier, verdict, close, closeMany, commit, remark, question }
