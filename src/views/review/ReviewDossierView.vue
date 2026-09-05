@@ -321,6 +321,38 @@ const entries = computed(() => data.value?.entries ?? [])
 const remarkText = ref('')
 const remarkBusy = ref(false)
 
+/** Where a question would go. Null (bulk drops) = no question box at all. */
+const melderEmail = computed(() => data.value?.dossier.submitter?.email ?? null)
+const questionText = ref('')
+const questionBusy = ref(false)
+
+/** Mail the melder a question; the reply lands on this same timeline. */
+async function askQuestion() {
+  const text = questionText.value.trim()
+  if (!text || !data.value) return
+  questionBusy.value = true
+  try {
+    await api.dataops.question(data.value.dossier.id, text)
+    data.value.entries = [
+      ...data.value.entries,
+      {
+        id: -Date.now(),
+        at: new Date().toISOString(),
+        kind: 'question',
+        actorKind: 'reviewer',
+        actor: null,
+        text,
+        visibleToMelder: true,
+      },
+    ]
+    questionText.value = ''
+  } catch (e) {
+    error.value = describeFailure(e, 'De vraag kon niet worden verstuurd.')
+  } finally {
+    questionBusy.value = false
+  }
+}
+
 /** Append a note to the timeline and show it without a reload. */
 async function addRemark() {
   const text = remarkText.value.trim()
@@ -650,7 +682,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
           <!-- The dossier's timeline: everything that happened, in order. The
                melder's status page shows the visible subset of these same rows,
                so reviewer and melder can never see two different stories. -->
-          <Panel v-if="entries.length" caption="VERLOOP" :meta="String(entries.length)">
+          <Panel v-if="!loading && data" caption="VERLOOP" :meta="String(entries.length)">
             <ul class="flex flex-col gap-1.5">
               <li v-for="e in entries" :key="e.id" class="text-md flex gap-2.5">
                 <span class="text-sm w-[84px] shrink-0 font-mono text-faint">{{ entryWhen(e.at) }}</span>
@@ -670,6 +702,23 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 @keydown.enter="addRemark"
               />
               <Button label="Noteer" :disabled="remarkBusy || !remarkText.trim()" @click="addRemark" />
+            </div>
+            <!-- Only when there is somebody to mail: bulk drops carry no melder,
+                 and a permanently grey box on 99% of the queue is noise. -->
+            <div v-if="melderEmail && !closed && !data?.dossier.outcome" class="mt-2 flex gap-2">
+              <input
+                v-model="questionText"
+                type="text"
+                class="studio-control flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
+                :placeholder="`Vraag aan de melder (gemaild naar ${melderEmail})`"
+                aria-label="Vraag aan de melder"
+                @keydown.enter="askQuestion"
+              />
+              <Button
+                label="Verstuur vraag"
+                :disabled="questionBusy || !questionText.trim()"
+                @click="askQuestion"
+              />
             </div>
           </Panel>
 

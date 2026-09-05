@@ -113,6 +113,9 @@ export interface IReviewDossier {
     duplicateOf: number | null
     inquiryId: number | null
     receivedAt: string
+    outcome: string | null
+    /** Who sent it in. Bulk drops carry none — then a question cannot be mailed. */
+    submitter: { name?: string | null; email?: string | null } | null
   }
   artifacts: IReviewArtifact[]
   fields: IProposedField[]
