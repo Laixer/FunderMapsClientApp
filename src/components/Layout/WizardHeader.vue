@@ -17,8 +17,9 @@ defineProps<{
   title: string
   /** Mono line under the title: draft state, autosave stamp, dossier id. */
   status?: string
-  steps: WizardStep[]
-  current: number
+  /** Absent on a page that is not a step of anything: a plain edit form. */
+  steps?: WizardStep[]
+  current?: number
   connected?: boolean
 }>()
 </script>
@@ -32,7 +33,7 @@ defineProps<{
       <p v-if="status" class="text-xs font-mono text-faint">{{ status }}</p>
     </div>
 
-    <div class="ml-4">
+    <div v-if="steps && current !== undefined" class="ml-4">
       <StepPills :steps="steps" :current="current" :connected="connected" />
     </div>
 

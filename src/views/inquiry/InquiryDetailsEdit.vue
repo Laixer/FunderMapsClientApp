@@ -9,7 +9,6 @@ import Callout from '@/components/Common/Callout.vue'
 import Dropzone, { type AttachedFile } from '@/components/Common/Dropzone.vue'
 import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
-import PresetList, { type Preset } from '@/components/Common/PresetList.vue'
 import ToggleChip from '@/components/Common/ToggleChip.vue'
 
 import api from '@/services/fundermaps'
@@ -21,29 +20,28 @@ import type { SelectOption } from '@/services/options'
 import { toastError, toastSuccess } from '@/services/toast'
 import { formatTime } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
-import { inquirySteps } from '@/services/wizard'
 
 /**
- * Step 1 — the report's own facts, and the document it came from.
+ * Gegevens — the report's own facts, and the document it came from.
+ *
+ * Until 2026-09-07 this was step 1 of the entry wizard and the place an
+ * inquiry was born. It no longer creates anything: a document enters through
+ * the review lane, the commit creates the inquiry with date, type and bureau
+ * read off the page, and this form is where a person corrects those or the
+ * flags nothing reads (F3O, inspectie, voegmeting, vloermeting).
  *
  * Two columns rather than one long form: the six fields that describe the
- * report belong together on the left, and the things that *produce* those
- * fields — the PDF you are reading them off, and the preset that fills half of
- * them in — belong on the right, where you can reach them without losing your
- * place.
+ * report belong together on the left, and the PDF you are reading them off
+ * on the right, where you can reach it without losing your place.
  *
- * `Volgende` stays disabled until the four required fields are valid, and the
+ * `Opslaan` stays disabled until the required fields are valid, and the
  * reason is written under whichever field is missing. A disabled button with no
  * explanation is the single most common way a form wastes someone's afternoon.
  */
 const route = useRoute()
 const router = useRouter()
 
-const inquiryId = computed(() => {
-  const id = route.params.id
-  return id ? Number(id) : null
-})
-const isNew = computed(() => inquiryId.value === null)
+const inquiryId = computed(() => Number(route.params.id))
 
 const loading = ref(true)
 const saving = ref(false)
@@ -154,44 +152,6 @@ function onRemove() {
   form.value.documentFile = ''
 }
 
-/* ----------------------------------------------------------------- presets */
-
-const PRESETS: Preset[] = [
-  {
-    key: 'quickscan',
-    label: 'QuickScan (addendum)',
-    meta: 'type + F3O voorgevuld',
-    tone: 'blue',
-    hotkey: '1',
-  },
-  { key: 'archief', label: 'Archief onderzoek', meta: 'geen meting', tone: 'amber', hotkey: '2' },
-  {
-    key: 'notitie',
-    label: 'Terugmelding / notitie',
-    meta: 'alleen naam en adres',
-    tone: 'green',
-    hotkey: '3',
-  },
-]
-
-/** What each preset actually sets. Flags are set *and* cleared, so picking a
-    second preset does not leave the first one's switches on. */
-const PRESET_VALUES: Record<string, { type: number; standardF3o: boolean }> = {
-  quickscan: { type: 14, standardF3o: true },
-  archief: { type: 7, standardF3o: false },
-  notitie: { type: 2, standardF3o: false },
-}
-
-function applyPreset(preset: Preset) {
-  const values = PRESET_VALUES[preset.key]
-  if (!values) return
-  form.value.type = values.type
-  form.value.standardF3o = values.standardF3o
-  form.value.inspection = false
-  form.value.jointMeasurement = false
-  form.value.floorMeasurement = false
-}
-
 /* -------------------------------------------------------------------- save */
 
 function body() {
@@ -212,26 +172,14 @@ function body() {
   }
 }
 
-/**
- * Persist and return the dossier's id. Creating on the first save is what makes
- * the rest of the wizard work: step 2 attaches addresses to a real record, so
- * nothing typed here is held hostage until the very end.
- */
+/** Persist and return the dossier's id, or null when nothing was saved. */
 async function persist(): Promise<number | null> {
   showErrors.value = true
   if (!isValid.value || saving.value) return null
 
   saving.value = true
   try {
-    if (isNew.value) {
-      const created = await api.inquiry.create(body())
-      savedAt.value = new Date().toISOString()
-      // Swap the URL over to the edit route so a refresh — or a second save —
-      // updates the draft instead of creating a duplicate.
-      await router.replace({ name: 'inquiry-edit-1', params: { id: created.id } })
-      return created.id
-    }
-    await api.inquiry.update(inquiryId.value!, body())
+    await api.inquiry.update(inquiryId.value, body())
     savedAt.value = new Date().toISOString()
     return inquiryId.value
   } catch (err) {
@@ -242,29 +190,26 @@ async function persist(): Promise<number | null> {
   }
 }
 
-async function saveDraft() {
+async function save() {
   const id = await persist()
-  if (id !== null) toastSuccess('Concept opgeslagen.')
+  if (id !== null) toastSuccess('Opgeslagen.')
 }
 
-async function next() {
+/** Save and go back to the dossier. */
+async function done() {
   const id = await persist()
-  if (id !== null) router.push({ name: 'inquiry-edit-2', params: { id } })
+  if (id !== null) router.push({ name: 'inquiry-view', params: { id } })
 }
 
 const draftStatus = computed(() => {
   if (saving.value) return 'bezig met opslaan…'
-  if (savedAt.value) return `concept · opgeslagen ${formatTime(savedAt.value)}`
-  if (!isNew.value) return `#${inquiryId.value} · wijzigingen nog niet opgeslagen`
-  return 'concept · nog niet opgeslagen'
+  if (savedAt.value) return `#${inquiryId.value} · opgeslagen ${formatTime(savedAt.value)}`
+  return `#${inquiryId.value}`
 })
 
-const steps = computed(() => inquirySteps(inquiryId.value))
-
 useActionShortcuts(() => ({
-  '⌘S': saveDraft,
-  '⌘↵': next,
-  ...Object.fromEntries(PRESETS.map((preset) => [preset.hotkey, () => applyPreset(preset)])),
+  '⌘S': save,
+  '⌘↵': done,
 }))
 
 onBeforeMount(async () => {
@@ -273,8 +218,8 @@ onBeforeMount(async () => {
     contractors.value = c
     reviewers.value = r
 
-    if (!isNew.value) {
-      const inquiry = await api.inquiry.getById(inquiryId.value!)
+    {
+      const inquiry = await api.inquiry.getById(inquiryId.value)
       form.value = {
         documentName: inquiry.documentName,
         type: inquiry.type,
@@ -305,28 +250,17 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <AppShell :crumb="isNew ? 'Nieuwe rapportage' : 'Rapportage bewerken'">
-    <WizardHeader
-      :title="isNew ? 'Nieuwe rapportage' : 'Rapportage bewerken'"
-      :status="draftStatus"
-      :steps="steps"
-      :current="1"
-      connected
-    >
+  <AppShell crumb="Gegevens bewerken">
+    <WizardHeader title="Gegevens bewerken" :status="draftStatus">
       <template #actions>
-        <Button label="Annuleren" @click="router.push({ name: 'inquiry-list' })" />
-        <Button
-          label="Concept opslaan"
-          shortcut="⌘S"
-          :disabled="saving || uploading"
-          @click="saveDraft"
-        />
+        <Button label="Annuleren" @click="router.push({ name: 'inquiry-view', params: { id: inquiryId } })" />
+        <Button label="Opslaan" shortcut="⌘S" :disabled="saving || uploading" @click="save" />
         <Button
           variant="primary"
-          label="Volgende: adressen"
+          label="Opslaan en terug"
           shortcut="⌘↵"
           :disabled="!isValid || saving || uploading"
-          @click="next"
+          @click="done"
         />
       </template>
     </WizardHeader>
@@ -334,8 +268,9 @@ onBeforeMount(async () => {
     <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-drawer)] items-start gap-4.5 px-6 py-5">
       <div class="flex min-w-0 flex-col gap-4">
         <p class="text-lg text-muted">
-          Basisgegevens en document — adressen volgen in stap 2. Je kunt tussentijds opslaan als
-          concept; het dossier blijft van jou tot je het aanbiedt.
+          De gegevens van het rapport zelf. Datum, soort en uitvoerder zijn bij het overnemen uit
+          het document gelezen; de eigenschappen (F3O, inspectie, metingen) leest niets en vul je
+          hier in.
         </p>
 
         <Panel caption="RAPPORT" meta="4 verplichte velden">
@@ -444,13 +379,9 @@ onBeforeMount(async () => {
           />
         </Panel>
 
-        <Panel caption="SNEL BEGINNEN">
-          <PresetList :presets="PRESETS" @pick="applyPreset" />
-        </Panel>
-
-        <Callout tone="green" title="Hierna: adressen" plain>
-          Zoek panden op adres of pand-ID; per adres vul je de bevindingen in. Het concept blijft van
-          jou tot je het aanbiedt ter controle.
+        <Callout tone="green" title="Adressen en bevindingen" plain>
+          Die staan onder Invoer op het dossier: per adres de waarden, met wat de pipeline eruit
+          las als vertrekpunt.
         </Callout>
       </aside>
     </div>

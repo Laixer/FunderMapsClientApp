@@ -554,7 +554,7 @@ const MODES: { key: Mode; label: string }[] = [
               />
               <Button
                 label="Invoer"
-                @click="router.push({ name: 'inquiry-edit-2', params: { id: selected.id } })"
+                @click="router.push({ name: 'inquiry-edit-samples', params: { id: selected.id } })"
               />
             </div>
 

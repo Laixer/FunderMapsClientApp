@@ -76,7 +76,39 @@ export async function commit(id: number, body: { type?: string; documentDate?: s
   return (await post({
     endpoint: `/dataops/dossier/${id}/commit`,
     body: { ...body } as unknown as Record<string, unknown>,
-  })) as { ok: boolean; inquiryId: number; samples: number; unresolved: string[] }
+  })) as {
+    ok: boolean
+    inquiryId: number
+    samples: number
+    /** `pending` when no sample was written: the record is still to be filled by hand. */
+    auditStatus: 'done' | 'pending'
+    unresolved: string[]
+  }
+}
+
+/**
+ * The staff front door: one or more documents become a dossier, the pipeline
+ * reads them (kicked at once; the hourly sweep is the safety net) and the
+ * reviewer continues in /review/:id. `category` is what the uploader says the
+ * document is -- a QuickScan may not establish a foundation type, so this is
+ * the one thing worth asking before the model sees a page.
+ */
+export async function create(
+  files: File[],
+  meta: { subject?: string; category: string; building?: string | null },
+) {
+  const form = new FormData()
+  for (const f of files) form.append('input', f)
+  form.append('category', meta.category)
+  if (meta.subject) form.append('subject', meta.subject)
+  if (meta.building) form.append('building', meta.building)
+  return (await post({ endpoint: '/dataops/dossier', body: form })) as {
+    id: number
+    reference: string
+    files: number
+    /** Whether the pipeline was kicked now. False = the hourly sweep will read it. */
+    reading: boolean
+  }
 }
 
 /** A reviewer's internal note on the dossier — lands on the timeline, never mailed. */
@@ -95,4 +127,4 @@ export async function question(id: number, text: string) {
   })) as { ok: boolean }
 }
 
-export default { queue, queueCount, dossier, verdict, close, closeMany, commit, remark, question }
+export default { queue, queueCount, dossier, verdict, close, closeMany, commit, create, remark, question }

@@ -385,6 +385,12 @@ const commitPreview = computed(() => {
  * Overnemen als rapportage: the judged values become an inquiry + samples, the
  * document enters inquiry-report/, the dossier leaves the queue -- and the
  * next one opens.
+ *
+ * With nothing taken over (the pipeline read nothing, or all of it was
+ * refused) the commit still makes the inquiry, with the document and what
+ * was read about it, and lands as `pending`: the person fills the samples
+ * in by hand. That is the fallback for a document the model cannot read,
+ * and since 2026-09-07 the only way to type a report in.
  */
 async function commitDossier() {
   if (!data.value) return
@@ -393,6 +399,11 @@ async function commitDossier() {
     const r = await api.dataops.commit(data.value.dossier.id)
     closed.value = 'accepted'
     void studio.refreshCounts(null)
+    if (r.samples === 0) {
+      toastSuccess(`Rapportage #${r.inquiryId} aangemaakt zonder adressen; vul die nu in.`)
+      await router.push({ name: 'inquiry-edit-samples', params: { id: r.inquiryId } })
+      return
+    }
     toastSuccess(`Rapportage #${r.inquiryId} aangemaakt met ${r.samples} adres${r.samples === 1 ? '' : 'sen'}.`)
     await openNext(data.value.dossier.id, 'accepted')
   } catch (e) {
@@ -669,7 +680,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
           <Callout v-else-if="nothingProposed" tone="red" title="De pipeline vond niets">
             Het document is gelezen, maar er is geen enkele waarde uit gehaald. Bekijk het zelf:
             hoort het hier niet thuis, sluit het dossier dan hieronder. Bevat het wél gegevens,
-            voer ze dan in via een nieuwe rapportage.
+            kies dan “Rapportage aanmaken, handmatig invullen”.
           </Callout>
 
           <Callout v-else-if="open.length === 0" tone="green" title="Alles beoordeeld">
@@ -889,9 +900,9 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"
-                  label="Overnemen als rapportage"
-                  :disabled="committing || closing || open.length > 0 || !taken.length"
-                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !taken.length ? 'Neem minstens een waarde over' : ''"
+                  :label="taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
+                  :disabled="committing || closing || open.length > 0 || !wasRead"
+                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : ''"
                   @click="commitDossier"
                 />
                 <Button
