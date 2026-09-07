@@ -1,12 +1,10 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
-import { hasAccessToken } from '@/services/fundermaps/session'
 import { useSessionStore } from '@/stores/session'
-import { loginRedirect } from '@/services/oidc'
+import { loginRedirect } from '@/services/auth'
 
 import Login from '@/views/auth/Login.vue'
-import Callback from '@/views/auth/Callback.vue'
 import Logout from '@/views/auth/Logout.vue'
 import NotFound from '@/views/auth/NotFound.vue'
 import Home from '@/views/HomeView.vue'
@@ -41,16 +39,10 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     component: Login,
     meta: { public: true },
-    beforeEnter: async () => {
-      await loginRedirect()
+    beforeEnter: () => {
+      loginRedirect(window.location.origin + '/')
       return false
     },
-  },
-  {
-    name: 'auth-callback',
-    path: '/auth/callback',
-    component: Callback,
-    meta: { public: true },
   },
   { name: 'logout', path: '/logout', component: Logout },
 
@@ -115,22 +107,21 @@ router.beforeEach(async (to) => {
   const sessionStore = useSessionStore()
   const { isAuthenticated } = storeToRefs(sessionStore)
 
-  // Restore session on first load if a bearer is in localStorage but the
-  // store has no current user yet.
-  if (!isAuthenticated.value && hasAccessToken()) {
+  if (to.meta.public) return true
+
+  // Restore the user from the session cookie on first load.
+  if (!isAuthenticated.value) {
     try {
-      await sessionStore.authenticateFromAccessToken()
+      await sessionStore.authenticate()
     } catch {
-      // session validation failed — store has cleared itself
+      // no session — handled below
     }
   }
 
-  if (to.meta.public) return true
-
   if (!isAuthenticated.value) {
-    // Hand off to the auth app here, before any route component renders, so the
-    // user never sees a local login page flash.
-    await loginRedirect()
+    // Hand off to the auth app before any route component renders; it brings
+    // the user back to the page they asked for.
+    loginRedirect(window.location.origin + to.fullPath)
     return false
   }
 })
