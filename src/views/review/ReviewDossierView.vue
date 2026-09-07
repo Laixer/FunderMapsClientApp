@@ -18,6 +18,9 @@ import type {
 } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { FOUNDATION_TYPE_OPTIONS } from '@/services/sampleEnums'
+import { INQUIRY_TYPE_CODE_LABELS } from '@/services/inquiryEnums'
+import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
+import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
 import { toastSuccess } from '@/services/toast'
 
@@ -95,6 +98,10 @@ watch(
  * only what a person reads is Dutch), plus `recovery_note`, which has no column.
  */
 const FIELD_LABEL: Record<string, string> = {
+  // About the document itself: land on report.inquiry, not on a sample.
+  document_date: 'Datum rapport',
+  inquiry_type: 'Soort document',
+  contractor: 'Opsteller (uitvoerder)',
   foundation_type: 'Funderingstype',
   built_year: 'Bouwjaar',
   foundation_quality: 'Funderingskwaliteit',
@@ -152,6 +159,7 @@ const FIELD_UNIT: Record<string, string> = {
 
 /** Enum-coded values, shown in Dutch. The code is what gets stored. */
 const VALUE_LABEL: Record<string, Record<string, string>> = {
+  inquiry_type: INQUIRY_TYPE_CODE_LABELS,
   foundation_quality: {
     bad: 'slecht',
     mediocre: 'matig',
@@ -213,7 +221,68 @@ const VALUE_LABEL: Record<string, Record<string, string>> = {
   },
 }
 const displayValue = (f: IProposedField) =>
-  f.value == null ? '—' : (VALUE_LABEL[f.field]?.[f.value] ?? f.value)
+  f.value == null
+    ? '—'
+    : f.field === 'document_date'
+      ? formatDate(f.value)
+      : (VALUE_LABEL[f.field]?.[f.value] ?? f.value)
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+
+const INQUIRY_TYPE_OPTIONS: SelectOption[] = Object.entries(INQUIRY_TYPE_CODE_LABELS).map(
+  ([value, label]) => ({ value, label }),
+)
+
+/**
+ * The bureaus, for the `contractor` field. The pipeline reads the name as
+ * printed on the cover; the commit matches it against this list, and this
+ * select lets the reviewer pick the row when the match is wrong or missing.
+ * Loaded once, only when a dossier actually proposes a contractor.
+ */
+const contractors = ref<IContractor[]>([])
+const contractorOptions = computed<SelectOption[]>(() =>
+  contractors.value.map((c) => ({ value: String(c.id), label: c.name })),
+)
+/** Same normalisation as the API's contractor-match, so the preselect shows what the commit will do. */
+const normaliseName = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/&/g, ' en ')
+    .replace(/\b(b\.?\s?v\.?|n\.?\s?v\.?|v\.?o\.?f\.?|c\.?v\.?|bv|nv|vof|holding|groep|group)\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+function guessContractor(printed: string): IContractor | null {
+  const p = normaliseName(printed)
+  if (p.length < 2) return null
+  const rows = contractors.value.map((c) => ({ c, n: normaliseName(c.name) })).filter((r) => r.n)
+  const exact = rows.find((r) => r.n === p)
+  if (exact) return exact.c
+  const prefix = (long: string, short: string) =>
+    short.length >= 4 && (long === short || long.startsWith(`${short} `))
+  return (
+    rows
+      .filter((r) => prefix(p, r.n) || prefix(r.n, p))
+      .sort((a, b) => b.n.length - a.n.length)[0]?.c ?? null
+  )
+}
+/** The row the commit will pick for a proposed bureau name, or null when it will fall back to FunderMaps B.V. */
+const contractorGuess = (f: IProposedField) =>
+  f.field === 'contractor' && f.value ? guessContractor(f.value) : null
+
+watch(
+  () => data.value?.fields.some((f) => f.field === 'contractor') ?? false,
+  async (needed) => {
+    if (!needed || contractors.value.length) return
+    try {
+      contractors.value = await api.contractor.list()
+    } catch {
+      /* the select stays empty; the reviewer can still confirm or reject the printed name */
+    }
+  },
+  { immediate: true },
+)
 
 const open = computed(() => (data.value?.fields ?? []).filter((f) => !decided.value[f.id]))
 
@@ -282,6 +351,35 @@ async function closeDossier(outcome: DossierOutcome) {
 /** Values a person has taken over: what the commit will write. */
 const taken = computed(() => settled.value.filter((f) => decided.value[f.id] === 'confirmed' || decided.value[f.id] === 'corrected'))
 const committing = ref(false)
+
+/**
+ * The value the commit will use for a document-level field: the correction if
+ * there was one, else the confirmed reading, else nothing (and the API falls
+ * back). Shown before the button so "datum = de dag van uploaden" is a thing
+ * the reviewer sees rather than discovers in the inquiry list a week later.
+ */
+function takenDocumentValue(field: string): string | null {
+  const f = taken.value.find((t) => t.field === field)
+  if (!f) return null
+  return decided.value[f.id] === 'corrected' ? (corrections.value[f.id] ?? null) : f.value
+}
+const commitPreview = computed(() => {
+  const type = takenDocumentValue('inquiry_type')
+  const date = takenDocumentValue('document_date')
+  const contractorRaw = takenDocumentValue('contractor')
+  const contractorRow = contractorRaw
+    ? /^\d+$/.test(contractorRaw)
+      ? (contractors.value.find((c) => String(c.id) === contractorRaw) ?? null)
+      : guessContractor(contractorRaw)
+    : null
+  return {
+    type: type ? (INQUIRY_TYPE_CODE_LABELS[type] ?? type) : null,
+    date: date ? formatDate(date) : null,
+    contractor: contractorRow?.name ?? null,
+    contractorRaw,
+    receivedAt: data.value ? formatDate(data.value.dossier.receivedAt) : '',
+  }
+})
 
 /**
  * Overnemen als rapportage: the judged values become an inquiry + samples, the
@@ -621,12 +719,43 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 Een QuickScan of funderingsrisicorapport toont FunderMaps-gegevens.
               </Callout>
 
+              <Callout
+                v-if="f.field === 'contractor' && contractors.length"
+                :tone="contractorGuess(f) ? 'green' : 'amber'"
+                :title="contractorGuess(f) ? `Wordt: ${contractorGuess(f)!.name}` : 'Niet in de lijst met uitvoerders'"
+              >
+                <template v-if="!contractorGuess(f)">
+                  Overnemen zet FunderMaps B.V. als uitvoerder en bewaart de naam in de notitie.
+                  Kies hieronder de juiste als die er wél is.
+                </template>
+              </Callout>
+
               <Field
                 v-if="f.field === 'foundation_type'"
                 v-model="corrections[f.id]"
                 kind="select"
                 label="Andere waarde"
                 :options="FOUNDATION_TYPE_OPTIONS"
+              />
+              <Field
+                v-else-if="f.field === 'inquiry_type'"
+                v-model="corrections[f.id]"
+                kind="select"
+                label="Andere waarde"
+                :options="INQUIRY_TYPE_OPTIONS"
+              />
+              <Field
+                v-else-if="f.field === 'document_date'"
+                v-model="corrections[f.id]"
+                kind="date"
+                label="Andere datum"
+              />
+              <Field
+                v-else-if="f.field === 'contractor' && contractors.length"
+                v-model="corrections[f.id]"
+                kind="select"
+                label="Andere uitvoerder"
+                :options="contractorOptions"
               />
               <Field v-else v-model="corrections[f.id]" label="Andere waarde" />
 
@@ -734,6 +863,29 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 label="Reden"
                 hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
               />
+              <!-- What "Overnemen als rapportage" will write on the inquiry
+                   itself. A missing date falls back to the day the dossier
+                   arrived, which is almost never the date of the report. -->
+              <dl v-if="taken.length" class="text-md grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                <dt class="text-label">Soort</dt>
+                <dd :class="commitPreview.type ? 'text-body' : 'text-amber-ink'">
+                  {{ commitPreview.type ?? 'niet overgenomen — wordt afgeleid van het label' }}
+                </dd>
+                <dt class="text-label">Datum rapport</dt>
+                <dd :class="commitPreview.date ? 'text-body' : 'text-amber-ink'">
+                  {{ commitPreview.date ?? `niet overgenomen — wordt ${commitPreview.receivedAt} (ontvangst)` }}
+                </dd>
+                <dt class="text-label">Uitvoerder</dt>
+                <dd :class="commitPreview.contractor ? 'text-body' : 'text-amber-ink'">
+                  {{
+                    commitPreview.contractor ??
+                    (commitPreview.contractorRaw
+                      ? `FunderMaps B.V. (“${commitPreview.contractorRaw}” staat niet in de lijst)`
+                      : 'niet overgenomen — wordt FunderMaps B.V.')
+                  }}
+                </dd>
+              </dl>
+
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"

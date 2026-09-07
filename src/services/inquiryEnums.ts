@@ -61,6 +61,28 @@ export const INQUIRY_TYPE_LABELS: Record<number, string> = {
   14: 'QuickScan (addendum)',
 }
 
+/**
+ * The same labels keyed by the enum CODE (`report.inquiry_type`), for the review
+ * lane, which speaks the database's words rather than the legacy integers.
+ * Order is the order a reviewer wants to pick from: the common kinds first.
+ */
+export const INQUIRY_TYPE_CODE_LABELS: Record<string, string> = {
+  foundation_research: 'Funderings onderzoek',
+  archive_research: 'Archief onderzoek',
+  quickscan: 'QuickScan (vervallen)',
+  inspectionpit: 'Inspectieput',
+  monitoring: 'Monitoring',
+  ground_water_level_research: 'Grondwater onderzoek',
+  soil_investigation: 'Grondonderzoek',
+  architectural_research: 'Bouwkundig onderzoek',
+  foundation_advice: 'Funderingsadvies',
+  second_opinion: 'Second opinion',
+  demolition_research: 'Sloopgrens onderzoek',
+  additional_research: 'Aanvullend onderzoek',
+  note: 'Notitie',
+  unknown: 'Onbekend',
+}
+
 export function inquiryTypeLabel(type: number | null | undefined): string {
   return INQUIRY_TYPE_LABELS[type ?? -1] ?? 'Onbekend'
 }
