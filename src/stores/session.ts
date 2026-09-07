@@ -2,12 +2,6 @@ import { computed, type ShallowRef, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 
 import api from '@/services/fundermaps'
-import {
-  getAccessToken,
-  hasAccessToken,
-  removeAccessToken,
-  removeIdToken,
-} from '@/services/fundermaps/session'
 import type { IUser, OrgRole } from '@/services/fundermaps/interfaces/IUser'
 
 const currentUser: ShallowRef<IUser | null> = shallowRef(null)
@@ -26,14 +20,10 @@ const canWrite = computed<boolean>(() => isSuperUser.value || isWriter.value)
 const canApprove = computed<boolean>(() => isSuperUser.value || isVerifier.value)
 
 /**
- * On a fresh page load, if a bearer is present, verify it by fetching /me.
- * If verification fails the local session is cleared.
+ * Load the user behind the session cookie. Throws when there is none (the
+ * API answers 401), so the router guard can send the user to log in.
  */
-async function authenticateFromAccessToken() {
-  if (!hasAccessToken()) {
-    clearLocalSession()
-    return
-  }
+async function authenticate() {
   try {
     currentUser.value = await api.user.me()
   } catch (e) {
@@ -43,18 +33,15 @@ async function authenticateFromAccessToken() {
 }
 
 function clearLocalSession() {
-  removeAccessToken()
-  removeIdToken()
   currentUser.value = null
 }
 
+/** End the session at the API (clears the cookie). */
 async function logout() {
-  if (getAccessToken()) {
-    try {
-      await api.auth.signOut()
-    } catch {
-      // server-side invalidation is best-effort; always clear locally
-    }
+  try {
+    await api.auth.signOut()
+  } catch {
+    // server-side invalidation is best-effort; always clear locally
   }
   clearLocalSession()
 }
@@ -70,7 +57,7 @@ function useSession() {
     isReader,
     canWrite,
     canApprove,
-    authenticateFromAccessToken,
+    authenticate,
     logout,
   }
 }

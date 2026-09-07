@@ -1,21 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { RouterView, useRouter } from 'vue-router'
+import { RouterView } from 'vue-router'
 import { setUnauthorizedHandler } from '@/services/fundermaps/client'
-import { useSessionStore } from '@/stores/session'
+import { loginRedirect } from '@/services/auth'
 
-const router = useRouter()
-const sessionStore = useSessionStore()
 
 onMounted(() => {
   setUnauthorizedHandler(() => {
-    // Server says our bearer is dead. Clear local session and bounce to
-    // login. Best-effort — if logout itself errors, still navigate.
-    sessionStore.logout().finally(() => {
-      if (router.currentRoute.value.name !== 'login') {
-        router.push({ name: 'login' })
-      }
-    })
+    // Server says the session is gone: go and log in again; the auth app
+    // brings the user back to this page.
+    loginRedirect()
   })
 })
 </script>

@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { logoutRedirect } from '@/services/oidc'
 
-// RP-initiated logout: clear local tokens and end the SSO session at the
-// provider (/oauth2/end-session), then land back on /login for a fresh login
-// (option B). A local-only logout would silently re-login via the still-alive
-// SSO session.
+import { logoutRedirect } from '@/services/auth'
+
+// Ends the session at the API (clears the cookie) and lands on the auth app's
+// login page.
 onMounted(() => {
-  logoutRedirect()
+  void logoutRedirect()
 })
 </script>
 
