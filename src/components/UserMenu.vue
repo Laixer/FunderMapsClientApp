@@ -5,7 +5,7 @@ import { onClickOutside, onKeyStroke } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
 import { useSessionStore } from '@/stores/session'
-import { logoutRedirect } from '@/services/oidc'
+import { logoutRedirect } from '@/services/auth'
 
 /**
  * Who you are, at the foot of the rail.
@@ -70,8 +70,8 @@ const apps = computed(() => {
 })
 
 function handleLogout() {
-  // RP-initiated logout — ends the SSO session at the provider (see oidc.ts).
-  logoutRedirect()
+  // Ends the session at the API (clears the cookie), then the auth app's login page.
+  void logoutRedirect()
 }
 </script>
 

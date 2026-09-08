@@ -7,8 +7,7 @@
  */
 
 import { trimLeadingChar, trimTrailingChar } from '@/utils/string'
-import { getAccessToken, hasAccessToken } from './session'
-import { APICallError, APIClientError, APIErrorResponse, APITokenError } from './errors'
+import { APICallError, APIClientError, APIErrorResponse } from './errors'
 
 let onUnauthorized: () => void = () => {}
 
@@ -36,14 +35,9 @@ async function makeCall({
   let responseBody: unknown = null
 
   try {
-    if (requireAuth && !hasAccessToken()) {
-      throw new APITokenError('Missing access token')
-    }
-
+    // The Better Auth session cookie is the credential; it travels with
+    // credentials: 'include' below. The server decides (401 handled after).
     const headers: Record<string, string> = {}
-    if (requireAuth) {
-      headers.Authorization = `Bearer ${getAccessToken()}`
-    }
 
     const url = typeof endpoint === 'string' ? combineEndpoint(endpoint) : endpoint
 
@@ -66,7 +60,7 @@ async function makeCall({
       headers['Content-Type'] = 'application/json'
     }
 
-    fetchOptions = { method, headers, body }
+    fetchOptions = { method, headers, body, credentials: 'include' as RequestCredentials }
 
     const response = await fetch(url, fetchOptions)
 
@@ -82,10 +76,10 @@ async function makeCall({
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Bearer is dead. Fire the handler (which clears local session and
-        // navigates to /login) before throwing so the caller's catch fires
-        // against an already-cleaned session.
-        onUnauthorized()
+        // Session gone (expired, revoked, signed out elsewhere). Fire the
+        // handler (which sends the user to log in) before throwing so the
+        // caller's catch fires against an already-cleaned session.
+        if (requireAuth) onUnauthorized()
       }
       throw new APIErrorResponse(response.status, responseBody)
     }
