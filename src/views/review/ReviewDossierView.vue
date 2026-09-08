@@ -66,6 +66,8 @@ const collapsed = ref<Record<string, boolean>>({})
 const closeNote = ref('')
 const closing = ref(false)
 const closed = ref<DossierOutcome | null>(null)
+/** The rapportage a commit made, for a link that outlives the toast (Don #321 §6). */
+const committedInquiryId = ref<number | null>(null)
 
 /**
  * Load the dossier in the URL. A function rather than a one-off in
@@ -88,6 +90,7 @@ async function load() {
   collapsed.value = {}
   closeNote.value = ''
   closed.value = null
+  committedInquiryId.value = null
   openedAt = Date.now()
   try {
     data.value = await api.dataops.dossier(Number(route.params.id))
@@ -412,6 +415,7 @@ async function commitDossier() {
   try {
     const r = await api.dataops.commit(data.value.dossier.id)
     closed.value = 'accepted'
+    committedInquiryId.value = r.inquiryId
     void studio.refreshCounts(null)
     if (r.samples === 0) {
       toastSuccess(`Rapportage #${r.inquiryId} aangemaakt zonder adressen; vul die nu in.`)
@@ -698,6 +702,28 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
 
           <Callout v-else-if="closed" tone="neutral" title="Dossier gesloten">
             Gesloten als <strong>{{ closed }}</strong>. Het staat niet meer in de controlelijst.
+            <template v-if="committedInquiryId" #action>
+              <Button
+                :label="`Rapportage #${committedInquiryId} openen`"
+                @click="router.push({ name: 'inquiry-view', params: { id: committedInquiryId } })"
+              />
+            </template>
+          </Callout>
+
+          <!-- Committed earlier: the rapportage is the place to add to it. -->
+          <Callout
+            v-else-if="data?.dossier.inquiryId"
+            tone="green"
+            title="Overgenomen als rapportage"
+          >
+            Dit dossier is rapportage <strong>#{{ data.dossier.inquiryId }}</strong> geworden.
+            Aanvullen of corrigeren gebeurt daar.
+            <template #action>
+              <Button
+                :label="`Rapportage #${data.dossier.inquiryId} openen`"
+                @click="router.push({ name: 'inquiry-view', params: { id: data!.dossier.inquiryId! } })"
+              />
+            </template>
           </Callout>
 
           <Callout

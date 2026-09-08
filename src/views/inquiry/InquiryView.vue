@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, watch, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
 import AppShell from '@/components/Layout/AppShell.vue'
@@ -391,6 +391,16 @@ useActionShortcuts(() => {
               <StatusBadge :status="inquiry.state.auditStatus" />
             </div>
             <p class="text-sm mt-1 font-mono text-faint">{{ metaLine }}</p>
+            <p v-if="inquiry.dossier" class="text-sm mt-1 text-muted">
+              Uit dossier
+              <RouterLink
+                :to="{ name: 'review-dossier', params: { id: inquiry.dossier.id } }"
+                class="font-semibold text-green-ink underline underline-offset-2"
+              >
+                {{ inquiry.dossier.reference ?? `#${inquiry.dossier.id}` }}
+              </RouterLink>
+              — het document, de citaten en het verloop staan daar.
+            </p>
           </div>
 
           <!-- Actions live next to the thing they act on, and destructive is

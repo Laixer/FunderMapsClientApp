@@ -11,6 +11,8 @@
 export interface IInquiry {
   id: number
   documentName: string
+  /** The dossier this came out of, when the review lane made it. Absent on older API responses. */
+  dossier?: { id: number; reference: string | null } | null
   inspection: boolean
   jointMeasurement: boolean
   floorMeasurement: boolean
