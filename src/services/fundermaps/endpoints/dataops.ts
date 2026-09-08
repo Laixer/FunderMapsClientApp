@@ -6,28 +6,55 @@ import type {
   IDossierOutcome,
 } from '../interfaces/IDataops'
 
+export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app'
+export type QueueState = 'unread' | 'empty' | 'proposals'
+export type QueueSort = 'received_at' | 'open' | 'files' | 'subject' | 'id'
+
+/** Same contract as `IInquiryListOpts`: sets are OR within, AND across; every filter is server-side. */
 export interface IQueueListOpts {
   limit?: number
   offset?: number
   q?: string
+  channel?: QueueChannel[]
+  state?: QueueState[]
+  /** Received more than a week ago. */
+  age?: 'overdue'
+  building?: 'resolved' | 'unresolved'
+  /** `report.inquiry_type` codes as the pipeline read them. */
+  kind?: string[]
+  sort?: QueueSort
+  order?: 'asc' | 'desc'
 }
 
-/**
- * Submissions waiting for a reviewer, oldest first. Same contract as
- * `inquiry.list`: the server pages and searches; the client never filters a
- * page it did not ask for.
- */
-export async function queue(opts: IQueueListOpts = {}) {
+function queueQueryString(opts: IQueueListOpts): Record<string, string> {
   const queryString: Record<string, string> = {}
   if (opts.limit != null) queryString.limit = String(opts.limit)
   if (opts.offset != null) queryString.offset = String(opts.offset)
   if (opts.q) queryString.q = opts.q
-  return (await get({ endpoint: '/dataops/queue', queryString })) as IReviewQueueItem[]
+  if (opts.channel?.length) queryString.channel = opts.channel.join(',')
+  if (opts.state?.length) queryString.state = opts.state.join(',')
+  if (opts.age) queryString.age = opts.age
+  if (opts.building) queryString.building = opts.building
+  if (opts.kind?.length) queryString.kind = opts.kind.join(',')
+  if (opts.sort) queryString.sort = opts.sort
+  if (opts.order) queryString.order = opts.order
+  return queryString
 }
 
-/** How long the line is, independent of any page. */
-export async function queueCount() {
-  return (await get({ endpoint: '/dataops/queue/stats' })) as { count: number }
+/**
+ * Submissions waiting for a reviewer, oldest first unless asked otherwise.
+ * Same contract as `inquiry.list`: the server pages, searches and filters;
+ * the client never filters a page it did not ask for.
+ */
+export async function queue(opts: IQueueListOpts = {}) {
+  return (await get({ endpoint: '/dataops/queue', queryString: queueQueryString(opts) })) as IReviewQueueItem[]
+}
+
+/** How long the line is, independent of any page. With filters: how long the filtered line is. */
+export async function queueCount(opts: Omit<IQueueListOpts, 'limit' | 'offset' | 'sort' | 'order'> = {}) {
+  return (await get({ endpoint: '/dataops/queue/stats', queryString: queueQueryString(opts) })) as {
+    count: number
+  }
 }
 
 /**

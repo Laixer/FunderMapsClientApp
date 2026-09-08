@@ -27,6 +27,8 @@ export interface IReviewQueueItem {
   files: number
   /** Whether the pipeline has read it at all. False = ingest not run yet. */
   read: boolean
+  /** What kind of document the pipeline read this to be (`report.inquiry_type` code); null until read. */
+  kind: string | null
 }
 
 /** What one page of a document turned out to be. Decides whether it was read at all. */

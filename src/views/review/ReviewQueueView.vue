@@ -6,11 +6,29 @@ import { refDebounced } from '@vueuse/core'
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
+import FilterChip from '@/components/Common/FilterChip.vue'
 import Pill from '@/components/Common/Pill.vue'
+import ReviewFilterBuilder from '@/components/Review/ReviewFilterBuilder.vue'
 import api from '@/services/fundermaps'
 import type { IReviewQueueItem } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { PAGE_SIZE } from '@/services/explorer'
+import {
+  BUILTIN_VIEWS,
+  channelLabel,
+  chipsFor,
+  customViews,
+  deleteView,
+  emptyQuery,
+  fromView,
+  kindLabel,
+  parseQuery,
+  saveView,
+  toQueueOpts,
+  toRouteQuery,
+  type ReviewQuery,
+  type SavedView,
+} from '@/services/reviewExplorer'
 import { useStudioStore } from '@/stores/studio'
 
 /**
@@ -23,9 +41,11 @@ import { useStudioStore } from '@/stores/studio'
  * promise to whoever sent it, so the oldest submission is always at the top
  * and anything past a week says so.
  *
- * Search and paging work exactly like Rapportages: the question lives in the
- * URL (`?q=…&page=…`), the server answers it, and a full page means there is
- * probably another one.
+ * Filtering, sorting, searching and paging work exactly like Rapportages: the
+ * whole question lives in the URL (`services/reviewExplorer`), the server
+ * answers it, the active parts show as removable chips, and a full page means
+ * there is probably another one. Saved views across the top are the same
+ * object under a name.
  */
 const route = useRoute()
 const router = useRouter()
@@ -35,38 +55,46 @@ const rows = ref<IReviewQueueItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
+const query = ref<ReviewQuery>(emptyQuery())
+const viewKey = ref('alles')
+const views = ref<SavedView[]>([...BUILTIN_VIEWS])
 const search = ref('')
 const debouncedSearch = refDebounced(search, 300)
-const page = ref(1)
+/** How many dossiers answer the current question, independent of the page. */
+const total = ref<number | null>(null)
 
+const page = computed(() => query.value.page)
 const hasMore = computed(() => rows.value.length === PAGE_SIZE)
-const total = computed(() => studio.controle)
+const chips = computed(() => chipsFor(query.value))
 
 /** Read the URL into state. The address bar is the source of truth, not a mirror. */
 function adoptRoute() {
-  search.value = typeof route.query.q === 'string' ? route.query.q : ''
-  const p = Number(route.query.page)
-  page.value = Number.isInteger(p) && p > 0 ? p : 1
+  query.value = parseQuery(route.query as Record<string, unknown>)
+  search.value = query.value.q
+  const key = typeof route.query.view === 'string' ? route.query.view : 'alles'
+  viewKey.value = views.value.some((v) => v.key === key) ? key : 'alles'
 }
 
-function push(next: { q?: string; page?: number }) {
-  const q = next.q ?? search.value
-  const p = next.page ?? page.value
-  const query: Record<string, string> = {}
-  if (q) query.q = q
-  if (p > 1) query.page = String(p)
-  router.push({ name: 'review-queue', query })
+/** Write state back to the URL, which re-triggers the load through the watcher. */
+function push(next: ReviewQuery, key = viewKey.value) {
+  router.push({ name: 'review-queue', query: toRouteQuery(next, key) })
 }
+
+// Only the newest load may write `total`, or page 3's count lands on page 4's rows.
+let loadToken = 0
 
 async function load() {
+  const token = ++loadToken
+  const opts = toQueueOpts(query.value)
+  total.value = null
+  api.dataops
+    .queueCount(opts)
+    .then(({ count }) => void (token === loadToken && (total.value = count)))
+    .catch(() => {})
   try {
     loading.value = true
     error.value = null
-    rows.value = await api.dataops.queue({
-      q: search.value || undefined,
-      limit: PAGE_SIZE,
-      offset: (page.value - 1) * PAGE_SIZE,
-    })
+    rows.value = await api.dataops.queue(opts)
   } catch (e) {
     error.value = describeFailure(e, 'De controlelijst kon niet worden geladen.')
     rows.value = []
@@ -75,6 +103,7 @@ async function load() {
   }
 }
 
+views.value = [...BUILTIN_VIEWS, ...customViews()]
 adoptRoute()
 onBeforeMount(load)
 
@@ -88,15 +117,35 @@ watch(
 
 // Typing is not navigation until it settles.
 watch(debouncedSearch, (q) => {
-  const current = typeof route.query.q === 'string' ? route.query.q : ''
-  if (q === current) return
-  push({ q, page: 1 })
+  if (q === query.value.q) return
+  push({ ...query.value, q, page: 1 })
 })
+
+/* ------------------------------------------------------------- saved views */
+
+function selectView(view: SavedView) {
+  push({ ...fromView(view) }, view.key)
+}
+
+function onSaveView() {
+  const label = window.prompt('Naam voor deze weergave')?.trim()
+  if (!label) return
+  const view = saveView(label, query.value)
+  views.value = [...BUILTIN_VIEWS, ...customViews()]
+  push(query.value, view.key)
+}
+
+function onDeleteView(view: SavedView) {
+  deleteView(view.key)
+  views.value = [...BUILTIN_VIEWS, ...customViews()]
+  if (viewKey.value === view.key) push(emptyQuery(), 'alles')
+}
 
 const COLUMNS: DataColumn[] = [
   { field: 'reference', title: 'Kenmerk', width: '150px' },
-  { field: 'subject', title: 'Document', width: 'minmax(280px,1fr)' },
-  { field: 'channel', title: 'Via', width: '110px' },
+  { field: 'subject', title: 'Document', width: 'minmax(260px,1fr)' },
+  { field: 'kind', title: 'Soort', width: '170px' },
+  { field: 'channel', title: 'Via', width: '90px' },
   { field: 'files', title: 'Bestanden', width: '90px', align: 'right' },
   { field: 'open', title: 'Voorstellen', width: '120px', align: 'right' },
   { field: 'receivedAt', title: 'Ontvangen', width: '190px' },
@@ -104,18 +153,13 @@ const COLUMNS: DataColumn[] = [
 
 const WEEK = 7 * 24 * 3600 * 1000
 
-const CHANNEL_LABEL: Record<string, string> = {
-  upload: 'portaal',
-  bulk_drop: 'bulk',
-  email: 'e-mail',
-}
-
 const items = computed(() =>
   rows.value.map((r) => ({
     id: r.id,
     reference: r.reference ?? r.externalRef ?? '—',
     subject: r.subject ?? 'Zonder omschrijving',
-    channel: CHANNEL_LABEL[r.channel] ?? r.channel,
+    kind: r.kind ? kindLabel(r.kind) : null,
+    channel: channelLabel(r.channel).toLowerCase(),
     files: r.files,
     open: r.open,
     read: r.read,
@@ -182,9 +226,45 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         Alles wat binnenkwam, ook wat de pipeline niet kon lezen. Niets hiervan staat in
         FunderMaps tot u het overneemt.
       </p>
-      <span v-if="total != null" class="text-md font-mono tabular-nums text-faint">
-        {{ total.toLocaleString('nl-NL') }} open
+      <span v-if="studio.controle != null" class="text-md font-mono tabular-nums text-faint">
+        {{ studio.controle.toLocaleString('nl-NL') }} open
       </span>
+    </div>
+
+    <!-- Saved views, exactly as on Rapportages: the active one carries a
+         2px green underline rather than a filled tab. -->
+    <div class="flex shrink-0 items-center gap-1.5 border-b border-line bg-surface px-6 pt-2.5">
+      <button
+        v-for="view in views"
+        :key="view.key"
+        type="button"
+        class="text-lg group flex items-center gap-1.5 border-b-2 px-3 pt-1.5 pb-2.5"
+        :class="
+          viewKey === view.key
+            ? 'border-green font-bold text-ink'
+            : 'border-transparent font-medium text-subtle hover:text-strong'
+        "
+        @click="selectView(view)"
+      >
+        {{ view.label }}
+        <span
+          v-if="!view.builtin"
+          class="text-xs text-label opacity-0 group-hover:opacity-100 hover:text-red"
+          role="button"
+          :aria-label="`Weergave ${view.label} verwijderen`"
+          @click.stop="onDeleteView(view)"
+        >
+          ×
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="text-sm ml-1.5 mb-2 rounded-md border border-dashed border-line-strong bg-surface px-2.5 py-1.5 text-subtle hover:border-line-hover hover:text-strong"
+        @click="onSaveView"
+      >
+        + Weergave
+      </button>
     </div>
 
     <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
@@ -200,8 +280,20 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           aria-label="Zoeken in de controlelijst"
         />
       </div>
+
+      <FilterChip
+        v-for="chip in chips"
+        :key="chip.id"
+        :label="chip.label"
+        :value="chip.value"
+        @remove="push(chip.clear(query))"
+      />
+
+      <ReviewFilterBuilder :query="query" @update="push($event)" />
+
       <span class="text-sm ml-auto font-mono text-faint">
-        {{ items.length }}{{ hasMore ? '+' : '' }} rijen
+        <template v-if="total != null">{{ total.toLocaleString('nl-NL') }} dossiers</template>
+        <template v-else>{{ items.length }}{{ hasMore ? '+' : '' }} rijen</template>
       </span>
     </div>
 
@@ -261,7 +353,9 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         :empty-message="
           search
             ? `Niets gevonden voor “${search}”.`
-            : 'Niets te controleren. Alles wat binnenkwam is beoordeeld.'
+            : chips.length
+              ? 'Niets voldoet aan deze filters.'
+              : 'Niets te controleren. Alles wat binnenkwam is beoordeeld.'
         "
         @select="open"
       >
@@ -270,6 +364,10 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         </template>
         <template #subject="{ row }">
           <span class="text-lg font-semibold text-body">{{ row.subject }}</span>
+        </template>
+        <template #kind="{ row }">
+          <span v-if="row.kind" class="text-base text-muted">{{ row.kind }}</span>
+          <span v-else class="text-base text-faint">—</span>
         </template>
         <template #channel="{ row }">
           <span class="text-base text-muted">{{ row.channel }}</span>
@@ -298,8 +396,8 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
             Pagina {{ page }} · {{ items.length }} op deze pagina
           </span>
           <span class="ml-auto flex gap-1.5">
-            <Button label="Vorige" :disabled="page <= 1" @click="push({ page: page - 1 })" />
-            <Button label="Volgende" :disabled="!hasMore" @click="push({ page: page + 1 })" />
+            <Button label="Vorige" :disabled="page <= 1" @click="push({ ...query, page: page - 1 })" />
+            <Button label="Volgende" :disabled="!hasMore" @click="push({ ...query, page: page + 1 })" />
           </span>
         </template>
       </DataTable>
