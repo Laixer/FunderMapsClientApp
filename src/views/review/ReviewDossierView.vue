@@ -50,6 +50,17 @@ const notes = ref<Record<number, string>>({})
 const corrections = ref<Record<number, string>>({})
 /** Which document is on screen. A dossier can carry several. */
 const shown = ref(0)
+/**
+ * Per-proposal drawers. A value is confirmed or refused far more often than
+ * it is edited, so the correction input and the toelichting live behind
+ * "Aanpassen…" rather than under every row: the Fugro report of 2026-09-01
+ * carried 73 proposals, and 73 empty textareas is a scroll, not a screen.
+ */
+const editing = ref<Record<number, boolean>>({})
+/** Citations are clamped to two lines; a click shows the whole passage. */
+const unclamped = ref<Record<number, boolean>>({})
+/** Address groups folded away by the reviewer, keyed by address text. */
+const collapsed = ref<Record<string, boolean>>({})
 
 /** Closing the dossier as a whole: the note, and whether the request is out. */
 const closeNote = ref('')
@@ -72,6 +83,9 @@ async function load() {
   notes.value = {}
   corrections.value = {}
   shown.value = 0
+  editing.value = {}
+  unclamped.value = {}
+  collapsed.value = {}
   closeNote.value = ''
   closed.value = null
   openedAt = Date.now()
@@ -552,6 +566,20 @@ function openArtifact(link: string) {
   window.open(link, '_blank', 'noopener')
 }
 
+function toggleEdit(f: IProposedField) {
+  editing.value = { ...editing.value, [f.id]: !editing.value[f.id] }
+  if (editing.value[f.id]) focus(f)
+}
+
+/** Short form of what the commit will do with a bureau name, for the row. */
+function contractorNote(f: IProposedField): { text: string; ok: boolean } | null {
+  if (f.field !== 'contractor' || !contractors.value.length) return null
+  const g = contractorGuess(f)
+  return g
+    ? { text: `wordt ${g.name}`, ok: true }
+    : { text: 'niet in de lijst: wordt FunderMaps B.V., naam in de notitie', ok: false }
+}
+
 async function decide(f: IProposedField, outcome: VerdictOutcome) {
   busy.value = f.id
   try {
@@ -563,6 +591,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
       reviewSeconds: Math.round((Date.now() - openedAt) / 1000),
     })
     decided.value = { ...decided.value, [f.id]: outcome }
+    editing.value = { ...editing.value, [f.id]: false }
     // Move to the next open value's document straight away: the reviewer's
     // next decision is almost always about a different page.
     const next = open.value.find((o) => o.id !== f.id)
@@ -663,8 +692,8 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
       </section>
 
       <!-- --------------------------------------------------------- values -->
-      <aside class="flex min-h-0 flex-col overflow-y-auto bg-surface">
-        <div class="flex flex-col gap-3 p-4">
+      <aside class="flex min-h-0 flex-col bg-surface">
+        <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
           <EmptyState v-if="loading">Dossier ophalen…</EmptyState>
 
           <Callout v-else-if="closed" tone="neutral" title="Dossier gesloten">
@@ -690,11 +719,19 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             Er staan geen voorstellen meer open op dit dossier.
           </Callout>
 
-          <template v-for="group in openByAddress" :key="group.address">
-            <div
+          <!-- One address group per section; the group folds. Inside, one
+               compact row per proposal in two columns: this pane is half a
+               wide screen now, and a row is label, value, citation, three
+               buttons -- the drawer with the correction opens on request. -->
+          <section v-for="group in openByAddress" :key="group.address" class="flex flex-col gap-2">
+            <button
               v-if="openByAddress.length > 1"
-              class="flex items-center gap-2 pt-2"
+              type="button"
+              class="flex items-center gap-2 pt-1 text-left"
+              :aria-expanded="!collapsed[group.address]"
+              @click="collapsed = { ...collapsed, [group.address]: !collapsed[group.address] }"
             >
+              <span class="text-sm w-3 text-faint">{{ collapsed[group.address] ? '▸' : '▾' }}</span>
               <span class="studio-label">{{ group.address || 'HET RAPPORT' }}</span>
               <Pill
                 v-if="group.address"
@@ -702,107 +739,138 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 :tone="group.resolved ? 'green' : 'amber'"
                 plain
               />
-            </div>
-          <Panel
-            v-for="f in group.fields"
-            :key="f.id"
-            :caption="(FIELD_LABEL[f.field] ?? f.field).toUpperCase()"
-            :meta="f.confidence ?? undefined"
-          >
-            <div class="flex flex-col gap-3" @focusin="focus(f)" @click="focus(f)">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="text-2xl font-display font-bold text-ink">{{ displayValue(f) }}</span>
-                <span v-if="FIELD_UNIT[f.field] && f.value != null" class="text-md text-muted">
-                  {{ FIELD_UNIT[f.field] }}
-                </span>
-                <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" />
-                <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" />
-                <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" />
-              </div>
+              <span class="text-sm font-mono text-faint">{{ group.fields.length }} open</span>
+            </button>
 
-              <!-- The citation is what is being judged, not the value. -->
-              <p class="text-md border-l-2 border-line-strong pl-3 text-muted">
-                {{ f.evidence ?? 'Geen citaat meegegeven.' }}
-              </p>
-
-              <Callout
-                v-if="isRefused(f)"
-                tone="red"
-                title="Dit document mag dit veld niet vaststellen"
+            <div v-if="!collapsed[group.address]" class="grid grid-cols-2 gap-2">
+              <div
+                v-for="f in group.fields"
+                :key="f.id"
+                class="flex flex-col gap-1.5 rounded-lg border border-line bg-surface p-2.5"
+                :class="{ 'col-span-2': editing[f.id] }"
+                @focusin="focus(f)"
+                @click="focus(f)"
               >
-                Een QuickScan of funderingsrisicorapport toont FunderMaps-gegevens.
-              </Callout>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span class="text-sm font-semibold uppercase tracking-wide text-label">
+                    {{ FIELD_LABEL[f.field] ?? f.field }}
+                  </span>
+                  <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" plain />
+                  <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" plain />
+                  <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" plain />
+                  <span v-if="f.confidence" class="text-sm ml-auto font-mono text-faint">{{ f.confidence }}</span>
+                </div>
 
-              <Callout
-                v-if="f.field === 'contractor' && contractors.length"
-                :tone="contractorGuess(f) ? 'green' : 'amber'"
-                :title="contractorGuess(f) ? `Wordt: ${contractorGuess(f)!.name}` : 'Niet in de lijst met uitvoerders'"
-              >
-                <template v-if="!contractorGuess(f)">
-                  Overnemen zet FunderMaps B.V. als uitvoerder en bewaart de naam in de notitie.
-                  Kies hieronder de juiste als die er wél is.
-                </template>
-              </Callout>
+                <div class="flex items-baseline gap-1.5">
+                  <span class="text-xl font-display font-bold text-ink">{{ displayValue(f) }}</span>
+                  <span v-if="FIELD_UNIT[f.field] && f.value != null" class="text-sm text-muted">
+                    {{ FIELD_UNIT[f.field] }}
+                  </span>
+                </div>
 
-              <Field
-                v-if="f.field === 'foundation_type'"
-                v-model="corrections[f.id]"
-                kind="select"
-                label="Andere waarde"
-                :options="FOUNDATION_TYPE_OPTIONS"
-              />
-              <Field
-                v-else-if="f.field === 'inquiry_type'"
-                v-model="corrections[f.id]"
-                kind="select"
-                label="Andere waarde"
-                :options="INQUIRY_TYPE_OPTIONS"
-              />
-              <Field
-                v-else-if="f.field === 'document_date'"
-                v-model="corrections[f.id]"
-                kind="date"
-                label="Andere datum"
-              />
-              <Field
-                v-else-if="f.field === 'contractor' && contractors.length"
-                v-model="corrections[f.id]"
-                kind="select"
-                label="Andere uitvoerder"
-                :options="contractorOptions"
-              />
-              <Field v-else v-model="corrections[f.id]" label="Andere waarde" />
+                <!-- The citation is what is being judged, not the value. -->
+                <p
+                  class="text-sm cursor-pointer border-l-2 border-line-strong pl-2 text-muted"
+                  :class="{ 'line-clamp-2': !unclamped[f.id] }"
+                  :title="unclamped[f.id] ? '' : 'Klik voor het hele citaat'"
+                  @click.stop="unclamped = { ...unclamped, [f.id]: !unclamped[f.id] }"
+                >
+                  {{ f.evidence ?? 'Geen citaat meegegeven.' }}
+                </p>
 
-              <Field
-                v-model="notes[f.id]"
-                kind="textarea"
-                :rows="2"
-                label="Toelichting"
-                hint="Waarom klopt het niet? Dit stuurt de volgende versie."
-              />
+                <p v-if="isRefused(f)" class="text-sm text-red">
+                  Dit document mag dit veld niet vaststellen: een QuickScan of risicorapport toont
+                  FunderMaps-gegevens.
+                </p>
+                <p
+                  v-else-if="contractorNote(f)"
+                  class="text-sm"
+                  :class="contractorNote(f)!.ok ? 'text-green-ink' : 'text-amber-ink'"
+                >
+                  {{ contractorNote(f)!.text }}
+                </p>
 
-              <div class="flex flex-wrap gap-2">
-                <Button
-                  variant="primary"
-                  label="Overnemen"
-                  :disabled="busy === f.id || isRefused(f)"
-                  @click="decide(f, 'confirmed')"
-                />
-                <Button
-                  label="Aanpassen"
-                  :disabled="busy === f.id || !corrections[f.id]"
-                  @click="decide(f, 'corrected')"
-                />
-                <Button
-                  variant="danger"
-                  label="Afkeuren"
-                  :disabled="busy === f.id"
-                  @click="decide(f, 'rejected')"
-                />
+                <div class="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
+                  <Button
+                    variant="primary"
+                    label="Overnemen"
+                    :disabled="busy === f.id || isRefused(f)"
+                    @click="decide(f, 'confirmed')"
+                  />
+                  <Button
+                    variant="danger"
+                    label="Afkeuren"
+                    :disabled="busy === f.id"
+                    @click="decide(f, 'rejected')"
+                  />
+                  <Button
+                    :variant="editing[f.id] ? 'secondary' : 'ghost'"
+                    :label="editing[f.id] ? 'Sluiten' : 'Aanpassen…'"
+                    :disabled="busy === f.id"
+                    @click="toggleEdit(f)"
+                  />
+                </div>
+
+                <!-- The drawer: correction and toelichting, only when asked. -->
+                <div
+                  v-if="editing[f.id]"
+                  class="mt-1 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-divider pt-2.5"
+                >
+                  <Field
+                    v-if="f.field === 'foundation_type'"
+                    v-model="corrections[f.id]"
+                    kind="select"
+                    label="Andere waarde"
+                    :options="FOUNDATION_TYPE_OPTIONS"
+                  />
+                  <Field
+                    v-else-if="f.field === 'inquiry_type'"
+                    v-model="corrections[f.id]"
+                    kind="select"
+                    label="Andere waarde"
+                    :options="INQUIRY_TYPE_OPTIONS"
+                  />
+                  <Field
+                    v-else-if="f.field === 'document_date'"
+                    v-model="corrections[f.id]"
+                    kind="date"
+                    label="Andere datum"
+                  />
+                  <Field
+                    v-else-if="f.field === 'contractor' && contractors.length"
+                    v-model="corrections[f.id]"
+                    kind="select"
+                    label="Andere uitvoerder"
+                    :options="contractorOptions"
+                  />
+                  <Field v-else v-model="corrections[f.id]" label="Andere waarde" />
+
+                  <Field
+                    v-model="notes[f.id]"
+                    kind="textarea"
+                    :rows="2"
+                    label="Toelichting"
+                    hint="Waarom klopt het niet? Dit stuurt de volgende versie."
+                  />
+
+                  <div class="col-span-2 flex flex-wrap gap-1.5">
+                    <Button
+                      variant="primary"
+                      label="Aanpassen en overnemen"
+                      :disabled="busy === f.id || !corrections[f.id]"
+                      @click="decide(f, 'corrected')"
+                    />
+                    <Button
+                      variant="danger"
+                      label="Afkeuren met toelichting"
+                      :disabled="busy === f.id"
+                      @click="decide(f, 'rejected')"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </Panel>
-          </template>
+          </section>
 
           <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settled.length)">
             <ul class="flex flex-col gap-2">
@@ -865,15 +933,18 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             </div>
           </Panel>
 
-          <!-- Closing the whole dossier. Always available, because "this is
-               not about anything" is a judgement about the document, not
-               about one of its values. -->
-          <Panel v-if="!loading && data && !closed" caption="DOSSIER SLUITEN">
+        </div>
+        <!-- Closing the whole dossier, pinned to the bottom of the pane so
+             "Overnemen als rapportage" is never a scroll away. Always
+             available, because "this is not about anything" is a judgement
+             about the document, not about one of its values. -->
+        <div v-if="!loading && data && !closed" class="shrink-0 border-t border-line bg-surface p-4">
+          <Panel caption="DOSSIER SLUITEN">
             <div class="flex flex-col gap-3">
               <Field
                 v-model="closeNote"
                 kind="textarea"
-                :rows="2"
+                :rows="1"
                 label="Reden"
                 hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
               />
