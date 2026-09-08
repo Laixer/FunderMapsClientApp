@@ -13,7 +13,6 @@ import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import api from '@/services/fundermaps'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
 import { describeFailure } from '@/services/fundermaps/errors'
-import type { SelectOption } from '@/services/options'
 import { formatBytes } from '@/services/documentFile'
 import { toastSuccess } from '@/services/toast'
 import { formatAddress } from '@/utils/address'
@@ -32,10 +31,11 @@ import { useStudioStore } from '@/stores/studio'
  * the samples of the inquiry a commit creates -- as the fallback for a
  * document the model cannot read, not as the way in.
  *
- * Three questions, because three things cannot be read off the page: which
- * files, what the uploader says they are (a QuickScan may not establish a
- * foundation type, and that gate needs the label before the model sees a
- * page), and which building, when the uploader knows it.
+ * Two questions, because two things cannot be read off the page: which files,
+ * and which building, when the uploader knows it. What kind of document it is
+ * used to be a third -- the QuickScan gate needed a label before the model saw
+ * a page -- but the pipeline reads the document's own kind now, with a
+ * citation, and the Worker's gate uses that read (2026-09-08).
  */
 const router = useRouter()
 const studio = useStudioStore()
@@ -44,17 +44,7 @@ const ACCEPT = 'application/pdf,image/jpeg,image/png,image/tiff'
 const MAX_BYTES = 40 * 1024 * 1024
 const MAX_FILES = 10
 
-const CATEGORY_OPTIONS: SelectOption[] = [
-  { value: 'foundationresearch', label: 'Funderingsonderzoek (eigen inmeting, F3O, inspectieput)' },
-  { value: 'archieveresearch', label: 'Archiefonderzoek / bouwtekeningen' },
-  { value: 'quickscan', label: 'QuickScan / Fase 0 / funderingsrisicorapport' },
-  { value: 'herstelbewijs', label: 'Herstelbewijs' },
-  { value: 'foto', label: "Foto's" },
-  { value: 'overig', label: 'Overig / weet ik niet' },
-]
-
 const files = ref<File[]>([])
-const category = ref<string | null>(null)
 const subject = ref('')
 const address = ref<IAddress | null>(null)
 const dragging = ref(false)
@@ -96,7 +86,7 @@ function onPickInput(e: Event) {
 }
 
 const totalBytes = computed(() => files.value.reduce((n, f) => n + f.size, 0))
-const canSubmit = computed(() => files.value.length > 0 && !!category.value && !submitting.value)
+const canSubmit = computed(() => files.value.length > 0 && !submitting.value)
 
 async function submit() {
   if (!canSubmit.value) return
@@ -105,7 +95,6 @@ async function submit() {
   try {
     const r = await api.dataops.create(files.value, {
       subject: subject.value.trim() || undefined,
-      category: category.value!,
       building: address.value?.building_id ?? null,
     })
     void studio.refreshCounts(null)
@@ -188,24 +177,13 @@ useActionShortcuts(() => ({ '⌘↵': submit }))
           <p v-if="error" class="mt-2 text-md text-red">{{ error }}</p>
         </Panel>
 
-        <Panel caption="WAT IS DIT" meta="verplicht">
-          <div class="grid grid-cols-2 gap-x-4 gap-y-3">
-            <Field
-              v-model="category"
-              label="Soort document"
-              kind="select"
-              required
-              :options="CATEGORY_OPTIONS"
-              empty-label="Kies wat je uploadt"
-              hint="een QuickScan mag geen funderingstype vaststellen; daarom vragen we dit vooraf"
-            />
-            <Field
-              v-model="subject"
-              label="Onderwerp"
-              placeholder="bijv. Adamshofstraat 81–105, Fase 1"
-              hint="wat de controleur in de wachtrij ziet"
-            />
-          </div>
+        <Panel caption="ONDERWERP" meta="optioneel">
+          <Field
+            v-model="subject"
+            label="Onderwerp"
+            placeholder="bijv. Adamshofstraat 81–105, Fase 1"
+            hint="wat de controleur in de wachtrij ziet; standaard de bestandsnaam"
+          />
         </Panel>
       </div>
 
