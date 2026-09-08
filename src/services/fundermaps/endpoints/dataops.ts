@@ -6,7 +6,7 @@ import type {
   IDossierOutcome,
 } from '../interfaces/IDataops'
 
-export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app'
+export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
 export type QueueState = 'unread' | 'empty' | 'proposals'
 export type QueueSort = 'received_at' | 'open' | 'files' | 'subject' | 'id'
 
@@ -109,6 +109,10 @@ export async function commit(id: number, body: { type?: string; documentDate?: s
     samples: number
     /** `pending` when no sample was written: the record is still to be filled by hand. */
     auditStatus: 'done' | 'pending'
+    /** True when the dossier was a nalezing: the rapportage was updated, not created. */
+    audit?: boolean
+    /** On a nalezing: how many values were written. */
+    fields?: number
     unresolved: string[]
   }
 }

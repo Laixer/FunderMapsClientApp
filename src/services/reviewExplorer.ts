@@ -76,6 +76,7 @@ export const CHANNEL_OPTIONS: readonly { value: QueueChannel; label: string }[] 
   { value: 'email', label: 'E-mail' },
   { value: 'bulk_drop', label: 'Bulk' },
   { value: 'api', label: 'API' },
+  { value: 'audit', label: 'Nalezing' },
 ]
 
 export const STATE_OPTIONS: readonly { value: QueueState; label: string }[] = [
@@ -285,6 +286,7 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
   { key: 'ongelezen', label: 'Nog niet gelezen', query: { state: ['unread'] }, builtin: true },
   { key: 'te-lang', label: 'Te lang open', query: { overdue: true }, builtin: true },
   { key: 'studio', label: 'Studio-uploads', query: { channel: ['invoer_app'] }, builtin: true },
+  { key: 'nalezing', label: 'Nalezingen', query: { channel: ['audit'] }, builtin: true },
 ]
 
 export function fromView(view: SavedView): ReviewQuery {

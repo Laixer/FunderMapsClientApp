@@ -17,6 +17,8 @@ export interface IReviewQueueItem {
   buildingId: string | null
   receivedAt: string
   inquiryId: number | null
+  /** The rapportage this dossier re-reads (channel audit); null on intake dossiers. */
+  auditInquiryId: number | null
   /**
    * Fields still needing a decision. Zero is a real state, not an empty
    * queue: the pipeline read nothing off the document and a person has to
@@ -83,7 +85,10 @@ export interface IProposedField {
   evidence: string | null
   evidencePage: number | null
   /** pending · auto_accepted (legacy, treat as pending) · confirmed · corrected · rejected · superseded */
+  /** pending · agreed · confirmed · corrected · rejected · superseded · auto_accepted */
   state: string
+  /** On an audit: what the database held for this field when the document was read. Null = nothing. */
+  currentValue?: string | null
   /** Per-address value: the address as the report wrote it; null = about the document as a whole. */
   addressText: string | null
   /** geocoder.address id it resolved to; null when it did not (the text is still shown). */
@@ -114,6 +119,8 @@ export interface IReviewDossier {
     externalRef: string | null
     duplicateOf: number | null
     inquiryId: number | null
+    /** The rapportage this dossier re-reads (channel audit); null on intake dossiers. */
+    auditInquiryId: number | null
     receivedAt: string
     outcome: string | null
     /** Who sent it in. Bulk drops carry none — then a question cannot be mailed. */
