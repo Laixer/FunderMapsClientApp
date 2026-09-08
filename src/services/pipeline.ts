@@ -207,7 +207,14 @@ export const ROLE_LABELS: Record<StageRole | 'admin', string> = {
  * document rather than being typed, and a field the pipeline filled in.
  */
 export type DossierEventKind =
-  'created' | 'submitted' | 'approved' | 'rejected' | 'reopened' | 'imported' | 'proposed'
+  | 'created'
+  | 'submitted'
+  | 'approved'
+  | 'rejected'
+  | 'reopened'
+  | 'imported'
+  | 'proposed'
+  | 'audited'
 
 export interface DossierEvent {
   kind: DossierEventKind
@@ -237,6 +244,7 @@ export const EVENT_META: Record<DossierEventKind, DossierEventMeta> = {
   reopened: { label: 'Heropend', tone: 'amber' },
   imported: { label: 'Geïmporteerd', tone: 'neutral' },
   proposed: { label: 'Voorgesteld door de pijplijn', tone: 'blue' },
+  audited: { label: 'Nagelezen', tone: 'green' },
 }
 
 export function eventMeta(kind: string): DossierEventMeta {

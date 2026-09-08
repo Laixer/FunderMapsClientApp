@@ -94,12 +94,28 @@ async function load() {
   openedAt = Date.now()
   try {
     data.value = await api.dataops.dossier(Number(route.params.id))
+    // A decision already on the server is a decision. Until 2026-09-08 only
+    // in-session verdicts counted, so a reload put every judged value back
+    // in the open list while the queue said zero.
+    const seeded: Record<number, VerdictOutcome> = {}
+    for (const f of data.value.fields) {
+      if (f.state === 'confirmed' || f.state === 'corrected' || f.state === 'rejected') seeded[f.id] = f.state
+    }
+    decided.value = seeded
   } catch (e) {
     error.value = describeFailure(e, 'Dit dossier kon niet worden geladen.')
   } finally {
     loading.value = false
   }
 }
+
+/** A nalezing: this dossier re-reads a rapportage that is already in the database. */
+const isAudit = computed(() => !!data.value?.dossier.auditInquiryId)
+/** Values the reading agreed with the database on -- settled by the pipeline, never open. */
+const agreed = computed(() => (data.value?.fields ?? []).filter((f) => f.state === 'agreed'))
+/** Not compared or replaced by a later reading: not this screen's business. */
+const isSettledByPipeline = (f: IProposedField) => f.state === 'agreed' || f.state === 'superseded'
+
 
 onBeforeMount(load)
 watch(
@@ -301,7 +317,9 @@ watch(
   { immediate: true },
 )
 
-const open = computed(() => (data.value?.fields ?? []).filter((f) => !decided.value[f.id]))
+const open = computed(() =>
+  (data.value?.fields ?? []).filter((f) => !decided.value[f.id] && !isSettledByPipeline(f)),
+)
 
 /**
  * Open values grouped by address. A funderingsonderzoek covers a block; the
@@ -324,6 +342,13 @@ const openByAddress = computed(() => {
     }))
 })
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
+/** How a proposal relates to the database, for the row (nalezing only). */
+function currentLabel(f: IProposedField): { text: string; tone: 'amber' | 'red' } | null {
+  if (!isAudit.value || f.state === 'agreed') return null
+  if (f.currentValue == null) return { text: 'niet in de database', tone: 'amber' }
+  const shown = VALUE_LABEL[f.field]?.[f.currentValue] ?? f.currentValue
+  return { text: `in de database: ${shown}`, tone: 'red' }
+}
 
 /** Whether the pipeline has read this dossier at all. */
 const wasRead = computed(() => (data.value?.artifacts ?? []).some((a) => a.pages.length > 0))
@@ -333,7 +358,7 @@ const wasRead = computed(() => (data.value?.artifacts ?? []).some((a) => a.pages
  * looks at the document and either throws the dossier out or enters it by hand.
  */
 const nothingProposed = computed(
-  () => !loading.value && !!data.value && data.value.fields.length === 0,
+  () => !loading.value && !!data.value && data.value.fields.filter((f) => !isSettledByPipeline(f)).length === 0 && agreed.value.length === 0,
 )
 /** The model was sure and quoted a passage. Still a proposal — nothing is accepted for you. */
 const isSure = (f: IProposedField) =>
@@ -417,6 +442,11 @@ async function commitDossier() {
     closed.value = 'accepted'
     committedInquiryId.value = r.inquiryId
     void studio.refreshCounts(null)
+    if (r.audit) {
+      toastSuccess(`Rapportage #${r.inquiryId} bijgewerkt: ${r.fields ?? 0} waarde${r.fields === 1 ? '' : 'n'} op ${r.samples} adres${r.samples === 1 ? '' : 'sen'}.`)
+      await openNext(data.value.dossier.id, 'accepted')
+      return
+    }
     if (r.samples === 0) {
       toastSuccess(`Rapportage #${r.inquiryId} aangemaakt zonder adressen; vul die nu in.`)
       await router.push({ name: 'inquiry-edit-samples', params: { id: r.inquiryId } })
@@ -745,6 +775,20 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             Er staan geen voorstellen meer open op dit dossier.
           </Callout>
 
+          <Callout v-if="isAudit && !closed && data" tone="blue" title="Nalezing">
+            Fundie heeft rapportage <strong>#{{ data.dossier.auditInquiryId }}</strong> opnieuw
+            gelezen. Hieronder staat alleen wat afwijkt van de database of erin ontbreekt;
+            {{ agreed.length }} waarde{{ agreed.length === 1 ? '' : 'n' }}
+            {{ agreed.length === 1 ? 'komt' : 'komen' }} overeen. Overnemen werkt de rapportage bij,
+            afkeuren laat de database staan.
+            <template #action>
+              <Button
+                label="Rapportage openen"
+                @click="router.push({ name: 'inquiry-view', params: { id: data!.dossier.auditInquiryId! } })"
+              />
+            </template>
+          </Callout>
+
           <!-- One address group per section; the group folds. Inside, one
                compact row per proposal in two columns: this pane is half a
                wide screen now, and a row is label, value, citation, three
@@ -804,6 +848,13 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                   {{ f.evidence ?? 'Geen citaat meegegeven.' }}
                 </p>
 
+                <p
+                  v-if="currentLabel(f)"
+                  class="text-sm font-semibold"
+                  :class="currentLabel(f)!.tone === 'red' ? 'text-red' : 'text-amber-ink'"
+                >
+                  {{ currentLabel(f)!.text }}
+                </p>
                 <p v-if="isRefused(f)" class="text-sm text-red">
                   Dit document mag dit veld niet vaststellen: een QuickScan of risicorapport toont
                   FunderMaps-gegevens.
@@ -898,6 +949,18 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             </div>
           </section>
 
+          <Panel v-if="isAudit && agreed.length" caption="KOMT OVEREEN" :meta="String(agreed.length)">
+            <p class="text-sm mb-1.5 text-muted">
+              Gelezen uit het document en gelijk aan wat de database al heeft. Geen actie nodig.
+            </p>
+            <ul class="flex flex-wrap gap-x-3 gap-y-1">
+              <li v-for="f in agreed" :key="f.id" class="text-sm text-muted">
+                <span class="font-semibold text-body">{{ FIELD_LABEL[f.field] ?? f.field }}</span>
+                {{ displayValue(f) }}<template v-if="f.addressText"> · {{ f.addressText }}</template>
+              </li>
+            </ul>
+          </Panel>
+
           <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settled.length)">
             <ul class="flex flex-col gap-2">
               <li
@@ -977,7 +1040,12 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               <!-- What "Overnemen als rapportage" will write on the inquiry
                    itself. A missing date falls back to the day the dossier
                    arrived, which is almost never the date of the report. -->
-              <dl v-if="taken.length" class="text-md grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+              <p v-if="isAudit" class="text-md text-muted">
+                Rapportage <strong class="text-body">#{{ data?.dossier.auditInquiryId }}</strong> wordt
+                bijgewerkt met {{ taken.length }} overgenomen waarde{{ taken.length === 1 ? '' : 'n' }};
+                er wordt niets nieuws aangemaakt.
+              </p>
+              <dl v-else-if="taken.length" class="text-md grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
                 <dt class="text-label">Soort</dt>
                 <dd :class="commitPreview.type ? 'text-body' : 'text-amber-ink'">
                   {{ commitPreview.type ?? 'niet overgenomen — wordt afgeleid van het label' }}
@@ -1000,7 +1068,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"
-                  :label="taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
+                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
                   :disabled="committing || closing || open.length > 0 || !wasRead"
                   :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : ''"
                   @click="commitDossier"
