@@ -601,7 +601,10 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
       {{ error }}
     </div>
 
-    <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_var(--spacing-inspector)]">
+    <!-- Half and half, not a fixed inspector: this screen lives on a wide
+         monitor, and the judging happens on the right. A 380px column left
+         the document with the room and the decisions with the scrollbar. -->
+    <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <!-- ------------------------------------------------------- document -->
       <section class="flex min-w-0 flex-col border-r border-line bg-sunken">
         <!-- Tabs only when there is something to choose between. -->
