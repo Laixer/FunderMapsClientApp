@@ -89,17 +89,17 @@ export async function commit(id: number, body: { type?: string; documentDate?: s
 /**
  * The staff front door: one or more documents become a dossier, the pipeline
  * reads them (kicked at once; the hourly sweep is the safety net) and the
- * reviewer continues in /review/:id. `category` is what the uploader says the
- * document is -- a QuickScan may not establish a foundation type, so this is
- * the one thing worth asking before the model sees a page.
+ * reviewer continues in /review/:id. What kind of document it is, the pipeline
+ * reads off the page itself (inquiry_type, with a citation); `category` stays
+ * for a caller that knows.
  */
 export async function create(
   files: File[],
-  meta: { subject?: string; category: string; building?: string | null },
+  meta: { subject?: string; category?: string; building?: string | null },
 ) {
   const form = new FormData()
   for (const f of files) form.append('input', f)
-  form.append('category', meta.category)
+  if (meta.category) form.append('category', meta.category)
   if (meta.subject) form.append('subject', meta.subject)
   if (meta.building) form.append('building', meta.building)
   return (await post({ endpoint: '/dataops/dossier', body: form })) as {
