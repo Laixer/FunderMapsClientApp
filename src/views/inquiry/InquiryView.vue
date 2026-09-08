@@ -158,7 +158,7 @@ const step = computed(() => nextStep(status.value))
 const blocker = computed<string | null>(() => {
   if (!canSubmitForReview.value) return null
   const { total, empty } = completeness.value
-  if (total === 0) return 'Dit dossier heeft nog geen adressen. Voeg er minstens één toe in stap 2.'
+  if (total === 0) return 'Dit dossier heeft nog geen adressen. Voeg er minstens één toe via Invoer.'
   if (empty > 0) {
     return empty === 1
       ? '1 van de adressen is nog helemaal leeg. Zodra dat gevuld is kan het dossier ter controle.'
@@ -270,11 +270,11 @@ const findings = computed(() =>
 /* ----------------------------------------------------------------- actions */
 
 function goEdit() {
-  router.push({ name: 'inquiry-edit-1', params: { id: inquiryId.value } })
+  router.push({ name: 'inquiry-edit-details', params: { id: inquiryId.value } })
 }
 
 function goInvoer() {
-  router.push({ name: 'inquiry-edit-2', params: { id: inquiryId.value } })
+  router.push({ name: 'inquiry-edit-samples', params: { id: inquiryId.value } })
 }
 
 /** Every write follows the same shape: confirm, call, reload, refresh counts. */

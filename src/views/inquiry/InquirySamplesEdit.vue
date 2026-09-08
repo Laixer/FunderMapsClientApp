@@ -36,7 +36,6 @@ import { formatAddress } from '@/utils/address'
 import { formatTime } from '@/utils/date'
 import { keyLabel } from '@/services/shortcuts'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
-import { inquirySteps } from '@/services/wizard'
 import { useAddressStore } from '@/stores/address'
 
 /**
@@ -354,25 +353,24 @@ const headerStatus = computed(() => {
   return parts.join(' · ')
 })
 
-const steps = computed(() => inquirySteps(inquiryId.value))
-
 // Leaving flushes what is pending, then goes. It does not wait for the request:
 // a save in flight will land whether or not this view is still mounted.
 onBeforeRouteLeave(() => {
   sampleForm.value?.flush()
 })
 
-function previous() {
-  router.push({ name: 'inquiry-edit-1', params: { id: inquiryId.value } })
+function details() {
+  router.push({ name: 'inquiry-edit-details', params: { id: inquiryId.value } })
 }
 
-function next() {
-  router.push({ name: 'inquiry-edit-3', params: { id: inquiryId.value } })
+/** Back to the dossier, where the findings and "aanbieden ter review" live. */
+function done() {
+  router.push({ name: 'inquiry-view', params: { id: inquiryId.value } })
 }
 
 useActionShortcuts(() => ({
   '⌘S': () => sampleForm.value?.flush(),
-  '⌘↵': next,
+  '⌘↵': done,
 }))
 
 // A dossier with no addresses opens straight into the picker: there is nothing
@@ -388,18 +386,13 @@ watch(
 
 <template>
   <AppShell :crumb="inquiry ? `Invoer · ${inquiry.documentName}` : 'Invoer'" fill>
-    <WizardHeader
-      :title="inquiry ? `Invoer · ${inquiry.documentName}` : 'Invoer'"
-      :status="headerStatus"
-      :steps="steps"
-      :current="2"
-    >
+    <WizardHeader :title="inquiry ? `Invoer · ${inquiry.documentName}` : 'Invoer'" :status="headerStatus">
       <template #actions>
         <span class="text-base text-muted">
           {{ totals.filled }} / {{ totals.possible }} velden
         </span>
-        <Button label="Vorige" @click="previous" />
-        <Button variant="primary" label="Volgende" shortcut="⌘↵" @click="next" />
+        <Button label="Gegevens" @click="details" />
+        <Button variant="primary" label="Klaar" shortcut="⌘↵" @click="done" />
       </template>
     </WizardHeader>
 

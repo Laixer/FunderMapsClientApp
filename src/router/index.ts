@@ -19,9 +19,9 @@ import Home from '@/views/HomeView.vue'
  */
 const InquiryList = () => import('@/views/InquiryListView.vue')
 const InquiryView = () => import('@/views/inquiry/InquiryView.vue')
-const InquiryStep1 = () => import('@/views/inquiry/InquiryStep1.vue')
-const InquiryStep2 = () => import('@/views/inquiry/InquiryStep2.vue')
-const InquiryStep3 = () => import('@/views/inquiry/InquiryStep3.vue')
+const InquiryDetailsEdit = () => import('@/views/inquiry/InquiryDetailsEdit.vue')
+const InquirySamplesEdit = () => import('@/views/inquiry/InquirySamplesEdit.vue')
+const InquiryNew = () => import('@/views/inquiry/InquiryNewView.vue')
 
 const RecoveryList = () => import('@/views/RecoveryListView.vue')
 const RecoveryView = () => import('@/views/recovery/RecoveryView.vue')
@@ -56,10 +56,16 @@ const routes: RouteRecordRaw[] = [
    * page number is one too many, and the path version could not carry a filter.
    */
   { name: 'inquiry-list', path: '/inquiries', component: InquiryList },
-  { name: 'inquiry-new', path: '/inquiry/create', component: InquiryStep1 },
-  { name: 'inquiry-edit-1', path: '/inquiry/:id/edit/1', component: InquiryStep1 },
-  { name: 'inquiry-edit-2', path: '/inquiry/:id/edit/2', component: InquiryStep2 },
-  { name: 'inquiry-edit-3', path: '/inquiry/:id/edit/3', component: InquiryStep3 },
+  // The front door for a document is the review lane (2026-09-07): upload,
+  // the pipeline reads, a person judges. The two edit pages remain for the
+  // inquiry that comes out of it; the old wizard URLs redirect so nothing
+  // bookmarked breaks.
+  { name: 'inquiry-new', path: '/inquiry/create', component: InquiryNew },
+  { name: 'inquiry-edit-details', path: '/inquiry/:id/details', component: InquiryDetailsEdit },
+  { name: 'inquiry-edit-samples', path: '/inquiry/:id/samples', component: InquirySamplesEdit },
+  { path: '/inquiry/:id/edit/1', redirect: (to) => ({ name: 'inquiry-edit-details', params: to.params }) },
+  { path: '/inquiry/:id/edit/2', redirect: (to) => ({ name: 'inquiry-edit-samples', params: to.params }) },
+  { path: '/inquiry/:id/edit/3', redirect: (to) => ({ name: 'inquiry-view', params: to.params }) },
   { name: 'inquiry-view', path: '/inquiry/:id', component: InquiryView },
 
   { name: 'recovery-list', path: '/recoveries', component: RecoveryList },

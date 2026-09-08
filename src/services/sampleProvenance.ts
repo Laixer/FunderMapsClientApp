@@ -2,7 +2,7 @@
  * Where a sample field's value came from.
  *
  * Adding an address to an inquiry prefills the new sample from the one
- * currently selected (`InquiryStep2.handlePick`), which saves a great deal of
+ * currently selected (`InquirySamplesEdit.handlePick`), which saves a great deal of
  * retyping on a terrace of near-identical houses — but until now left no trace,
  * so a reviewer could not tell a value observed at this address from one that
  * rode along from the previous one. This records that distinction.
