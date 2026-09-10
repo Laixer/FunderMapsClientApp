@@ -7,6 +7,7 @@ import WizardHeader from '@/components/Layout/WizardHeader.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import Callout from '@/components/Common/Callout.vue'
 import Dropzone, { type AttachedFile } from '@/components/Common/Dropzone.vue'
+import Combobox from '@/components/Common/Combobox.vue'
 import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 import ToggleChip from '@/components/Common/ToggleChip.vue'
@@ -300,12 +301,12 @@ onBeforeMount(async () => {
               required
               :error="errorFor('documentDate')"
             />
-            <Field
+            <Combobox
               v-model="form.contractor"
               label="Uitvoerder"
-              kind="select"
               required
               :options="contractorOptions"
+              placeholder="Typ (een deel van) de naam"
               empty-label="Kies een uitvoerder"
               :error="errorFor('contractor')"
             />
