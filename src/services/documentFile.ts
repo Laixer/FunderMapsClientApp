@@ -36,7 +36,12 @@ const PREVIEWABLE_IMAGE_MIMES: ReadonlySet<string> = new Set([
 ])
 
 export function isPreviewableImage(file: DocumentFileInfo | null): boolean {
-  return file !== null && file.mimeType !== null && PREVIEWABLE_IMAGE_MIMES.has(file.mimeType)
+  return isPreviewableImageMime(file?.mimeType ?? null)
+}
+
+/** Same test on a bare mime type, for callers that do not hold a DocumentFileInfo. */
+export function isPreviewableImageMime(mime: string | null): boolean {
+  return mime !== null && PREVIEWABLE_IMAGE_MIMES.has(mime)
 }
 
 /**

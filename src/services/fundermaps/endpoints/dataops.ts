@@ -99,7 +99,10 @@ export async function closeMany(ids: number[], body: IDossierOutcome) {
  * Commit: the confirmed values become a report.inquiry with one sample per
  * address, and the document enters the survey record. The end of the lane.
  */
-export async function commit(id: number, body: { type?: string; documentDate?: string; note?: string } = {}) {
+export async function commit(
+  id: number,
+  body: { type?: string; documentDate?: string; contractor?: number; note?: string } = {},
+) {
   return (await post({
     endpoint: `/dataops/dossier/${id}/commit`,
     body: { ...body } as unknown as Record<string, unknown>,

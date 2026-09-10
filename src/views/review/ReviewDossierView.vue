@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import Callout from '@/components/Common/Callout.vue'
+import Combobox from '@/components/Common/Combobox.vue'
 import EmptyState from '@/components/Common/EmptyState.vue'
 import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
@@ -17,8 +18,18 @@ import type {
   DossierOutcome,
 } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
-import { FOUNDATION_TYPE_OPTIONS } from '@/services/sampleEnums'
-import { INQUIRY_TYPE_CODE_LABELS } from '@/services/inquiryEnums'
+import { isPreviewableImageMime } from '@/services/documentFile'
+import {
+  CHANNEL_LABEL,
+  FIELD_LABEL,
+  FIELD_UNIT,
+  FOUNDATION_TYPE_CODE_OPTIONS,
+  INQUIRY_TYPE_CODE_OPTIONS,
+  OUTCOME_LABEL,
+  VERDICT_LABEL,
+  displayValue as labelValue,
+  formatDate,
+} from '@/services/reviewLabels'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
@@ -125,147 +136,11 @@ watch(
   },
 )
 
-/**
- * Dutch labels for the fields the pipeline can fill. Keys are the
- * `report.inquiry_sample` column names (identifiers are English everywhere;
- * only what a person reads is Dutch), plus `recovery_note`, which has no column.
- */
-const FIELD_LABEL: Record<string, string> = {
-  // About the document itself: land on report.inquiry, not on a sample.
-  document_date: 'Datum rapport',
-  inquiry_type: 'Soort document',
-  contractor: 'Opsteller (uitvoerder)',
-  foundation_type: 'Funderingstype',
-  built_year: 'Bouwjaar',
-  foundation_quality: 'Funderingskwaliteit',
-  recovery_advised: 'Herstel geadviseerd',
-  recovery_note: 'Hersteladvies (toelichting)',
-  follow_up_note: 'Vervolgadvies (onderzoek / monitoring)',
-  enforcement_term: 'Handhavingstermijn',
-  groundwater_level: 'Grondwaterstand',
-  wood_level: 'Bovenkant hout',
-  pile_head_level: 'Bovenkant paal',
-  pile_tip_level: 'Paalpuntniveau',
-  concrete_charger_length: 'Lengte betonoplanger',
-  pile_diameter_top: 'Paaldiameter kop',
-  pile_diameter_bottom: 'Paaldiameter punt',
-  pile_distance_length: 'Paalafstand (h.o.h.)',
-  wood_type: 'Houtsoort',
-  wood_penetration_depth: 'Indringingsdiepte hout',
-  wood_encroachment: 'Houtaantasting',
-  mason_level: 'Onderkant metselwerk',
-  foundation_depth: 'Aanlegniveau fundering',
-  groundlevel: 'Maaiveld',
-  cpt: 'Sondering',
-  damage_cause: 'Schadeoorzaak',
-  damage_characteristics: 'Schadebeeld',
-  crack_facade_front_type: 'Scheuren voorgevel',
-  crack_facade_back_type: 'Scheuren achtergevel',
-  crack_indoor_type: 'Scheuren inpandig',
-  skewed_parallel: 'Lintvoegmeting',
-  skewed_perpendicular: 'Loodmeting',
-  threshold_front_level: 'Drempelniveau voorzijde',
-  threshold_back_level: 'Drempelniveau achterzijde',
-  settlement_speed: 'Zakkingssnelheid',
-}
+/** A proposed value as a person reads it: Dutch for enum codes, a real date for dates. */
+const displayValue = (f: IProposedField) => labelValue(f.field, f.value)
 
-/** Unit shown next to a value, so -2.324 is read as metres NAP and not millimetres. */
-const FIELD_UNIT: Record<string, string> = {
-  groundwater_level: 'm t.o.v. NAP',
-  wood_level: 'm t.o.v. NAP',
-  pile_head_level: 'm t.o.v. NAP',
-  pile_tip_level: 'm t.o.v. NAP',
-  concrete_charger_length: 'm',
-  pile_diameter_top: 'mm',
-  pile_diameter_bottom: 'mm',
-  pile_distance_length: 'm',
-  wood_penetration_depth: 'mm',
-  mason_level: 'm t.o.v. NAP',
-  foundation_depth: 'm t.o.v. NAP',
-  groundlevel: 'm t.o.v. NAP',
-  threshold_front_level: 'm t.o.v. NAP',
-  threshold_back_level: 'm t.o.v. NAP',
-  skewed_parallel: 'mm/m',
-  skewed_perpendicular: 'mm/m',
-  settlement_speed: 'mm/jaar',
-}
-
-/** Enum-coded values, shown in Dutch. The code is what gets stored. */
-const VALUE_LABEL: Record<string, Record<string, string>> = {
-  inquiry_type: INQUIRY_TYPE_CODE_LABELS,
-  foundation_quality: {
-    bad: 'slecht',
-    mediocre: 'matig',
-    tolerable: 'redelijk',
-    good: 'goed',
-    mediocre_good: 'matig tot goed',
-    mediocre_bad: 'matig tot slecht',
-  },
-  enforcement_term: {
-    term5: '≤ 5 jaar',
-    term10: '≤ 10 jaar',
-    term15: '≤ 15 jaar',
-    term20: '≤ 20 jaar',
-    term25: '≤ 25 jaar',
-    term30: '≤ 30 jaar',
-    term40: '> 30 jaar',
-    term05: '0–5 jaar',
-    term510: '5–10 jaar',
-    term1020: '10–20 jaar',
-  },
-  recovery_advised: { true: 'ja', false: 'nee' },
-  wood_type: { pine: 'grenen', spruce: 'vuren' },
-  crack_facade_front_type: { none: 'geen', nil: 'geen', small: 'licht', mediocre: 'matig', big: 'ernstig' },
-  crack_facade_back_type: { none: 'geen', nil: 'geen', small: 'licht', mediocre: 'matig', big: 'ernstig' },
-  crack_indoor_type: { none: 'geen', nil: 'geen', small: 'licht', mediocre: 'matig', big: 'ernstig' },
-  wood_encroachment: {
-    fungus_infection: 'schimmelaantasting',
-    bio_infection: 'bacteriële aantasting',
-    bio_fungus_infection: 'bacteriële + schimmelaantasting',
-  },
-  damage_cause: {
-    drainage: 'ontwatering',
-    construction_flaw: 'constructiefout',
-    drystand: 'droogstand',
-    overcharge: 'overbelasting',
-    overcharge_negative_cling: 'overbelasting + negatieve kleef',
-    negative_cling: 'negatieve kleef',
-    bio_infection: 'bacteriële aantasting',
-    fungus_infection: 'schimmelaantasting',
-    bio_fungus_infection: 'bacteriële + schimmelaantasting',
-    foundation_flaw: 'funderingsfout',
-    construction_heave: 'opdrukken constructie',
-    subsidence: 'zetting',
-    vegetation: 'begroeiing',
-    gas: 'gas',
-    vibrations: 'trillingen',
-    partial_foundation_recovery: 'gedeeltelijk funderingsherstel',
-    japanese_knotweed: 'Japanse duizendknoop',
-    groundwater_level_reduction: 'grondwaterstandverlaging',
-  },
-  damage_characteristics: {
-    jamming_door_window: 'klemmende deuren/ramen',
-    crack: 'scheuren',
-    skewed: 'scheefstand',
-    crawlspace_flooding: 'water in kruipruimte',
-    threshold_above_subsurface: 'dorpel boven maaiveld',
-    threshold_below_subsurface: 'dorpel onder maaiveld',
-    crooked_floor_wall: 'scheve vloer/wand',
-  },
-}
-const displayValue = (f: IProposedField) =>
-  f.value == null
-    ? '—'
-    : f.field === 'document_date'
-      ? formatDate(f.value)
-      : (VALUE_LABEL[f.field]?.[f.value] ?? f.value)
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
-
-const INQUIRY_TYPE_OPTIONS: SelectOption[] = Object.entries(INQUIRY_TYPE_CODE_LABELS).map(
-  ([value, label]) => ({ value, label }),
-)
+/* The label tables used to live here; they are in services/reviewLabels.ts now
+   so the "Beoordeeld" panel and the header read the same Dutch as the cards. */
 
 /**
  * The bureaus, for the `contractor` field. The pipeline reads the name as
@@ -305,7 +180,10 @@ const contractorGuess = (f: IProposedField) =>
   f.field === 'contractor' && f.value ? guessContractor(f.value) : null
 
 watch(
-  () => data.value?.fields.some((f) => f.field === 'contractor') ?? false,
+  // Any dossier that can be committed shows the Uitvoerder control; a
+  // nalezing does not, and a dossier that proposed no bureau still needs
+  // the list for the reviewer to type one.
+  () => !!data.value && !data.value.dossier.auditInquiryId,
   async (needed) => {
     if (!needed || contractors.value.length) return
     try {
@@ -346,8 +224,7 @@ const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.
 function currentLabel(f: IProposedField): { text: string; tone: 'amber' | 'red' } | null {
   if (!isAudit.value || f.state === 'agreed') return null
   if (f.currentValue == null) return { text: 'niet in de database', tone: 'amber' }
-  const shown = VALUE_LABEL[f.field]?.[f.currentValue] ?? f.currentValue
-  return { text: `in de database: ${shown}`, tone: 'red' }
+  return { text: `in de database: ${labelValue(f.field, f.currentValue)}`, tone: 'red' }
 }
 
 /** Whether the pipeline has read this dossier at all. */
@@ -372,8 +249,29 @@ const isInferred = (f: IProposedField) => /^\s*afgeleid\s*:/i.test(f.evidence ??
  * report filed under the wrong address; `duplicate` the same thing twice.
  * Both need a word on why — that note is the most useful thing collected here.
  */
+const NOTE_REQUIRED: ReadonlySet<DossierOutcome> = new Set(['rejected', 'duplicate'])
+/**
+ * Set when Afwijzen or Duplicaat was clicked without a reason. The buttons stay
+ * clickable -- a greyed-out button does not say what it wants -- and the note
+ * field says it instead (#333, point 10).
+ */
+const noteMissingFor = ref<DossierOutcome | null>(null)
+const noteError = computed(() =>
+  noteMissingFor.value && !closeNote.value.trim()
+    ? `Geef eerst een reden: waarom wordt dit dossier ${noteMissingFor.value === 'duplicate' ? 'als duplicaat gesloten' : 'afgewezen'}?`
+    : null,
+)
+watch(closeNote, (v) => {
+  if (v.trim()) noteMissingFor.value = null
+})
+
 async function closeDossier(outcome: DossierOutcome) {
   if (!data.value) return
+  if (NOTE_REQUIRED.has(outcome) && !closeNote.value.trim()) {
+    noteMissingFor.value = outcome
+    document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
+    return
+  }
   closing.value = true
   try {
     await api.dataops.close(data.value.dossier.id, {
@@ -405,23 +303,47 @@ function takenDocumentValue(field: string): string | null {
   if (!f) return null
   return decided.value[f.id] === 'corrected' ? (corrections.value[f.id] ?? null) : f.value
 }
-const commitPreview = computed(() => {
-  const type = takenDocumentValue('inquiry_type')
-  const date = takenDocumentValue('document_date')
-  const contractorRaw = takenDocumentValue('contractor')
-  const contractorRow = contractorRaw
-    ? /^\d+$/.test(contractorRaw)
-      ? (contractors.value.find((c) => String(c.id) === contractorRaw) ?? null)
-      : guessContractor(contractorRaw)
-    : null
-  return {
-    type: type ? (INQUIRY_TYPE_CODE_LABELS[type] ?? type) : null,
-    date: date ? formatDate(date) : null,
-    contractor: contractorRow?.name ?? null,
-    contractorRaw,
-    receivedAt: data.value ? formatDate(data.value.dossier.receivedAt) : '',
-  }
+/** The bureau row a taken-over contractor value points at, or null when the commit would fall back. */
+function contractorRowFor(raw: string | null): IContractor | null {
+  if (!raw) return null
+  return /^\d+$/.test(raw)
+    ? (contractors.value.find((c) => String(c.id) === raw) ?? null)
+    : guessContractor(raw)
+}
+
+/**
+ * What the commit writes on the inquiry itself, as three controls rather than
+ * a read-only preview. They start out as whatever was taken over from the
+ * document and are sent with the commit, so a value a reviewer took over is
+ * what lands -- never a fallback that quietly replaced it -- and a value the
+ * pipeline missed can be typed here without a detour past the rapportage
+ * (#333, point 8).
+ */
+const commitType = ref<string | null>(null)
+const commitDate = ref<string | null>(null)
+/** Contractor id as a string: the option values are strings, so the combobox can match them. */
+const commitContractor = ref<string | null>(null)
+/** The printed bureau name when it matched no row: shown, and kept in the note by the API. */
+const contractorUnmatched = computed(() => {
+  const raw = takenDocumentValue('contractor')
+  return raw && !/^\d+$/.test(raw) && !guessContractor(raw) ? raw : null
 })
+watch(
+  [taken, contractors],
+  () => {
+    if (!commitType.value) commitType.value = takenDocumentValue('inquiry_type')
+    if (!commitDate.value) {
+      const d = takenDocumentValue('document_date')
+      commitDate.value = d && /^\d{4}-\d{2}-\d{2}/.test(d) ? d.slice(0, 10) : null
+    }
+    if (!commitContractor.value) {
+      const row = contractorRowFor(takenDocumentValue('contractor'))
+      commitContractor.value = row ? String(row.id) : null
+    }
+  },
+  { immediate: true, deep: true },
+)
+const receivedAtText = computed(() => (data.value ? formatDate(data.value.dossier.receivedAt) : ''))
 
 /**
  * Overnemen als rapportage: the judged values become an inquiry + samples, the
@@ -438,7 +360,11 @@ async function commitDossier() {
   if (!data.value) return
   committing.value = true
   try {
-    const r = await api.dataops.commit(data.value.dossier.id)
+    const r = await api.dataops.commit(data.value.dossier.id, {
+      type: commitType.value ?? undefined,
+      documentDate: commitDate.value ?? undefined,
+      contractor: commitContractor.value ? Number(commitContractor.value) : undefined,
+    })
     closed.value = 'accepted'
     committedInquiryId.value = r.inquiryId
     void studio.refreshCounts(null)
@@ -542,13 +468,6 @@ function entryWhen(at: string): string {
     ' ' + new Date(at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
 }
 
-const OUTCOME_LABEL: Record<DossierOutcome, string> = {
-  accepted: 'afgehandeld',
-  rejected: 'afgewezen',
-  duplicate: 'als duplicaat gesloten',
-  no_data: 'gesloten: geen gegevens',
-}
-
 /**
  * Straight on to the next one. Closing a dossier is the end of a decision,
  * not of a session: the reviewer's next move is always "the next oldest", and
@@ -579,12 +498,19 @@ const metaLine = computed(() => {
     month: 'long',
     year: 'numeric',
   })
-  return [d.externalRef ?? 'zonder kenmerk', `via ${d.channel}`, `ontvangen ${when}`].join(' · ')
+  return [d.externalRef ?? 'zonder kenmerk', `via ${CHANNEL_LABEL[d.channel] ?? d.channel}`, `ontvangen ${when}`].join(' · ')
 })
 
 const artifacts = computed(() => data.value?.artifacts ?? [])
 const current = computed(() => artifacts.value[shown.value] ?? null)
-const isImage = (mime: string | null) => !!mime && mime.startsWith('image/')
+/** An image the browser draws inline. */
+const isImage = (mime: string | null) => isPreviewableImageMime(mime)
+/**
+ * An image it does not: a TIFF that arrived before ingest converted it, or
+ * has not been ingested yet. An `<img>` on it is a blank pane with no hint
+ * why; a card with the file and a download says what is going on (#333, 7).
+ */
+const isUnviewableImage = (mime: string | null) => !!mime && mime.startsWith('image/') && !isImage(mime)
 
 /**
  * Which document a value came from. Selecting a value shows its document, so a
@@ -650,7 +576,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
       <h1 class="text-lg min-w-0 truncate font-bold text-ink">
         {{ data.dossier.subject ?? 'Dossier' }}
       </h1>
-      <Pill v-if="closed" :label="`gesloten: ${closed}`" tone="neutral" plain />
+      <Pill v-if="closed" :label="OUTCOME_LABEL[closed] ?? closed" tone="neutral" plain />
       <Pill v-else-if="nothingProposed" label="geen voorstellen" tone="red" plain />
       <Pill v-else :label="`${open.length} te beoordelen`" tone="blue" plain />
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint">{{ metaLine }}</p>
@@ -698,6 +624,18 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             :alt="current.originalFilename ?? 'Brondocument'"
             class="h-full w-full object-contain"
           />
+          <EmptyState v-else-if="current && isUnviewableImage(current.mimeType)">
+            <span class="block font-semibold text-body">
+              {{ current.originalFilename ?? 'Dit bestand' }} kan de browser niet tonen ({{ current.mimeType }}).
+            </span>
+            <span class="block">
+              Een TIFF wordt bij het inlezen omgezet naar PNG; is dat nog niet gebeurd, download het
+              bestand dan om het te bekijken.
+            </span>
+            <template #action>
+              <Button label="Download" @click="openArtifact(current.accessLink)" />
+            </template>
+          </EmptyState>
           <iframe
             v-else-if="current"
             :src="current.accessLink"
@@ -731,7 +669,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
           <EmptyState v-if="loading">Dossier ophalen…</EmptyState>
 
           <Callout v-else-if="closed" tone="neutral" title="Dossier gesloten">
-            Gesloten als <strong>{{ closed }}</strong>. Het staat niet meer in de controlelijst.
+            Dossier <strong>{{ OUTCOME_LABEL[closed] ?? closed }}</strong>. Het staat niet meer in de controlelijst.
             <template v-if="committedInquiryId" #action>
               <Button
                 :label="`Rapportage #${committedInquiryId} openen`"
@@ -893,19 +831,18 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                   v-if="editing[f.id]"
                   class="mt-1 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-divider pt-2.5"
                 >
-                  <Field
+                  <Combobox
                     v-if="f.field === 'foundation_type'"
                     v-model="corrections[f.id]"
-                    kind="select"
                     label="Andere waarde"
-                    :options="FOUNDATION_TYPE_OPTIONS"
+                    :options="FOUNDATION_TYPE_CODE_OPTIONS"
                   />
                   <Field
                     v-else-if="f.field === 'inquiry_type'"
                     v-model="corrections[f.id]"
                     kind="select"
                     label="Andere waarde"
-                    :options="INQUIRY_TYPE_OPTIONS"
+                    :options="INQUIRY_TYPE_CODE_OPTIONS"
                   />
                   <Field
                     v-else-if="f.field === 'document_date'"
@@ -913,11 +850,11 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                     kind="date"
                     label="Andere datum"
                   />
-                  <Field
+                  <Combobox
                     v-else-if="f.field === 'contractor' && contractors.length"
                     v-model="corrections[f.id]"
-                    kind="select"
                     label="Andere uitvoerder"
+                    placeholder="Typ (een deel van) de naam"
                     :options="contractorOptions"
                   />
                   <Field v-else v-model="corrections[f.id]" label="Andere waarde" />
@@ -971,9 +908,18 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 <span aria-hidden="true" class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-green" />
                 <span class="min-w-0">
                   <span class="block font-semibold text-body">
-                    {{ FIELD_LABEL[f.field] ?? f.field }} — {{ f.value }}
+                    {{ FIELD_LABEL[f.field] ?? f.field }} — {{ displayValue(f) }}
+                    <span v-if="FIELD_UNIT[f.field] && f.value != null" class="font-normal text-muted">
+                      {{ FIELD_UNIT[f.field] }}
+                    </span>
                   </span>
-                  <span class="block text-muted">{{ decided[f.id] }}</span>
+                  <span class="block text-muted">
+                    {{ VERDICT_LABEL[decided[f.id]!] ?? decided[f.id] }}<template
+                      v-if="decided[f.id] === 'corrected' && corrections[f.id]"
+                    >
+                      naar {{ labelValue(f.field, corrections[f.id]) }}</template
+                    ><template v-if="f.addressText"> · {{ f.addressText }}</template>
+                  </span>
                 </span>
               </li>
             </ul>
@@ -1030,40 +976,45 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
         <div v-if="!loading && data && !closed" class="shrink-0 border-t border-line bg-surface p-4">
           <Panel caption="DOSSIER SLUITEN">
             <div class="flex flex-col gap-3">
-              <Field
-                v-model="closeNote"
-                kind="textarea"
-                :rows="1"
-                label="Reden"
-                hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
-              />
-              <!-- What "Overnemen als rapportage" will write on the inquiry
-                   itself. A missing date falls back to the day the dossier
-                   arrived, which is almost never the date of the report. -->
+              <!-- What "Overnemen als rapportage" writes on the inquiry itself,
+                   as controls: prefilled with what was taken over, sent with
+                   the commit. A missing date used to fall back to the day the
+                   dossier arrived, which is almost never the date of the report. -->
               <p v-if="isAudit" class="text-md text-muted">
                 Rapportage <strong class="text-body">#{{ data?.dossier.auditInquiryId }}</strong> wordt
                 bijgewerkt met {{ taken.length }} overgenomen waarde{{ taken.length === 1 ? '' : 'n' }};
                 er wordt niets nieuws aangemaakt.
               </p>
-              <dl v-else-if="taken.length" class="text-md grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt class="text-label">Soort</dt>
-                <dd :class="commitPreview.type ? 'text-body' : 'text-amber-ink'">
-                  {{ commitPreview.type ?? 'niet overgenomen — wordt afgeleid van het label' }}
-                </dd>
-                <dt class="text-label">Datum rapport</dt>
-                <dd :class="commitPreview.date ? 'text-body' : 'text-amber-ink'">
-                  {{ commitPreview.date ?? `niet overgenomen — wordt ${commitPreview.receivedAt} (ontvangst)` }}
-                </dd>
-                <dt class="text-label">Uitvoerder</dt>
-                <dd :class="commitPreview.contractor ? 'text-body' : 'text-amber-ink'">
-                  {{
-                    commitPreview.contractor ??
-                    (commitPreview.contractorRaw
-                      ? `FunderMaps B.V. (“${commitPreview.contractorRaw}” staat niet in de lijst)`
-                      : 'niet overgenomen — wordt FunderMaps B.V.')
-                  }}
-                </dd>
-              </dl>
+              <div v-else-if="wasRead && open.length === 0" class="grid grid-cols-3 gap-x-3 gap-y-2">
+                <Field
+                  v-model="commitType"
+                  kind="select"
+                  label="Soort"
+                  :options="INQUIRY_TYPE_CODE_OPTIONS"
+                  empty-label="Afleiden van het label"
+                  :hint="commitType ? undefined : 'Niet overgenomen: wordt afgeleid van het label'"
+                />
+                <Field
+                  v-model="commitDate"
+                  kind="date"
+                  label="Datum rapport"
+                  :hint="commitDate ? undefined : `Niet overgenomen: wordt ${receivedAtText} (ontvangst)`"
+                />
+                <Combobox
+                  v-model="commitContractor"
+                  label="Uitvoerder"
+                  :options="contractorOptions"
+                  placeholder="Typ (een deel van) de naam"
+                  empty-label="FunderMaps B.V."
+                  :hint="
+                    commitContractor
+                      ? undefined
+                      : contractorUnmatched
+                        ? `“${contractorUnmatched}” staat niet in de lijst: wordt FunderMaps B.V., naam in de notitie`
+                        : 'Niet overgenomen: wordt FunderMaps B.V.'
+                  "
+                />
+              </div>
 
               <div class="flex flex-wrap gap-2">
                 <Button
@@ -1074,27 +1025,50 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                   @click="commitDossier"
                 />
                 <Button
+                  v-if="!isAudit"
+                  label="Sluiten zonder rapportage"
+                  :disabled="closing || committing || open.length > 0"
+                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : 'Het dossier is afgehandeld, maar er komt geen rapportage in de database'"
+                  @click="closeDossier('accepted')"
+                />
+                <Button
                   label="Geen gegevens"
-                  :disabled="closing || committing"
+                  :disabled="closing || committing || open.length > 0"
+                  :title="open.length > 0 ? 'Er staan nog voorstellen open: neem ze over of keur ze af' : 'Gelezen, niets bruikbaars gevonden'"
                   @click="closeDossier('no_data')"
                 />
                 <Button
                   variant="danger"
                   label="Afwijzen"
-                  :disabled="closing || !closeNote.trim()"
+                  :disabled="closing || committing"
                   @click="closeDossier('rejected')"
                 />
                 <Button
                   label="Duplicaat"
-                  :disabled="closing || !closeNote.trim()"
+                  :disabled="closing || committing"
                   @click="closeDossier('duplicate')"
                 />
-                <Button
-                  label="Afgehandeld"
-                  :disabled="closing || open.length > 0"
-                  @click="closeDossier('accepted')"
-                />
               </div>
+
+              <!-- Two ways to be done with a dossier, and they are not the same
+                   thing: one makes a rapportage, the other only closes (#333, 9). -->
+              <p v-if="!isAudit" class="text-sm text-label">
+                <strong class="font-semibold text-muted">Overnemen als rapportage</strong> zet de
+                overgenomen waarden als rapportage in de database.
+                <strong class="font-semibold text-muted">Sluiten zonder rapportage</strong> handelt het
+                dossier af zonder iets in de database te zetten, bijvoorbeeld als de rapportage er al
+                staat.
+              </p>
+
+              <Field
+                id="review-close-note"
+                v-model="closeNote"
+                kind="textarea"
+                :rows="1"
+                label="Reden"
+                :error="noteError"
+                hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
+              />
             </div>
           </Panel>
         </div>
