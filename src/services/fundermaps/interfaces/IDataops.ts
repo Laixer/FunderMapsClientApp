@@ -31,6 +31,12 @@ export interface IReviewQueueItem {
   read: boolean
   /** What kind of document the pipeline read this to be (`report.inquiry_type` code); null until read. */
   kind: string | null
+  /** accepted · rejected · duplicate · no_data; null while on the desk. */
+  outcome: string | null
+  outcomeAt: string | null
+  /** The reviewer's reason. Required on rejected and duplicate, so rarely empty there. */
+  outcomeNote: string | null
+  duplicateOf: number | null
 }
 
 /** What one page of a document turned out to be. Decides whether it was read at all. */
@@ -123,6 +129,8 @@ export interface IReviewDossier {
     auditInquiryId: number | null
     receivedAt: string
     outcome: string | null
+    outcomeAt?: string | null
+    outcomeNote?: string | null
     /** Who sent it in. Bulk drops carry none — then a question cannot be mailed. */
     submitter: { name?: string | null; email?: string | null } | null
   }

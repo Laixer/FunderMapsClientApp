@@ -2,11 +2,17 @@
 import { computed, ref } from 'vue'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 
-import type { QueueChannel, QueueSort, QueueState } from '@/services/fundermaps/endpoints/dataops'
+import type {
+  QueueChannel,
+  QueueOutcome,
+  QueueSort,
+  QueueState,
+} from '@/services/fundermaps/endpoints/dataops'
 import {
   BUILDING_OPTIONS,
   CHANNEL_OPTIONS,
   KIND_OPTIONS,
+  OUTCOME_OPTIONS,
   SORT_OPTIONS,
   STATE_OPTIONS,
   isDefaultSort,
@@ -41,6 +47,22 @@ const setKind = (v: string) =>
 const setOverdue = () => emit('update', { ...props.query, overdue: !props.query.overdue, page: 1 })
 const setBuilding = (v: 'resolved' | 'unresolved') =>
   emit('update', { ...props.query, building: props.query.building === v ? null : v, page: 1 })
+/**
+ * Picking an outcome leaves the desk for the closed. The stand filters
+ * (unread / empty / proposals) are about the desk and mean nothing there, so
+ * they are dropped at the same time rather than left to combine into an
+ * empty list nobody can explain.
+ */
+const setOutcome = (v: QueueOutcome) => {
+  const outcome = toggle(props.query.outcome, v)
+  emit('update', {
+    ...props.query,
+    outcome,
+    state: outcome.length ? [] : props.query.state,
+    overdue: outcome.length ? false : props.query.overdue,
+    page: 1,
+  })
+}
 
 /** Picking a column sorts it its natural way; picking it again flips the direction. */
 function setSort(value: QueueSort) {
@@ -104,6 +126,24 @@ const pill = (active: boolean) =>
             @click="setOverdue"
           >
             Langer dan een week open
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="studio-label mb-2">GESLOTEN</h3>
+        <!-- Not the desk: dossiers a reviewer already closed, to check or
+             to find again. Combines with via / pand / soort, not with stand. -->
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="o in OUTCOME_OPTIONS"
+            :key="o.value"
+            type="button"
+            class="text-base rounded-full border px-2.5 py-1 font-medium"
+            :class="pill(query.outcome.includes(o.value))"
+            @click="setOutcome(o.value)"
+          >
+            {{ o.label }}
           </button>
         </div>
       </section>

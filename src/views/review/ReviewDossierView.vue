@@ -678,6 +678,19 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             </template>
           </Callout>
 
+          <!-- Closed on an earlier visit (reached from the Afgewezen or
+               Duplicaten tab): say how and why, and offer nothing to close. -->
+          <Callout
+            v-else-if="data?.dossier.outcome && !data.dossier.inquiryId"
+            :tone="data.dossier.outcome === 'rejected' ? 'red' : 'neutral'"
+            :title="`Dossier ${OUTCOME_LABEL[data.dossier.outcome] ?? data.dossier.outcome}`"
+          >
+            <template v-if="data.dossier.outcomeAt">Op {{ formatDate(data.dossier.outcomeAt) }}. </template>
+            <template v-if="data.dossier.outcomeNote">Reden: “{{ data.dossier.outcomeNote }}”.</template>
+            <template v-else>Zonder reden.</template>
+            <template v-if="data.dossier.duplicateOf"> Duplicaat van dossier #{{ data.dossier.duplicateOf }}.</template>
+          </Callout>
+
           <!-- Committed earlier: the rapportage is the place to add to it. -->
           <Callout
             v-else-if="data?.dossier.inquiryId"
@@ -973,7 +986,10 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
              "Overnemen als rapportage" is never a scroll away. Always
              available, because "this is not about anything" is a judgement
              about the document, not about one of its values. -->
-        <div v-if="!loading && data && !closed" class="shrink-0 border-t border-line bg-surface p-4">
+        <div
+          v-if="!loading && data && !closed && !data.dossier.outcome"
+          class="shrink-0 border-t border-line bg-surface p-4"
+        >
           <Panel caption="DOSSIER SLUITEN">
             <div class="flex flex-col gap-3">
               <!-- What "Overnemen als rapportage" writes on the inquiry itself,
