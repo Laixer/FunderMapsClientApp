@@ -28,7 +28,11 @@
   "error": {
     "generic": "Er is iets misgegaan.",
     "pageNotFound": "Pagina niet gevonden.",
-    "backToOverview": "Terug naar rapportages"
+    "backToOverview": "Terug naar rapportages",
+    "noAccessTitle": "Geen toegang",
+    "noAccess": "De Data Studio is alleen voor medewerkers van FunderMaps. Je bent ingelogd als {email}.",
+    "goToMaps": "Naar de kaart",
+    "signOut": "Uitloggen"
   },
   "inquiry": {
     "list": {
