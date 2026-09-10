@@ -8,7 +8,9 @@ import type {
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
 export type QueueState = 'unread' | 'empty' | 'proposals'
-export type QueueSort = 'received_at' | 'open' | 'files' | 'subject' | 'id'
+/** How a dossier was closed. Asking for one lists the closed instead of the desk. */
+export type QueueOutcome = 'rejected' | 'duplicate' | 'no_data' | 'accepted'
+export type QueueSort = 'received_at' | 'outcome_at' | 'open' | 'files' | 'subject' | 'id'
 
 /** Same contract as `IInquiryListOpts`: sets are OR within, AND across; every filter is server-side. */
 export interface IQueueListOpts {
@@ -22,6 +24,8 @@ export interface IQueueListOpts {
   building?: 'resolved' | 'unresolved'
   /** `report.inquiry_type` codes as the pipeline read them. */
   kind?: string[]
+  /** Closed dossiers with these outcomes, instead of the open desk. */
+  outcome?: QueueOutcome[]
   sort?: QueueSort
   order?: 'asc' | 'desc'
 }
@@ -36,6 +40,7 @@ function queueQueryString(opts: IQueueListOpts): Record<string, string> {
   if (opts.age) queryString.age = opts.age
   if (opts.building) queryString.building = opts.building
   if (opts.kind?.length) queryString.kind = opts.kind.join(',')
+  if (opts.outcome?.length) queryString.outcome = opts.outcome.join(',')
   if (opts.sort) queryString.sort = opts.sort
   if (opts.order) queryString.order = opts.order
   return queryString

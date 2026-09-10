@@ -17,6 +17,7 @@ import type { LocationQueryRaw } from 'vue-router'
 import type {
   IQueueListOpts,
   QueueChannel,
+  QueueOutcome,
   QueueSort,
   QueueState,
 } from '@/services/fundermaps/endpoints/dataops'
@@ -34,6 +35,12 @@ export interface ReviewQuery {
   building: 'resolved' | 'unresolved' | null
   /** `report.inquiry_type` codes as the pipeline read them; combined as OR. */
   kind: string[]
+  /**
+   * Closed dossiers with these outcomes instead of the desk. Empty = the
+   * desk. A rejected report used to be gone the moment it was closed; the
+   * fixed tabs Afgewezen and Duplicaten are this field (ClientApp #333, 11).
+   */
+  outcome: QueueOutcome[]
   /** Always set — see `DEFAULT_SORT`. There is no "unsorted". */
   sort: QueueSort
   order: 'asc' | 'desc'
@@ -62,6 +69,7 @@ export function emptyQuery(): ReviewQuery {
     overdue: false,
     building: null,
     kind: [],
+    outcome: [],
     sort: DEFAULT_SORT,
     order: DEFAULT_ORDER,
     page: 1,
@@ -90,6 +98,13 @@ export const BUILDING_OPTIONS: readonly { value: 'resolved' | 'unresolved'; labe
   { value: 'unresolved', label: 'Pand niet herkend' },
 ]
 
+export const OUTCOME_OPTIONS: readonly { value: QueueOutcome; label: string }[] = [
+  { value: 'rejected', label: 'Afgewezen' },
+  { value: 'duplicate', label: 'Duplicaat' },
+  { value: 'no_data', label: 'Geen gegevens' },
+  { value: 'accepted', label: 'Afgehandeld' },
+]
+
 /** The kinds the pipeline can read, in the order a reviewer wants to pick from. */
 export const KIND_OPTIONS: readonly { value: string; label: string }[] = Object.entries(
   INQUIRY_TYPE_CODE_LABELS,
@@ -98,10 +113,13 @@ export const KIND_OPTIONS: readonly { value: string; label: string }[] = Object.
 const CHANNELS = new Set(CHANNEL_OPTIONS.map((o) => o.value))
 const STATES = new Set(STATE_OPTIONS.map((o) => o.value))
 const KINDS = new Set(KIND_OPTIONS.map((o) => o.value))
+const OUTCOMES = new Set(OUTCOME_OPTIONS.map((o) => o.value))
 
 export const channelLabel = (value: string) =>
   CHANNEL_OPTIONS.find((o) => o.value === value)?.label ?? value
 export const kindLabel = (value: string) => INQUIRY_TYPE_CODE_LABELS[value] ?? value
+export const outcomeLabel = (value: string) =>
+  OUTCOME_OPTIONS.find((o) => o.value === value)?.label ?? value
 
 /* -------------------------------------------------------------- sort fields */
 
@@ -114,6 +132,7 @@ export interface SortOption {
 
 export const SORT_OPTIONS: readonly SortOption[] = [
   { value: 'received_at', label: 'Ontvangen', asc: 'oudste eerst', desc: 'nieuwste eerst' },
+  { value: 'outcome_at', label: 'Gesloten', asc: 'oudste eerst', desc: 'nieuwste eerst' },
   { value: 'open', label: 'Voorstellen', asc: 'minste eerst', desc: 'meeste eerst' },
   { value: 'files', label: 'Bestanden', asc: 'minste eerst', desc: 'meeste eerst' },
   { value: 'subject', label: 'Document', asc: 'A → Z', desc: 'Z → A' },
@@ -154,6 +173,7 @@ export function parseQuery(raw: Record<string, unknown>): ReviewQuery {
     overdue: raw.age === 'overdue',
     building: raw.building === 'resolved' || raw.building === 'unresolved' ? raw.building : null,
     kind: strings(raw.kind, (s) => KINDS.has(s)),
+    outcome: strings<QueueOutcome>(raw.outcome, (s) => OUTCOMES.has(s as QueueOutcome)),
     sort,
     // The default direction depends on the column: oldest first on the
     // received date, most first on a count. Absent means that default.
@@ -177,6 +197,7 @@ export function toRouteQuery(query: ReviewQuery, viewKey: string): LocationQuery
   if (query.overdue) out.age = 'overdue'
   if (query.building) out.building = query.building
   if (query.kind.length) out.kind = query.kind.join(',')
+  if (query.outcome.length) out.outcome = query.outcome.join(',')
   if (!isDefaultSort(query)) {
     out.sort = query.sort
     out.order = query.order
@@ -200,6 +221,7 @@ export function toQueueOpts(query: ReviewQuery): IQueueListOpts {
   if (query.overdue) opts.age = 'overdue'
   if (query.building) opts.building = query.building
   if (query.kind.length) opts.kind = [...query.kind]
+  if (query.outcome.length) opts.outcome = [...query.outcome]
   return opts
 }
 
@@ -258,6 +280,14 @@ export function chipsFor(query: ReviewQuery): Chip[] {
       clear: (q) => ({ ...q, kind: [], page: 1 }),
     })
   }
+  if (query.outcome.length) {
+    chips.push({
+      id: 'outcome',
+      label: 'gesloten',
+      value: labels(query.outcome, outcomeLabel),
+      clear: (q) => ({ ...q, outcome: [], page: 1 }),
+    })
+  }
   if (!isDefaultSort(query)) {
     chips.push({
       id: 'sort',
@@ -287,6 +317,20 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
   { key: 'te-lang', label: 'Te lang open', query: { overdue: true }, builtin: true },
   { key: 'studio', label: 'Studio-uploads', query: { channel: ['invoer_app'] }, builtin: true },
   { key: 'nalezing', label: 'Nalezingen', query: { channel: ['audit'] }, builtin: true },
+  // Closed, not the desk: newest closing first, because the question here is
+  // "what did we throw out yesterday, and was that right?".
+  {
+    key: 'afgewezen',
+    label: 'Afgewezen',
+    query: { outcome: ['rejected'], sort: 'outcome_at', order: 'desc' },
+    builtin: true,
+  },
+  {
+    key: 'duplicaten',
+    label: 'Duplicaten',
+    query: { outcome: ['duplicate'], sort: 'outcome_at', order: 'desc' },
+    builtin: true,
+  },
 ]
 
 export function fromView(view: SavedView): ReviewQuery {
@@ -327,6 +371,7 @@ export function saveView(label: string, query: ReviewQuery): SavedView {
       overdue: query.overdue,
       building: query.building,
       kind: query.kind,
+      outcome: query.outcome,
       sort: query.sort,
       order: query.order,
     },

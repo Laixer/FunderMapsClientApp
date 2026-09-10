@@ -22,6 +22,7 @@ import {
   emptyQuery,
   fromView,
   kindLabel,
+  outcomeLabel,
   parseQuery,
   saveView,
   toQueueOpts,
@@ -141,7 +142,14 @@ function onDeleteView(view: SavedView) {
   if (viewKey.value === view.key) push(emptyQuery(), 'alles')
 }
 
-const COLUMNS: DataColumn[] = [
+/**
+ * The closed are a different list: no proposals to count, no promise running
+ * out, but a reason and a date that answer "why is this not in FunderMaps?".
+ * The columns follow the question, the rows keep their shape.
+ */
+const closedView = computed(() => query.value.outcome.length > 0)
+
+const DESK_COLUMNS: DataColumn[] = [
   { field: 'reference', title: 'Kenmerk', width: '150px' },
   { field: 'subject', title: 'Document', width: 'minmax(260px,1fr)' },
   { field: 'kind', title: 'Soort', width: '170px' },
@@ -150,8 +158,20 @@ const COLUMNS: DataColumn[] = [
   { field: 'open', title: 'Voorstellen', width: '120px', align: 'right' },
   { field: 'receivedAt', title: 'Ontvangen', width: '190px' },
 ]
+const CLOSED_COLUMNS: DataColumn[] = [
+  { field: 'reference', title: 'Kenmerk', width: '150px' },
+  { field: 'subject', title: 'Document', width: 'minmax(220px,1fr)' },
+  { field: 'kind', title: 'Soort', width: '150px' },
+  { field: 'channel', title: 'Via', width: '90px' },
+  { field: 'outcome', title: 'Gesloten', width: '170px' },
+  { field: 'outcomeNote', title: 'Reden', width: 'minmax(220px,1fr)' },
+  { field: 'outcomeAt', title: 'Op', width: '130px' },
+]
+const columns = computed(() => (closedView.value ? CLOSED_COLUMNS : DESK_COLUMNS))
 
 const WEEK = 7 * 24 * 3600 * 1000
+const shortDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
 
 const items = computed(() =>
   rows.value.map((r) => ({
@@ -163,12 +183,18 @@ const items = computed(() =>
     files: r.files,
     open: r.open,
     read: r.read,
-    receivedAt: new Date(r.receivedAt).toLocaleDateString('nl-NL', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }),
-    overdue: Date.now() - new Date(r.receivedAt).getTime() > WEEK,
+    receivedAt: shortDate(r.receivedAt),
+    overdue: !r.outcome && Date.now() - new Date(r.receivedAt).getTime() > WEEK,
+    outcome: r.outcome ? outcomeLabel(r.outcome).toLowerCase() : null,
+    /** `accepted` with a rapportage is a commit; without one it was closed by hand. */
+    outcomeTone: (r.outcome === 'accepted' ? 'green' : r.outcome === 'rejected' ? 'red' : 'neutral') as
+      | 'green'
+      | 'red'
+      | 'neutral',
+    inquiryId: r.inquiryId,
+    duplicateOf: r.duplicateOf,
+    outcomeNote: r.outcomeNote?.trim() || null,
+    outcomeAt: r.outcomeAt ? shortDate(r.outcomeAt) : null,
   })),
 )
 
@@ -344,21 +370,39 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
     <div class="min-h-0 flex-1 overflow-auto bg-surface">
       <DataTable
         :rows="items"
-        :columns="COLUMNS"
+        :columns="columns"
         :loading="loading"
         :selected-ids="selectedIds"
-        selectable
+        :selectable="!closedView"
         @toggle="toggleRow"
         @toggle-all="toggleAll"
         :empty-message="
           search
             ? `Niets gevonden voor “${search}”.`
-            : chips.length
-              ? 'Niets voldoet aan deze filters.'
-              : 'Niets te controleren. Alles wat binnenkwam is beoordeeld.'
+            : closedView
+              ? 'Geen gesloten dossiers die hieraan voldoen.'
+              : chips.length
+                ? 'Niets voldoet aan deze filters.'
+                : 'Niets te controleren. Alles wat binnenkwam is beoordeeld.'
         "
         @select="open"
       >
+        <template #outcome="{ row }">
+          <span class="flex items-center gap-1.5">
+            <Pill :label="row.outcome ?? '—'" :tone="row.outcomeTone" plain />
+            <span v-if="row.inquiryId" class="text-sm font-mono text-faint">#{{ row.inquiryId }}</span>
+            <span v-else-if="row.duplicateOf" class="text-sm font-mono text-faint">van {{ row.duplicateOf }}</span>
+          </span>
+        </template>
+        <template #outcomeNote="{ row }">
+          <span v-if="row.outcomeNote" class="text-base line-clamp-2 text-muted" :title="row.outcomeNote">
+            {{ row.outcomeNote }}
+          </span>
+          <span v-else class="text-base text-faint">—</span>
+        </template>
+        <template #outcomeAt="{ row }">
+          <span class="text-muted">{{ row.outcomeAt ?? '—' }}</span>
+        </template>
         <template #reference="{ row }">
           <span class="text-sm font-mono text-faint">{{ row.reference }}</span>
         </template>
