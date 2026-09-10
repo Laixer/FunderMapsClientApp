@@ -8,6 +8,9 @@ const currentUser: ShallowRef<IUser | null> = shallowRef(null)
 
 const isAuthenticated = computed<boolean>(() => currentUser.value !== null)
 
+/** Staff = member of the platform organisation; the API gates /api/dataops on the same flag. */
+const isStaff = computed<boolean>(() => currentUser.value?.platform_member === true)
+
 const orgRole = computed<OrgRole | null>(
   () => currentUser.value?.organizations?.[0]?.role ?? null,
 )
@@ -50,6 +53,7 @@ function useSession() {
   return {
     currentUser,
     isAuthenticated,
+    isStaff,
     orgRole,
     isSuperUser,
     isVerifier,

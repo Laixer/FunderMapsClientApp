@@ -7,6 +7,7 @@ import { loginRedirect } from '@/services/auth'
 import Login from '@/views/auth/Login.vue'
 import Logout from '@/views/auth/Logout.vue'
 import NotFound from '@/views/auth/NotFound.vue'
+import NoAccess from '@/views/auth/NoAccess.vue'
 import Home from '@/views/HomeView.vue'
 
 /**
@@ -45,6 +46,9 @@ const routes: RouteRecordRaw[] = [
     },
   },
   { name: 'logout', path: '/logout', component: Logout },
+  // Shown to signed-in users who are not FunderMaps staff. Public so the guard
+  // can land here without looping; the view itself decides what to show.
+  { name: 'no-access', path: '/no-access', component: NoAccess, meta: { public: true } },
 
   // The landing page is your bench, not the archive — see views/HomeView.vue.
   { name: 'home', path: '/', component: Home },
@@ -111,7 +115,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const sessionStore = useSessionStore()
-  const { isAuthenticated } = storeToRefs(sessionStore)
+  const { isAuthenticated, isStaff } = storeToRefs(sessionStore)
 
   if (to.meta.public) return true
 
@@ -129,6 +133,13 @@ router.beforeEach(async (to) => {
     // the user back to the page they asked for.
     loginRedirect(window.location.origin + to.fullPath)
     return false
+  }
+
+  // The Studio is the internal invoer tool. Any account can sign in at the
+  // auth app (the session is shared with Maps), but only platform members
+  // get past this point; the API refuses the review lane to everyone else.
+  if (!isStaff.value) {
+    return { name: 'no-access' }
   }
 })
 

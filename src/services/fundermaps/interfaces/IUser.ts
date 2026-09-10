@@ -10,6 +10,8 @@ export interface IUser {
   job_title: string | null
   phone_number: string | null
   role: string | null
+  /** Member of the platform organisation (FunderMaps staff). The Studio is staff-only. */
+  platform_member?: boolean
   organizations: Array<{
     id: string
     name: string
