@@ -123,6 +123,35 @@ export const INQUIRY_TYPE_CODE_OPTIONS: SelectOption[] = Object.entries(
   INQUIRY_TYPE_CODE_LABELS,
 ).map(([value, label]) => ({ value, label }))
 
+/**
+ * What the melder's label becomes as an inquiry type. Mirrors
+ * TYPE_FROM_CATEGORY in the API's dataops-commit.ts: keep the two in step.
+ */
+const TYPE_FROM_CATEGORY: Record<string, string> = {
+  foundationresearch: 'foundation_research',
+  archieveresearch: 'archive_research',
+  quickscan: 'quickscan',
+  herstelbewijs: 'note',
+  foto: 'note',
+  overig: 'note',
+}
+
+/**
+ * The inquiry type the commit will pick when the reviewer leaves Soort empty
+ * and nothing was taken over from the document: the melder's label, else a
+ * text-lane document counts as a funderingsonderzoek and anything else as
+ * archiefonderzoek. Same rule as the API (ClientApp #338, point 1: the hint
+ * used to say "afgeleid van het label" without saying what that gives).
+ */
+export function derivedInquiryType(category: string | null | undefined, lane: string | null | undefined): {
+  code: string
+  from: string
+} {
+  const fromLabel = category ? TYPE_FROM_CATEGORY[category] : undefined
+  if (fromLabel) return { code: fromLabel, from: `label '${category}'` }
+  return { code: lane === 'text' ? 'foundation_research' : 'archive_research', from: category ? `onbekend label '${category}'` : 'geen label' }
+}
+
 /** `report.foundation_quality`. The four-step `report.quality` (nil/small/mediocre/large) is a different scale and is left as its code until the pipeline emits it. */
 const FOUNDATION_QUALITY: Record<string, string> = {
   bad: 'slecht',

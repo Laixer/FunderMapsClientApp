@@ -27,6 +27,7 @@ import {
   INQUIRY_TYPE_CODE_OPTIONS,
   OUTCOME_LABEL,
   VERDICT_LABEL,
+  derivedInquiryType,
   displayValue as labelValue,
   formatDate,
 } from '@/services/reviewLabels'
@@ -320,6 +321,18 @@ function contractorRowFor(raw: string | null): IContractor | null {
  * (#333, point 8).
  */
 const commitType = ref<string | null>(null)
+/**
+ * What Soort becomes when the reviewer leaves it empty, spelled out: the
+ * melder's label mapped the way the commit maps it, on the document the commit
+ * will pick (the first dataops/ or intake/ artifact). Don, #338 point 1.
+ */
+const derivedTypeHint = computed(() => {
+  const doc =
+    data.value?.artifacts.find((a) => a.storageKey.startsWith('dataops/') || a.storageKey.startsWith('intake/')) ??
+    data.value?.artifacts[0]
+  const d = derivedInquiryType(doc?.declaredCategory, doc?.lane)
+  return `Niet overgenomen: wordt ${labelValue('inquiry_type', d.code)} (${d.from})`
+})
 const commitDate = ref<string | null>(null)
 /** Contractor id as a string: the option values are strings, so the combobox can match them. */
 const commitContractor = ref<string | null>(null)
@@ -1016,7 +1029,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                   label="Soort"
                   :options="INQUIRY_TYPE_CODE_OPTIONS"
                   empty-label="Afleiden van het label"
-                  :hint="commitType ? undefined : 'Niet overgenomen: wordt afgeleid van het label'"
+                  :hint="commitType ? undefined : derivedTypeHint"
                 />
                 <Field
                   v-model="commitDate"
