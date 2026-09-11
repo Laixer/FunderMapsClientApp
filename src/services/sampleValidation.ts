@@ -21,6 +21,7 @@
 
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import { INQUIRY_TYPE } from '@/services/inquiryEnums'
+import { FOUNDATION_TYPE_OPTIONS } from '@/services/sampleEnums'
 import { isSampleFieldFilled } from '@/services/sampleFields'
 
 export interface SampleFinding {
@@ -168,6 +169,12 @@ function typeFindings(sample: IInquirySample, inquiryType: number): SampleFindin
  */
 const WOOD_PILE_TYPES: ReadonlySet<number> = new Set([0, 1, 2, 10])
 
+/** Piles without wood: Beton, Verzwaardepuntpaal, Stalen buispalen. */
+const NO_WOOD_PILE_TYPES: ReadonlySet<number> = new Set([3, 11, 13])
+
+const foundationTypeLabel = (code: number) =>
+  FOUNDATION_TYPE_OPTIONS.find((o) => o.value === code)?.label ?? String(code)
+
 /**
  * What the caller knows about the dossier and the building, beyond the sample
  * itself. Every key is optional: a rule that needs a fact the caller does not
@@ -246,6 +253,17 @@ export function findingsFor(sample: IInquirySample, context: SampleContext = {})
     findings.push({
       id: 'wood-above-ground',
       message: `Bovenkant funderingshout (${nl(woodLevel)} m NAP) ligt boven maaiveld (${nl(groundLevel)} m NAP) — dat kan niet kloppen.`,
+    })
+  }
+
+  // A concrete or steel pile has no wood in it, so "bovenkant funderingshout"
+  // on one is most likely a wrong foundation type or a value from another
+  // sample. A warning, not a block: Don's ruling 2026-09-11 — technically it
+  // should not occur, but every building is different.
+  if (isNumber(woodLevel) && isNumber(foundationType) && NO_WOOD_PILE_TYPES.has(foundationType)) {
+    findings.push({
+      id: 'wood-level-without-wood',
+      message: `Bovenkant funderingshout (${nl(woodLevel)} m NAP) is ingevuld bij funderingstype "${foundationTypeLabel(foundationType)}" — daar zit geen hout in. Klopt het funderingstype?`,
     })
   }
 

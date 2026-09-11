@@ -78,10 +78,15 @@ export const FIELD_UNIT: Record<string, string> = {
   groundlevel: 'm t.o.v. NAP',
   threshold_front_level: 'm t.o.v. NAP',
   threshold_back_level: 'm t.o.v. NAP',
-  skewed_parallel: 'mm/m',
-  skewed_perpendicular: 'mm/m',
   settlement_speed: 'mm/jaar',
 }
+
+/**
+ * Scheefstand is stored as the denominator of a ratio: 300 means 1:300. Don's
+ * ruling 2026-09-11 — keep the number, show it as the ratio it is. The old
+ * "mm/m" suffix was simply wrong.
+ */
+const RATIO_FIELDS = new Set(['skewed_parallel', 'skewed_perpendicular'])
 
 /**
  * `report.foundation_type` codes as the pipeline emits them (same vocabulary
@@ -234,6 +239,7 @@ export const formatDate = (iso: string) =>
 export function displayValue(field: string, value: string | null | undefined): string {
   if (value == null || value === '') return '—'
   if (field === 'document_date' && /^\d{4}-\d{2}-\d{2}/.test(value)) return formatDate(value)
+  if (RATIO_FIELDS.has(field) && /^\d+([.,]\d+)?$/.test(value.trim())) return `1:${value.trim()}`
   return VALUE_LABEL[field]?.[value] ?? value
 }
 
