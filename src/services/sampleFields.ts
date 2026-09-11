@@ -317,14 +317,15 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       },
       { key: 'thresholdFrontLevel', label: 'Drempelniveau voorzijde', ...LEVEL },
       { key: 'thresholdBackLevel', label: 'Drempelniveau achterzijde', ...LEVEL },
-      { key: 'skewedParallel', label: 'Lintvoegmeting', unit: 'mm/m', ...MEASURE },
+      // Stored as the denominator: 300 means 1:300 (Don, 2026-09-11).
+      { key: 'skewedParallel', label: 'Lintvoegmeting (1:n)', ...MEASURE },
       {
         key: 'skewedParallelFacade',
         label: 'Lintvoegmeting beoordeling',
         kind: 'enum',
         options: ROTATION_OPTIONS,
       },
-      { key: 'skewedPerpendicular', label: 'Loodmeting', unit: 'mm/m', ...MEASURE },
+      { key: 'skewedPerpendicular', label: 'Loodmeting (1:n)', ...MEASURE },
       {
         key: 'skewedPerpendicularFacade',
         label: 'Loodmeting beoordeling',
