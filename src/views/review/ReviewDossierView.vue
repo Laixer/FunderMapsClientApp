@@ -33,7 +33,7 @@ import {
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
-import { toastSuccess } from '@/services/toast'
+import { toastInfo, toastSuccess } from '@/services/toast'
 
 /**
  * Judging one submission.
@@ -372,6 +372,14 @@ async function commitDossier() {
       toastSuccess(`Rapportage #${r.inquiryId} bijgewerkt: ${r.fields ?? 0} waarde${r.fields === 1 ? '' : 'n'} op ${r.samples} adres${r.samples === 1 ? '' : 'sen'}.`)
       await openNext(data.value.dossier.id, 'accepted')
       return
+    }
+    // Values the API could not put on an address (an unrecognised address, or
+    // the document-level values of a dossier without a building) are kept as
+    // text in the rapportage note. Say so: the reviewer's Overnemen on those
+    // did not become data, and nothing else on the screen will tell them.
+    const unlinked = r.unresolved?.length ?? 0
+    if (unlinked > 0) {
+      toastInfo(`${unlinked} waarde${unlinked === 1 ? '' : 'n'} niet aan een adres gekoppeld; staa${unlinked === 1 ? 't' : 'n'} als tekst in de notitie van de rapportage.`)
     }
     if (r.samples === 0) {
       toastSuccess(`Rapportage #${r.inquiryId} aangemaakt zonder adressen; vul die nu in.`)
