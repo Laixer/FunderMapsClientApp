@@ -62,6 +62,12 @@ export interface IReviewArtifact {
   /** vision · text · none */
   lane: string
   /**
+   * The label the melder put on the file (files[].category: foundationresearch,
+   * archieveresearch, quickscan, herstelbewijs, foto, overig). The commit derives
+   * the inquiry type from it when the reviewer picks none; null on older rows.
+   */
+  declaredCategory: string | null
+  /**
    * What the preparer wrote on top of the document. Never shown to a model;
    * shown to a reviewer, because on an older document it IS the answer someone
    * already gave.
