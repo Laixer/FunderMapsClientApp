@@ -15,6 +15,8 @@ export interface IReviewQueueItem {
   reference: string | null
   /** `NL.IMBAG.PAND.*` the submission was filed under; null when unresolved. */
   buildingId: string | null
+  /** geocoder.building.built_year (YYYY-MM-DD) of the dossier's pand, or null. The date estimate for archive drawings (#338). */
+  buildingBuiltYear?: string | null
   receivedAt: string
   inquiryId: number | null
   /** The rapportage this dossier re-reads (channel audit); null on intake dossiers. */
@@ -133,6 +135,8 @@ export interface IReviewDossier {
     inquiryId: number | null
     /** The rapportage this dossier re-reads (channel audit); null on intake dossiers. */
     auditInquiryId: number | null
+  /** geocoder.building.built_year (YYYY-MM-DD) of the dossier's pand, or null. The date estimate for archive drawings (#338). */
+  buildingBuiltYear?: string | null
     receivedAt: string
     outcome: string | null
     outcomeAt?: string | null
