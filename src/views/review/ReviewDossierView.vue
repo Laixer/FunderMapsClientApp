@@ -356,7 +356,32 @@ watch(
   },
   { immediate: true, deep: true },
 )
-const receivedAtText = computed(() => (data.value ? formatDate(data.value.dossier.receivedAt) : ''))
+/** The soort the commit will use: what the reviewer chose, else what the label derives. */
+const effectiveCommitType = computed(() => {
+  if (commitType.value) return commitType.value
+  const doc =
+    data.value?.artifacts.find((a) => a.storageKey.startsWith('dataops/') || a.storageKey.startsWith('intake/')) ??
+    data.value?.artifacts[0]
+  return derivedInquiryType(doc?.declaredCategory, doc?.lane).code
+})
+const ARCHIVE_TYPES = new Set(['archive_research', 'architectural_research'])
+/**
+ * What Datum rapport becomes when the reviewer leaves it empty (#338, Don
+ * 2026-09-14): never the day the melding arrived. An archive drawing takes the
+ * pand's construction year as an estimate; anything else has no fallback and
+ * the commit refuses until a date is typed.
+ */
+const builtYearEstimate = computed(() => {
+  const y = data.value?.dossier.buildingBuiltYear?.slice(0, 4)
+  return ARCHIVE_TYPES.has(effectiveCommitType.value) && y && /^\d{4}$/.test(y) && y !== '0000' ? `${y}-01-01` : null
+})
+const commitDateHint = computed(() => {
+  if (commitDate.value) return undefined
+  if (builtYearEstimate.value) return `Niet overgenomen: wordt ${builtYearEstimate.value.slice(0, 4)} (geschat: bouwjaar)`
+  return 'Verplicht: geen datum in het document gevonden'
+})
+/** Overnemen needs a date the database can hold. */
+const commitDateMissing = computed(() => !commitDate.value && !builtYearEstimate.value)
 
 /**
  * Overnemen als rapportage: the judged values become an inquiry + samples, the
@@ -1035,7 +1060,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                   v-model="commitDate"
                   kind="date"
                   label="Datum rapport"
-                  :hint="commitDate ? undefined : `Niet overgenomen: wordt ${receivedAtText} (ontvangst)`"
+                  :hint="commitDateHint"
                 />
                 <Combobox
                   v-model="commitContractor"
@@ -1057,7 +1082,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 <Button
                   variant="primary"
                   :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
-                  :disabled="committing || closing || open.length > 0 || !wasRead"
+                  :disabled="committing || closing || open.length > 0 || !wasRead || commitDateMissing"
                   :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : ''"
                   @click="commitDossier"
                 />
