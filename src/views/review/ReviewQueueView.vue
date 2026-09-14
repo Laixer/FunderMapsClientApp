@@ -199,7 +199,9 @@ const items = computed(() =>
 )
 
 function open(row: { id: number }) {
-  router.push({ name: 'review-dossier', params: { id: row.id } })
+  // The filter travels with the reviewer: the dossier page reads it to pick
+  // the next one from the same list (Don, 2026-09-14).
+  router.push({ name: 'review-dossier', params: { id: row.id }, query: route.query })
 }
 
 /* ------------------------------------------------------------ bulk close */
