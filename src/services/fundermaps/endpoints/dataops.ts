@@ -4,6 +4,8 @@ import type {
   IReviewDossier,
   IVerdict,
   IDossierOutcome,
+  IDossierAddress,
+  AddressVerdictOutcome,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -115,7 +117,11 @@ export async function commit(
     ok: boolean
     inquiryId: number
     samples: number
-    /** `pending` when no sample was written: the record is still to be filled by hand. */
+    /** Samples written for a confirmed address without values: to be filled in by hand. */
+    emptySamples?: number
+    /** Confirmed values that were dropped because their address was rejected. */
+    skippedRejected?: number
+    /** `pending` when no sample was written, or an empty one: the record is still to be filled by hand. */
     auditStatus: 'done' | 'pending'
     /** True when the dossier was a nalezing: the rapportage was updated, not created. */
     audit?: boolean
@@ -166,4 +172,69 @@ export async function question(id: number, text: string) {
   })) as { ok: boolean }
 }
 
-export default { queue, queueCount, dossier, verdict, close, closeMany, commit, create, remark, question }
+/* ----------------------------------------------------- addresses (#333 C) */
+
+type AddressReply = { ok: boolean; addresses: IDossierAddress[] }
+
+/**
+ * Confirm or reject an address of the dossier, or take that back. Rejecting
+ * supersedes the open values under it; `pending` brings exactly those back.
+ * An unresolved address is addressed by its text and can only be rejected.
+ */
+export async function addressVerdict(
+  id: number,
+  body: { addressId?: string; addressText?: string; outcome: AddressVerdictOutcome; note?: string | null },
+) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/address/verdict`,
+    body: { ...body } as unknown as Record<string, unknown>,
+  })) as AddressReply
+}
+
+/** An address the document names but the pipeline missed. Confirmed at once; a sample on commit. */
+export async function addressAdd(id: number, body: { addressId: string; note?: string | null }) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/address`,
+    body: { ...body } as unknown as Record<string, unknown>,
+  })) as AddressReply
+}
+
+/**
+ * Move values to another address: the whole group (`addressId` or the
+ * unresolved `addressText`) or a few by `fieldIds`. The target becomes a
+ * confirmed address of the dossier.
+ */
+export async function addressRelink(
+  id: number,
+  body: { to: string; fieldIds?: number[]; addressId?: string; addressText?: string },
+) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/address/relink`,
+    body: { ...body } as unknown as Record<string, unknown>,
+  })) as AddressReply & { moved: number }
+}
+
+/** Correct the pand the dossier was filed under. */
+export async function setBuilding(id: number, addressId: string) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/building`,
+    body: { addressId },
+  })) as AddressReply
+}
+
+export default {
+  queue,
+  queueCount,
+  dossier,
+  verdict,
+  close,
+  closeMany,
+  commit,
+  create,
+  remark,
+  question,
+  addressVerdict,
+  addressAdd,
+  addressRelink,
+  setBuilding,
+}

@@ -10,10 +10,12 @@ import EmptyState from '@/components/Common/EmptyState.vue'
 import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
+import DossierAddresses from '@/components/Review/DossierAddresses.vue'
 import api from '@/services/fundermaps'
 import type {
   IReviewDossier,
   IProposedField,
+  IDossierAddress,
   VerdictOutcome,
   DossierOutcome,
 } from '@/services/fundermaps/interfaces/IDataops'
@@ -71,7 +73,7 @@ const shown = ref(0)
 const editing = ref<Record<number, boolean>>({})
 /** Citations are clamped to two lines; a click shows the whole passage. */
 const unclamped = ref<Record<number, boolean>>({})
-/** Address groups folded away by the reviewer, keyed by address text. */
+/** Address groups folded away by the reviewer, keyed by address (id, or text when unresolved). */
 const collapsed = ref<Record<string, boolean>>({})
 
 /** Closing the dossier as a whole: the note, and whether the request is out. */
@@ -118,6 +120,61 @@ async function load() {
     error.value = describeFailure(e, 'Dit dossier kon niet worden geladen.')
   } finally {
     loading.value = false
+  }
+}
+
+/**
+ * Re-fetch the values and the timeline without resetting what the reviewer
+ * is doing. An address action can put values aside, bring them back or move
+ * them (#333 C); the rows on screen have to follow, the half-typed
+ * correction two rows down does not have to go.
+ */
+async function refreshFields() {
+  if (!data.value) return
+  try {
+    const fresh = await api.dataops.dossier(data.value.dossier.id)
+    data.value = { ...data.value, fields: fresh.fields, entries: fresh.entries, addresses: fresh.addresses }
+    const seeded: Record<number, VerdictOutcome> = { ...decided.value }
+    for (const f of fresh.fields) {
+      if (f.state === 'confirmed' || f.state === 'corrected' || f.state === 'rejected') seeded[f.id] = f.state
+      else if (f.state === 'pending' || f.state === 'superseded') delete seeded[f.id]
+    }
+    decided.value = seeded
+  } catch (e) {
+    error.value = describeFailure(e, 'De voorstellen konden niet worden ververst.')
+  }
+}
+
+/* ------------------------------------------------------------ addresses */
+
+/** The addresses this dossier is about, own pand first (#333, points 3 and 4). */
+const addresses = computed<IDossierAddress[]>(() => data.value?.addresses ?? [])
+const addressByKey = computed(() => new Map(addresses.value.map((a) => [a.key, a])))
+/** The address a value sits under, as the panel knows it. */
+const addressOf = (f: IProposedField) =>
+  addressByKey.value.get(f.addressId ?? (f.addressText ? `text:${f.addressText}` : '')) ?? null
+/** "· Molenwal 15, 3421 CK Oudewater" for a value with an address, else the text the document wrote. */
+const addressLine = (f: IProposedField): string | null => addressOf(f)?.label ?? f.addressText ?? null
+/** Addresses a value can be moved to: resolved and not put aside. */
+const moveTargets = computed(() =>
+  addresses.value.filter((a) => a.addressId && a.state !== 'rejected').map((a) => ({ value: a.addressId!, label: a.label ?? a.addressId! })),
+)
+function onAddresses(list: IDossierAddress[], fieldsChanged: boolean) {
+  if (data.value) data.value = { ...data.value, addresses: list }
+  if (fieldsChanged) void refreshFields()
+}
+/** Move one value to another of the dossier's addresses, from the drawer. */
+async function moveField(f: IProposedField, addressId: string) {
+  if (!data.value || !addressId || addressId === f.addressId) return
+  busy.value = f.id
+  try {
+    const r = await api.dataops.addressRelink(data.value.dossier.id, { to: addressId, fieldIds: [f.id] })
+    data.value = { ...data.value, addresses: r.addresses }
+    await refreshFields()
+  } catch (e) {
+    error.value = describeFailure(e, 'De waarde kon niet naar dat adres worden verplaatst.')
+  } finally {
+    busy.value = null
   }
 }
 
@@ -204,21 +261,30 @@ const open = computed(() =>
  * Open values grouped by address. A funderingsonderzoek covers a block; the
  * report's own tables are per address, and so is report.inquiry_sample. The
  * document-level group ("het rapport") comes first, then each address in the
- * order the API returns them.
+ * order the API returns them. Grouped by the resolved address (two spellings
+ * of one house are one group; a value moved to 59A shows under 59A), by the
+ * text when the Worker could not resolve it.
  */
 const openByAddress = computed(() => {
   const groups = new Map<string, IProposedField[]>()
   for (const f of open.value) {
-    const key = f.addressText ?? ''
+    const key = f.addressId ?? f.addressText ?? ''
     groups.set(key, [...(groups.get(key) ?? []), f])
   }
   return [...groups.entries()]
-    .sort(([a], [b]) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)))
-    .map(([address, fields]) => ({
-      address,
-      resolved: fields.some((f) => f.addressId),
-      fields,
-    }))
+    .sort(([a], [b]) => (a === '' ? -1 : b === '' ? 1 : 0))
+    .map(([key, fields]) => {
+      const a = addressOf(fields[0]!)
+      return {
+        key,
+        /** The group title: the resolved address, else what the document wrote. */
+        address: key === '' ? '' : (a?.label ?? fields[0]!.addressText ?? key),
+        resolved: fields.some((f) => f.addressId),
+        state: a?.state ?? null,
+        own: a?.own ?? false,
+        fields,
+      }
+    })
 })
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
 /** How a proposal relates to the database, for the row (nalezing only). */
@@ -419,8 +485,18 @@ async function commitDossier() {
     if (unlinked > 0) {
       toastInfo(`${unlinked} waarde${unlinked === 1 ? '' : 'n'} niet aan een adres gekoppeld; staa${unlinked === 1 ? 't' : 'n'} als tekst in de notitie van de rapportage.`)
     }
+    if (r.skippedRejected) {
+      toastInfo(`${r.skippedRejected} overgenomen waarde${r.skippedRejected === 1 ? '' : 'n'} niet geschreven: het adres hoort niet bij dit dossier.`)
+    }
     if (r.samples === 0) {
       toastSuccess(`Rapportage #${r.inquiryId} aangemaakt zonder adressen; vul die nu in.`)
+      await router.push({ name: 'inquiry-edit-samples', params: { id: r.inquiryId } })
+      return
+    }
+    // An address added by hand has a sample with nothing in it yet: go and
+    // fill it in, the way a rapportage without addresses is filled in.
+    if (r.emptySamples) {
+      toastSuccess(`Rapportage #${r.inquiryId} aangemaakt met ${r.samples} adres${r.samples === 1 ? '' : 'sen'}, ${r.emptySamples} nog zonder gegevens; vul die nu in.`)
       await router.push({ name: 'inquiry-edit-samples', params: { id: r.inquiryId } })
       return
     }
@@ -786,30 +862,49 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             </template>
           </Callout>
 
+          <!-- Which addresses this dossier is about, and the say over them
+               (#333, 3 and 4). Not on a nalezing: that one compares against
+               the rapportage's own samples. -->
+          <DossierAddresses
+            v-if="!loading && data && !isAudit"
+            :dossier-id="data.dossier.id"
+            :addresses="addresses"
+            :disabled="!!closed || !!data.dossier.outcome || !!data.dossier.inquiryId"
+            @updated="onAddresses"
+            @error="(m) => (error = m)"
+          />
+
           <!-- One address group per section; the group folds. Inside, one
                compact row per proposal in two columns: this pane is half a
                wide screen now, and a row is label, value, citation, three
                buttons -- the drawer with the correction opens on request. -->
-          <section v-for="group in openByAddress" :key="group.address" class="flex flex-col gap-2">
+          <section v-for="group in openByAddress" :key="group.key" class="flex flex-col gap-2">
             <button
-              v-if="openByAddress.length > 1"
+              v-if="openByAddress.length > 1 || group.key !== ''"
               type="button"
               class="flex items-center gap-2 pt-1 text-left"
-              :aria-expanded="!collapsed[group.address]"
-              @click="collapsed = { ...collapsed, [group.address]: !collapsed[group.address] }"
+              :aria-expanded="!collapsed[group.key]"
+              @click="collapsed = { ...collapsed, [group.key]: !collapsed[group.key] }"
             >
-              <span class="text-sm w-3 text-faint">{{ collapsed[group.address] ? '▸' : '▾' }}</span>
+              <span class="text-sm w-3 text-faint">{{ collapsed[group.key] ? '▸' : '▾' }}</span>
               <span class="studio-label">{{ group.address || 'HET RAPPORT' }}</span>
+              <Pill v-if="group.own" label="pand van het dossier" tone="blue" plain />
               <Pill
-                v-if="group.address"
-                :label="group.resolved ? 'adres herkend' : 'adres niet herkend'"
-                :tone="group.resolved ? 'green' : 'amber'"
+                v-else-if="group.key && !group.resolved"
+                label="adres niet herkend"
+                tone="amber"
+                plain
+              />
+              <Pill
+                v-else-if="group.key"
+                :label="group.state === 'confirmed' ? 'adres bevestigd' : 'adres te bevestigen'"
+                :tone="group.state === 'confirmed' ? 'green' : 'amber'"
                 plain
               />
               <span class="text-sm font-mono text-faint">{{ group.fields.length }} open</span>
             </button>
 
-            <div v-if="!collapsed[group.address]" class="grid grid-cols-2 gap-2">
+            <div v-if="!collapsed[group.key]" class="grid grid-cols-2 gap-2">
               <div
                 v-for="f in group.fields"
                 :key="f.id"
@@ -926,6 +1021,21 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                     hint="Waarom klopt het niet? Dit stuurt de volgende versie."
                   />
 
+                  <!-- The value is right, the address is not: move it (#333, 4).
+                       Takes effect at once; the group changes under your hands. -->
+                  <label v-if="moveTargets.length" class="col-span-2 flex flex-col gap-1">
+                    <span class="text-sm font-semibold uppercase tracking-wide text-label">Hoort bij adres</span>
+                    <select
+                      class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
+                      :value="f.addressId ?? ''"
+                      :disabled="busy === f.id"
+                      @change="moveField(f, ($event.target as HTMLSelectElement).value)"
+                    >
+                      <option value="" disabled>{{ f.addressText ? `niet herkend: ${f.addressText}` : 'het rapport als geheel' }}</option>
+                      <option v-for="t in moveTargets" :key="t.value" :value="t.value">{{ t.label }}</option>
+                    </select>
+                  </label>
+
                   <div class="col-span-2 flex flex-wrap gap-1.5">
                     <Button
                       variant="primary"
@@ -952,7 +1062,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             <ul class="flex flex-wrap gap-x-3 gap-y-1">
               <li v-for="f in agreed" :key="f.id" class="text-sm text-muted">
                 <span class="font-semibold text-body">{{ FIELD_LABEL[f.field] ?? f.field }}</span>
-                {{ displayValue(f) }}<template v-if="f.addressText"> · {{ f.addressText }}</template>
+                {{ displayValue(f) }}<template v-if="addressLine(f)"> · {{ addressLine(f) }}</template>
               </li>
             </ul>
           </Panel>
@@ -977,7 +1087,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                       v-if="decided[f.id] === 'corrected' && corrections[f.id]"
                     >
                       naar {{ labelValue(f.field, corrections[f.id]) }}</template
-                    ><template v-if="f.addressText"> · {{ f.addressText }}</template>
+                    ><template v-if="addressLine(f)"> · {{ addressLine(f) }}</template>
                   </span>
                 </span>
               </li>
