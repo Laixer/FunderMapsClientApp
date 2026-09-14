@@ -21,6 +21,7 @@ import type {
 } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { isPreviewableImageMime } from '@/services/documentFile'
+import { parseQuery, toQueueOpts } from '@/services/reviewExplorer'
 import {
   CHANNEL_LABEL,
   FIELD_LABEL,
@@ -599,15 +600,20 @@ function entryWhen(at: string): string {
 async function openNext(closedId: number, outcome: DossierOutcome) {
   toastSuccess(`Dossier #${closedId} ${OUTCOME_LABEL[outcome]}.`)
   try {
-    const next = (await api.dataops.queue({ limit: 5 })).find((r) => r.id !== closedId)
+    // Within the list the reviewer came from (Don, 2026-09-14): the filter
+    // and sort ride along in the URL, so "next" means the next one of the
+    // same kind, contractor or view -- not the oldest open dossier overall.
+    // Page and offset are dropped: the closed one has just left the list.
+    const opts = { ...toQueueOpts(parseQuery(route.query)), limit: 5, offset: 0 }
+    const next = (await api.dataops.queue(opts)).find((r) => r.id !== closedId)
     if (next) {
-      await router.push({ name: 'review-dossier', params: { id: next.id } })
+      await router.push({ name: 'review-dossier', params: { id: next.id }, query: route.query })
       return
     }
   } catch {
     // Falling back to the list is fine; the close itself already succeeded.
   }
-  await router.push({ name: 'review-queue' })
+  await router.push({ name: 'review-queue', query: route.query })
 }
 /** The source was not allowed to establish this field — a QuickScan quoting us back. */
 const isRefused = (f: IProposedField) => f.state === 'rejected'
@@ -702,7 +708,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
       <Pill v-else-if="nothingProposed" label="geen voorstellen" tone="red" plain />
       <Pill v-else :label="`${open.length} te beoordelen`" tone="blue" plain />
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint">{{ metaLine }}</p>
-      <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue' })" />
+      <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
     </header>
 
     <div
