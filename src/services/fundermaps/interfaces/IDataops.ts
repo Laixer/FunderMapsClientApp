@@ -123,6 +123,41 @@ export interface IDossierEntry {
   visibleToMelder: boolean
 }
 
+/**
+ * One address of a dossier, and what was decided about it (#333 part C).
+ *
+ * Three origins in one list: the pand the submission was filed under (`own`),
+ * the addresses the pipeline read off the document, and the ones a reviewer
+ * added by hand. `rejected` means "not part of this dossier" (Don's ruling),
+ * not "its values are wrong": the open values under it are superseded and it
+ * never becomes a sample. An address the Worker could not resolve has no id
+ * and no label; it can be re-linked or rejected, not confirmed.
+ */
+export interface IDossierAddress {
+  /** What the values are grouped by: the address id, or `text:<address_text>` when unresolved. */
+  key: string
+  addressId: string | null
+  buildingId: string | null
+  /** "Molenwal 15, 3421 CK Oudewater"; null when unresolved. */
+  label: string | null
+  /** The address as the document wrote it. */
+  addressText: string | null
+  /** pipeline · reviewer · melder */
+  source: 'pipeline' | 'reviewer' | 'melder'
+  /** pending · confirmed · rejected */
+  state: 'pending' | 'confirmed' | 'rejected'
+  /** The pand the dossier was filed under. Shown first; changed with `setBuilding`, never rejected. */
+  own: boolean
+  /** Values under it still waiting for a verdict. */
+  open: number
+  /** Values under it that are not superseded. */
+  total: number
+  note: string | null
+  decidedAt: string | null
+}
+
+export type AddressVerdictOutcome = 'confirmed' | 'rejected' | 'pending'
+
 export interface IReviewDossier {
   dossier: {
     id: number
@@ -143,6 +178,8 @@ export interface IReviewDossier {
   artifacts: IReviewArtifact[]
   fields: IProposedField[]
   entries: IDossierEntry[]
+  /** The addresses this dossier is about, own pand first (#333 part C). */
+  addresses: IDossierAddress[]
 }
 
 export type VerdictOutcome = 'confirmed' | 'corrected' | 'rejected'
