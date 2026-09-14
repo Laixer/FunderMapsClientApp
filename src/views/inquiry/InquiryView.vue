@@ -176,6 +176,19 @@ const people = computed(() => ({
 
 /* ------------------------------------------------------------------ panels */
 
+/**
+ * How the source dossier is named on the page: the meldcode when the melder
+ * got one, else the loket melding number (#340 imports carry it in the
+ * subject, "8VH1LY · 2026/04/21 · Overig"), else the bare id.
+ */
+const dossierLabel = computed(() => {
+  const d = inquiry.value?.dossier
+  if (!d) return ''
+  if (d.reference) return d.reference
+  if (d.externalRef?.startsWith('loket:') && d.subject) return `#${d.id} (loket ${d.subject.split(' · ')[0]})`
+  return `#${d.id}`
+})
+
 const metaLine = computed(() => {
   const row = inquiry.value
   if (!row) return ''
@@ -397,7 +410,7 @@ useActionShortcuts(() => {
                 :to="{ name: 'review-dossier', params: { id: inquiry.dossier.id } }"
                 class="font-semibold text-green-ink underline underline-offset-2"
               >
-                {{ inquiry.dossier.reference ?? `#${inquiry.dossier.id}` }}
+                {{ dossierLabel }}
               </RouterLink>
               — het document, de citaten en het verloop staan daar.
             </p>
