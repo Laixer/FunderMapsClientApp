@@ -94,6 +94,18 @@ export async function verdict(body: IVerdict) {
   })) as { ok: boolean }
 }
 
+/**
+ * A value the reviewer saw and the model did not: lands as a confirmed proposal
+ * on the dossier with a "human added" finding, so the commit takes it and the
+ * pipeline learns it missed something (Don's casus 2, 2026-09-15).
+ */
+export async function addValue(dossierId: number, body: { field: string; value: string; addressId?: string | null; note?: string | null }) {
+  return (await post({
+    endpoint: `/dataops/dossier/${dossierId}/value`,
+    body: { ...body } as unknown as Record<string, unknown>,
+  })) as { ok: boolean; fieldId: number }
+}
+
 /** Close many at once — one transaction server-side, so 30 logos never half-close. */
 export async function closeMany(ids: number[], body: IDossierOutcome) {
   return (await post({
@@ -237,4 +249,5 @@ export default {
   addressAdd,
   addressRelink,
   setBuilding,
+  addValue,
 }
