@@ -311,7 +311,8 @@ export interface SavedView {
 /** The questions a reviewer arrives with. */
 export const BUILTIN_VIEWS: readonly SavedView[] = [
   { key: 'alles', label: 'Alles', query: {}, builtin: true },
-  { key: 'voorstellen', label: 'Met voorstellen', query: { state: ['proposals'] }, builtin: true },
+  // What came in through melden.fundermaps.com, newest first (Don, 2026-09-15).
+  { key: 'meldingen', label: 'Meldingen', query: { channel: ['upload'], sort: 'received_at', order: 'desc' }, builtin: true },
   { key: 'niets', label: 'Niets gevonden', query: { state: ['empty'] }, builtin: true },
   { key: 'ongelezen', label: 'Nog niet gelezen', query: { state: ['unread'] }, builtin: true },
   { key: 'te-lang', label: 'Te lang open', query: { overdue: true }, builtin: true },
