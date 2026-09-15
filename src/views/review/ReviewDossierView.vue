@@ -423,6 +423,53 @@ watch(
   },
   { immediate: true, deep: true },
 )
+/**
+ * The melding as the melder wrote it (#350): topic, the answers per topic, the
+ * toelichting, NAW. All of it was on the dossier; the screen never showed it.
+ */
+const ANSWER_LABEL: Record<string, string> = {
+  foundationType: 'Funderingstype volgens melder',
+  recoveryType: 'Soort herstel',
+  riskDirection: 'Risico volgens melder',
+  riskClass: 'Risicoklasse volgens melder',
+  registration: 'Registratienummer',
+}
+const REPORTER_LABEL: Record<string, string> = {
+  resident: 'bewoner',
+  owner: 'eigenaar',
+  broker: 'makelaar',
+  'makelaar-taxateur': 'makelaar / taxateur',
+  company: 'bedrijf',
+  municipality: 'gemeente',
+  other: 'anders',
+}
+const meldingAnswers = computed(() => {
+  const a = data.value?.dossier.payload?.answers
+  if (!a || typeof a !== 'object') return [] as { label: string; value: string }[]
+  return Object.entries(a)
+    .filter(([, v]) => v !== null && v !== undefined && v !== '')
+    .map(([k, v]) => ({ label: ANSWER_LABEL[k] ?? k, value: Array.isArray(v) ? v.join(', ') : String(v) }))
+})
+const meldingNaw = computed(() => {
+  const s = data.value?.dossier.submitter
+  if (!s) return [] as { label: string; value: string }[]
+  const rows: { label: string; value: string | null | undefined }[] = [
+    { label: 'Naam', value: s.name },
+    { label: 'E-mail', value: s.email },
+    { label: 'Telefoon', value: s.phone },
+    { label: 'Organisatie', value: s.company },
+    { label: 'Melder', value: s.type ? (REPORTER_LABEL[s.type] ?? s.type) + (s.isOwner ? ', eigenaar' : '') : s.isOwner ? 'eigenaar' : null },
+  ]
+  return rows.filter((r): r is { label: string; value: string } => !!r.value)
+})
+const hasMelding = computed(() => !!(data.value?.dossier.payload?.topicLabel || data.value?.dossier.payload?.note || meldingAnswers.value.length || meldingNaw.value.length))
+/** Which sent mails are unfolded in the verloop (#350). */
+const shownMail = ref<Record<number, boolean>>({})
+const mailOf = (e: { body?: Record<string, unknown> | null }) => {
+  const m = e.body?.mail as { subject?: string; text?: string; to?: string } | undefined
+  return m && m.text ? m : null
+}
+
 /** The soort the commit will use: what the reviewer chose, else what the label derives. */
 const effectiveCommitType = computed(() => {
   if (commitType.value) return commitType.value
@@ -1099,6 +1146,18 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
           <!-- The dossier's timeline: everything that happened, in order. The
                melder's status page shows the visible subset of these same rows,
                so reviewer and melder can never see two different stories. -->
+          <!-- The melding as the melder wrote it (#350): what they said, what they
+               filled in, who they are. Read-only; the answers are the melder's claim. -->
+          <Panel v-if="!loading && data && hasMelding" caption="MELDING">
+            <div class="flex flex-col gap-2 text-md">
+              <p v-if="data.dossier.payload?.topicLabel"><span class="text-sm mr-1.5 font-semibold uppercase text-label">Onderwerp</span><span class="text-muted">{{ data.dossier.payload.topicLabel }}</span></p>
+              <p v-for="a in meldingAnswers" :key="a.label"><span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ a.label }}</span><span class="text-muted">{{ a.value }}</span></p>
+              <p v-if="data.dossier.payload?.note" class="whitespace-pre-wrap rounded-lg border border-line bg-surface px-3 py-2 text-muted">{{ data.dossier.payload.note }}</p>
+              <p v-if="meldingNaw.length" class="text-sm text-faint">
+                <template v-for="(n, i) in meldingNaw" :key="n.label"><span v-if="i">&nbsp;·&nbsp;</span>{{ n.label }}: <span class="text-muted">{{ n.value }}</span></template>
+              </p>
+            </div>
+          </Panel>
           <Panel v-if="!loading && data" caption="VERLOOP" :meta="String(entries.length)">
             <ul class="flex flex-col gap-1.5">
               <li v-for="e in entries" :key="e.id" class="text-md flex gap-2.5">
@@ -1106,6 +1165,15 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                 <span class="min-w-0">
                   <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ KIND_LABEL[e.kind] ?? e.kind }}</span>
                   <span class="break-words text-muted">{{ e.text }}</span>
+                  <!-- Our own mail, the same words the melder got (#350). -->
+                  <template v-if="mailOf(e)">
+                    <button type="button" class="text-sm ml-1.5 text-green-ink underline underline-offset-2" @click="shownMail = { ...shownMail, [e.id]: !shownMail[e.id] }">
+                      {{ shownMail[e.id] ? 'verberg mail' : 'toon mail' }}
+                    </button>
+                    <div v-if="shownMail[e.id]" class="mt-1.5 whitespace-pre-wrap rounded-lg border border-line bg-surface px-3 py-2 text-sm text-muted">
+                      <div class="mb-1 font-semibold text-ink">{{ mailOf(e)?.subject }}</div>{{ mailOf(e)?.text }}
+                    </div>
+                  </template>
                 </span>
               </li>
             </ul>

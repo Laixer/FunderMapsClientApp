@@ -122,6 +122,8 @@ export interface IDossierEntry {
   actor: string | null
   /** The human-readable line, Dutch. */
   text: string
+  /** Structured detail; a sent mail carries body.mail { kind, to, subject, text } (#350). */
+  body?: Record<string, unknown> | null
   visibleToMelder: boolean
 }
 
@@ -177,7 +179,27 @@ export interface IReviewDossier {
     outcomeAt?: string | null
     outcomeNote?: string | null
     /** Who sent it in. Bulk drops carry none — then a question cannot be mailed. */
-    submitter: { name?: string | null; email?: string | null } | null
+    submitter: {
+      name?: string | null
+      email?: string | null
+      phone?: string | null
+      company?: string | null
+      /** resident · owner · broker · … as the form asked it. */
+      type?: string | null
+      isOwner?: boolean | null
+    } | null
+    /**
+     * What the form recorded (#350): topic, the answers per topic, the
+     * melder's own toelichting. Loket imports carry their own keys here.
+     */
+    payload?: {
+      topic?: string | null
+      topicLabel?: string | null
+      answers?: Record<string, unknown> | null
+      note?: string | null
+      source?: string | null
+      [key: string]: unknown
+    } | null
   }
   artifacts: IReviewArtifact[]
   fields: IProposedField[]
