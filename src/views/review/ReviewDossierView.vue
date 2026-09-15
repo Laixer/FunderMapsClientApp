@@ -972,12 +972,8 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                     :disabled="busy === f.id || isRefused(f)"
                     @click="decide(f, 'confirmed')"
                   />
-                  <Button
-                    variant="danger"
-                    label="Afkeuren"
-                    :disabled="busy === f.id"
-                    @click="decide(f, 'rejected')"
-                  />
+                  <!-- No bare Afkeuren here (Don, #348): a rejection is either a
+                       correction or a reason, both live in the Aanpassen panel. -->
                   <Button
                     :variant="editing[f.id] ? 'secondary' : 'ghost'"
                     :label="editing[f.id] ? 'Sluiten' : 'Aanpassen…'"
@@ -1052,7 +1048,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                     <Button
                       variant="danger"
                       label="Afkeuren met toelichting"
-                      :disabled="busy === f.id"
+                      :disabled="busy === f.id || !notes[f.id]?.trim()"
                       @click="decide(f, 'rejected')"
                     />
                   </div>
