@@ -9,7 +9,7 @@ import type {
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
-export type QueueState = 'unread' | 'empty' | 'proposals'
+export type QueueState = 'unread' | 'empty' | 'proposals' | 'replied'
 /** How a dossier was closed. Asking for one lists the closed instead of the desk. */
 export type QueueOutcome = 'rejected' | 'duplicate' | 'no_data' | 'accepted'
 export type QueueSort = 'received_at' | 'outcome_at' | 'open' | 'files' | 'subject' | 'id'

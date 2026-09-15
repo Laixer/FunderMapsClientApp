@@ -90,6 +90,7 @@ export const CHANNEL_OPTIONS: readonly { value: QueueChannel; label: string }[] 
 export const STATE_OPTIONS: readonly { value: QueueState; label: string }[] = [
   { value: 'proposals', label: 'Met voorstellen' },
   { value: 'empty', label: 'Niets gevonden' },
+  { value: 'replied', label: 'Reactie ontvangen' },
   { value: 'unread', label: 'Nog niet gelezen' },
 ]
 
@@ -313,6 +314,8 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
   { key: 'alles', label: 'Alles', query: {}, builtin: true },
   { key: 'voorstellen', label: 'Met voorstellen', query: { state: ['proposals'] }, builtin: true },
   { key: 'niets', label: 'Niets gevonden', query: { state: ['empty'] }, builtin: true },
+  // The melder had the last word, open or closed; spans both (API state=replied).
+  { key: 'reacties', label: 'Reactie ontvangen', query: { state: ['replied'] }, builtin: true },
   { key: 'ongelezen', label: 'Nog niet gelezen', query: { state: ['unread'] }, builtin: true },
   { key: 'te-lang', label: 'Te lang open', query: { overdue: true }, builtin: true },
   { key: 'studio', label: 'Studio-uploads', query: { channel: ['invoer_app'] }, builtin: true },
