@@ -29,6 +29,7 @@ import {
   FOUNDATION_TYPE_CODE_OPTIONS,
   INQUIRY_TYPE_CODE_OPTIONS,
   OUTCOME_LABEL,
+  VALUE_LABEL,
   VERDICT_LABEL,
   derivedInquiryType,
   displayValue as labelValue,
@@ -468,6 +469,64 @@ const shownMail = ref<Record<number, boolean>>({})
 const mailOf = (e: { body?: Record<string, unknown> | null }) => {
   const m = e.body?.mail as { subject?: string; text?: string; to?: string } | undefined
   return m && m.text ? m : null
+}
+
+/**
+ * Waarde toevoegen (Don's casus 2, 2026-09-15): a value the reviewer sees and
+ * the model did not. Lands as a confirmed proposal on the dossier with a
+ * "human added" finding, so the commit takes it and the pipeline learns.
+ * Sample fields only; soort/datum/uitvoerder have the close panel.
+ */
+const ADD_FIELDS = [
+  'foundation_type', 'built_year', 'foundation_quality', 'wood_type', 'wood_level', 'wood_encroachment',
+  'wood_penetration_depth', 'foundation_depth', 'groundlevel', 'groundwater_level', 'pile_head_level',
+  'pile_tip_level', 'pile_diameter_top', 'pile_diameter_bottom', 'pile_distance_length',
+  'concrete_charger_length', 'damage_cause', 'damage_characteristics', 'crack_facade_front_type',
+  'crack_facade_back_type', 'crack_indoor_type', 'skewed_parallel', 'skewed_perpendicular',
+  'enforcement_term', 'recovery_advised', 'recovery_note', 'follow_up_note',
+] as const
+const ADD_FIELD_OPTIONS = ADD_FIELDS.map((f) => ({ value: f, label: FIELD_LABEL[f] ?? f }))
+const addOpen = ref(false)
+const addField = ref<string | null>(null)
+const addValue = ref('')
+const addAddress = ref<string | null>(null)
+const addNote = ref('')
+const addBusy = ref(false)
+const addValueOptions = computed(() => {
+  const map = addField.value ? VALUE_LABEL[addField.value] : undefined
+  return map ? Object.entries(map).map(([value, label]) => ({ value, label })) : null
+})
+const addValueKind = computed(() => {
+  if (!addField.value) return 'text'
+  if (addValueOptions.value) return 'select'
+  if (FIELD_UNIT[addField.value] || ['built_year', 'skewed_parallel', 'skewed_perpendicular', 'foundation_depth', 'groundlevel'].includes(addField.value)) return 'number'
+  return 'text'
+})
+const addAddressOptions = computed(() =>
+  (data.value?.addresses ?? [])
+    .filter((a) => a.addressId)
+    .map((a) => ({ value: a.addressId!, label: (a.label ?? a.addressText ?? a.addressId!) + (a.own ? ' (pand van de melding)' : '') })),
+)
+async function addManualValue() {
+  if (!addField.value || !addValue.value.trim() || addBusy.value) return
+  addBusy.value = true
+  try {
+    await api.dataops.addValue(Number(route.params.id), {
+      field: addField.value,
+      value: addValue.value.trim(),
+      addressId: addAddress.value || null,
+      note: addNote.value.trim() || null,
+    })
+    toastSuccess(`${FIELD_LABEL[addField.value] ?? addField.value} toegevoegd.`)
+    addValue.value = ''
+    addNote.value = ''
+    addOpen.value = false
+    await load()
+  } catch (e) {
+    error.value = describeFailure(e, 'De waarde kon niet worden toegevoegd.')
+  } finally {
+    addBusy.value = false
+  }
 }
 
 /** The soort the commit will use: what the reviewer chose, else what the label derives. */
@@ -1116,6 +1175,32 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             </ul>
           </Panel>
 
+          <!-- What the person sees and the model did not: a value typed here is a
+               confirmed proposal with a "human added" finding (Don's casus 2). -->
+          <Panel v-if="!loading && data && !closed && !data.dossier.outcome && !isAudit" caption="WAARDE TOEVOEGEN">
+            <div v-if="!addOpen" class="flex items-center justify-between gap-3">
+              <p class="text-sm text-muted">Ziet u iets in het document dat hierboven niet staat? Voeg de waarde toe; het model leert ervan.</p>
+              <Button label="Waarde toevoegen" variant="secondary" @click="addOpen = true" />
+            </div>
+            <div v-else class="grid grid-cols-2 gap-x-3 gap-y-2">
+              <Field v-model="addField" kind="select" label="Gegeven" :options="ADD_FIELD_OPTIONS" empty-label="Kies een gegeven" />
+              <Field
+                v-if="addValueKind === 'select'"
+                v-model="addValue"
+                kind="select"
+                label="Waarde"
+                :options="addValueOptions ?? []"
+                empty-label="Kies een waarde"
+              />
+              <Field v-else v-model="addValue" :kind="addValueKind" label="Waarde" :hint="addField && FIELD_UNIT[addField] ? FIELD_UNIT[addField] : undefined" />
+              <Field v-model="addAddress" kind="select" label="Adres" :options="addAddressOptions" empty-label="Pand van de melding" />
+              <Field v-model="addNote" kind="text" label="Toelichting (optioneel)" />
+              <div class="col-span-2 flex justify-end gap-2">
+                <Button label="Annuleren" variant="secondary" :disabled="addBusy" @click="addOpen = false" />
+                <Button label="Toevoegen" variant="primary" :disabled="addBusy || !addField || !addValue.trim()" @click="addManualValue" />
+              </div>
+            </div>
+          </Panel>
           <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settled.length)">
             <ul class="flex flex-col gap-2">
               <li
