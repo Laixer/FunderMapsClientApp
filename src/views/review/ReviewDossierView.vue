@@ -1190,12 +1190,14 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             </div>
             <!-- Only when there is somebody to mail: bulk drops carry no melder,
                  and a permanently grey box on 99% of the queue is noise. -->
-            <div v-if="melderEmail && !closed && !data?.dossier.outcome" class="mt-2 flex gap-2">
+            <!-- Also after closure: the melder writes back after the afronding and
+                 the answer must come from here, without reopening (Don, 2026-09-15). -->
+            <div v-if="melderEmail" class="mt-2 flex gap-2">
               <input
                 v-model="questionText"
                 type="text"
                 class="studio-control flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
-                :placeholder="`Vraag aan de melder (gemaild naar ${melderEmail})`"
+                :placeholder="`${data?.dossier.outcome ? 'Reactie' : 'Vraag'} aan de melder (gemaild naar ${melderEmail})`"
                 aria-label="Vraag aan de melder"
                 @keydown.enter="askQuestion"
               />
