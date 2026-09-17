@@ -35,11 +35,9 @@ import {
   type SortField,
 } from '@/services/explorer'
 import { inquiryTypeLabel } from '@/services/inquiryEnums'
-import { countFilledSampleFields } from '@/services/sampleFields'
 import { toastError } from '@/services/toast'
 import { formatDateShort } from '@/utils/date'
 import { useRowKeyboard } from '@/services/useRowKeyboard'
-import { useAddressStore } from '@/stores/address'
 import { useSessionStore } from '@/stores/session'
 
 /**
@@ -58,7 +56,6 @@ import { useSessionStore } from '@/stores/session'
  */
 const route = useRoute()
 const router = useRouter()
-const addressStore = useAddressStore()
 const { currentUser } = storeToRefs(useSessionStore())
 
 /* ------------------------------------------------------------- query state */
@@ -252,21 +249,14 @@ async function select(row: IInquiry) {
   selectedFilled.value = null
 
   try {
-    const samples = await api.inquirySample.listAll(row.id)
+    // One call. This used to page through every sample of the dossier (75
+    // columns, 500 a page; the largest carries 49,753) and then resolve each
+    // address through the geocoder just to count and draw pins.
+    const summary = await api.inquirySample.getSummary(row.id)
     if (token !== selectionToken) return
-    selectedAddressCount.value = samples.length
-    selectedFilled.value = samples.reduce((n, s) => n + countFilledSampleFields(s), 0)
-
-    await addressStore.ensureMany(samples.map((s) => s.address))
-    if (token !== selectionToken) return
-    selectedPins.value = samples.flatMap((s) => {
-      const address = addressStore.cache[s.address]
-      // Coordinates come back null when the linked building has no geometry;
-      // those addresses simply do not get a pin.
-      return address?.latitude != null && address.longitude != null
-        ? [{ id: s.id, lat: address.latitude, lng: address.longitude }]
-        : []
-    })
+    selectedAddressCount.value = summary.count
+    selectedFilled.value = summary.filled
+    selectedPins.value = summary.pins.map((p) => ({ id: p.id, lat: p.latitude, lng: p.longitude }))
   } catch {
     // The inspector's extras are enrichment. Losing them costs the map and two
     // counts; the summary and the actions still work.

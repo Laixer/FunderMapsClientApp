@@ -84,3 +84,16 @@ export type IInquirySampleInput = Omit<
   IInquirySample,
   'id' | 'inquiry' | 'building' | 'createDate' | 'updateDate' | 'deleteDate'
 >
+
+/**
+ * What the explorer's inspector needs for one dossier, computed server-side
+ * (`GET /inquiry/:id/sample/summary`). Pins are capped at 2,000 by the API;
+ * `pinsTruncated` says when the dossier has more.
+ */
+export interface ISampleSummary {
+  count: number
+  /** Sum over samples of filled form fields, note included: what `countFilledSampleFields` would add up. */
+  filled: number
+  pins: { id: number; address: string; latitude: number; longitude: number }[]
+  pinsTruncated: boolean
+}
