@@ -1,5 +1,5 @@
 import { get, post, put, del } from '../client'
-import type { IInquirySample, IInquirySampleInput } from '../interfaces/IInquirySample'
+import type { IInquirySample, IInquirySampleInput, ISampleSummary } from '../interfaces/IInquirySample'
 
 interface IStats {
   count: number
@@ -42,6 +42,11 @@ export async function getCount(inquiryId: number) {
   return (await get({ endpoint: `/inquiry/${inquiryId}/sample/stats` })) as IStats
 }
 
+/** Count, filled-field total and pins in one call; replaces `listAll` for the inspector. */
+export async function getSummary(inquiryId: number) {
+  return (await get({ endpoint: `/inquiry/${inquiryId}/sample/summary` })) as ISampleSummary
+}
+
 export async function getById(inquiryId: number, sampleId: number) {
   return (await get({
     endpoint: `/inquiry/${inquiryId}/sample/${sampleId}`,
@@ -70,4 +75,4 @@ export async function remove(inquiryId: number, sampleId: number) {
   await del({ endpoint: `/inquiry/${inquiryId}/sample/${sampleId}` })
 }
 
-export default { list, listAll, getCount, getById, create, update, remove }
+export default { list, listAll, getCount, getSummary, getById, create, update, remove }
