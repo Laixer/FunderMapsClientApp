@@ -5,10 +5,12 @@ import api from '@/services/fundermaps'
 import type { IAddress } from '@/services/fundermaps/interfaces/IAddress'
 
 /**
- * Address cache. Sample rows ship a `gfm-` id; the human-readable address
- * comes from /api/geocoder/address/{id}. Multiple views (InquiryView,
- * Step2, Step3) all need this for the same ids during one session — cache
- * once.
+ * Address cache, keyed by whatever id the caller has: the BAG
+ * nummeraanduiding (`external_id`, what we send), the `gfm-` id that sample
+ * rows still carry (Worker #158), or a pand id for recovery samples. The
+ * human-readable address comes from /api/geocoder/address/{id}, which accepts
+ * all three. Multiple views (InquiryView, Step2, Step3) all need this for the
+ * same ids during one session — cache once.
  */
 export const useAddressStore = defineStore('address', () => {
   const cache = ref<Record<string, IAddress>>({})

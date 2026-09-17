@@ -98,17 +98,20 @@ function verdict(a: IDossierAddress, outcome: AddressVerdictOutcome) {
 }
 
 /** Move every value of this row to the picked address (the 59 vs 59A case, or an unresolved text). */
+// A freshly picked address goes to the API as its BAG nummeraanduiding
+// (`external_id`), never as the internal gfm- id (Worker #158). Ids that came
+// from the API (`a.addressId`) are echoed as they are; the API accepts both.
 function relink(a: IDossierAddress, target: IAddress) {
   const from = a.addressId ? { addressId: a.addressId } : { addressText: a.addressText ?? '' }
-  return run(a.key, true, () => api.dataops.addressRelink(props.dossierId, { to: target.id, ...from }))
+  return run(a.key, true, () => api.dataops.addressRelink(props.dossierId, { to: target.external_id, ...from }))
 }
 
 function add(target: IAddress) {
-  return run('add', false, () => api.dataops.addressAdd(props.dossierId, { addressId: target.id }))
+  return run('add', false, () => api.dataops.addressAdd(props.dossierId, { addressId: target.external_id }))
 }
 
 function setBuilding(target: IAddress) {
-  return run('own', false, () => api.dataops.setBuilding(props.dossierId, target.id))
+  return run('own', false, () => api.dataops.setBuilding(props.dossierId, target.external_id))
 }
 
 /** One line for an address, for the picker's header. */

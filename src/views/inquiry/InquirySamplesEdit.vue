@@ -242,14 +242,19 @@ async function handlePick(address: IAddress) {
   saving.value = true
 
   // Cache the resolved address right away so the new sample renders with a
-  // human-readable label as soon as it shows up in the list.
+  // human-readable label as soon as it shows up in the list. Under both keys:
+  // the sample the API returns still carries the internal gfm- id until the
+  // address table is rekeyed (Worker #158).
   addressStore.cache[address.id] = address
+  addressStore.cache[address.external_id] = address
 
   try {
     // Prefill from the currently-selected sample so nobody re-types the shared
     // fields across a terrace of near-identical houses.
+    // The address goes over the wire as its BAG nummeraanduiding; the API
+    // resolves it. Never send the gfm- id for a new pick.
     const source = selected.value
-    const payload = source ? cloneInputFrom(source, address.id) : emptyInput(address.id)
+    const payload = source ? cloneInputFrom(source, address.external_id) : emptyInput(address.external_id)
     const created = await api.inquirySample.create(inquiryId.value, payload)
     // Record what the prefill carried across, so the form can show which values
     // describe this address and which merely rode along.

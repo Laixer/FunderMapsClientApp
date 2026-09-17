@@ -2,9 +2,12 @@
  * Address shape returned by /api/geocoder/address/:id (snake_case from
  * the geocoder.address table).
  *
- * `id` is the internal `gfm-` identifier. `external_id` is the BAG
- * NUMMERAANDUIDING. `building_id` is the BAG PAND id (used for sample
- * creation — the sample resolves to its building via this).
+ * `external_id` is the BAG NUMMERAANDUIDING and the id to send to the API
+ * for a picked address. `id` is the internal `gfm-` surrogate; samples and
+ * dossier rows still carry it, so it is echoed where the API handed it out,
+ * but never sent for a new pick (its retirement is Worker #158).
+ * `building_id` is the BAG PAND id (used for recovery samples, which key on
+ * the pand).
  *
  * `latitude` / `longitude` are the centroid of the linked building
  * footprint (WGS84). Both are null when the building row is missing
