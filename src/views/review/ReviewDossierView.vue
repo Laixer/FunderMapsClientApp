@@ -35,6 +35,7 @@ import {
   displayValue as labelValue,
   formatDate,
 } from '@/services/reviewLabels'
+import { CLOSE_TEMPLATES, CLOSE_TEMPLATE_OPTIONS, OUTCOME_HINT } from '@/services/closeTemplates'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
@@ -80,6 +81,22 @@ const collapsed = ref<Record<string, boolean>>({})
 
 /** Closing the dossier as a whole: the note, and whether the request is out. */
 const closeNote = ref('')
+/**
+ * A standard answer picked for the note (Don, 2026-09-17: the reasons repeat,
+ * and the note is the mail the melder gets). Picking one fills the note when
+ * it is empty or still holds the previous pick; hand-typed text is never
+ * overwritten. The outcome stays the reviewer's click.
+ */
+const closeTemplate = ref<string | null>(null)
+watch(closeTemplate, (v, prev) => {
+  const next = CLOSE_TEMPLATES.find((t) => t.value === v)
+  const prevText = CLOSE_TEMPLATES.find((t) => t.value === prev)?.text
+  if (next && (!closeNote.value.trim() || closeNote.value === prevText)) closeNote.value = next.text
+})
+const closeTemplateHint = computed(() => {
+  const t = CLOSE_TEMPLATES.find((x) => x.value === closeTemplate.value)
+  return t ? `Hoort bij “${OUTCOME_HINT[t.outcome]}”; pas de tekst aan waar nodig.` : 'Vult de reden met een vaste tekst; daarna aanpassen waar nodig.'
+})
 const closing = ref(false)
 const closed = ref<DossierOutcome | null>(null)
 /** The rapportage a commit made, for a link that outlives the toast (Don #321 §6). */
@@ -97,6 +114,7 @@ async function load() {
   error.value = null
   data.value = null
   busy.value = null
+  closeTemplate.value = null
   decided.value = {}
   notes.value = {}
   corrections.value = {}
@@ -737,6 +755,12 @@ const metaLine = computed(() => {
 
 const artifacts = computed(() => data.value?.artifacts ?? [])
 const current = computed(() => artifacts.value[shown.value] ?? null)
+/**
+ * No document at all: the melder asked something, and answering is the whole
+ * job. The screen drops the review furniture and puts the question where the
+ * document would be (Don, 2026-09-17: "half the closures had nothing to review").
+ */
+const answerMode = computed(() => !!data.value && !isAudit.value && artifacts.value.length === 0)
 /** An image the browser draws inline. */
 const isImage = (mime: string | null) => isPreviewableImageMime(mime)
 /**
@@ -876,6 +900,15 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
             class="h-full w-full border-0"
             :title="current.originalFilename ?? 'Brondocument'"
           />
+          <div v-else-if="answerMode" class="flex h-full flex-col gap-3 overflow-auto p-6">
+            <p class="text-sm font-semibold uppercase text-label">Vraag van de melder</p>
+            <p v-if="data?.dossier.payload?.topicLabel" class="text-lg font-bold text-ink">{{ data.dossier.payload.topicLabel }}</p>
+            <p v-for="a in meldingAnswers" :key="a.label" class="text-md"><span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ a.label }}</span><span class="text-muted">{{ a.value }}</span></p>
+            <p v-if="data?.dossier.payload?.note" class="text-md whitespace-pre-wrap rounded-lg border border-line bg-surface px-4 py-3 text-body">{{ data.dossier.payload.note }}</p>
+            <p v-else class="text-md text-muted">Geen toelichting meegestuurd.</p>
+            <p v-if="meldingNaw.length" class="text-sm text-faint"><template v-for="(n, i) in meldingNaw" :key="n.label"><span v-if="i">&nbsp;·&nbsp;</span>{{ n.label }}: <span class="text-muted">{{ n.value }}</span></template></p>
+            <p class="text-sm text-muted">Geen document bij dit dossier: kies rechtsonder een standaardantwoord of schrijf er een, en sluit het dossier.</p>
+          </div>
           <EmptyState v-else>Geen document bij dit dossier.</EmptyState>
         </div>
 
@@ -1177,7 +1210,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
 
           <!-- What the person sees and the model did not: a value typed here is a
                confirmed proposal with a "human added" finding (Don's casus 2). -->
-          <Panel v-if="!loading && data && !closed && !data.dossier.outcome && !isAudit" caption="WAARDE TOEVOEGEN">
+          <Panel v-if="!loading && data && !closed && !data.dossier.outcome && !isAudit && !answerMode" caption="WAARDE TOEVOEGEN">
             <div v-if="!addOpen" class="flex items-center justify-between gap-3">
               <p class="text-sm text-muted">Ziet u iets in het document dat hierboven niet staat? Voeg de waarde toe; het model leert ervan.</p>
               <Button label="Waarde toevoegen" variant="secondary" @click="addOpen = true" />
@@ -1303,7 +1336,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
           v-if="!loading && data && !closed && !data.dossier.outcome"
           class="shrink-0 border-t border-line bg-surface p-4"
         >
-          <Panel caption="DOSSIER SLUITEN">
+          <Panel :caption="answerMode ? 'BEANTWOORDEN' : 'DOSSIER SLUITEN'">
             <div class="flex flex-col gap-3">
               <!-- What "Overnemen als rapportage" writes on the inquiry itself,
                    as controls: prefilled with what was taken over, sent with
@@ -1390,13 +1423,21 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
               </p>
 
               <Field
+                v-model="closeTemplate"
+                kind="select"
+                label="Standaardantwoord"
+                :options="CLOSE_TEMPLATE_OPTIONS"
+                empty-label="Geen, zelf schrijven"
+                :hint="closeTemplateHint"
+              />
+              <Field
                 id="review-close-note"
                 v-model="closeNote"
                 kind="textarea"
-                :rows="1"
+                :rows="answerMode ? 4 : 1"
                 label="Reden"
                 :error="noteError"
-                hint="Verplicht bij afwijzen of duplicaat. Kort is prima: ‘foto van een kat’."
+                hint="Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen of duplicaat."
               />
             </div>
           </Panel>
