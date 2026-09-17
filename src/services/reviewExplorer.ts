@@ -92,6 +92,7 @@ export const STATE_OPTIONS: readonly { value: QueueState; label: string }[] = [
   { value: 'empty', label: 'Niets gevonden' },
   { value: 'replied', label: 'Reactie ontvangen' },
   { value: 'unread', label: 'Nog niet gelezen' },
+  { value: 'question', label: 'Vraag zonder document' },
 ]
 
 export const BUILDING_OPTIONS: readonly { value: 'resolved' | 'unresolved'; label: string }[] = [
@@ -315,6 +316,8 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
   // What came in through melden.fundermaps.com, newest first (Don, 2026-09-15).
   { key: 'meldingen', label: 'Meldingen', query: { channel: ['upload'], sort: 'received_at', order: 'desc' }, builtin: true },
   { key: 'niets', label: 'Niets gevonden', query: { state: ['empty'] }, builtin: true },
+  // No document at all: the melder asked something; the answer-only screen handles these (Don, 2026-09-17).
+  { key: 'vragen', label: 'Vragen', query: { channel: ['upload'], state: ['question'], sort: 'received_at', order: 'desc' }, builtin: true },
   // The melder had the last word, open or closed; spans both (API state=replied).
   { key: 'reacties', label: 'Reactie ontvangen', query: { state: ['replied'] }, builtin: true },
   { key: 'ongelezen', label: 'Nog niet gelezen', query: { state: ['unread'] }, builtin: true },
