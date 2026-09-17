@@ -40,6 +40,7 @@ import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
 import { toastInfo, toastSuccess } from '@/services/toast'
+import { splitQuoted, tidyMailText } from '@/services/mailQuote'
 
 /**
  * Judging one submission.
@@ -488,6 +489,24 @@ const mailOf = (e: { body?: Record<string, unknown> | null }) => {
   const m = e.body?.mail as { subject?: string; text?: string; to?: string } | undefined
   return m && m.text ? m : null
 }
+/**
+ * #356 (Don, dossier 5145): melder replies and reviewer questions are mails too,
+ * so they get the same card as our automated mails. The melder's quoted history
+ * is folded away by default (Don: "yes", one click to show). When the API starts
+ * storing body.mail on these entries, subject and recipient show up by themselves.
+ */
+const MAIL_KINDS = new Set(['reply', 'question'])
+const shownQuote = ref<Record<number, boolean>>({})
+const mailCards = computed(() => {
+  const out: Record<number, { own: string; quoted: string; subject?: string; attachments: number }> = {}
+  for (const e of data.value?.entries ?? []) {
+    if (!MAIL_KINDS.has(e.kind)) continue
+    const mail = mailOf(e)
+    const { own, quoted } = splitQuoted(mail?.text ?? e.text)
+    out[e.id] = { own: tidyMailText(own), quoted: tidyMailText(quoted), subject: mail?.subject, attachments: Number(e.body?.attachments ?? 0) || 0 }
+  }
+  return out
+})
 
 /**
  * Waarde toevoegen (Don's casus 2, 2026-09-15): a value the reviewer sees and
@@ -1312,9 +1331,26 @@ async function reopen(f: IProposedField) {
                 <span class="text-sm w-[84px] shrink-0 font-mono text-faint">{{ entryWhen(e.at) }}</span>
                 <span class="min-w-0">
                   <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ KIND_LABEL[e.kind] ?? e.kind }}</span>
-                  <span class="break-words text-muted">{{ e.text }}</span>
+                  <!-- #356: replies and questions as a mail card, quoted history folded. -->
+                  <div v-if="mailCards[e.id]" class="mt-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
+                    <div class="mb-1 flex flex-wrap items-baseline gap-x-1.5 text-faint">
+                      <span class="font-semibold text-ink">{{ e.kind === 'reply' ? 'Mail van de melder' : 'Mail aan de melder' }}</span>
+                      <span v-if="e.kind === 'reply' && e.actor" class="break-all">{{ e.actor }}</span>
+                      <span v-else-if="e.kind === 'question' && melderEmail" class="break-all">{{ melderEmail }}</span>
+                      <span v-if="mailCards[e.id].attachments">· {{ mailCards[e.id].attachments }} {{ mailCards[e.id].attachments === 1 ? 'bijlage' : 'bijlagen' }}</span>
+                    </div>
+                    <div v-if="mailCards[e.id].subject" class="mb-1 font-semibold text-ink">{{ mailCards[e.id].subject }}</div>
+                    <div class="whitespace-pre-wrap break-words text-muted">{{ mailCards[e.id].own || '(geen eigen tekst)' }}</div>
+                    <template v-if="mailCards[e.id].quoted">
+                      <button type="button" class="mt-1 text-green-ink underline underline-offset-2" @click="shownQuote = { ...shownQuote, [e.id]: !shownQuote[e.id] }">
+                        {{ shownQuote[e.id] ? 'verberg eerdere berichten' : 'toon eerdere berichten' }}
+                      </button>
+                      <div v-if="shownQuote[e.id]" class="mt-1.5 whitespace-pre-wrap break-words border-l-2 border-line pl-2.5 text-faint">{{ mailCards[e.id].quoted }}</div>
+                    </template>
+                  </div>
+                  <span v-else class="break-words text-muted">{{ e.text }}</span>
                   <!-- Our own mail, the same words the melder got (#350). -->
-                  <template v-if="mailOf(e)">
+                  <template v-if="mailOf(e) && !mailCards[e.id]">
                     <button type="button" class="text-sm ml-1.5 text-green-ink underline underline-offset-2" @click="shownMail = { ...shownMail, [e.id]: !shownMail[e.id] }">
                       {{ shownMail[e.id] ? 'verberg mail' : 'toon mail' }}
                     </button>
