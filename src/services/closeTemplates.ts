@@ -12,6 +12,13 @@
  *
  * v1 lives in code; v2 makes them editable in the Studio (see ClientApp #354
  * for the drafted-mail path this complements).
+ *
+ * The two QuickScan texts come from Don's brief of 2026-09-17 (Worker #149) and
+ * are confirmed by him. "Already processed" carries three blanks the reviewer
+ * fills from the dossier: the QS-FOS reference, the execution date and the risk
+ * in words (A/B laag, C midden, D/E hoog) — not the letter, which suggests a
+ * precision we do not have at that moment. Recognised means: delivered through
+ * FunderConsult.
  */
 import type { DossierOutcome } from '@/services/fundermaps/interfaces/IDataops'
 
@@ -32,6 +39,24 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
       'U heeft een QuickScan (Fase 0) meegestuurd. Die verwerken wij via een andere route: ' +
       'https://funderconsult.com/feedback/form, optie “QuickScan of Fase 0-attest aanleveren”. ' +
       'Dit meldformulier is bedoeld voor wijzigingen op basis van een funderingsonderzoek, een archieftekening of een herstelbewijs.',
+  },
+  {
+    value: 'quickscan_already_processed',
+    label: 'QuickScan: staat al in de database',
+    outcome: 'accepted',
+    text:
+      'Bedankt voor het toesturen van de QuickScan. Deze is al verwerkt in onze database ' +
+      '(kenmerk QS-FOS-…, uitgevoerd op …). Uw pand staat daarmee op risico … (laag/midden/hoog). ' +
+      'Wijzigt de risico-inschatting vanavond nog door onze modelberekening, dan laten wij dat weten.',
+  },
+  {
+    value: 'quickscan_not_recognised',
+    label: 'QuickScan: bureau niet erkend',
+    outcome: 'rejected',
+    text:
+      'Het meegestuurde onderzoek is niet uitgevoerd door een erkend bureau. Wij mogen het daarom niet gebruiken ' +
+      'om de registratie aan te passen; uw rapport bewaren wij wel. Een QuickScan door een erkend bureau vraagt u aan via ' +
+      'https://funderconsult.com/quickscan#quickscan-aanvragen.',
   },
   {
     value: 'wrong_form',
