@@ -95,6 +95,14 @@ export async function verdict(body: IVerdict) {
 }
 
 /**
+ * Undo a verdict while the dossier is open (#355): the field is pending again
+ * and the earlier decision stays in the log. 409 once the dossier is closed.
+ */
+export async function reopenField(fieldId: number) {
+  return (await post({ endpoint: `/dataops/field/${fieldId}/reopen`, body: {} })) as { ok: boolean }
+}
+
+/**
  * A value the reviewer saw and the model did not: lands as a confirmed proposal
  * on the dossier with a "human added" finding, so the commit takes it and the
  * pipeline learns it missed something (Don's casus 2, 2026-09-15).
@@ -239,6 +247,7 @@ export default {
   queueCount,
   dossier,
   verdict,
+  reopenField,
   close,
   closeMany,
   commit,

@@ -820,6 +820,27 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
     busy.value = null
   }
 }
+
+/**
+ * Undo a verdict while the dossier is open (#355): an accidental click on the
+ * wrong value should not need a system fix. The row returns to the open list;
+ * the earlier decision stays in the log.
+ */
+async function reopen(f: IProposedField) {
+  busy.value = f.id
+  try {
+    await api.dataops.reopenField(f.id)
+    const { [f.id]: _dropped, ...rest } = decided.value
+    decided.value = rest
+    corrections.value = { ...corrections.value, [f.id]: '' }
+    toastInfo(`${FIELD_LABEL[f.field] ?? f.field} staat weer open.`)
+    focus(f)
+  } catch (e) {
+    error.value = describeFailure(e, 'De beoordeling kon niet worden heropend.')
+  } finally {
+    busy.value = null
+  }
+}
 </script>
 
 <template>
@@ -1257,6 +1278,15 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
                     ><template v-if="addressLine(f)"> · {{ addressLine(f) }}</template>
                   </span>
                 </span>
+                <Button
+                  v-if="!closed && !data?.dossier.outcome && !isAudit"
+                  class="ml-auto shrink-0 self-start"
+                  label="Heropenen"
+                  variant="secondary"
+                  :disabled="busy === f.id"
+                  title="Zet de waarde terug bij de open voorstellen; de eerdere beoordeling blijft in het logboek"
+                  @click="reopen(f)"
+                />
               </li>
             </ul>
           </Panel>
