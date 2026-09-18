@@ -332,6 +332,16 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
     query: { outcome: ['rejected'], sort: 'outcome_at', order: 'desc' },
     builtin: true,
   },
+  // Closed and dealt with, newest closing first: "where did that melding go
+  // that I just answered?" (Don, 2026-09-18, after losing FM2026-000140).
+  // Afgewezen and Duplicaten have their own tabs, so this one keeps the two
+  // outcomes that mean the melding was handled on its merits.
+  {
+    key: 'afgehandeld',
+    label: 'Afgehandeld',
+    query: { outcome: ['accepted', 'no_data'], sort: 'outcome_at', order: 'desc' },
+    builtin: true,
+  },
   {
     key: 'duplicaten',
     label: 'Duplicaten',
