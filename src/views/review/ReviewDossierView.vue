@@ -590,8 +590,15 @@ const commitDateHint = computed(() => {
   if (builtYearEstimate.value) return `Niet overgenomen: wordt ${builtYearEstimate.value.slice(0, 4)} (geschat: bouwjaar)`
   return 'Verplicht: geen datum in het document gevonden'
 })
-/** Overnemen needs a date the database can hold. */
-const commitDateMissing = computed(() => !commitDate.value && !builtYearEstimate.value)
+/**
+ * Overnemen needs a date the database can hold — but a nalezing updates a
+ * rapportage that already has one. Don, 2026-09-19 (dossier 2492): every
+ * proposal judged, "Wijzigingen doorvoeren" dead and no tooltip saying why.
+ * Cause: commitDate is filled from the values the reviewer TOOK OVER, and on
+ * that dossier the date agreed with the database, so it was never taken over
+ * and the commit believed there was no date at all.
+ */
+const commitDateMissing = computed(() => !isAudit.value && !commitDate.value && !builtYearEstimate.value)
 
 /**
  * Overnemen als rapportage: the judged values become an inquiry + samples, the
@@ -1449,7 +1456,7 @@ async function reopen(f: IProposedField) {
                   variant="primary"
                   :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
                   :disabled="committing || closing || open.length > 0 || !wasRead || commitDateMissing"
-                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : ''"
+                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
                   @click="commitDossier"
                 />
                 <Button
