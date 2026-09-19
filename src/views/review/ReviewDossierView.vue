@@ -709,6 +709,31 @@ async function askQuestion() {
   }
 }
 
+/**
+ * The melder had the last word: the newest entry is their reply. Mirrors the
+ * API's state=replied, which is what the "Reactie ontvangen" tab lists.
+ */
+const melderRepliedLast = computed(() => {
+  const es = data.value?.entries ?? []
+  for (let i = es.length - 1; i >= 0; i--) {
+    const k = es[i]!.kind
+    if (k === 'reply') return true
+    if (k === 'question' || k === 'remark' || k === 'status' || k === 'verdict') return false
+  }
+  return false
+})
+
+/**
+ * Don, 2026-09-19: a reply is often dealt with by phone or from someone's own
+ * mailbox. Nothing lands on the dossier, so it stays in "Reactie ontvangen"
+ * for ever. One click writes the notitie that clears it — the same mechanism
+ * the API already uses, made visible.
+ */
+async function markReplyHandled() {
+  remarkText.value = 'Reactie afgehandeld buiten het systeem'
+  await addRemark()
+}
+
 /** Append a note to the timeline and show it without a reload. */
 async function addRemark() {
   const text = remarkText.value.trim()
@@ -1378,6 +1403,15 @@ async function reopen(f: IProposedField) {
                 @keydown.enter="addRemark"
               />
               <Button label="Noteer" :disabled="remarkBusy || !remarkText.trim()" @click="addRemark" />
+              <!-- Clears the dossier from "Reactie ontvangen" when the answer
+                   was given by phone or from a private mailbox (Don, 2026-09-19). -->
+              <Button
+                v-if="melderRepliedLast"
+                label="Reactie afgehandeld"
+                :disabled="remarkBusy"
+                title="Zet een notitie op het dossier, zodat het uit Reactie ontvangen verdwijnt"
+                @click="markReplyHandled"
+              />
             </div>
             <!-- Only when there is somebody to mail: bulk drops carry no melder,
                  and a permanently grey box on 99% of the queue is noise. -->
