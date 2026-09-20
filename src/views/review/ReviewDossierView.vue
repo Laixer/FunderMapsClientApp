@@ -39,7 +39,9 @@ import { CLOSE_TEMPLATES, CLOSE_TEMPLATE_OPTIONS, OUTCOME_HINT } from '@/service
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
-import { toastInfo, toastSuccess } from '@/services/toast'
+import { useSessionStore } from '@/stores/session'
+import { confirmAction } from '@/services/confirm'
+import { toastError, toastInfo, toastSuccess } from '@/services/toast'
 import { splitQuoted, tidyMailText } from '@/services/mailQuote'
 
 /**
@@ -58,6 +60,7 @@ import { splitQuoted, tidyMailText } from '@/services/mailQuote'
 const route = useRoute()
 const router = useRouter()
 const studio = useStudioStore()
+const session = useSessionStore()
 
 const data = ref<IReviewDossier | null>(null)
 const loading = ref(true)
@@ -428,6 +431,43 @@ const contractorUnmatched = computed(() => {
   const raw = takenDocumentValue('contractor')
   return raw && !/^\d+$/.test(raw) && !guessContractor(raw) ? raw : null
 })
+/**
+ * Add the bureau the cover named but the list does not have (#194).
+ *
+ * 465 of the 489 names the pipeline has read match no row, so without this
+ * the reviewer's only options were to leave it at FunderMaps B.V. -- the name
+ * then survives only as free text in the note -- or to ask an administrator.
+ * Three of the four people doing the reviewing are not one.
+ *
+ * It asks first, because `application.contractor` has no delete: a typo is
+ * permanent and every organisation sees it. And it can come back with a row
+ * the reviewer did not create, when the name turns out to be another spelling
+ * of one we already had; saying so is more use than pretending we added it.
+ */
+const addingContractor = ref(false)
+const canAddContractor = computed(() => session.canApprove && !!contractorUnmatched.value)
+async function addContractor() {
+  const name = contractorUnmatched.value
+  if (!name || addingContractor.value) return
+  const ok = await confirmAction({
+    title: `“${name}” toevoegen aan de lijst?`,
+    body: 'De lijst is van alle organisaties en er is geen verwijderknop. Controleer de schrijfwijze.',
+    confirmLabel: 'Toevoegen',
+  })
+  if (!ok) return
+  addingContractor.value = true
+  try {
+    const row = await api.contractor.create(name)
+    if (!contractors.value.some((c) => c.id === row.id)) contractors.value = [...contractors.value, row]
+    commitContractor.value = String(row.id)
+    if (row.created) toastSuccess(`“${row.name}” toegevoegd en geselecteerd`)
+    else toastInfo(`Stond al in de lijst als “${row.name}” — die is geselecteerd`)
+  } catch (e) {
+    toastError(describeFailure(e, 'Toevoegen van de uitvoerder is niet gelukt'))
+  } finally {
+    addingContractor.value = false
+  }
+}
 watch(
   [taken, contractors],
   () => {
@@ -1469,20 +1509,33 @@ async function reopen(f: IProposedField) {
                   label="Datum rapport"
                   :hint="commitDateHint"
                 />
-                <Combobox
-                  v-model="commitContractor"
-                  label="Uitvoerder"
-                  :options="contractorOptions"
-                  placeholder="Typ (een deel van) de naam"
-                  empty-label="FunderMaps B.V."
-                  :hint="
-                    commitContractor
-                      ? undefined
-                      : contractorUnmatched
-                        ? `“${contractorUnmatched}” staat niet in de lijst: wordt FunderMaps B.V., naam in de notitie`
-                        : 'Niet overgenomen: wordt FunderMaps B.V.'
-                  "
-                />
+                <div class="flex flex-col gap-1">
+                  <Combobox
+                    v-model="commitContractor"
+                    label="Uitvoerder"
+                    :options="contractorOptions"
+                    placeholder="Typ (een deel van) de naam"
+                    empty-label="FunderMaps B.V."
+                    :hint="
+                      commitContractor
+                        ? undefined
+                        : contractorUnmatched
+                          ? `“${contractorUnmatched}” staat niet in de lijst: wordt FunderMaps B.V., naam in de notitie`
+                          : 'Niet overgenomen: wordt FunderMaps B.V.'
+                    "
+                  />
+                  <!-- #194: the cover named a bureau we do not have. Only a
+                       verifier or superuser may grow the shared list. -->
+                  <Button
+                    v-if="canAddContractor"
+                    variant="secondary"
+                    class="self-start"
+                    :label="addingContractor ? 'Bezig…' : `“${contractorUnmatched}” toevoegen`"
+                    :disabled="addingContractor"
+                    title="Voegt de opsteller toe aan de lijst en selecteert hem voor dit dossier"
+                    @click="addContractor"
+                  />
+                </div>
               </div>
 
               <div class="flex flex-wrap gap-2">
