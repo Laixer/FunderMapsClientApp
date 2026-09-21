@@ -18,6 +18,7 @@ import api from '@/services/fundermaps'
 import { inquiryTypeLabel } from '@/services/inquiryEnums'
 import { NAV_ITEMS } from '@/services/navigation'
 import { recoveryDocumentTypeLabel } from '@/services/recoveryEnums'
+import { outcomeLabel } from '@/services/reviewExplorer'
 
 export type PaletteKind = 'GA NAAR' | 'DOSSIER' | 'HERSTEL' | 'ACTIE'
 
@@ -61,10 +62,14 @@ export function actionItems(query: string, actions: PaletteAction[]): PaletteIte
     .map((action) => ({ ...action, id: `action:${action.id}`, kind: 'ACTIE' as const }))
 }
 
+/** The meldcode we print in every mail to a melder, e.g. `FM2026-000111`. */
+const MELDCODE = /^FM\d{4}-\d{6}$/i
+
 /**
- * Records matching the query, inquiries and recoveries together.
+ * Records matching the query: inquiries, recoveries, and — when the query is a
+ * meldcode — the melding itself.
  *
- * Both lookups are allowed to fail independently: the palette losing its
+ * Every lookup is allowed to fail independently: the palette losing its
  * recovery results is a smaller problem than the palette showing nothing
  * because one endpoint was slow, and a search box that sometimes returns an
  * error instead of results is a search box people stop using.
@@ -73,12 +78,25 @@ export async function recordItems(query: string): Promise<PaletteItem[]> {
   const q = query.trim()
   if (q.length < 2) return []
 
-  const [inquiries, recoveries] = await Promise.all([
+  const [inquiries, recoveries, meldingen] = await Promise.all([
     api.inquiry.list({ q, limit: PALETTE_RESULT_LIMIT }).catch(() => []),
     api.recovery.list({ q, limit: 3 }).catch(() => []),
+    // A meldcode arrives from outside the system -- a melder's mail, a phone
+    // call, a question forwarded by Don -- and the person holding it wants that
+    // dossier, not a list (#361). The API matches it in any state, so a closed
+    // one is found too; the hint says which, because "afgewezen" is usually the
+    // answer to the question being asked.
+    MELDCODE.test(q) ? api.dataops.queue({ q, limit: 1 }).catch(() => []) : Promise.resolve([]),
   ])
 
   return [
+    ...meldingen.map((row) => ({
+      id: `melding:${row.id}`,
+      kind: 'DOSSIER' as const,
+      label: `${row.reference ?? `#${row.id}`} · ${row.subject ?? 'Zonder omschrijving'}`,
+      hint: row.outcome ? outcomeLabel(row.outcome).toLowerCase() : 'op het bureau',
+      to: { name: 'review-dossier', params: { id: row.id } } satisfies RouteLocationRaw,
+    })),
     ...inquiries.map((row) => ({
       id: `inquiry:${row.id}`,
       kind: 'DOSSIER' as const,

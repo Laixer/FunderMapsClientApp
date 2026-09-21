@@ -167,7 +167,19 @@ const CLOSED_COLUMNS: DataColumn[] = [
   { field: 'outcomeNote', title: 'Reden', width: 'minmax(220px,1fr)' },
   { field: 'outcomeAt', title: 'Op', width: '130px' },
 ]
-const columns = computed(() => (closedView.value ? CLOSED_COLUMNS : DESK_COLUMNS))
+/**
+ * A meldcode or a dossier id names one dossier, and the API answers it in any
+ * state (#361) — so the desk can hand back something that was closed days ago.
+ * Show the closed columns then, because the next question is always the one
+ * they came with: "why is this not in FunderMaps?".
+ */
+const PINPOINT = /^(FM\d{4}-\d{6}|\d+)$/i
+const pinpointHit = computed(
+  () => PINPOINT.test(search.value.trim()) && rows.value.some((r) => r.outcome),
+)
+const columns = computed(() =>
+  closedView.value || pinpointHit.value ? CLOSED_COLUMNS : DESK_COLUMNS,
+)
 
 const WEEK = 7 * 24 * 3600 * 1000
 const shortDate = (iso: string) =>
