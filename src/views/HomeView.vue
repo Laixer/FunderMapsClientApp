@@ -11,6 +11,7 @@ import KpiTile from '@/components/Common/KpiTile.vue'
 import Panel from '@/components/Common/Panel.vue'
 import ProgressBar from '@/components/Common/ProgressBar.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import WorkPackages from '@/components/Home/WorkPackages.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
@@ -32,7 +33,8 @@ import { useRowKeyboard } from '@/services/useRowKeyboard'
 import { useSessionStore } from '@/stores/session'
 
 /**
- * The Werkbank: your bench, not the archive.
+ * Vandaag: your part of the work, not the archive. (Called the Werkbank
+ * until 2026-09-22 — Yorick: "tis geen jaren 80".)
  *
  * `/` used to open the inquiry list — the 200 most recently touched dossiers
  * across the whole organisation, which at 26k rows and 20k of them sitting in
@@ -90,7 +92,7 @@ async function load() {
     rowsByLane.value = Object.fromEntries(LANES.map((lane, i) => [lane.key, results[i]!]))
     countByLane.value = Object.fromEntries(LANES.map((lane, i) => [lane.key, counts[i]!]))
   } catch (e) {
-    toastError(describeFailure(e, 'De werkbank kon niet worden geladen.'))
+    toastError(describeFailure(e, 'Vandaag kon niet worden geladen.'))
   } finally {
     loading.value = false
   }
@@ -241,12 +243,17 @@ function chipActive(types: number[] | null): boolean {
 </script>
 
 <template>
-  <AppShell crumb="Werkbank">
+  <AppShell crumb="Vandaag">
     <div class="flex flex-col gap-4.5 px-6 py-6">
       <header>
-        <h1 class="text-5xl font-display font-bold text-ink">Werkbank</h1>
+        <h1 class="text-5xl font-display font-bold text-ink">Vandaag</h1>
         <p class="text-xl mt-1 text-muted">{{ subtitle }}</p>
       </header>
+
+      <!-- The review queue, cut to what this person picked (#Vandaag, Don
+           2026-09-22). First, because it is where the day's work is now;
+           the lanes below are the older typed-in route. -->
+      <WorkPackages />
 
       <div class="grid grid-cols-4 gap-3">
         <KpiTile
