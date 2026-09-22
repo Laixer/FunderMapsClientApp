@@ -129,6 +129,7 @@ async function load() {
   closeNote.value = ''
   closed.value = null
   committedInquiryId.value = null
+  resetDossierForms()
   openedAt = Date.now()
   try {
     data.value = await api.dataops.dossier(Number(route.params.id))
@@ -721,6 +722,30 @@ const remarkBusy = ref(false)
 const melderEmail = computed(() => data.value?.dossier.submitter?.email ?? null)
 const questionText = ref('')
 const questionBusy = ref(false)
+
+/**
+ * The per-dossier state declared below `load()`. Until 2026-09-22 `load()`
+ * missed these, so after "Overnemen als rapportage" the next dossier opened
+ * with the previous one's Datum rapport, Soort and Uitvoerder still filled
+ * (Don, dossier 5297) -- and a half-typed remark or question would have been
+ * posted on the wrong dossier. Cleared here; the prefill watch then fills the
+ * commit controls from the new dossier's own taken-over values.
+ */
+function resetDossierForms() {
+  commitType.value = null
+  commitDate.value = null
+  commitContractor.value = null
+  noteMissingFor.value = null
+  shownMail.value = {}
+  shownQuote.value = {}
+  addOpen.value = false
+  addField.value = null
+  addValue.value = ''
+  addAddress.value = null
+  addNote.value = ''
+  remarkText.value = ''
+  questionText.value = ''
+}
 
 /** Mail the melder a question; the reply lands on this same timeline. */
 async function askQuestion() {
