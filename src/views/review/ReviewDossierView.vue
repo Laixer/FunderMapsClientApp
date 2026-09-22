@@ -946,7 +946,8 @@ async function reopen(f: IProposedField) {
   busy.value = f.id
   try {
     await api.dataops.reopenField(f.id)
-    const { [f.id]: _dropped, ...rest } = decided.value
+    const rest = { ...decided.value }
+    delete rest[f.id]
     decided.value = rest
     corrections.value = { ...corrections.value, [f.id]: '' }
     toastInfo(`${FIELD_LABEL[f.field] ?? f.field} staat weer open.`)
