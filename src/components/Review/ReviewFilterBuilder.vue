@@ -44,7 +44,6 @@ const setChannel = (v: QueueChannel) =>
   emit('update', { ...props.query, channel: toggle(props.query.channel, v), page: 1 })
 const setKind = (v: string) =>
   emit('update', { ...props.query, kind: toggle(props.query.kind, v), page: 1 })
-const setOverdue = () => emit('update', { ...props.query, overdue: !props.query.overdue, page: 1 })
 const setBuilding = (v: 'resolved' | 'unresolved') =>
   emit('update', { ...props.query, building: props.query.building === v ? null : v, page: 1 })
 /**
@@ -119,14 +118,8 @@ const pill = (active: boolean) =>
           >
             {{ o.label }}
           </button>
-          <button
-            type="button"
-            class="text-base rounded-full border px-2.5 py-1 font-medium"
-            :class="pill(query.overdue)"
-            @click="setOverdue"
-          >
-            Langer dan een week open
-          </button>
+          <!-- "Langer dan een week open" was a toggle here until 2026-09-22: a
+               status, not a work filter (Don). Rows still carry the pill. -->
         </div>
       </section>
 

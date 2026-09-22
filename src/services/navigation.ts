@@ -32,7 +32,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   {
     title: 'WERK',
     items: [
-      { route: 'home', label: 'Werkbank', key: 'w', counter: 'werkbank' },
+      { route: 'home', label: 'Vandaag', key: 'w', counter: 'werkbank' },
       // Controle directly under the Werkbank: it is the desk the day starts at
       // now that documents arrive through the portal (Yorick, 2026-08-31).
       { route: 'review-queue', label: 'Controle', key: 'c', counter: 'controle' },

@@ -91,7 +91,6 @@ export const STATE_OPTIONS: readonly { value: QueueState; label: string }[] = [
   { value: 'proposals', label: 'Met voorstellen' },
   { value: 'empty', label: 'Niets gevonden' },
   { value: 'replied', label: 'Reactie ontvangen' },
-  { value: 'unread', label: 'Nog niet gelezen' },
   { value: 'question', label: 'Vraag zonder document' },
 ]
 
@@ -320,8 +319,10 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
   { key: 'vragen', label: 'Vragen', query: { channel: ['upload'], state: ['question'], sort: 'received_at', order: 'desc' }, builtin: true },
   // The melder had the last word, open or closed; spans both (API state=replied).
   { key: 'reacties', label: 'Reactie ontvangen', query: { state: ['replied'] }, builtin: true },
-  { key: 'ongelezen', label: 'Nog niet gelezen', query: { state: ['unread'] }, builtin: true },
-  { key: 'te-lang', label: 'Te lang open', query: { overdue: true }, builtin: true },
+  // "Nog niet gelezen" and "Te lang open" were views here until 2026-09-22.
+  // Don: "Dit zijn geen relevante werkfilters maar statussen." Nobody arrives
+  // at the queue asking for them; a row still shows "te lang open" as a pill,
+  // which is where a status belongs. The API keeps state=unread and age=overdue.
   { key: 'studio', label: 'Studio-uploads', query: { channel: ['invoer_app'] }, builtin: true },
   { key: 'nalezing', label: 'Nalezingen', query: { channel: ['audit'] }, builtin: true },
   // Closed, not the desk: newest closing first, because the question here is
