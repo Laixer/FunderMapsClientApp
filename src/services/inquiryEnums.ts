@@ -69,6 +69,8 @@ export const INQUIRY_TYPE_LABELS: Record<number, string> = {
 export const INQUIRY_TYPE_CODE_LABELS: Record<string, string> = {
   foundation_research: 'Funderings onderzoek',
   archive_research: 'Archief onderzoek',
+  // The current QuickScan (KCAF addendum); the enum code is facade_scan (legacy 14).
+  facade_scan: 'QuickScan (addendum)',
   quickscan: 'QuickScan (vervallen)',
   inspectionpit: 'Inspectieput',
   monitoring: 'Monitoring',
