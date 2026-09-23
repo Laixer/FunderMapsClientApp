@@ -227,7 +227,9 @@ export interface IDossierOutcome {
 }
 
 export interface IVerdict {
-  fieldId: number
+  /** One field; or use `fieldIds` for a range decided in one click (API #199, Worker #186). */
+  fieldId?: number
+  fieldIds?: number[]
   outcome: VerdictOutcome
   /** Required when correcting: the value the reviewer put instead. This is the label. */
   finalValue?: string | null
