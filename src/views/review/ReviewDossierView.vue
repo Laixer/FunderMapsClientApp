@@ -11,6 +11,7 @@ import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import DossierAddresses from '@/components/Review/DossierAddresses.vue'
+import RecordRecoveryPanel from '@/components/Review/RecordRecoveryPanel.vue'
 import api from '@/services/fundermaps'
 import type {
   IReviewDossier,
@@ -422,6 +423,30 @@ const committing = ref(false)
  * back). Shown before the button so "datum = de dag van uploaden" is a thing
  * the reviewer sees rather than discovers in the inquiry list a week later.
  */
+/**
+ * Herstel vastleggen (#341) shows where it is likely wanted -- a melding about
+ * a herstel, or one already recorded -- and on request elsewhere.
+ */
+const askedForRecovery = ref(false)
+const recordedRecoveryId = ref<number | null>(null)
+const recoveryId = computed(() => recordedRecoveryId.value ?? data.value?.dossier.recoveryId ?? null)
+const showRecovery = computed(
+  () =>
+    !!data.value &&
+    !isAudit.value &&
+    (!!recoveryId.value ||
+      askedForRecovery.value ||
+      /herstel/i.test(String(data.value.dossier.payload?.topicLabel ?? ''))),
+)
+const melderRecoveryHint = computed(() => {
+  const v = data.value?.dossier.payload?.answers?.recoveryType
+  return v == null || v === '' ? null : String(v)
+})
+function onRecoveryRecorded(id: number) {
+  recordedRecoveryId.value = id
+  toastInfo(`Herstel #${id} vastgelegd. Sluit het dossier nu af, met of zonder rapportage.`)
+}
+
 function takenDocumentValue(field: string): string | null {
   const f = taken.value.find((t) => t.field === field)
   if (!f) return null
@@ -1461,6 +1486,31 @@ async function reopen(f: IProposedField) {
               </li>
             </ul>
           </Panel>
+
+          <!-- #341: a herstel is recorded before the dossier is closed. -->
+          <RecordRecoveryPanel
+            v-if="showRecovery && !recoveryId && !closed && !data?.dossier.outcome"
+            :dossier-id="data!.dossier.id"
+            :addresses="addresses"
+            :melder-hint="melderRecoveryHint"
+            :suggested-date="takenDocumentValue('document_date')?.slice(0, 10) ?? null"
+            @recorded="onRecoveryRecorded"
+            @error="(m) => (error = m)"
+          />
+          <Callout v-else-if="recoveryId" tone="green" title="Herstel vastgelegd">
+            Dit dossier heeft herstel
+            <RouterLink :to="{ name: 'recovery-view', params: { id: recoveryId } }" class="font-semibold underline">#{{ recoveryId }}</RouterLink>
+            vastgelegd.
+          </Callout>
+          <button
+            v-else-if="data && !isAudit && !closed && !data.dossier.outcome"
+            type="button"
+            class="text-sm self-start text-muted underline"
+            @click="askedForRecovery = true"
+          >
+            Dit dossier gaat over een herstel…
+          </button>
+
 
           <!-- The dossier's timeline: everything that happened, in order. The
                melder's status page shows the visible subset of these same rows,
