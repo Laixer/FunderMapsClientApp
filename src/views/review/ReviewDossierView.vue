@@ -43,6 +43,7 @@ import { useSessionStore } from '@/stores/session'
 import { confirmAction } from '@/services/confirm'
 import { toastError, toastInfo, toastSuccess } from '@/services/toast'
 import { splitQuoted, tidyMailText } from '@/services/mailQuote'
+import { addressSetKey, hiddenMembers, spreadSets } from '@/utils/spread'
 
 /**
  * Judging one submission.
@@ -290,15 +291,45 @@ const open = computed(() =>
  * of one house are one group; a value moved to 59A shows under 59A), by the
  * text when the Worker could not resolve it.
  */
+/**
+ * A range's values (Worker #186): one card per set, one section per range.
+ * The card is the set's first field; `membersOf` gives the rest.
+ */
+const openSpread = computed(() => spreadSets(open.value))
+const settledSpread = computed(() => spreadSets(settled.value, (f) => `${decided.value[f.id]}|${corrections.value[f.id] ?? ''}`))
+const hiddenOpen = computed(() => hiddenMembers(openSpread.value))
+const hiddenSettled = computed(() => hiddenMembers(settledSpread.value))
+const membersOf = (f: IProposedField): IProposedField[] =>
+  openSpread.value.get(f.id) ?? settledSpread.value.get(f.id) ?? [f]
+/** What the reviewer has left to judge: a range counts once. */
+const openCards = computed(() => open.value.length - hiddenOpen.value.size)
+const settledCards = computed(() => settled.value.filter((f) => !hiddenSettled.value.has(f.id)))
+
 const openByAddress = computed(() => {
   const groups = new Map<string, IProposedField[]>()
   for (const f of open.value) {
-    const key = f.addressId ?? f.addressText ?? ''
+    if (hiddenOpen.value.has(f.id)) continue
+    const set = openSpread.value.get(f.id)
+    const key = set ? addressSetKey(set) : (f.addressId ?? f.addressText ?? '')
     groups.set(key, [...(groups.get(key) ?? []), f])
   }
   return [...groups.entries()]
-    .sort(([a], [b]) => (a === '' ? -1 : b === '' ? 1 : 0))
+    .sort(([a], [b]) => (a === '' ? -1 : b === '' ? 1 : a.startsWith('range:') && !b.startsWith('range:') ? -1 : 0))
     .map(([key, fields]) => {
+      const set = openSpread.value.get(fields[0]!.id)
+      if (set) {
+        const labels = set.map((m) => addressLine(m) ?? m.addressId ?? '')
+        return {
+          key,
+          address: labels.length > 1 ? `${labels[0]} … ${labels[labels.length - 1]}` : (labels[0] ?? ''),
+          resolved: true,
+          state: null,
+          own: false,
+          /** Every address the range covers, for the fold under the title. */
+          spread: labels,
+          fields,
+        }
+      }
       const a = addressOf(fields[0]!)
       return {
         key,
@@ -307,6 +338,7 @@ const openByAddress = computed(() => {
         resolved: fields.some((f) => f.addressId),
         state: a?.state ?? null,
         own: a?.own ?? false,
+        spread: null as string[] | null,
         fields,
       }
     })
@@ -915,20 +947,29 @@ function contractorNote(f: IProposedField): { text: string; ok: boolean } | null
 }
 
 async function decide(f: IProposedField, outcome: VerdictOutcome) {
+  // A range card decides every address it stands for, in one call (#186).
+  const ids = membersOf(f).map((m) => m.id)
   busy.value = f.id
   try {
     await api.dataops.verdict({
-      fieldId: f.id,
+      fieldIds: ids,
       outcome,
       finalValue: outcome === 'corrected' ? (corrections.value[f.id] ?? null) : null,
       note: notes.value[f.id]?.trim() || null,
       reviewSeconds: Math.round((Date.now() - openedAt) / 1000),
     })
-    decided.value = { ...decided.value, [f.id]: outcome }
+    const settledNow = { ...decided.value }
+    const correctedNow = { ...corrections.value }
+    for (const id of ids) {
+      settledNow[id] = outcome
+      if (outcome === 'corrected') correctedNow[id] = corrections.value[f.id] ?? ''
+    }
+    decided.value = settledNow
+    corrections.value = correctedNow
     editing.value = { ...editing.value, [f.id]: false }
     // Move to the next open value's document straight away: the reviewer's
     // next decision is almost always about a different page.
-    const next = open.value.find((o) => o.id !== f.id)
+    const next = open.value.find((o) => !ids.includes(o.id))
     if (next) focus(next)
   } catch (e) {
     error.value = describeFailure(e, 'Het oordeel kon niet worden opgeslagen.')
@@ -943,13 +984,18 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
  * the earlier decision stays in the log.
  */
 async function reopen(f: IProposedField) {
+  const ids = membersOf(f).map((m) => m.id)
   busy.value = f.id
   try {
-    await api.dataops.reopenField(f.id)
+    for (const id of ids) await api.dataops.reopenField(id)
     const rest = { ...decided.value }
-    delete rest[f.id]
+    const cleared = { ...corrections.value }
+    for (const id of ids) {
+      delete rest[id]
+      cleared[id] = ''
+    }
     decided.value = rest
-    corrections.value = { ...corrections.value, [f.id]: '' }
+    corrections.value = cleared
     toastInfo(`${FIELD_LABEL[f.field] ?? f.field} staat weer open.`)
     focus(f)
   } catch (e) {
@@ -974,7 +1020,7 @@ async function reopen(f: IProposedField) {
       </h1>
       <Pill v-if="closed" :label="OUTCOME_LABEL[closed] ?? closed" tone="neutral" plain />
       <Pill v-else-if="nothingProposed" label="geen voorstellen" tone="red" plain />
-      <Pill v-else :label="`${open.length} te beoordelen`" tone="blue" plain />
+      <Pill v-else :label="`${openCards} te beoordelen`" tone="blue" plain />
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint">{{ metaLine }}</p>
       <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
     </header>
@@ -1171,7 +1217,8 @@ async function reopen(f: IProposedField) {
             >
               <span class="text-sm w-3 text-faint">{{ collapsed[group.key] ? '▸' : '▾' }}</span>
               <span class="studio-label">{{ group.address || 'HET RAPPORT' }}</span>
-              <Pill v-if="group.own" label="pand van het dossier" tone="blue" plain />
+              <Pill v-if="group.spread" :label="`geldt voor ${group.spread.length} adressen`" tone="blue" plain />
+              <Pill v-else-if="group.own" label="pand van het dossier" tone="blue" plain />
               <Pill
                 v-else-if="group.key && !group.resolved"
                 label="adres niet herkend"
@@ -1186,6 +1233,12 @@ async function reopen(f: IProposedField) {
               />
               <span class="text-sm font-mono text-faint">{{ group.fields.length }} open</span>
             </button>
+
+            <!-- A range (#186): what it covers, folded. One Overnemen below decides every address. -->
+            <details v-if="group.spread && !collapsed[group.key]" class="text-sm pl-5 text-muted">
+              <summary class="cursor-pointer">Toon de {{ group.spread.length }} adressen</summary>
+              <p class="mt-1">{{ group.spread.join(' · ') }}</p>
+            </details>
 
             <div v-if="!collapsed[group.key]" class="grid grid-cols-2 gap-2">
               <div
@@ -1302,7 +1355,7 @@ async function reopen(f: IProposedField) {
 
                   <!-- The value is right, the address is not: move it (#333, 4).
                        Takes effect at once; the group changes under your hands. -->
-                  <label v-if="moveTargets.length" class="col-span-2 flex flex-col gap-1">
+                  <label v-if="moveTargets.length && membersOf(f).length === 1" class="col-span-2 flex flex-col gap-1">
                     <span class="text-sm font-semibold uppercase tracking-wide text-label">Hoort bij adres</span>
                     <select
                       class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
@@ -1372,10 +1425,10 @@ async function reopen(f: IProposedField) {
               </div>
             </div>
           </Panel>
-          <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settled.length)">
+          <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settledCards.length)">
             <ul class="flex flex-col gap-2">
               <li
-                v-for="f in settled"
+                v-for="f in settledCards"
                 :key="f.id"
                 class="text-md flex gap-2.5 border-b border-canvas pb-2 last:border-b-0 last:pb-0"
               >
@@ -1392,7 +1445,8 @@ async function reopen(f: IProposedField) {
                       v-if="decided[f.id] === 'corrected' && corrections[f.id]"
                     >
                       naar {{ labelValue(f.field, corrections[f.id]) }}</template
-                    ><template v-if="addressLine(f)"> · {{ addressLine(f) }}</template>
+                    ><template v-if="membersOf(f).length > 1"> · geldt voor {{ membersOf(f).length }} adressen</template
+                    ><template v-else-if="addressLine(f)"> · {{ addressLine(f) }}</template>
                   </span>
                 </span>
                 <Button
