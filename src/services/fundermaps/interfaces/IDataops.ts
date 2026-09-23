@@ -175,6 +175,8 @@ export interface IReviewDossier {
     inquiryId: number | null
     /** The rapportage this dossier re-reads (channel audit); null on intake dossiers. */
     auditInquiryId: number | null
+    /** The herstel recorded from this dossier (#341); independent of inquiryId. Absent from older API builds. */
+    recoveryId?: number | null
   /** geocoder.building.built_year (YYYY-MM-DD) of the dossier's pand, or null. The date estimate for archive drawings (#338). */
   buildingBuiltYear?: string | null
     receivedAt: string

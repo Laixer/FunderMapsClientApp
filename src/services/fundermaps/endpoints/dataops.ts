@@ -242,6 +242,37 @@ export async function setBuilding(id: number, addressId: string) {
   })) as AddressReply
 }
 
+/**
+ * Herstel vastleggen (#341): report.recovery + one sample per pand, with the
+ * dossier's document. Enum values are the database labels. Does not close the
+ * dossier.
+ */
+export async function recordRecovery(
+  id: number,
+  body: {
+    documentType: string
+    documentDate: string
+    contractor?: number | null
+    note?: string | null
+    samples: {
+      building: string
+      type: string
+      status?: string | null
+      pileType?: string | null
+      facade?: string[] | null
+      recoveryDate?: string | null
+      permit?: string | null
+      permitDate?: string | null
+      note?: string | null
+    }[]
+  },
+) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/recovery`,
+    body: { ...body } as unknown as Record<string, unknown>,
+  })) as { ok: boolean; recoveryId: number; samples: number; auditStatus: 'done' | 'pending' }
+}
+
 export default {
   queue,
   queueCount,
@@ -251,6 +282,7 @@ export default {
   close,
   closeMany,
   commit,
+  recordRecovery,
   create,
   remark,
   question,
