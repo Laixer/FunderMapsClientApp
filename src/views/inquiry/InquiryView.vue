@@ -204,6 +204,8 @@ const details = computed<KeyValueItem[]>(() => {
   const row = inquiry.value
   if (!row) return []
   const items: KeyValueItem[] = [
+    // Soort in the list too, not only in the grey line under the title (Don, 2026-09-23).
+    { label: 'Soort', value: inquiryTypeLabel(row.type) },
     { label: 'Uitvoerder', value: row.attribution.contractorName },
     { label: 'Data-eigenaar', value: row.attribution.dataOwnerName },
     { label: 'Documentdatum', value: formatDateShort(row.documentDate), mono: true },
