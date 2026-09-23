@@ -1588,14 +1588,19 @@ async function reopen(f: IProposedField) {
                  and a permanently grey box on 99% of the queue is noise. -->
             <!-- Also after closure: the melder writes back after the afronding and
                  the answer must come from here, without reopening (Don, 2026-09-15). -->
-            <div v-if="melderEmail" class="mt-2 flex gap-2">
-              <input
+            <!-- A textarea since 2026-09-23 (Don): the text is the body of a
+                 mail, and one line made every reply a single paragraph. Enter
+                 is a new line; Ctrl/⌘+Enter sends, as in a mail client. The
+                 API already turns line breaks into <br> in the HTML mail. -->
+            <div v-if="melderEmail" class="mt-2 flex items-end gap-2">
+              <textarea
                 v-model="questionText"
-                type="text"
-                class="studio-control flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
-                :placeholder="`${data?.dossier.outcome ? 'Reactie' : 'Vraag'} aan de melder (gemaild naar ${melderEmail})`"
+                rows="3"
+                class="studio-control flex-1 resize-y rounded-md border border-line bg-sunken px-2 py-1.5"
+                :placeholder="`${data?.dossier.outcome ? 'Reactie' : 'Vraag'} aan de melder (gemaild naar ${melderEmail}). Ctrl+Enter verstuurt.`"
                 aria-label="Vraag aan de melder"
-                @keydown.enter="askQuestion"
+                @keydown.enter.ctrl.prevent="askQuestion"
+                @keydown.enter.meta.prevent="askQuestion"
               />
               <Button
                 label="Verstuur vraag"
@@ -1725,7 +1730,7 @@ async function reopen(f: IProposedField) {
                 id="review-close-note"
                 v-model="closeNote"
                 kind="textarea"
-                :rows="answerMode ? 4 : 1"
+                :rows="answerMode ? 5 : 3"
                 label="Reden"
                 :error="noteError"
                 hint="Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen of duplicaat."
