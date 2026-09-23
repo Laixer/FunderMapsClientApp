@@ -436,7 +436,8 @@ const showRecovery = computed(
     !isAudit.value &&
     (!!recoveryId.value ||
       askedForRecovery.value ||
-      /herstel/i.test(String(data.value.dossier.payload?.topicLabel ?? ''))),
+      // Form dossiers carry topicLabel; the #340 loket import stores the label as topic.
+      /herstel/i.test(`${data.value.dossier.payload?.topicLabel ?? ''} ${data.value.dossier.payload?.topic ?? ''}`)),
 )
 const melderRecoveryHint = computed(() => {
   const v = data.value?.dossier.payload?.answers?.recoveryType
