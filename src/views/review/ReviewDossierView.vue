@@ -915,6 +915,21 @@ async function openNext(closedId: number, outcome: DossierOutcome) {
 }
 /** The source was not allowed to establish this field — a QuickScan quoting us back. */
 const isRefused = (f: IProposedField) => f.state === 'rejected'
+/**
+ * Why the pipeline refused a value, for the BEOORDEELD list (Don, 2026-09-25,
+ * dossier 5553: "23 geweigerd", but where?). A refusal is a rejection nobody
+ * clicked, so without this line it reads as the reviewer's own "Afgewezen".
+ */
+const refusedReason = (f: IProposedField): string | null => {
+  if (f.state !== 'rejected' || !f.evidence?.startsWith('bron niet toelaatbaar')) return null
+  return f.evidence.split('\n')[0]!.replace(/^bron niet toelaatbaar:\s*/, '')
+}
+/**
+ * Something typed in the Aanpassen drawer means the reviewer is not taking the
+ * value as read. The card's own Overnemen would take it anyway, with the note
+ * attached (Don, 2026-09-25, dossier 5582) -- so it waits while the drawer holds input.
+ */
+const draftedChange = (f: IProposedField) => !!editing.value[f.id] && (!!corrections.value[f.id] || !!notes.value[f.id]?.trim())
 
 const metaLine = computed(() => {
   const d = data.value?.dossier
@@ -1014,6 +1029,8 @@ async function reopen(f: IProposedField) {
   busy.value = f.id
   try {
     for (const id of ids) await api.dataops.reopenField(id)
+    // The API sets them pending; mirror that, or a refused value stays refused on screen.
+    for (const x of data.value?.fields ?? []) if (ids.includes(x.id)) x.state = 'pending'
     const rest = { ...decided.value }
     const cleared = { ...corrections.value }
     for (const id of ids) {
@@ -1325,7 +1342,8 @@ async function reopen(f: IProposedField) {
                   <Button
                     variant="primary"
                     label="Overnemen"
-                    :disabled="busy === f.id || isRefused(f)"
+                    :disabled="busy === f.id || isRefused(f) || draftedChange(f)"
+                    :title="draftedChange(f) ? 'U heeft hieronder iets ingevuld: kies Aanpassen en overnemen of Afkeuren met toelichting' : ''"
                     @click="decide(f, 'confirmed')"
                   />
                   <!-- No bare Afkeuren here (Don, #348): a rejection is either a
@@ -1466,7 +1484,10 @@ async function reopen(f: IProposedField) {
                       {{ FIELD_UNIT[f.field] }}
                     </span>
                   </span>
-                  <span class="block text-muted">
+                  <span v-if="refusedReason(f)" class="block text-red">
+                    Geweigerd, bron niet toelaatbaar: {{ refusedReason(f) }}
+                  </span>
+                  <span v-else class="block text-muted">
                     {{ VERDICT_LABEL[decided[f.id]!] ?? decided[f.id] }}<template
                       v-if="decided[f.id] === 'corrected' && corrections[f.id]"
                     >
