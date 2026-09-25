@@ -581,6 +581,33 @@ const meldingNaw = computed(() => {
   ]
   return rows.filter((r): r is { label: string; value: string } => !!r.value)
 })
+/**
+ * What FunderMaps has for the pand now, beside the melder's claim (Don,
+ * 2026-09-25, dossier 5594): the risk when they say it is higher or lower, the
+ * foundation type when they name another one. The class is the worst of the
+ * four risks, as on the map. Empty until the API sends buildingModel (#215).
+ */
+const RISK_PART: [string, 'drystandRisk' | 'dewateringDepthRisk' | 'bioInfectionRisk' | 'unclassifiedRisk'][] = [
+  ['droogstand', 'drystandRisk'],
+  ['ontwateringsdiepte', 'dewateringDepthRisk'],
+  ['bacteriële aantasting', 'bioInfectionRisk'],
+  ['overig', 'unclassifiedRisk'],
+]
+const modelNow = computed(() => {
+  const m = data.value?.dossier.buildingModel
+  const a = data.value?.dossier.payload?.answers
+  if (!m || !a || typeof a !== 'object') return [] as { label: string; value: string }[]
+  const rows: { label: string; value: string }[] = []
+  if (a.riskDirection || a.riskClass) {
+    const parts = RISK_PART.filter(([, k]) => m[k]).map(([name, k]) => `${name} ${m[k]!.toUpperCase()}`)
+    const worst = RISK_PART.map(([, k]) => m[k]).filter((v): v is string => !!v).sort().reverse()[0]
+    rows.push({ label: 'Risico nu in FunderMaps', value: worst ? `${worst.toUpperCase()} (${parts.join(', ')})` : 'geen risico berekend' })
+  }
+  if (a.foundationType) {
+    rows.push({ label: 'Funderingstype nu in FunderMaps', value: m.foundationType ? labelValue('foundation_type', m.foundationType) : 'onbekend' })
+  }
+  return rows
+})
 const hasMelding = computed(() => !!(data.value?.dossier.payload?.topicLabel || data.value?.dossier.payload?.note || meldingAnswers.value.length || meldingNaw.value.length))
 /** Which sent mails are unfolded in the verloop (#350). */
 const shownMail = ref<Record<number, boolean>>({})
@@ -1522,6 +1549,7 @@ async function reopen(f: IProposedField) {
             <div class="flex flex-col gap-2 text-md">
               <p v-if="data.dossier.payload?.topicLabel"><span class="text-sm mr-1.5 font-semibold uppercase text-label">Onderwerp</span><span class="text-muted">{{ data.dossier.payload.topicLabel }}</span></p>
               <p v-for="a in meldingAnswers" :key="a.label"><span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ a.label }}</span><span class="text-muted">{{ a.value }}</span></p>
+              <p v-for="m in modelNow" :key="m.label"><span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ m.label }}</span><span class="font-semibold text-ink">{{ m.value }}</span></p>
               <p v-if="data.dossier.payload?.note" class="whitespace-pre-wrap rounded-lg border border-line bg-surface px-3 py-2 text-muted">{{ data.dossier.payload.note }}</p>
               <p v-if="meldingNaw.length" class="text-sm text-faint">
                 <template v-for="(n, i) in meldingNaw" :key="n.label"><span v-if="i">&nbsp;·&nbsp;</span>{{ n.label }}: <span class="text-muted">{{ n.value }}</span></template>
