@@ -32,15 +32,6 @@ export interface CloseTemplate {
 
 export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
-    value: 'quickscan_referral',
-    label: 'QuickScan: via het FunderConsult-formulier',
-    outcome: 'rejected',
-    text:
-      'U heeft een QuickScan (Fase 0) meegestuurd. Die verwerken wij via een andere route: ' +
-      'https://funderconsult.com/feedback/form, optie “QuickScan of Fase 0-attest aanleveren”. ' +
-      'Dit meldformulier is bedoeld voor wijzigingen op basis van een funderingsonderzoek, een archieftekening of een herstelbewijs.',
-  },
-  {
     value: 'quickscan_already_processed',
     label: 'QuickScan: staat al in de database',
     // Duplicaat, not Sluiten zonder rapportage: that one waits for every open
