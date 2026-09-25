@@ -179,6 +179,15 @@ export interface IReviewDossier {
     recoveryId?: number | null
   /** geocoder.building.built_year (YYYY-MM-DD) of the dossier's pand, or null. The date estimate for archive drawings (#338). */
   buildingBuiltYear?: string | null
+    /** The model row of the dossier's pand now (API #215); absent from older API builds, null without a pand or row. */
+    buildingModel?: {
+      foundationType: string | null
+      foundationTypeReliability: string | null
+      drystandRisk: string | null
+      dewateringDepthRisk: string | null
+      bioInfectionRisk: string | null
+      unclassifiedRisk: string | null
+    } | null
     receivedAt: string
     outcome: string | null
     outcomeAt?: string | null
