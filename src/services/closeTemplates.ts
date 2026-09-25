@@ -43,7 +43,9 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
     value: 'quickscan_already_processed',
     label: 'QuickScan: staat al in de database',
-    outcome: 'accepted',
+    // Duplicaat, not Sluiten zonder rapportage: that one waits for every open
+    // proposal, and a QuickScan we already hold has nothing to review (Don, 2026-09-25).
+    outcome: 'duplicate',
     text:
       'Bedankt voor het toesturen van de QuickScan. Deze is al verwerkt in onze database ' +
       '(kenmerk QS-FOS-…, uitgevoerd op …). Uw pand staat daarmee op risico … (laag/midden/hoog). ' +
