@@ -373,8 +373,11 @@ const isInferred = (f: IProposedField) => /^\s*afgeleid\s*:/i.test(f.evidence ??
  * Close the dossier. `rejected` is the cat picture, the empty scan, the
  * report filed under the wrong address; `duplicate` the same thing twice.
  * Both need a word on why — that note is the most useful thing collected here.
+ * So does Sluiten zonder rapportage (`accepted` without a commit): without a
+ * note the mail falls back to "overgenomen in de Funderingsdatabase", which is
+ * not true when nothing was taken over (Don, 2026-09-25, FM2026-000359).
  */
-const NOTE_REQUIRED: ReadonlySet<DossierOutcome> = new Set(['rejected', 'duplicate'])
+const NOTE_REQUIRED: ReadonlySet<DossierOutcome> = new Set(['rejected', 'duplicate', 'accepted'])
 /**
  * Set when Afwijzen or Duplicaat was clicked without a reason. The buttons stay
  * clickable -- a greyed-out button does not say what it wants -- and the note
@@ -383,7 +386,7 @@ const NOTE_REQUIRED: ReadonlySet<DossierOutcome> = new Set(['rejected', 'duplica
 const noteMissingFor = ref<DossierOutcome | null>(null)
 const noteError = computed(() =>
   noteMissingFor.value && !closeNote.value.trim()
-    ? `Geef eerst een reden: waarom wordt dit dossier ${noteMissingFor.value === 'duplicate' ? 'als duplicaat gesloten' : 'afgewezen'}?`
+    ? `Geef eerst een reden: waarom wordt dit dossier ${noteMissingFor.value === 'duplicate' ? 'als duplicaat gesloten' : noteMissingFor.value === 'accepted' ? 'gesloten zonder rapportage' : 'afgewezen'}?`
     : null,
 )
 watch(closeNote, (v) => {
@@ -1782,7 +1785,7 @@ async function reopen(f: IProposedField) {
                 :rows="answerMode ? 5 : 3"
                 label="Reden"
                 :error="noteError"
-                hint="Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen of duplicaat."
+                hint="Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage."
               />
             </div>
           </Panel>
