@@ -100,6 +100,15 @@ export const WORK_PACKAGES: readonly WorkPackage[] = [
     opts: { channel: ['api'], q: 'Archiefwijzer' },
   },
   {
+    // Archieven we may not search automatically (archieven.nl/MAIS-Flexis and
+    // similar, robots.txt): per interesting pand a prepared search link in the
+    // note (Don, 2026-09-26). Subject prefix "Archief zoeken:".
+    id: 'archief-zoeken',
+    title: 'Archief zoeken: zoeklink per pand',
+    hint: 'Het model twijfelt; open de klaargezette zoeklink in het archief, haal de stukken op en upload ze bij het pand.',
+    opts: { channel: ['api'], q: 'Archief zoeken' },
+  },
+  {
     id: 'vragen',
     title: 'Vragen zonder document',
     hint: 'Een melder stelt een vraag en stuurde niets mee.',
