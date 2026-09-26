@@ -90,6 +90,16 @@ export const WORK_PACKAGES: readonly WorkPackage[] = [
     opts: { channel: ['invoer_app'] },
   },
   {
+    // Archiefwijzer pilot (Don, 2026-09-26): panden where the two foundation-type
+    // models disagree and an archive E-loket or the Amsterdam API lists a
+    // bouwdossier. Created by Fundie on channel `api`; the dossier's note holds
+    // the direct links. The work: fetch the stukken, upload them at the pand.
+    id: 'archiefwijzer',
+    title: 'Archiefwijzer: bouwdossiers ophalen',
+    hint: 'Het model twijfelt en een archief heeft een bouwdossier. Open de link, haal de stukken op en upload ze bij het pand.',
+    opts: { channel: ['api'], q: 'Archiefwijzer' },
+  },
+  {
     id: 'vragen',
     title: 'Vragen zonder document',
     hint: 'Een melder stelt een vraag en stuurde niets mee.',

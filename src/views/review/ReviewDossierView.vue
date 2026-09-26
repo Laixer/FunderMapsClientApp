@@ -611,6 +611,18 @@ const modelNow = computed(() => {
   }
   return rows
 })
+/** The melding note split into text and http(s) links, rendered as text nodes (no v-html). */
+function noteParts(note: string): { text: string; url?: string }[] {
+  const out: { text: string; url?: string }[] = []
+  let last = 0
+  for (const m of note.matchAll(/https?:\/\/[^\s<>"]+/g)) {
+    if (m.index! > last) out.push({ text: note.slice(last, m.index) })
+    out.push({ text: m[0], url: m[0] })
+    last = m.index! + m[0].length
+  }
+  if (last < note.length) out.push({ text: note.slice(last) })
+  return out
+}
 const hasMelding = computed(() => !!(data.value?.dossier.payload?.topicLabel || data.value?.dossier.payload?.note || meldingAnswers.value.length || meldingNaw.value.length))
 /** Which sent mails are unfolded in the verloop (#350). */
 const shownMail = ref<Record<number, boolean>>({})
@@ -1574,7 +1586,8 @@ async function reopen(f: IProposedField) {
               <p v-if="data.dossier.payload?.topicLabel"><span class="text-sm mr-1.5 font-semibold uppercase text-label">Onderwerp</span><span class="text-muted">{{ data.dossier.payload.topicLabel }}</span></p>
               <p v-for="a in meldingAnswers" :key="a.label"><span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ a.label }}</span><span class="text-muted">{{ a.value }}</span></p>
               <p v-for="m in modelNow" :key="m.label"><span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ m.label }}</span><span class="font-semibold text-ink">{{ m.value }}</span></p>
-              <p v-if="data.dossier.payload?.note" class="whitespace-pre-wrap rounded-lg border border-line bg-surface px-3 py-2 text-muted">{{ data.dossier.payload.note }}</p>
+              <!-- Links in the note are clickable (Archiefwijzer dossiers carry the archive links). -->
+              <p v-if="data.dossier.payload?.note" class="whitespace-pre-wrap break-words rounded-lg border border-line bg-surface px-3 py-2 text-muted"><template v-for="(part, i) in noteParts(data.dossier.payload.note)" :key="i"><a v-if="part.url" :href="part.url" target="_blank" rel="noopener" class="text-green-ink underline underline-offset-2">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></p>
               <p v-if="meldingNaw.length" class="text-sm text-faint">
                 <template v-for="(n, i) in meldingNaw" :key="n.label"><span v-if="i">&nbsp;·&nbsp;</span>{{ n.label }}: <span class="text-muted">{{ n.value }}</span></template>
               </p>
