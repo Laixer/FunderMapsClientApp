@@ -69,4 +69,49 @@ export async function lookupNummeraanduidingId(
   return bare.startsWith(NUMMERAANDUIDING_PREFIX) ? bare : NUMMERAANDUIDING_PREFIX + bare
 }
 
-export default { suggest, lookupNummeraanduidingId }
+export default { suggest, lookupNummeraanduidingId, streetAddresses }
+
+const PDOK_FREE_URL = 'https://api.pdok.nl/bzk/locatieserver/search/v3_1/free'
+
+export interface IPDOKStreetAddress {
+  nummeraanduidingId: string
+  label: string
+  number: number
+  letter: string | null
+  addition: string | null
+}
+
+/**
+ * Every address on one street in one place, for adding a range at once (Don,
+ * 2026-09-26: "Oppenheimstraat 5 t/m 23 oneven" meant ten picks by hand).
+ * Returns the prefixed BAG NUMMERAANDUIDING, ready for our geocoder.
+ */
+export async function streetAddresses(street: string, city: string, from: number, to: number): Promise<IPDOKStreetAddress[]> {
+  const esc = (s: string) => s.replace(/(["\\])/g, '\\$1')
+  const docs: Array<Record<string, unknown>> = []
+  // PDOK returns at most 100 rows per call; page through (a long street with letters can pass 100).
+  for (let start = 0; start < 1000; start += 100) {
+    const url = new URL(PDOK_FREE_URL)
+    url.searchParams.set('q', `straatnaam:"${esc(street)}" AND woonplaatsnaam:"${esc(city)}" AND huisnummer:[${from} TO ${to}]`)
+    url.searchParams.set('fq', 'type:adres')
+    url.searchParams.set('fl', 'nummeraanduiding_id,weergavenaam,huisnummer,huisletter,huisnummertoevoeging')
+    url.searchParams.set('rows', '100')
+    url.searchParams.set('start', String(start))
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`PDOK search failed: ${res.status}`)
+    const body = (await res.json()) as { response?: { docs?: Array<Record<string, unknown>>; numFound?: number } }
+    const page = body.response?.docs ?? []
+    docs.push(...page)
+    if (page.length < 100 || docs.length >= (body.response?.numFound ?? 0)) break
+  }
+  return docs
+    .filter((d) => typeof d.nummeraanduiding_id === 'string' && d.huisnummer != null)
+    .map((d) => ({
+      nummeraanduidingId: NUMMERAANDUIDING_PREFIX + String(d.nummeraanduiding_id),
+      label: String(d.weergavenaam ?? ''),
+      number: Number(d.huisnummer),
+      letter: (d.huisletter as string | undefined) ?? null,
+      addition: (d.huisnummertoevoeging as string | undefined) ?? null,
+    }))
+    .sort((a, b) => a.number - b.number || (a.letter ?? '').localeCompare(b.letter ?? '') || (a.addition ?? '').localeCompare(b.addition ?? ''))
+}

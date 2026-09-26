@@ -114,6 +114,74 @@ function setBuilding(target: IAddress) {
   return run('own', false, () => api.dataops.setBuilding(props.dossierId, target.external_id))
 }
 
+/**
+ * A range of house numbers on one street (Don, 2026-09-26: "Oppenheimstraat 5
+ * t/m 23 oneven" was ten picks by hand). Pick the first address, give the last
+ * number and odd/even/all; PDOK lists the street, the reviewer checks the list,
+ * and every address is added as a confirmed address, one call each.
+ */
+const rangeStart = ref<IAddress | null>(null)
+const rangeEnd = ref('')
+const rangeStep = ref<'same' | 'all'>('same')
+const rangeFound = ref<{ nummeraanduidingId: string; label: string; letter: string | null; addition: string | null }[]>([])
+const rangeChosen = ref<Record<string, boolean>>({})
+const rangeError = ref<string | null>(null)
+const rangeBusy = ref(false)
+
+function pickRangeStart(a: IAddress) {
+  rangeStart.value = a
+  rangeFound.value = []
+  rangeError.value = null
+}
+
+async function findRange() {
+  const s = rangeStart.value
+  const from = parseInt(s?.building_number ?? '', 10)
+  const to = parseInt(rangeEnd.value, 10)
+  if (!s?.street || !s.city || !Number.isFinite(from) || !Number.isFinite(to)) {
+    rangeError.value = 'Kies het eerste adres en vul het laatste huisnummer in.'
+    return
+  }
+  const lo = Math.min(from, to), hi = Math.max(from, to)
+  rangeBusy.value = true
+  rangeError.value = null
+  try {
+    const all = await api.pdok.streetAddresses(s.street, s.city, lo, hi)
+    const hits = all.filter((a) => a.number >= lo && a.number <= hi && (rangeStep.value === 'all' || a.number % 2 === from % 2))
+    const known = new Set(props.addresses.map((a) => a.addressId))
+    rangeFound.value = hits.filter((h) => !known.has(h.nummeraanduidingId))
+    // Upstairs addresses (5a, 5b) are the same pand: listed, but not ticked by default.
+    rangeChosen.value = Object.fromEntries(rangeFound.value.map((h) => [h.nummeraanduidingId, !h.letter && !h.addition]))
+    if (!rangeFound.value.length) rangeError.value = 'Geen nieuwe adressen gevonden in deze reeks.'
+  } catch (e) {
+    rangeError.value = describeFailure(e, 'De reeks kon niet worden opgezocht.')
+  } finally {
+    rangeBusy.value = false
+  }
+}
+
+async function addRange() {
+  const ids = rangeFound.value.filter((h) => rangeChosen.value[h.nummeraanduidingId]).map((h) => h.nummeraanduidingId)
+  if (!ids.length) return
+  busy.value = 'range'
+  let last: { addresses: IDossierAddress[] } | null = null
+  const failed: string[] = []
+  for (const id of ids) {
+    try {
+      last = await api.dataops.addressAdd(props.dossierId, { addressId: id })
+    } catch {
+      failed.push(rangeFound.value.find((h) => h.nummeraanduidingId === id)?.label ?? id)
+    }
+  }
+  busy.value = null
+  if (last) emit('updated', last.addresses, false)
+  if (failed.length) emit('error', `${failed.length} adres(sen) konden niet worden toegevoegd: ${failed.join('; ')}`)
+  picking.value = null
+  rangeStart.value = null
+  rangeEnd.value = ''
+  rangeFound.value = []
+}
+
 /** One line for an address, for the picker's header. */
 const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
 </script>
@@ -221,11 +289,54 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
         </p>
         <AddressPicker @pick="add" />
       </div>
+      <div v-if="picking === 'range'" class="flex flex-col gap-2 rounded-lg border border-line bg-sunken p-2.5">
+        <p class="text-sm text-muted">Een reeks huisnummers in één straat, bijvoorbeeld 5 t/m 23 oneven. Kies eerst het eerste adres. Adressen met een letter of toevoeging (5a, 5b) staan erbij, maar zijn niet aangevinkt: meestal hetzelfde pand.</p>
+        <AddressPicker v-if="!rangeStart" @pick="pickRangeStart" />
+        <template v-else>
+          <p class="text-md">Vanaf <strong>{{ rangeStart.street }} {{ rangeStart.building_number }}</strong>, {{ rangeStart.city }}</p>
+          <div class="flex flex-wrap items-end gap-2">
+            <label class="flex flex-col gap-1 text-sm">
+              <span class="font-semibold uppercase tracking-wide text-label">T/m huisnummer</span>
+              <input id="range-end" v-model="rangeEnd" type="number" min="1" class="studio-control w-28 rounded-md border border-line bg-surface px-2 py-1.5" />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              <span class="font-semibold uppercase tracking-wide text-label">Nummers</span>
+              <select id="range-step" v-model="rangeStep" class="studio-control rounded-md border border-line bg-surface px-2 py-1.5">
+                <option value="same">{{ parseInt(rangeStart.building_number ?? '0', 10) % 2 ? 'oneven' : 'even' }}</option>
+                <option value="all">alle</option>
+              </select>
+            </label>
+            <Button label="Zoek de adressen" :disabled="rangeBusy || !rangeEnd" @click="findRange" />
+            <Button label="Ander beginadres" variant="ghost" @click="rangeStart = null" />
+          </div>
+          <ul v-if="rangeFound.length" class="flex max-h-64 flex-col gap-1 overflow-y-auto">
+            <li v-for="h in rangeFound" :key="h.nummeraanduidingId">
+              <label class="flex items-center gap-2 text-md">
+                <input v-model="rangeChosen[h.nummeraanduidingId]" type="checkbox" />
+                <span>{{ h.label }}</span>
+              </label>
+            </li>
+          </ul>
+          <p v-if="rangeError" class="text-sm text-red">{{ rangeError }}</p>
+          <Button
+            v-if="rangeFound.length"
+            variant="primary"
+            :label="busy === 'range' ? 'Bezig…' : `${Object.values(rangeChosen).filter(Boolean).length} adressen toevoegen`"
+            :disabled="busy !== null"
+            @click="addRange"
+          />
+        </template>
+      </div>
       <div class="flex gap-1.5">
         <Button
           :label="picking === 'add' ? 'Annuleren' : 'Adres toevoegen…'"
           :disabled="busy !== null"
           @click="picking = picking === 'add' ? null : 'add'"
+        />
+        <Button
+          :label="picking === 'range' ? 'Annuleren' : 'Reeks toevoegen…'"
+          :disabled="busy !== null"
+          @click="picking = picking === 'range' ? null : 'range'"
         />
       </div>
     </div>
