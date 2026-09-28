@@ -54,7 +54,7 @@ export const FOUNDATION_DAMAGE_CAUSE_OPTIONS: SelectOption[] = [
   { value: 6, label: 'Bacteriele aantasting' },
   { value: 8, label: 'Schimmel aantasting' },
   { value: 9, label: 'Bacterien en schimmel aantasting' },
-  { value: 10, label: 'Funderings fouten' },
+  { value: 10, label: 'Funderingstechnische schade' },
   { value: 11, label: 'Afglijden fundering' },
   { value: 12, label: 'Bodemdaling' },
   { value: 13, label: 'Aantasting (planten)wortels' },

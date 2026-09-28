@@ -211,7 +211,7 @@ export const VALUE_LABEL: Record<string, Record<string, string>> = {
     overcharge_negative_cling: 'overbelasting + negatieve kleef',
     negative_cling: 'negatieve kleef',
     ...INFECTION,
-    foundation_flaw: 'funderingsfout',
+    foundation_flaw: 'funderingstechnische schade',
     construction_heave: 'opdrukken constructie',
     subsidence: 'zetting',
     vegetation: 'begroeiing',
