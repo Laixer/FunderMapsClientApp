@@ -38,9 +38,10 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
     // proposal, and a QuickScan we already hold has nothing to review (Don, 2026-09-25).
     outcome: 'duplicate',
     text:
-      'Bedankt voor het toesturen van de QuickScan. Deze is al verwerkt in onze database ' +
-      '(kenmerk QS-FOS-…, uitgevoerd op …). Uw pand staat daarmee op risico … (laag/midden/hoog). ' +
-      'Wijzigt de risico-inschatting vanavond nog door onze modelberekening, dan laten wij dat weten.',
+      // Nothing to fill in (Don, 2026-09-29).
+      'Bedankt voor het toesturen van het Verkennend Funderingsonderzoek (QuickScan/Fase 0). Dit is opgenomen ' +
+      'in de FunderMaps-database en wordt meegenomen in het funderingsrisico van uw pand. De risico-inschatting ' +
+      'volgt de uitkomst van het Verkennend Funderingsonderzoek in de nieuwe modelberekeningen.',
   },
   {
     value: 'quickscan_not_recognised',
