@@ -45,6 +45,7 @@ import { confirmAction } from '@/services/confirm'
 import { toastError, toastInfo, toastSuccess } from '@/services/toast'
 import { splitQuoted, tidyMailText } from '@/services/mailQuote'
 import { addressSetKey, hiddenMembers, spreadSets } from '@/utils/spread'
+import { describeDocument, documentName, findConflicts } from '@/services/documentPrecedence'
 
 /**
  * Judging one submission.
@@ -987,6 +988,24 @@ const metaLine = computed(() => {
 const artifacts = computed(() => data.value?.artifacts ?? [])
 const current = computed(() => artifacts.value[shown.value] ?? null)
 /**
+ * Which document a value came from, on the card itself once there is more than
+ * one to choose from (Don, 2026-10-01). Clicking it shows that document.
+ */
+const docOf = (f: IProposedField): string | null =>
+  artifacts.value.length > 1 ? documentName(artifacts.value, f.artifactId) : null
+/** What a value says now: its correction, nothing once refused, the proposal while open. */
+function judgedValue(f: IProposedField): string | null {
+  if (f.state === 'superseded') return null
+  const d = decided.value[f.id]
+  if (d === 'rejected') return null
+  if (d === 'corrected') return corrections.value[f.id] ?? f.value
+  return f.value
+}
+/** Two documents saying different things about one address and field (services/documentPrecedence.ts). */
+const conflicts = computed(() => findConflicts(artifacts.value, data.value?.fields ?? [], judgedValue))
+/** Taken-over values still in conflict: the commit would keep one of them by accident (API #223). */
+const takenConflicts = computed(() => taken.value.filter((f) => conflicts.value.get(f.id)?.others.length))
+/**
  * No document at all: the melder asked something, and answering is the whole
  * job. The screen drops the review furniture and puts the question where the
  * document would be (Don, 2026-09-17: "half the closures had nothing to review").
@@ -1361,6 +1380,32 @@ async function reopen(f: IProposedField) {
                   {{ f.evidence ?? 'Geen citaat meegegeven.' }}
                 </p>
 
+                <button
+                  v-if="docOf(f)"
+                  type="button"
+                  class="text-sm max-w-full self-start truncate font-mono text-faint hover:text-strong"
+                  :title="`Toon ${docOf(f)}`"
+                  @click.stop="focus(f)"
+                >
+                  uit {{ docOf(f) }}
+                </button>
+
+                <!-- Several documents, one address, two answers (Don, 2026-10-01). -->
+                <div v-if="conflicts.get(f.id)?.others.length" class="text-sm flex flex-col gap-0.5 text-amber-ink">
+                  <p class="font-semibold">Een ander document zegt iets anders:</p>
+                  <p v-for="o in conflicts.get(f.id)!.others" :key="`${o.artifactId}:${o.value}`">
+                    {{ labelValue(f.field, o.value) }} <span class="font-mono">(uit {{ o.name }})</span>
+                  </p>
+                  <p v-if="conflicts.get(f.id)!.leading">
+                    Volgens de volgorde gaat {{ conflicts.get(f.id)!.leading!.name }} voor
+                    ({{ describeDocument(conflicts.get(f.id)!.leading!) }}). Neem die waarde over en keur de andere af.
+                  </p>
+                  <p v-else>
+                    De volgorde kan hier niet kiezen: van een document ontbreekt de soort of de datum. Kies zelf welke
+                    waarde klopt en keur de andere af.
+                  </p>
+                </div>
+
                 <p
                   v-if="currentLabel(f)"
                   class="text-sm font-semibold"
@@ -1535,7 +1580,14 @@ async function reopen(f: IProposedField) {
                     >
                       naar {{ labelValue(f.field, corrections[f.id]) }}</template
                     ><template v-if="membersOf(f).length > 1"> · geldt voor {{ membersOf(f).length }} adressen</template
-                    ><template v-else-if="addressLine(f)"> · {{ addressLine(f) }}</template>
+                    ><template v-else-if="addressLine(f)"> · {{ addressLine(f) }}</template
+                    ><template v-if="docOf(f)"> · uit {{ docOf(f) }}</template>
+                  </span>
+                  <span
+                    v-if="(decided[f.id] === 'confirmed' || decided[f.id] === 'corrected') && conflicts.get(f.id)?.others.length"
+                    class="block text-amber-ink"
+                  >
+                    Botst met {{ conflicts.get(f.id)!.others.map((o) => `${labelValue(f.field, o.value)} uit ${o.name}`).join(', ') }}
                   </span>
                 </span>
                 <Button
@@ -1738,6 +1790,14 @@ async function reopen(f: IProposedField) {
                   />
                 </div>
               </div>
+
+              <!-- Never blocks: the reviewer may know better than the rule. -->
+              <Callout v-if="takenConflicts.length" tone="amber">
+                {{ takenConflicts.length }} overgenomen
+                {{ takenConflicts.length === 1 ? 'waarde botst' : 'waarden botsen' }} met een ander document voor
+                hetzelfde adres. Bij het overnemen blijft er per veld maar één over, en welke is nu toeval. Keur de
+                waarde af die niet klopt (zie BEOORDEELD).
+              </Callout>
 
               <div class="flex flex-wrap gap-2">
                 <Button
