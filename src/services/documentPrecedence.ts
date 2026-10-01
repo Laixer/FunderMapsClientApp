@@ -7,15 +7,17 @@
  * merges every document of a dossier into one rapportage, and for one address
  * and one field the last value it meets wins (API #223) -- an accident of the
  * reviewing order, not a rule. Until the commit has a rule of its own, this
- * screen shows the conflict and what the rule would pick, and the reviewer
- * takes one value and rejects the other.
+ * screen shows the conflict and what the rule advises, and the reviewer
+ * confirms which document leads.
  *
- * The rule is the model's hierarchy over reports, which Don confirmed holds
- * inside a dossier too: a funderingsonderzoek of at most five years leads, then
- * a QuickScan of at most three years, then other research on site, then
- * archive research; within one rank the newest document leads. Anything the
- * rule cannot place (no type, no date, a tie) is left to the reviewer, and the
- * screen says so rather than guess.
+ * The rule is Don's hierarchy over report types (2026-10-01), two orders:
+ * one for what the foundation IS (type, levels, years) and one for the RISK
+ * values, where a QuickScan addendum comes straight after a funderingsonderzoek.
+ * Within one type the newest document leads. The live model 2024.1 differs on
+ * two points (a note ranks above archive research there, and a QuickScan
+ * addendum beats a funderingsonderzoek on risk); this follows Don's intent.
+ * Anything the rule cannot place (no type, a tie, no date) is left to the
+ * reviewer, and the screen says so rather than guess.
  */
 
 import type { IReviewArtifact, IProposedField } from '@/services/fundermaps/interfaces/IDataops'
@@ -23,20 +25,33 @@ import type { IReviewArtifact, IProposedField } from '@/services/fundermaps/inte
 /** Values that describe the document itself, one per document by nature: never a conflict. */
 const DOCUMENT_FIELDS = new Set(['document_date', 'inquiry_type', 'contractor'])
 
-const ON_SITE = new Set([
+/** What the foundation is: Don's first order. Unlisted types rank last, as in the model. */
+const TYPE_ORDER = [
   'foundation_research',
-  'additional_research',
   'inspectionpit',
   'second_opinion',
+  'additional_research',
   'demolition_research',
-  'foundation_advice',
-  'soil_investigation',
-  'ground_water_level_research',
+  'architectural_research',
+  'archive_research',
   'quickscan',
+  'note',
+]
+/** The risk values: Don's second order, the QuickScan addendum (facade_scan) second. */
+const RISK_ORDER = [
+  'foundation_research',
   'facade_scan',
-])
-const ARCHIVE = new Set(['archive_research', 'architectural_research'])
-const QUICKSCAN = new Set(['quickscan', 'facade_scan'])
+  'inspectionpit',
+  'second_opinion',
+  'additional_research',
+  'demolition_research',
+  'architectural_research',
+  'archive_research',
+  'quickscan',
+  'note',
+]
+/** Sample fields the model reads as risk, not as what the foundation is. */
+const RISK_FIELDS = new Set(['enforcement_term', 'overall_quality', 'damage_cause', 'recovery_advised'])
 
 /** The melder's label on a file, as an inquiry type: the commit's own table. */
 const TYPE_FROM_CATEGORY: Record<string, string> = {
@@ -57,8 +72,8 @@ const TYPE_LABEL: Record<string, string> = {
   foundation_advice: 'funderingsadvies',
   soil_investigation: 'grondonderzoek',
   ground_water_level_research: 'grondwateronderzoek',
-  quickscan: 'QuickScan',
-  facade_scan: 'QuickScan',
+  quickscan: 'QuickScan (vervallen)',
+  facade_scan: 'QuickScan (addendum)',
   archive_research: 'archiefonderzoek',
   architectural_research: 'bouwhistorisch onderzoek',
   note: 'notitie',
@@ -76,7 +91,7 @@ export interface DocumentProfile {
 
 export interface Conflict {
   /** The other documents' values for the same address and field. */
-  others: { artifactId: number; name: string; value: string }[]
+  others: { fieldId: number; artifactId: number; name: string; value: string }[]
   /** The document the rule puts first, or null when the rule cannot decide. */
   leading: DocumentProfile | null
 }
@@ -120,22 +135,17 @@ export function documentProfiles(
   return out
 }
 
-const yearsAgo = (d: Date, now: Date) => (now.getTime() - d.getTime()) / (365.25 * 24 * 3600 * 1000)
-
-/** Lower leads. Null: the rule has nothing to go on. */
-function rank(p: DocumentProfile, now: Date): number | null {
+/** Lower leads; null when the document has no type at all. */
+function rank(p: DocumentProfile, field: string): number | null {
   if (!p.type) return null
-  const age = p.date ? yearsAgo(p.date, now) : null
-  if (p.type === 'foundation_research' && age != null && age <= 5) return 0
-  if (QUICKSCAN.has(p.type) && age != null && age <= 3) return 1
-  if (ON_SITE.has(p.type)) return 2
-  if (ARCHIVE.has(p.type)) return 3
-  return null
+  const order = RISK_FIELDS.has(field) ? RISK_ORDER : TYPE_ORDER
+  const i = order.indexOf(p.type)
+  return i < 0 ? 100 : i
 }
 
-/** The document the hierarchy puts first among these, or null when it cannot tell. */
-export function leadingDocument(profiles: DocumentProfile[], now = new Date()): DocumentProfile | null {
-  const ranked = profiles.map((p) => ({ p, r: rank(p, now) }))
+/** The document the hierarchy puts first for this field, or null when it cannot tell. */
+export function leadingDocument(profiles: DocumentProfile[], field: string): DocumentProfile | null {
+  const ranked = profiles.map((p) => ({ p, r: rank(p, field) }))
   if (ranked.some((x) => x.r == null)) return null
   const best = Math.min(...ranked.map((x) => x.r!))
   const top = ranked.filter((x) => x.r === best).map((x) => x.p)
@@ -161,7 +171,6 @@ export function findConflicts(
   artifacts: IReviewArtifact[],
   fields: IProposedField[],
   judged: Judged,
-  now = new Date(),
 ): Map<number, Conflict> {
   if (artifacts.length < 2) return new Map()
   const profiles = documentProfiles(artifacts, fields, judged)
@@ -179,12 +188,12 @@ export function findConflicts(
     const docs = new Set(rows.map((r) => r.f.artifactId))
     const values = new Set(rows.map((r) => r.value.toLowerCase()))
     if (docs.size < 2 || values.size < 2) continue
-    const leading = leadingDocument([...docs].map((id) => profiles.get(id)!).filter(Boolean), now)
+    const leading = leadingDocument([...docs].map((id) => profiles.get(id)!).filter(Boolean), rows[0]!.f.field)
     for (const r of rows) {
       out.set(r.f.id, {
         others: rows
           .filter((o) => o.f.artifactId !== r.f.artifactId && o.value.toLowerCase() !== r.value.toLowerCase())
-          .map((o) => ({ artifactId: o.f.artifactId, name: documentName(artifacts, o.f.artifactId), value: o.value })),
+          .map((o) => ({ fieldId: o.f.id, artifactId: o.f.artifactId, name: documentName(artifacts, o.f.artifactId), value: o.value })),
         leading,
       })
     }

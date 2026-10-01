@@ -1081,6 +1081,38 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
 }
 
 /**
+ * The reviewer confirms which document leads (Don, 2026-10-01): this value is
+ * taken over and the other documents' values for the same address and field
+ * are refused, with the reason written down so the log says why.
+ */
+async function chooseLeading(f: IProposedField) {
+  const conflict = conflicts.value.get(f.id)
+  if (!conflict) return
+  const losers = conflict.others.map((o) => o.fieldId).filter((id) => !decided.value[id] || decided.value[id] !== 'rejected')
+  busy.value = f.id
+  try {
+    if (losers.length) {
+      await api.dataops.verdict({
+        fieldIds: losers,
+        outcome: 'rejected',
+        finalValue: null,
+        note: `Ander document leidend: ${docOf(f) ?? 'onbekend document'}`,
+        reviewSeconds: Math.round((Date.now() - openedAt) / 1000),
+      })
+      const settledNow = { ...decided.value }
+      for (const id of losers) settledNow[id] = 'rejected'
+      decided.value = settledNow
+    }
+  } catch (e) {
+    error.value = describeFailure(e, 'De andere waarde kon niet worden afgekeurd.')
+    busy.value = null
+    return
+  }
+  busy.value = null
+  if (decided.value[f.id] !== 'confirmed' && decided.value[f.id] !== 'corrected') await decide(f, 'confirmed')
+}
+
+/**
  * Undo a verdict while the dossier is open (#355): an accidental click on the
  * wrong value should not need a system fix. The row returns to the open list;
  * the earlier decision stays in the log.
@@ -1390,20 +1422,28 @@ async function reopen(f: IProposedField) {
                   uit {{ docOf(f) }}
                 </button>
 
-                <!-- Several documents, one address, two answers (Don, 2026-10-01). -->
-                <div v-if="conflicts.get(f.id)?.others.length" class="text-sm flex flex-col gap-0.5 text-amber-ink">
+                <!-- Several documents, one address, two answers (Don, 2026-10-01): the
+                     rule advises, the reviewer confirms which document leads. -->
+                <div v-if="conflicts.get(f.id)?.others.length" class="text-sm flex flex-col gap-1 text-amber-ink">
                   <p class="font-semibold">Een ander document zegt iets anders:</p>
-                  <p v-for="o in conflicts.get(f.id)!.others" :key="`${o.artifactId}:${o.value}`">
+                  <p v-for="o in conflicts.get(f.id)!.others" :key="o.fieldId">
                     {{ labelValue(f.field, o.value) }} <span class="font-mono">(uit {{ o.name }})</span>
                   </p>
                   <p v-if="conflicts.get(f.id)!.leading">
-                    Volgens de volgorde gaat {{ conflicts.get(f.id)!.leading!.name }} voor
-                    ({{ describeDocument(conflicts.get(f.id)!.leading!) }}). Neem die waarde over en keur de andere af.
+                    Advies volgens de volgorde: {{ conflicts.get(f.id)!.leading!.name }} gaat voor
+                    ({{ describeDocument(conflicts.get(f.id)!.leading!) }}).
                   </p>
                   <p v-else>
-                    De volgorde kan hier niet kiezen: van een document ontbreekt de soort of de datum. Kies zelf welke
-                    waarde klopt en keur de andere af.
+                    De volgorde kan hier niet kiezen: van een document ontbreekt de soort, of ze zijn even oud. Kies zelf.
                   </p>
+                  <Button
+                    class="self-start"
+                    :variant="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'primary' : 'secondary'"
+                    :label="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'Deze is leidend (advies)' : 'Deze is leidend'"
+                    :disabled="busy === f.id || isRefused(f)"
+                    title="Neemt deze waarde over en keurt de waarde uit het andere document af"
+                    @click.stop="chooseLeading(f)"
+                  />
                 </div>
 
                 <p
@@ -1587,7 +1627,19 @@ async function reopen(f: IProposedField) {
                     v-if="(decided[f.id] === 'confirmed' || decided[f.id] === 'corrected') && conflicts.get(f.id)?.others.length"
                     class="block text-amber-ink"
                   >
-                    Botst met {{ conflicts.get(f.id)!.others.map((o) => `${labelValue(f.field, o.value)} uit ${o.name}`).join(', ') }}
+                    Botst met {{ conflicts.get(f.id)!.others.map((o) => `${labelValue(f.field, o.value)} uit ${o.name}`).join(', ') }}<template
+                      v-if="conflicts.get(f.id)!.leading"
+                    >
+                      · advies: {{ conflicts.get(f.id)!.leading!.name }}</template
+                    >
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold underline hover:text-strong"
+                      :disabled="busy === f.id"
+                      @click="chooseLeading(f)"
+                    >
+                      Deze is leidend
+                    </button>
                   </span>
                 </span>
                 <Button
