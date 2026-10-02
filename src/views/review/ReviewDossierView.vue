@@ -46,6 +46,7 @@ import { toastError, toastInfo, toastSuccess } from '@/services/toast'
 import { splitQuoted, tidyMailText } from '@/services/mailQuote'
 import { addressSetKey, hiddenMembers, spreadSets } from '@/utils/spread'
 import { describeDocument, documentName, findConflicts } from '@/services/documentPrecedence'
+import type { MelderMessageKind } from '@/services/fundermaps/endpoints/dataops'
 
 /**
  * Judging one submission.
@@ -136,6 +137,7 @@ async function load() {
   openedAt = Date.now()
   try {
     data.value = await api.dataops.dossier(Number(route.params.id))
+    messageKind.value = data.value.dossier.outcome ? 'answer' : 'question'
     // A decision already on the server is a decision. Until 2026-09-08 only
     // in-session verdicts counted, so a reload put every judged value back
     // in the open list while the queue said zero.
@@ -823,6 +825,17 @@ const remarkBusy = ref(false)
 const melderEmail = computed(() => data.value?.dossier.submitter?.email ?? null)
 const questionText = ref('')
 const questionBusy = ref(false)
+/**
+ * API #209 (Don, 2026-09-23): the box was question-only, so an answer went out
+ * as "hebben wij een vraag:". The reviewer picks; a closed dossier is usually
+ * answered, an open one usually asked.
+ */
+const messageKind = ref<MelderMessageKind>('question')
+const MESSAGE_KIND_LABEL: Record<MelderMessageKind, string> = { question: 'Vraag', answer: 'Antwoord' }
+/** Our own answer to the melder: a 'question' entry whose mail says it was an answer. */
+const isOurAnswer = (e: { kind: string; body?: Record<string, unknown> | null }) =>
+  e.kind === 'question' && (e.body?.mail as { kind?: string } | undefined)?.kind === 'answer'
+
 
 /**
  * The per-dossier state declared below `load()`. Until 2026-09-22 `load()`
@@ -848,13 +861,14 @@ function resetDossierForms() {
   questionText.value = ''
 }
 
-/** Mail the melder a question; the reply lands on this same timeline. */
+/** Mail the melder a question or an answer; their reply lands on this same timeline. */
 async function askQuestion() {
   const text = questionText.value.trim()
   if (!text || !data.value) return
+  const kind = messageKind.value
   questionBusy.value = true
   try {
-    await api.dataops.question(data.value.dossier.id, text)
+    await api.dataops.question(data.value.dossier.id, text, kind)
     data.value.entries = [
       ...data.value.entries,
       {
@@ -864,12 +878,13 @@ async function askQuestion() {
         actorKind: 'reviewer',
         actor: null,
         text,
+        body: { mail: { kind } },
         visibleToMelder: true,
       },
     ]
     questionText.value = ''
   } catch (e) {
-    error.value = describeFailure(e, 'De vraag kon niet worden verstuurd.')
+    error.value = describeFailure(e, kind === 'answer' ? 'Het antwoord kon niet worden verstuurd.' : 'De vraag kon niet worden verstuurd.')
   } finally {
     questionBusy.value = false
   }
@@ -1702,7 +1717,7 @@ async function reopen(f: IProposedField) {
               <li v-for="e in entries" :key="e.id" class="text-md flex gap-2.5">
                 <span class="text-sm w-[84px] shrink-0 font-mono text-faint">{{ entryWhen(e.at) }}</span>
                 <span class="min-w-0">
-                  <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ KIND_LABEL[e.kind] ?? e.kind }}</span>
+                  <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ isOurAnswer(e) ? 'reactie' : (KIND_LABEL[e.kind] ?? e.kind) }}</span>
                   <!-- #356: replies and questions as a mail card, quoted history folded. -->
                   <div v-if="mailCards[e.id]" class="mt-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
                     <div class="mb-1 flex flex-wrap items-baseline gap-x-1.5 text-faint">
@@ -1761,21 +1776,38 @@ async function reopen(f: IProposedField) {
                  mail, and one line made every reply a single paragraph. Enter
                  is a new line; Ctrl/⌘+Enter sends, as in a mail client. The
                  API already turns line breaks into <br> in the HTML mail. -->
-            <div v-if="melderEmail" class="mt-2 flex items-end gap-2">
-              <textarea
-                v-model="questionText"
-                rows="3"
-                class="studio-control flex-1 resize-y rounded-md border border-line bg-sunken px-2 py-1.5"
-                :placeholder="`${data?.dossier.outcome ? 'Reactie' : 'Vraag'} aan de melder (gemaild naar ${melderEmail}). Ctrl+Enter verstuurt.`"
-                aria-label="Vraag aan de melder"
-                @keydown.enter.ctrl.prevent="askQuestion"
-                @keydown.enter.meta.prevent="askQuestion"
-              />
-              <Button
-                label="Verstuur vraag"
-                :disabled="questionBusy || !questionText.trim()"
-                @click="askQuestion"
-              />
+            <!-- API #209: a question or an answer; the mail's subject and
+                 opening line follow the choice ("Vraag over uw melding" vs
+                 "Reactie op uw melding"). The melder can reply to both. -->
+            <div v-if="melderEmail" class="mt-2 flex flex-col gap-1.5">
+              <div class="flex items-center gap-2 text-sm">
+                <span class="font-semibold uppercase tracking-wide text-label">Bericht aan de melder</span>
+                <select
+                  id="melder-message-kind"
+                  v-model="messageKind"
+                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1"
+                  aria-label="Soort bericht"
+                >
+                  <option value="question">Vraag: ik wil iets weten</option>
+                  <option value="answer">Antwoord: ik beantwoord de melding</option>
+                </select>
+              </div>
+              <div class="flex items-end gap-2">
+                <textarea
+                  v-model="questionText"
+                  rows="3"
+                  class="studio-control flex-1 resize-y rounded-md border border-line bg-sunken px-2 py-1.5"
+                  :placeholder="`${MESSAGE_KIND_LABEL[messageKind]} aan de melder (gemaild naar ${melderEmail}). Ctrl+Enter verstuurt.`"
+                  :aria-label="`${MESSAGE_KIND_LABEL[messageKind]} aan de melder`"
+                  @keydown.enter.ctrl.prevent="askQuestion"
+                  @keydown.enter.meta.prevent="askQuestion"
+                />
+                <Button
+                  :label="messageKind === 'answer' ? 'Verstuur antwoord' : 'Verstuur vraag'"
+                  :disabled="questionBusy || !questionText.trim()"
+                  @click="askQuestion"
+                />
+              </div>
             </div>
           </Panel>
 

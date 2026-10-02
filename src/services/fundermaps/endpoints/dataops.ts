@@ -184,11 +184,14 @@ export async function remark(id: number, text: string) {
   })) as { ok: boolean }
 }
 
-/** A question to the melder — mailed via Resend, answered by reply straight into the timeline. */
-export async function question(id: number, text: string) {
+/** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
+export type MelderMessageKind = 'question' | 'answer'
+
+/** A message to the melder — mailed via Resend, answered by reply straight into the timeline. */
+export async function question(id: number, text: string, kind: MelderMessageKind = 'question') {
   return (await post({
     endpoint: `/dataops/dossier/${id}/question`,
-    body: { text } as unknown as Record<string, unknown>,
+    body: { text, kind } as unknown as Record<string, unknown>,
   })) as { ok: boolean }
 }
 
