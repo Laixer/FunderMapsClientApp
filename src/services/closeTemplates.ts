@@ -13,12 +13,20 @@
  * v1 lives in code; v2 makes them editable in the Studio (see ClientApp #354
  * for the drafted-mail path this complements).
  *
- * The two QuickScan texts come from Don's brief of 2026-09-17 (Worker #149) and
- * are confirmed by him. "Already processed" carries three blanks the reviewer
- * fills from the dossier: the QS-FOS reference, the execution date and the risk
- * in words (A/B laag, C midden, D/E hoog) — not the letter, which suggests a
- * precision we do not have at that moment. Recognised means: delivered through
- * FunderConsult.
+ * The QuickScan texts come from Don's brief of 2026-09-17 (Worker #149) and
+ * are confirmed by him; the risk goes in words (laag, midden, hoog), not the
+ * letter, which suggests a precision we do not have at that moment.
+ * Recognised means: delivered through FunderConsult.
+ *
+ * v1.1 (Don, 2026-10-02, "Prima, voeg toe", after two weeks of closing notes):
+ * the QuickScan answer comes per risk level (it was completed by hand ten
+ * times), the recognition answer covers any research, the subsidence answer
+ * no longer assumes a foundation-type complaint, and eight answers cover what
+ * was typed by hand or waits in the queue. `asMessage` marks the ones that
+ * also fit the "Bericht aan de melder" box, where the dossier stays open
+ * ("Inderdaad ook bij de reactie vraag"). A "…" is a blank the reviewer must
+ * fill: the Studio refuses to send a text that still holds one (three mails
+ * went out with the old QuickScan blanks).
  */
 import type { DossierOutcome } from '@/services/fundermaps/interfaces/IDataops'
 
@@ -28,28 +36,45 @@ export interface CloseTemplate {
   /** The outcome this text usually goes with; shown as a hint, never forced. */
   outcome: DossierOutcome
   text: string
+  /** Also offered in the message box, sent as an answer without closing. */
+  asMessage?: boolean
 }
 
+/** A blank in a standard answer, to be filled before sending. */
+export const BLANK = '…'
+
+const QS_PROCESSED =
+  'Bedankt voor het toesturen van het Verkennend Funderingsonderzoek (QuickScan/Fase 0). Dit is opgenomen ' +
+  'in de FunderMaps-database en wordt meegenomen in het funderingsrisico van uw pand. '
+
 export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
+  // Duplicaat, not Sluiten zonder rapportage: that one waits for every open
+  // proposal, and a QuickScan we already hold has nothing to review (Don, 2026-09-25).
   {
-    value: 'quickscan_already_processed',
-    label: 'QuickScan: staat al in de database',
-    // Duplicaat, not Sluiten zonder rapportage: that one waits for every open
-    // proposal, and a QuickScan we already hold has nothing to review (Don, 2026-09-25).
+    value: 'quickscan_processed_low',
+    label: 'QuickScan verwerkt: risico laag',
     outcome: 'duplicate',
-    text:
-      // Nothing to fill in (Don, 2026-09-29).
-      'Bedankt voor het toesturen van het Verkennend Funderingsonderzoek (QuickScan/Fase 0). Dit is opgenomen ' +
-      'in de FunderMaps-database en wordt meegenomen in het funderingsrisico van uw pand. De risico-inschatting ' +
-      'volgt de uitkomst van het Verkennend Funderingsonderzoek in de nieuwe modelberekeningen.',
+    text: QS_PROCESSED + 'Uw pand staat daarmee op risico laag.',
+  },
+  {
+    value: 'quickscan_processed_medium',
+    label: 'QuickScan verwerkt: risico midden',
+    outcome: 'duplicate',
+    text: QS_PROCESSED + 'Uw pand staat daarmee op risico midden.',
+  },
+  {
+    value: 'quickscan_processed_high',
+    label: 'QuickScan verwerkt: risico hoog',
+    outcome: 'duplicate',
+    text: QS_PROCESSED + 'Uw pand staat daarmee op risico hoog.',
   },
   {
     value: 'quickscan_not_recognised',
-    label: 'QuickScan: bureau niet erkend',
+    label: 'Onderzoek door niet-erkend bureau',
     outcome: 'rejected',
     text:
       'Het meegestuurde onderzoek is niet uitgevoerd door een erkend bureau. Wij mogen het daarom niet gebruiken ' +
-      'om de registratie aan te passen; uw rapport bewaren wij wel. Een QuickScan door een erkend bureau vraagt u aan via ' +
+      'om de registratie aan te passen; uw rapport bewaren wij wel. Een onderzoek door een erkend bureau vraagt u aan via ' +
       'https://funderconsult.com/quickscan#quickscan-aanvragen.',
   },
   {
@@ -73,10 +98,32 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
     value: 'risk_deviates_subsidence',
     label: 'Risico wijkt af door zakkingssnelheid',
     outcome: 'rejected',
+    asMessage: true,
     text:
-      'Het funderingstype dat u noemt komt overeen met onze registratie. Het funderingsrisico van dit pand wordt echter ' +
-      'niet alleen door het funderingstype bepaald: dit pand heeft een afwijkende zakkingssnelheid en valt daardoor in een ' +
-      'andere risicocategorie. Wij passen het risico daarom niet aan.',
+      'Het funderingsrisico van dit pand wordt niet alleen door het funderingstype bepaald, maar ook door de zakking ' +
+      'van het pand zelf, gemeten vanuit de satelliet. Dit pand zakt sneller dan gebruikelijk en valt daardoor in een ' +
+      'hogere risicoklasse. Zonder funderingsonderzoek passen wij het risico daarom niet aan.',
+  },
+  {
+    value: 'neighbour_differs',
+    label: 'Buurwoning heeft een lager risico',
+    outcome: 'rejected',
+    asMessage: true,
+    text:
+      'Het risico van uw pand is berekend met de zakkingsmeting van uw eigen pand, gemeten vanuit de satelliet. ' +
+      `Uw pand zakt met ${BLANK} mm per jaar; boven 1 mm per jaar valt een ondiepe fundering in een hogere klasse. ` +
+      'Een buurwoning kan daardoor in een andere klasse vallen, ook in hetzelfde bouwblok. Een funderingsonderzoek ' +
+      'of Verkennend Funderingsonderzoek aan uw pand gaat altijd voor de berekening.',
+  },
+  {
+    value: 'how_class_is_set',
+    label: 'Hoe is mijn risicoklasse bepaald',
+    outcome: 'accepted',
+    asMessage: true,
+    text:
+      'Bij elk risico staat hoe zeker het is. Vastgesteld: uit onderzoek aan dit pand. Afgeleid: van vergelijkbare, ' +
+      'onderzochte panden in de directe omgeving. Indicatief: een schatting op basis van kenmerken als bouwjaar, ' +
+      `ondergrond, grondwater en zakking. Voor uw pand is dit gebaseerd op ${BLANK}.`,
   },
   {
     value: 'data_correct',
@@ -85,6 +132,15 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
     text:
       'Wij hebben uw melding beoordeeld. Voor dit pand gebruiken wij pandspecifieke gegevens over de fundering, de ondergrond ' +
       'en zakkingsmetingen. Die geven geen aanleiding om onze registratie aan te passen.',
+  },
+  {
+    value: 'concrete_foundation',
+    label: 'Nieuw pand of betonnen fundering',
+    outcome: 'rejected',
+    asMessage: true,
+    text:
+      `Volgens onze registratie heeft dit pand ${BLANK}. Heeft u een bouwtekening of bestek waaruit de betonnen ` +
+      'fundering blijkt? Stuur die als antwoord op deze e-mail, dan passen wij het funderingstype aan.',
   },
   {
     value: 'inspection_not_sufficient',
@@ -96,12 +152,43 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
       'dan beoordelen wij uw melding opnieuw.',
   },
   {
+    value: 'research_incomplete',
+    label: 'Onderzoek onvolledig',
+    outcome: 'no_data',
+    asMessage: true,
+    text:
+      `Het meegestuurde onderzoek is niet compleet: ${BLANK}. Stuur het volledige rapport als antwoord op deze ` +
+      'e-mail, dan beoordelen wij uw melding opnieuw.',
+  },
+  {
+    value: 'attachment_missing',
+    label: 'Bijlage ontbreekt',
+    outcome: 'no_data',
+    asMessage: true,
+    text:
+      'U noemt een document, maar er is geen bestand bij uw melding meegekomen. Stuur het als bijlage in een ' +
+      'antwoord op deze e-mail; het wordt dan aan uw melding toegevoegd. Een downloadlink (zoals WeTransfer) ' +
+      'verloopt na enkele dagen, daarom vragen wij om het bestand zelf.',
+  },
+  {
     value: 'already_registered',
     label: 'Rapportage staat al in de database',
     outcome: 'accepted',
     text:
       'De rapportage die u meestuurde staat al in de Funderingsdatabase. Uw melding leidt daarom niet tot een wijziging; ' +
       'de gegevens van dit pand zijn er al op gebaseerd.',
+  },
+  {
+    value: 'risk_reassessed',
+    label: 'Risico herbeoordeeld en aangepast',
+    outcome: 'accepted',
+    text: 'Wij hebben uw melding beoordeeld en het funderingsrisico aangepast. Vanaf morgen ziet u het nieuwe risico.',
+  },
+  {
+    value: 'duplicate_melding',
+    label: 'Dubbele melding',
+    outcome: 'duplicate',
+    text: `Deze melding gaat over hetzelfde als melding ${BLANK}. Die behandelen wij; u hoeft niets te doen.`,
   },
   {
     value: 'no_usable_data',
@@ -119,9 +206,24 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
       'Het meegestuurde document is geen funderingsdocument en zegt niets over de fundering van dit pand. ' +
       'Wij kunnen er daarom geen wijziging op baseren.',
   },
+  {
+    value: 'not_fundermaps',
+    label: 'Gaat niet over FunderMaps',
+    outcome: 'rejected',
+    text:
+      'Uw vraag gaat over een rapport of gegeven dat niet van FunderMaps komt. Neem daarvoor contact op met de ' +
+      'opsteller van dat rapport.',
+  },
 ]
 
 export const CLOSE_TEMPLATE_OPTIONS = CLOSE_TEMPLATES.map((t) => ({ value: t.value, label: t.label }))
+
+/** The answers that also fit the message box: sent as an answer, the dossier stays open. */
+export const MESSAGE_TEMPLATES = CLOSE_TEMPLATES.filter((t) => t.asMessage)
+export const MESSAGE_TEMPLATE_OPTIONS = MESSAGE_TEMPLATES.map((t) => ({ value: t.value, label: t.label }))
+
+/** True when a text still holds a blank from a standard answer. */
+export const hasBlank = (text: string) => text.includes(BLANK)
 
 export const OUTCOME_HINT: Record<DossierOutcome, string> = {
   rejected: 'Afwijzen',

@@ -36,7 +36,15 @@ import {
   displayValue as labelValue,
   formatDate,
 } from '@/services/reviewLabels'
-import { CLOSE_TEMPLATES, CLOSE_TEMPLATE_OPTIONS, OUTCOME_HINT } from '@/services/closeTemplates'
+import {
+  BLANK,
+  CLOSE_TEMPLATES,
+  CLOSE_TEMPLATE_OPTIONS,
+  MESSAGE_TEMPLATES,
+  MESSAGE_TEMPLATE_OPTIONS,
+  OUTCOME_HINT,
+  hasBlank,
+} from '@/services/closeTemplates'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
@@ -388,7 +396,9 @@ const NOTE_REQUIRED: ReadonlySet<DossierOutcome> = new Set(['rejected', 'duplica
  */
 const noteMissingFor = ref<DossierOutcome | null>(null)
 const noteError = computed(() =>
-  noteMissingFor.value && !closeNote.value.trim()
+  hasBlank(closeNote.value)
+    ? `Vul eerst de open plekken (${BLANK}) in de tekst in.`
+    : noteMissingFor.value && !closeNote.value.trim()
     ? `Geef eerst een reden: waarom wordt dit dossier ${noteMissingFor.value === 'duplicate' ? 'als duplicaat gesloten' : noteMissingFor.value === 'accepted' ? 'gesloten zonder rapportage' : 'afgewezen'}?`
     : null,
 )
@@ -400,6 +410,11 @@ async function closeDossier(outcome: DossierOutcome) {
   if (!data.value) return
   if (NOTE_REQUIRED.has(outcome) && !closeNote.value.trim()) {
     noteMissingFor.value = outcome
+    document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
+    return
+  }
+  // A standard answer with an unfilled blank goes to the melder as "…" (2026-10-02).
+  if (hasBlank(closeNote.value)) {
     document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
     return
   }
@@ -826,6 +841,21 @@ const melderEmail = computed(() => data.value?.dossier.submitter?.email ?? null)
 const questionText = ref('')
 const questionBusy = ref(false)
 /**
+ * A standard answer for the message box (Don, 2026-10-02: "Inderdaad ook bij
+ * de reactie vraag"). Same rule as the close note: it fills an empty box or
+ * replaces the previous pick, never hand-typed text, and it is sent as an answer.
+ */
+const messageTemplate = ref<string | null>(null)
+watch(messageTemplate, (v, prev) => {
+  const next = MESSAGE_TEMPLATES.find((t) => t.value === v)
+  const prevText = MESSAGE_TEMPLATES.find((t) => t.value === prev)?.text
+  if (next && (!questionText.value.trim() || questionText.value === prevText)) {
+    questionText.value = next.text
+    messageKind.value = 'answer'
+  }
+})
+const questionBlank = computed(() => hasBlank(questionText.value))
+/**
  * API #209 (Don, 2026-09-23): the box was question-only, so an answer went out
  * as "hebben wij een vraag:". The reviewer picks; a closed dossier is usually
  * answered, an open one usually asked.
@@ -859,12 +889,13 @@ function resetDossierForms() {
   addNote.value = ''
   remarkText.value = ''
   questionText.value = ''
+  messageTemplate.value = null
 }
 
 /** Mail the melder a question or an answer; their reply lands on this same timeline. */
 async function askQuestion() {
   const text = questionText.value.trim()
-  if (!text || !data.value) return
+  if (!text || !data.value || hasBlank(text)) return
   const kind = messageKind.value
   questionBusy.value = true
   try {
@@ -883,6 +914,7 @@ async function askQuestion() {
       },
     ]
     questionText.value = ''
+    messageTemplate.value = null
   } catch (e) {
     error.value = describeFailure(e, kind === 'answer' ? 'Het antwoord kon niet worden verstuurd.' : 'De vraag kon niet worden verstuurd.')
   } finally {
@@ -1801,7 +1833,17 @@ async function reopen(f: IProposedField) {
                   <option value="question">Vraag: ik wil iets weten</option>
                   <option value="answer">Antwoord: ik beantwoord de melding</option>
                 </select>
+                <select
+                  id="melder-message-template"
+                  v-model="messageTemplate"
+                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1"
+                  aria-label="Standaardantwoord"
+                >
+                  <option :value="null">Standaardantwoord…</option>
+                  <option v-for="o in MESSAGE_TEMPLATE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+                </select>
               </div>
+              <p v-if="questionBlank" class="text-sm text-amber-ink">Vul eerst de open plekken ({{ BLANK }}) in de tekst in.</p>
               <div class="flex items-end gap-2">
                 <textarea
                   v-model="questionText"
@@ -1814,7 +1856,7 @@ async function reopen(f: IProposedField) {
                 />
                 <Button
                   :label="messageKind === 'answer' ? 'Verstuur antwoord' : 'Verstuur vraag'"
-                  :disabled="questionBusy || !questionText.trim()"
+                  :disabled="questionBusy || !questionText.trim() || questionBlank"
                   @click="askQuestion"
                 />
               </div>
