@@ -434,7 +434,12 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           <span class="font-mono tabular-nums text-muted">{{ row.files }}</span>
         </template>
         <template #open="{ row }">
-          <span v-if="!row.read" class="flex justify-end">
+          <!-- Don, 2026-10-02: a melding without a file was "nog niet gelezen"
+               for ever, which read as a stuck pipeline. There is nothing to read. -->
+          <span v-if="row.files === 0" class="flex justify-end">
+            <Pill label="geen document" tone="neutral" plain />
+          </span>
+          <span v-else-if="!row.read" class="flex justify-end">
             <Pill label="nog niet gelezen" tone="amber" plain />
           </span>
           <span v-else-if="row.open === 0" class="flex justify-end">

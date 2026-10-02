@@ -1309,6 +1309,16 @@ async function reopen(f: IProposedField) {
             </template>
           </Callout>
 
+          <!-- Don, 2026-10-02: no file means nothing to read, not "not read yet". -->
+          <Callout
+            v-else-if="nothingProposed && artifacts.length === 0"
+            tone="neutral"
+            title="Geen document"
+          >
+            De melder heeft geen bestand meegestuurd; er valt niets te lezen. Beantwoord de
+            melding hieronder, of sluit het dossier.
+          </Callout>
+
           <Callout
             v-else-if="nothingProposed && !wasRead"
             tone="amber"
