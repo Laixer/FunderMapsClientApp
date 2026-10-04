@@ -39,6 +39,10 @@ export interface IReviewQueueItem {
   /** The reviewer's reason. Required on rejected and duplicate, so rarely empty there. */
   outcomeNote: string | null
   duplicateOf: number | null
+  /** Who holds the dossier (API #222); absent from older API builds, null in the general queue. */
+  assignedTo?: string | null
+  assignedAt?: string | null
+  assignedName?: string | null
 }
 
 /** What one page of a document turned out to be. Decides whether it was read at all. */
@@ -177,6 +181,10 @@ export interface IReviewDossier {
     auditInquiryId: number | null
     /** The herstel recorded from this dossier (#341); independent of inquiryId. Absent from older API builds. */
     recoveryId?: number | null
+    /** Who holds the dossier (API #222); absent from older API builds, null in the general queue. */
+    assignedTo?: string | null
+    assignedAt?: string | null
+    assignedName?: string | null
   /** geocoder.building.built_year (YYYY-MM-DD) of the dossier's pand, or null. The date estimate for archive drawings (#338). */
   buildingBuiltYear?: string | null
     /** The model row of the dossier's pand now (API #215); absent from older API builds, null without a pand or row. */

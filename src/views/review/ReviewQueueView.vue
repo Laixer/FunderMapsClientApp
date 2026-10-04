@@ -197,6 +197,7 @@ const items = computed(() =>
     read: r.read,
     receivedAt: shortDate(r.receivedAt),
     overdue: !r.outcome && Date.now() - new Date(r.receivedAt).getTime() > WEEK,
+    assignedName: r.assignedName ?? null,
     outcome: r.outcome ? outcomeLabel(r.outcome).toLowerCase() : null,
     /** `accepted` with a rapportage is a commit; without one it was closed by hand. */
     outcomeTone: (r.outcome === 'accepted' ? 'green' : r.outcome === 'rejected' ? 'red' : 'neutral') as
@@ -451,6 +452,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           <span class="flex items-center gap-2">
             <span class="text-muted">{{ row.receivedAt }}</span>
             <Pill v-if="row.overdue" label="te lang open" tone="amber" plain />
+            <Pill v-if="row.assignedName" :label="`bij ${row.assignedName}`" tone="blue" plain />
           </span>
         </template>
 

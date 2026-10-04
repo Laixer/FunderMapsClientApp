@@ -28,6 +28,8 @@ export interface IQueueListOpts {
   kind?: string[]
   /** Closed dossiers with these outcomes, instead of the open desk. */
   outcome?: QueueOutcome[]
+  /** Who holds the dossier (API #222): me, nobody, or a user id. */
+  assignedTo?: 'me' | 'none' | string
   sort?: QueueSort
   order?: 'asc' | 'desc'
 }
@@ -43,6 +45,7 @@ function queueQueryString(opts: IQueueListOpts): Record<string, string> {
   if (opts.building) queryString.building = opts.building
   if (opts.kind?.length) queryString.kind = opts.kind.join(',')
   if (opts.outcome?.length) queryString.outcome = opts.outcome.join(',')
+  if (opts.assignedTo) queryString.assignedTo = opts.assignedTo
   if (opts.sort) queryString.sort = opts.sort
   if (opts.order) queryString.order = opts.order
   return queryString
@@ -184,6 +187,18 @@ export async function remark(id: number, text: string) {
   })) as { ok: boolean }
 }
 
+/**
+ * Hand the dossier to a colleague, or back to the general queue with null
+ * (API #222). The note says what the colleague is asked; it goes on the
+ * timeline, never to the melder.
+ */
+export async function assign(id: number, userId: string | null, note?: string) {
+  return (await post({
+    endpoint: `/dataops/dossier/${id}/assign`,
+    body: { userId, note: note?.trim() || undefined } as unknown as Record<string, unknown>,
+  })) as { ok: boolean; unchanged?: boolean }
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -289,6 +304,7 @@ export default {
   create,
   remark,
   question,
+  assign,
   addressVerdict,
   addressAdd,
   addressRelink,
