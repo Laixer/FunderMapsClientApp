@@ -41,6 +41,8 @@ export interface ReviewQuery {
    * fixed tabs Afgewezen and Duplicaten are this field (ClientApp #333, 11).
    */
   outcome: QueueOutcome[]
+  /** Only the dossiers handed to me (API #222). */
+  mine: boolean
   /** Always set — see `DEFAULT_SORT`. There is no "unsorted". */
   sort: QueueSort
   order: 'asc' | 'desc'
@@ -70,6 +72,7 @@ export function emptyQuery(): ReviewQuery {
     building: null,
     kind: [],
     outcome: [],
+    mine: false,
     sort: DEFAULT_SORT,
     order: DEFAULT_ORDER,
     page: 1,
@@ -175,6 +178,7 @@ export function parseQuery(raw: Record<string, unknown>): ReviewQuery {
     building: raw.building === 'resolved' || raw.building === 'unresolved' ? raw.building : null,
     kind: strings(raw.kind, (s) => KINDS.has(s)),
     outcome: strings<QueueOutcome>(raw.outcome, (s) => OUTCOMES.has(s as QueueOutcome)),
+    mine: raw.assignedTo === 'me',
     sort,
     // The default direction depends on the column: oldest first on the
     // received date, most first on a count. Absent means that default.
@@ -199,6 +203,7 @@ export function toRouteQuery(query: ReviewQuery, viewKey: string): LocationQuery
   if (query.building) out.building = query.building
   if (query.kind.length) out.kind = query.kind.join(',')
   if (query.outcome.length) out.outcome = query.outcome.join(',')
+  if (query.mine) out.assignedTo = 'me'
   if (!isDefaultSort(query)) {
     out.sort = query.sort
     out.order = query.order
@@ -223,6 +228,7 @@ export function toQueueOpts(query: ReviewQuery): IQueueListOpts {
   if (query.building) opts.building = query.building
   if (query.kind.length) opts.kind = [...query.kind]
   if (query.outcome.length) opts.outcome = [...query.outcome]
+  if (query.mine) opts.assignedTo = 'me'
   return opts
 }
 
@@ -281,6 +287,9 @@ export function chipsFor(query: ReviewQuery): Chip[] {
       clear: (q) => ({ ...q, kind: [], page: 1 }),
     })
   }
+  if (query.mine) {
+    chips.push({ id: 'mine', label: 'toegewezen', value: 'aan mij', clear: (q) => ({ ...q, mine: false, page: 1 }) })
+  }
   if (query.outcome.length) {
     chips.push({
       id: 'outcome',
@@ -319,6 +328,8 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
   { key: 'vragen', label: 'Vragen', query: { channel: ['upload'], state: ['question'], sort: 'received_at', order: 'desc' }, builtin: true },
   // The melder had the last word, open or closed; spans both (API state=replied).
   { key: 'reacties', label: 'Reactie ontvangen', query: { state: ['replied'] }, builtin: true },
+  // Handed to me by a colleague (API #222): the decisions waiting on me.
+  { key: 'mij', label: 'Aan mij toegewezen', query: { mine: true }, builtin: true },
   // "Nog niet gelezen" and "Te lang open" were views here until 2026-09-22.
   // Don: "Dit zijn geen relevante werkfilters maar statussen." Nobody arrives
   // at the queue asking for them; a row still shows "te lang open" as a pill,

@@ -46,6 +46,7 @@ import {
   hasBlank,
 } from '@/services/closeTemplates'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
+import type { IUser } from '@/services/fundermaps/interfaces/IUser'
 import type { SelectOption } from '@/services/options'
 import { useStudioStore } from '@/stores/studio'
 import { useSessionStore } from '@/stores/session'
@@ -225,6 +226,7 @@ const isSettledByPipeline = (f: IProposedField) => f.state === 'agreed' || f.sta
 
 
 onBeforeMount(load)
+onBeforeMount(loadReviewers)
 watch(
   () => route.params.id,
   (id, prev) => {
@@ -838,6 +840,60 @@ const remarkBusy = ref(false)
 
 /** Where a question would go. Null (bulk drops) = no question box at all. */
 const melderEmail = computed(() => data.value?.dossier.submitter?.email ?? null)
+
+/**
+ * Hand the dossier to a colleague (API #222; Don's feedback round of
+ * 2026-10-01: a reviewer who needs his decision had no way to say so in the
+ * system). The colleagues are the org's reviewers, the same list the
+ * rapportage form offers. The note is internal: it goes on the timeline and
+ * the colleague finds the dossier under "Aan mij toegewezen".
+ */
+const reviewers = ref<IUser[]>([])
+const assignTo = ref<string | null>(null)
+const assignNote = ref('')
+const assignBusy = ref(false)
+const personName = (u: IUser) => [u.given_name, u.family_name].filter(Boolean).join(' ').trim() || u.email
+async function loadReviewers() {
+  try {
+    reviewers.value = await api.reviewer.list()
+  } catch {
+    reviewers.value = [] // the control hides itself; the rest of the screen does not depend on it
+  }
+}
+async function assignDossier(userId: string | null) {
+  if (!data.value || assignBusy.value) return
+  const note = assignNote.value.trim()
+  assignBusy.value = true
+  try {
+    await api.dataops.assign(data.value.dossier.id, userId, note)
+    const who = userId ? reviewers.value.find((r) => r.id === userId) : undefined
+    const name = who ? personName(who) : null
+    data.value.dossier.assignedTo = userId
+    data.value.dossier.assignedName = name
+    data.value.dossier.assignedAt = userId ? new Date().toISOString() : null
+    const what = name ? `Doorgezet naar ${name}` : 'Terug in de algemene wachtrij'
+    data.value.entries = [
+      ...data.value.entries,
+      {
+        id: -Date.now(),
+        at: new Date().toISOString(),
+        kind: 'status',
+        actorKind: 'reviewer',
+        actor: null,
+        text: note ? `${what}: ${note}` : what,
+        body: { assignment: { to: userId } },
+        visibleToMelder: false,
+      },
+    ]
+    assignTo.value = null
+    assignNote.value = ''
+    toastSuccess(name ? `Doorgezet naar ${name}.` : 'Terug in de algemene wachtrij.')
+  } catch (e) {
+    toastError(describeFailure(e, 'Doorzetten is niet gelukt.'))
+  } finally {
+    assignBusy.value = false
+  }
+}
 const questionText = ref('')
 const questionBusy = ref(false)
 /**
@@ -929,6 +985,8 @@ async function askQuestion() {
 const melderRepliedLast = computed(() => {
   const es = data.value?.entries ?? []
   for (let i = es.length - 1; i >= 0; i--) {
+    // A hand-over (API #222) is not an answer to the melder.
+    if (es[i]!.body && 'assignment' in es[i]!.body!) continue
     const k = es[i]!.kind
     if (k === 'reply') return true
     if (k === 'question' || k === 'remark' || k === 'status' || k === 'verdict') return false
@@ -1859,6 +1917,47 @@ async function reopen(f: IProposedField) {
                   :disabled="questionBusy || !questionText.trim() || questionBlank"
                   @click="askQuestion"
                 />
+              </div>
+            </div>
+            <!-- API #222: hand the dossier to a colleague, or back to the queue. -->
+            <div v-if="reviewers.length || data.dossier.assignedTo" class="mt-3 flex flex-col gap-1.5 border-t border-line pt-3">
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <span class="font-semibold uppercase tracking-wide text-label">Doorzetten</span>
+                <span v-if="data.dossier.assignedTo" class="text-muted">
+                  Ligt bij <strong class="font-semibold text-ink">{{ data.dossier.assignedName ?? 'een collega' }}</strong><template v-if="data.dossier.assignedAt"> sinds {{ formatDate(data.dossier.assignedAt) }}</template>
+                </span>
+                <span v-else class="text-faint">In de algemene wachtrij</span>
+                <Button
+                  v-if="data.dossier.assignedTo"
+                  label="Terugzetten"
+                  :disabled="assignBusy"
+                  title="Haal het dossier terug in de algemene wachtrij"
+                  @click="assignDossier(null)"
+                />
+              </div>
+              <div v-if="reviewers.length" class="flex items-center gap-2">
+                <select
+                  id="dossier-assign-to"
+                  v-model="assignTo"
+                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
+                  aria-label="Collega"
+                >
+                  <option :value="null">Kies een collega…</option>
+                  <option v-for="r in reviewers" :key="r.id" :value="r.id" :disabled="r.id === data.dossier.assignedTo">
+                    {{ personName(r) }}
+                  </option>
+                </select>
+                <input
+                  id="dossier-assign-note"
+                  v-model="assignNote"
+                  type="text"
+                  maxlength="1000"
+                  class="studio-control flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
+                  placeholder="Wat moet de collega beslissen? (intern)"
+                  aria-label="Toelichting bij het doorzetten"
+                  @keydown.enter="assignTo && assignDossier(assignTo)"
+                />
+                <Button label="Doorzetten" :disabled="assignBusy || !assignTo" @click="assignDossier(assignTo)" />
               </div>
             </div>
           </Panel>
