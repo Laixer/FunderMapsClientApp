@@ -27,6 +27,9 @@
  * ("Inderdaad ook bij de reactie vraag"). A "…" is a blank the reviewer must
  * fill: the Studio refuses to send a text that still holds one (three mails
  * went out with the old QuickScan blanks).
+ *
+ * v1.2 (2026-10-07): the four answers that ask for a file send the melder to
+ * a new melding instead of a reply (see VIA_NEW_REPORT).
  */
 import type { DossierOutcome } from '@/services/fundermaps/interfaces/IDataops'
 
@@ -42,6 +45,15 @@ export interface CloseTemplate {
 
 /** A blank in a standard answer, to be filled before sending. */
 export const BLANK = '…'
+
+/**
+ * Where a melder sends a missing file. Not "as a reply to this e-mail": the
+ * inbound-mail webhook keeps only the text of a reply, so an attachment sent
+ * that way never reaches the dossier (25 times since 2026-09-07). Point back
+ * here once the API stores reply attachments.
+ */
+const VIA_NEW_REPORT =
+  'via een nieuwe melding op https://melden.fundermaps.com en noem daarin uw meldcode'
 
 const QS_PROCESSED =
   'Bedankt voor het toesturen van het Verkennend Funderingsonderzoek (QuickScan/Fase 0). Dit is opgenomen ' +
@@ -140,7 +152,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
     asMessage: true,
     text:
       `Volgens onze registratie heeft dit pand ${BLANK}. Heeft u een bouwtekening of bestek waaruit de betonnen ` +
-      'fundering blijkt? Stuur die als antwoord op deze e-mail, dan passen wij het funderingstype aan.',
+      `fundering blijkt? Stuur die ${VIA_NEW_REPORT}, dan passen wij het funderingstype aan.`,
   },
   {
     value: 'inspection_not_sufficient',
@@ -157,8 +169,8 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
     outcome: 'no_data',
     asMessage: true,
     text:
-      `Het meegestuurde onderzoek is niet compleet: ${BLANK}. Stuur het volledige rapport als antwoord op deze ` +
-      'e-mail, dan beoordelen wij uw melding opnieuw.',
+      `Het meegestuurde onderzoek is niet compleet: ${BLANK}. Stuur het volledige rapport ${VIA_NEW_REPORT}, ` +
+      'dan beoordelen wij uw melding opnieuw.',
   },
   {
     value: 'attachment_missing',
@@ -166,9 +178,8 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
     outcome: 'no_data',
     asMessage: true,
     text:
-      'U noemt een document, maar er is geen bestand bij uw melding meegekomen. Stuur het als bijlage in een ' +
-      'antwoord op deze e-mail; het wordt dan aan uw melding toegevoegd. Een downloadlink (zoals WeTransfer) ' +
-      'verloopt na enkele dagen, daarom vragen wij om het bestand zelf.',
+      `U noemt een document, maar er is geen bestand bij uw melding meegekomen. Stuur het ${VIA_NEW_REPORT}. ` +
+      'Een downloadlink (zoals WeTransfer) verloopt na enkele dagen, daarom vragen wij om het bestand zelf.',
   },
   {
     value: 'already_registered',
@@ -196,7 +207,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
     outcome: 'no_data',
     text:
       'Wij hebben het meegestuurde document bekeken, maar het bevat geen gegevens over de fundering die wij kunnen overnemen. ' +
-      'Heeft u een funderingsonderzoek, een archieftekening of een herstelbewijs, stuur dat dan als antwoord op deze e-mail.',
+      `Heeft u een funderingsonderzoek, een archieftekening of een herstelbewijs, stuur dat dan ${VIA_NEW_REPORT}.`,
   },
   {
     value: 'not_a_foundation_document',
