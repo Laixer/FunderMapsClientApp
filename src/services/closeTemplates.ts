@@ -232,6 +232,23 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
       'Het meegestuurde document is geen funderingsdocument en zegt niets over de fundering van dit pand. ' +
       'Wij kunnen er daarom geen wijziging op baseren.',
   },
+  // Screenshots of public maps (checkjefundering.nl, funderingskaartnederland.nl,
+  // the RVO map) arrive more and more as "proof" (Don, 2026-10-08, dossier
+  // 6168). They show an area, not the pand, and are no recognised source;
+  // the factor four is Don's figure.
+  {
+    value: 'public_risk_map',
+    label: 'Schermafdruk van een openbare funderingskaart',
+    outcome: 'accepted',
+    asMessage: true,
+    text:
+      'U verwijst naar een openbare funderingskaart, zoals Check je Fundering, Funderingskaart Nederland of de kaart ' +
+      'van RVO. Die kaarten zijn geen erkende bron om het funderingsrisico van een afzonderlijk pand vast te stellen: ' +
+      'ze geven een beeld per gebied of postcode, niet van uw pand. Volgens onze gegevens kunnen zij het aantal panden ' +
+      'met een verhoogd funderingsrisico tot vier keer overschatten. De aangewezen bron voor het funderingsrisico per ' +
+      'pand is de Nationale Funderingsdatabase, ontsloten via FunderMaps. Een funderingsonderzoek of Verkennend ' +
+      'Funderingsonderzoek aan uw pand gaat altijd voor de gegevens in de database.',
+  },
   {
     value: 'not_fundermaps',
     label: 'Gaat niet over FunderMaps',
