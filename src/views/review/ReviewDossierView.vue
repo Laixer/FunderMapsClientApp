@@ -946,6 +946,20 @@ const MESSAGE_KIND_LABEL: Record<MelderMessageKind, string> = { question: 'Vraag
 /** Our own answer to the melder: a 'question' entry whose mail says it was an answer. */
 const isOurAnswer = (e: { kind: string; body?: Record<string, unknown> | null }) =>
   e.kind === 'question' && (e.body?.mail as { kind?: string } | undefined)?.kind === 'answer'
+/**
+ * Our answer is the last word on an open dossier: the close reason is almost
+ * always "Vraag beantwoord" (Don, 2026-10-08), so it is picked already. Only
+ * when nothing is picked or typed yet; a melder's reply after the answer
+ * means the conversation is not over, and nothing is picked.
+ */
+watch(
+  () => data.value?.entries,
+  (entries) => {
+    if (!entries || data.value?.dossier.outcome || closeTemplate.value || closeNote.value.trim()) return
+    const last = [...entries].reverse().find((e) => e.kind === 'question' || e.kind === 'reply')
+    if (last && isOurAnswer(last)) closeTemplate.value = 'question_answered'
+  },
+)
 
 
 /**
