@@ -752,6 +752,25 @@ const commitDateHint = computed(() => {
   return 'Verplicht: geen datum in het document gevonden'
 })
 /**
+ * Rapportages already on this pand that look like this document (Don,
+ * 2026-10-08: Molenwal 15 had one survey five times, three of them committed
+ * from meldingen). The same file is certain; the same soort with a report date
+ * within 90 days is likely. Never blocks: two real surveys can share a soort
+ * and a season.
+ */
+const DUPLICATE_WINDOW_MS = 90 * 86_400_000
+const likelyDuplicates = computed(() => {
+  const rows = data.value?.existingRapportages ?? []
+  const date = commitDate.value ?? builtYearEstimate.value
+  const at = date ? Date.parse(date) : Number.NaN
+  return rows.filter((r) => {
+    if (r.sameFile) return true
+    if (r.type !== effectiveCommitType.value || !r.documentDate || Number.isNaN(at)) return false
+    return Math.abs(Date.parse(r.documentDate) - at) <= DUPLICATE_WINDOW_MS
+  })
+})
+const inquiryTypeLabel = (code: string) => INQUIRY_TYPE_CODE_OPTIONS.find((o) => o.value === code)?.label ?? code
+/**
  * Overnemen needs a date the database can hold — but a nalezing updates a
  * rapportage that already has one. Don, 2026-09-19 (dossier 2492): every
  * proposal judged, "Wijzigingen doorvoeren" dead and no tooltip saying why.
@@ -2032,6 +2051,33 @@ async function reopen(f: IProposedField) {
                 {{ takenConflicts.length === 1 ? 'waarde botst' : 'waarden botsen' }} met een ander document voor
                 hetzelfde adres. Bij het overnemen blijft er per veld maar één over, en welke is nu toeval. Keur de
                 waarde af die niet klopt (zie BEOORDEELD).
+              </Callout>
+
+              <!-- Never blocks either: the reviewer decides which copy stays. -->
+              <Callout
+                v-if="likelyDuplicates.length"
+                tone="amber"
+                :title="
+                  likelyDuplicates.some((r) => r.sameFile)
+                    ? 'Dit document staat al als rapportage op dit pand'
+                    : 'Dit document staat mogelijk al als rapportage op dit pand'
+                "
+              >
+                <span v-for="r in likelyDuplicates" :key="r.id" class="block">
+                  <RouterLink :to="{ name: 'inquiry-view', params: { id: r.id } }" class="font-semibold underline"
+                    >#{{ r.id }}</RouterLink
+                  >
+                  · {{ inquiryTypeLabel(r.type) }} ·
+                  <span class="font-mono">{{ r.documentDate ? formatDate(r.documentDate) : 'geen datum' }}</span>
+                  · {{ r.addresses }} {{ r.addresses === 1 ? 'adres' : 'adressen' }}, {{ r.samples }}
+                  {{ r.samples === 1 ? 'sample' : 'samples' }}<template v-if="r.sameFile">
+                    · <strong class="font-semibold">zelfde bestand</strong></template
+                  >
+                </span>
+                <span class="mt-1 block">
+                  Staat het er al, sluit dan met het standaardantwoord "Rapportage staat al in de database". Zijn er
+                  twee exemplaren, houd dan het meest complete: de meeste adressen en samples.
+                </span>
               </Callout>
 
               <div class="flex flex-wrap gap-2">
