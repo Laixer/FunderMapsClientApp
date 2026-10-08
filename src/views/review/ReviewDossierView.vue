@@ -147,6 +147,20 @@ async function load() {
   try {
     data.value = await api.dataops.dossier(Number(route.params.id))
     messageKind.value = data.value.dossier.outcome ? 'answer' : 'question'
+    // A draft answer handed over in the link (?concept=…): Fundie's concepts
+    // for "Iets anders" (Don, 2026-10-08: "ik controleer in studio en kan dan
+    // verzenden"). It only fills the box; nothing goes out until the reviewer
+    // sends it. Taken out of the URL at once, so the next dossier opened from
+    // here does not inherit it.
+    const concept = typeof route.query.concept === 'string' ? route.query.concept.trim() : ''
+    if (concept) {
+      questionText.value = concept
+      messageKind.value = 'answer'
+      conceptFromLink.value = true
+      const rest = { ...route.query }
+      delete rest.concept
+      void router.replace({ query: rest })
+    }
     // A decision already on the server is a decision. Until 2026-09-08 only
     // in-session verdicts counted, so a reload put every judged value back
     // in the open list while the queue said zero.
@@ -905,6 +919,8 @@ async function assignDossier(userId: string | null) {
 }
 const questionText = ref('')
 const questionBusy = ref(false)
+/** The box was filled from a ?concept= link: said under the box until it is sent or cleared. */
+const conceptFromLink = ref(false)
 /**
  * A standard answer for the message box (Don, 2026-10-02: "Inderdaad ook bij
  * de reactie vraag"). Same rule as the close note: it fills an empty box or
@@ -954,6 +970,7 @@ function resetDossierForms() {
   addNote.value = ''
   remarkText.value = ''
   questionText.value = ''
+  conceptFromLink.value = false
   messageTemplate.value = null
 }
 
@@ -979,6 +996,7 @@ async function askQuestion() {
       },
     ]
     questionText.value = ''
+    conceptFromLink.value = false
     messageTemplate.value = null
   } catch (e) {
     error.value = describeFailure(e, kind === 'answer' ? 'Het antwoord kon niet worden verstuurd.' : 'De vraag kon niet worden verstuurd.')
@@ -1927,6 +1945,10 @@ async function reopen(f: IProposedField) {
                   @click="askQuestion"
                 />
               </div>
+              <p v-if="conceptFromLink && questionText.trim()" class="text-sm text-muted">
+                Concept van Fundie, uit de link. Lees het na en pas het aan waar nodig; er gaat niets weg tot je op
+                verstuur klikt.
+              </p>
             </div>
             <!-- API #222: hand the dossier to a colleague, or back to the queue. -->
             <div v-if="reviewers.length || data.dossier.assignedTo" class="mt-3 flex flex-col gap-1.5 border-t border-line pt-3">
