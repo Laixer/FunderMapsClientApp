@@ -966,6 +966,37 @@ const assignTo = ref<string | null>(null)
 const assignNote = ref('')
 const assignBusy = ref(false)
 const personName = (u: IUser) => [u.given_name, u.family_name].filter(Boolean).join(' ').trim() || u.email
+/**
+ * Add files to this open melding (API #233, Don 2026-10-08, dossier 6015: a
+ * WeTransfer link whose pieces are usable; also files a melder mailed as a
+ * reply, which the webhook does not store). They are read like an upload, and
+ * what was judged before stays as it is.
+ */
+const canAddDocument = computed(
+  () => !!data.value && !isAudit.value && !data.value.dossier.outcome && !data.value.dossier.inquiryId && !closed.value,
+)
+const addDocInput = ref<HTMLInputElement | null>(null)
+const addingDocument = ref(false)
+async function onAddDocument(ev: Event) {
+  const input = ev.target as HTMLInputElement
+  const files = [...(input.files ?? [])]
+  input.value = ''
+  if (!files.length || !data.value) return
+  addingDocument.value = true
+  try {
+    const r = await api.dataops.addDocument(data.value.dossier.id, files)
+    toastSuccess(
+      `${r.files} bestand${r.files === 1 ? '' : 'en'} toegevoegd. ` +
+        (r.reading ? 'Wordt nu gelezen; de voorstellen verschijnen over een paar minuten.' : 'Wordt binnen het uur gelezen.'),
+    )
+    await load()
+  } catch (e) {
+    toastError(describeFailure(e, 'Bestand toevoegen is niet gelukt'))
+  } finally {
+    addingDocument.value = false
+  }
+}
+
 async function loadReviewers() {
   try {
     reviewers.value = await api.reviewer.list()
@@ -1410,9 +1441,10 @@ async function reopen(f: IProposedField) {
     <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <!-- ------------------------------------------------------- document -->
       <section class="flex min-w-0 flex-col border-r border-line bg-sunken">
-        <!-- Tabs only when there is something to choose between. -->
+        <!-- Tabs only when there is something to choose between; the bar
+             also carries "Bestand toevoegen" on an open melding (API #233). -->
         <div
-          v-if="artifacts.length > 1"
+          v-if="artifacts.length > 1 || canAddDocument"
           class="flex shrink-0 items-center gap-1.5 border-b border-line bg-surface px-4 pt-2.5"
         >
           <button
@@ -1429,6 +1461,23 @@ async function reopen(f: IProposedField) {
           >
             {{ a.originalFilename ?? `Document ${i + 1}` }}
           </button>
+          <template v-if="canAddDocument">
+            <input
+              ref="addDocInput"
+              type="file"
+              multiple
+              class="hidden"
+              accept="application/pdf,image/png,image/jpeg,image/gif,image/bmp,image/tiff,image/webp"
+              @change="onAddDocument"
+            />
+            <Button
+              class="mb-1.5 ml-auto"
+              :label="addingDocument ? 'Bezig…' : 'Bestand toevoegen'"
+              :disabled="addingDocument"
+              title="Voeg een bestand toe aan deze melding; het wordt gelezen als een upload"
+              @click="addDocInput?.click()"
+            />
+          </template>
         </div>
 
         <div class="min-h-0 flex-1">
@@ -1537,7 +1586,8 @@ async function reopen(f: IProposedField) {
             title="Geen document"
           >
             De melder heeft geen bestand meegestuurd; er valt niets te lezen. Beantwoord de
-            melding hieronder, of sluit het dossier.
+            melding hieronder, voeg zelf een bestand toe (bijvoorbeeld van een downloadlink), of sluit
+            het dossier.
           </Callout>
 
           <Callout
