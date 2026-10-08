@@ -1,18 +1,15 @@
 /**
- * Which documents of a melding become which rapportage (API #223, Don
- * 2026-10-08).
+ * Which documents of a melding become which inquiry (API #223; Don's design
+ * of 2026-10-08, after testing the first version on dossier 6177).
  *
- * A melding can carry a bestek and a bestektekening, five archive scans of one
- * drawing, a QuickScan and three phone photos. Each document becomes a
- * rapportage of its own, with its own soort, date and bureau; archive pieces
- * (one scan per page, file names starting "NL-", as the archives name them)
- * belong together and become one rapportage, merged into one PDF by the API;
- * photos nothing was taken over from stay with the melding. The reviewer can
- * regroup any of it, and let any document lapse ("vervalt"): nothing read from
- * it is taken over.
+ * The reviewer first sorts the files into inquiry sets, then judges the values
+ * per inquiry, then closes the dossier once: one or more inquiries, one
+ * closing for the melder. Left alone, every file belongs to one inquiry. All
+ * files of a set are merged into one PDF by the API, because an inquiry holds
+ * one document. A file in no set ("geen inquiry") stays with the melding,
+ * but nothing read from it reaches the database.
  */
-
-/** A rapportage number (1, 2, …) or "this document lapses". */
+/** An inquiry number (1, 2, …) or "this file goes into no inquiry". */
 export type GroupChoice = number | 'vervalt'
 
 export interface GroupDoc {
@@ -44,27 +41,30 @@ export const isPhoto = (d: GroupDoc) => {
   return image && d.declaredCategory !== 'archieveresearch'
 }
 
-/** The first grouping the reviewer sees. `taken(id)` = how many values were taken over from that document. */
-export function defaultGroups(docs: GroupDoc[], taken: (id: number) => number): Record<number, GroupChoice> {
+/** What the API can merge into one PDF (API merge-documents.ts MERGEABLE_MIMES). */
+export const isMergeable = (d: GroupDoc) => {
+  const mime = (d.mimeType ?? '').toLowerCase()
+  if (mime === 'application/pdf' || mime === 'image/jpeg' || mime === 'image/png') return true
+  if (mime) return false
+  return /\.(pdf|jpe?g|png)$/i.test(bareName(d.originalFilename))
+}
+
+export const isQuickscan = (d: GroupDoc) => d.declaredCategory === 'quickscan'
+
+/**
+ * The first grouping the reviewer sees: everything in inquiry 1 (Don: "als de
+ * gebruiker geen indeling maakt, gaan we ervan uit dat alle bestanden bij één
+ * inquiry horen"), except a QuickScan and a file that cannot go into a PDF.
+ */
+export function defaultGroups(docs: GroupDoc[]): Record<number, GroupChoice> {
   const out: Record<number, GroupChoice> = {}
-  let next = 1
-  let archive: number | null = null
   for (const d of docs) {
-    if (isArchivePiece(d)) {
-      archive ??= next++
-      out[d.id] = archive
-    } else if (isPhoto(d) && taken(d.id) === 0) {
-      out[d.id] = 'vervalt'
-    } else if (QUICKSCAN_LAPSES_BY_DEFAULT && d.declaredCategory === 'quickscan') {
-      out[d.id] = 'vervalt'
-    } else {
-      out[d.id] = next++
-    }
+    out[d.id] = (QUICKSCAN_LAPSES_BY_DEFAULT && isQuickscan(d)) || !isMergeable(d) ? 'vervalt' : 1
   }
   return out
 }
 
-/** The rapportages a choice describes, in number order, each with its documents in upload order. */
+/** The inquiries a choice describes, in number order, each with its documents in upload order. */
 export function groupsOf(docs: GroupDoc[], choice: Record<number, GroupChoice>): { n: number; docs: GroupDoc[] }[] {
   const by = new Map<number, GroupDoc[]>()
   for (const d of docs) {
@@ -76,13 +76,13 @@ export function groupsOf(docs: GroupDoc[], choice: Record<number, GroupChoice>):
   return [...by.entries()].sort(([a], [b]) => a - b).map(([n, ds]) => ({ n, docs: ds }))
 }
 
-/** The options for one document: every rapportage in use, one new one, and "Vervalt". */
+/** The options for one document: every inquiry in use, one new one, and "Geen inquiry". */
 export function groupOptions(choice: Record<number, GroupChoice>): { value: string; label: string }[] {
   const used = [...new Set(Object.values(choice).filter((c): c is number => typeof c === 'number'))].sort((a, b) => a - b)
   const next = (used[used.length - 1] ?? 0) + 1
   return [
-    ...used.map((n) => ({ value: String(n), label: `Rapportage ${n}` })),
-    { value: String(next), label: `Rapportage ${next} (nieuw)` },
-    { value: 'vervalt', label: 'Vervalt (blijft bij de melding)' },
+    ...used.map((n) => ({ value: String(n), label: `Inquiry ${n}` })),
+    { value: String(next), label: `Inquiry ${next} (nieuw)` },
+    { value: 'vervalt', label: 'Geen inquiry' },
   ]
 }

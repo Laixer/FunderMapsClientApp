@@ -23,7 +23,7 @@ import type {
 import { describeFailure } from '@/services/fundermaps/errors'
 import { isPreviewableImageMime } from '@/services/documentFile'
 import { parseQuery, toQueueOpts } from '@/services/reviewExplorer'
-import { bareName, defaultGroups, groupOptions, groupsOf, type GroupChoice } from '@/services/rapportageGroups'
+import { bareName, defaultGroups, groupOptions, groupsOf, isMergeable, type GroupChoice } from '@/services/rapportageGroups'
 import {
   CHANNEL_LABEL,
   FIELD_LABEL,
@@ -331,12 +331,12 @@ const hiddenSettled = computed(() => hiddenMembers(settledSpread.value))
 const membersOf = (f: IProposedField): IProposedField[] =>
   openSpread.value.get(f.id) ?? settledSpread.value.get(f.id) ?? [f]
 /** What the reviewer has left to judge: a range counts once. */
-const openCards = computed(() => open.value.length - hiddenOpen.value.size)
+const openCards = computed(() => blockingOpen.value.filter((f) => !hiddenOpen.value.has(f.id)).length)
 const settledCards = computed(() => settled.value.filter((f) => !hiddenSettled.value.has(f.id)))
 
-const openByAddress = computed(() => {
+function byAddress(list: IProposedField[]) {
   const groups = new Map<string, IProposedField[]>()
-  for (const f of open.value) {
+  for (const f of list) {
     if (hiddenOpen.value.has(f.id)) continue
     const set = openSpread.value.get(f.id)
     const key = set ? addressSetKey(set) : (f.addressId ?? f.addressText ?? '')
@@ -371,6 +371,20 @@ const openByAddress = computed(() => {
         fields,
       }
     })
+}
+/**
+ * The open proposals in sections. One file: one section, as before. Several:
+ * one section per inquiry (Don, 2026-10-08: first sort the files, then judge
+ * per inquiry), each with its own soort and datum on top. Proposals of files
+ * in no inquiry are not shown: nothing from them is taken over.
+ */
+const openSections = computed(() => {
+  if (!multiDoc.value) return [{ key: 'all', set: null as (typeof commitGroups.value)[number] | null, groups: byAddress(open.value) }]
+  return commitGroups.value.map((g) => ({
+    key: `set${g.n}`,
+    set: g as (typeof commitGroups.value)[number] | null,
+    groups: byAddress(open.value.filter((f) => g.ids.includes(f.artifactId))),
+  }))
 })
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
 /** How a proposal relates to the database, for the row (nalezing only). */
@@ -806,10 +820,10 @@ const takenFrom = (ids: number[], field: string) => {
   return decided.value[f.id] === 'corrected' ? (corrections.value[f.id] ?? null) : f.value
 }
 watch(
-  [commitDocs, taken],
+  commitDocs,
   () => {
-    if (groupTouched.value) return
-    groupChoice.value = defaultGroups(commitDocs.value, (id) => taken.value.filter((t) => t.artifactId === id).length)
+    const defaults = defaultGroups(commitDocs.value)
+    groupChoice.value = groupTouched.value ? { ...defaults, ...groupChoice.value } : defaults
   },
   { immediate: true },
 )
@@ -847,6 +861,8 @@ const commitGroups = computed(() =>
       n: g.n,
       ids,
       names: g.docs.map((d) => bareName(d.originalFilename) || `document ${d.id}`),
+      /** Files the API cannot merge, when the set has more than one (one alone is kept as it is). */
+      unmergeable: g.docs.length > 1 ? g.docs.filter((d) => !isMergeable(d)).map((d) => bareName(d.originalFilename) || `document ${d.id}`) : [],
       override,
       typeHint: override.type ? undefined : takenType ? 'Overgenomen uit het document' : `Niet overgenomen: wordt ${labelValue('inquiry_type', derived.code)} (${derived.from})`,
       dateHint: override.date ? undefined : date ? 'Overgenomen uit het document' : estimate ? `Niet overgenomen: wordt ${estimate} (geschat: bouwjaar)` : 'Verplicht: geen datum in het document gevonden',
@@ -855,7 +871,24 @@ const commitGroups = computed(() =>
     }
   }),
 )
-const groupsBlocked = computed(() => multiDoc.value && (commitGroups.value.length === 0 || commitGroups.value.some((g) => g.dateMissing)))
+const groupsBlocked = computed(
+  () => multiDoc.value && (commitGroups.value.length === 0 || commitGroups.value.some((g) => g.dateMissing || g.unmergeable.length > 0)),
+)
+/** Files in no inquiry: they stay with the melding, nothing read from them is taken over. */
+const looseDocs = computed(() => commitDocs.value.filter((d) => typeof groupChoice.value[d.id] !== 'number'))
+/** The set a document is in, for "uit Inquiry 2" and for filtering. */
+const setOf = (artifactId: number): number | null => {
+  const c = groupChoice.value[artifactId]
+  return typeof c === 'number' ? c : null
+}
+/**
+ * The proposals that still need a verdict before closing. With several files,
+ * only those of files in an inquiry: a file in no inquiry is not taken over,
+ * so its proposals need no judging (the API sets them aside on commit).
+ */
+const blockingOpen = computed(() =>
+  multiDoc.value ? open.value.filter((f) => setOf(f.artifactId) != null || !commitDocs.value.some((d) => d.id === f.artifactId)) : open.value,
+)
 
 /**
  * Overnemen als rapportage: the judged values become an inquiry + samples, the
@@ -1269,7 +1302,18 @@ function judgedValue(f: IProposedField): string | null {
   return f.value
 }
 /** Two documents saying different things about one address and field (services/documentPrecedence.ts). */
-const conflicts = computed(() => findConflicts(artifacts.value, data.value?.fields ?? [], judgedValue))
+const conflicts = computed(() => {
+  const all = data.value?.fields ?? []
+  if (!multiDoc.value) return findConflicts(artifacts.value, all, judgedValue)
+  // Two files in different inquiries do not contradict each other: each
+  // inquiry keeps its own value (Don's design, 2026-10-08).
+  const out = new Map<number, ReturnType<typeof findConflicts> extends Map<number, infer C> ? C : never>()
+  for (const g of commitGroups.value) {
+    const ids = new Set(g.ids)
+    findConflicts(artifacts.value.filter((a) => ids.has(a.id)), all.filter((f) => ids.has(f.artifactId)), judgedValue).forEach((c, id) => out.set(id, c))
+  }
+  return out
+})
 /** Taken-over values still in conflict: the commit would keep one of them by accident (API #223). */
 const takenConflicts = computed(() => taken.value.filter((f) => conflicts.value.get(f.id)?.others.length))
 /**
@@ -1338,7 +1382,7 @@ async function decide(f: IProposedField, outcome: VerdictOutcome) {
     editing.value = { ...editing.value, [f.id]: false }
     // Move to the next open value's document straight away: the reviewer's
     // next decision is almost always about a different page.
-    const next = open.value.find((o) => !ids.includes(o.id))
+    const next = blockingOpen.value.find((o) => !ids.includes(o.id))
     if (next) focus(next)
   } catch (e) {
     error.value = describeFailure(e, 'Het oordeel kon niet worden opgeslagen.')
@@ -1605,7 +1649,7 @@ async function reopen(f: IProposedField) {
             kies dan “Rapportage aanmaken, handmatig invullen”.
           </Callout>
 
-          <Callout v-else-if="open.length === 0" tone="green" title="Alles beoordeeld">
+          <Callout v-else-if="blockingOpen.length === 0" tone="green" title="Alles beoordeeld">
             Er staan geen voorstellen meer open op dit dossier.
           </Callout>
 
@@ -1626,6 +1670,42 @@ async function reopen(f: IProposedField) {
           <!-- Which addresses this dossier is about, and the say over them
                (#333, 3 and 4). Not on a nalezing: that one compares against
                the rapportage's own samples. -->
+          <!-- Step 1 with several files: sort them into inquiries (Don, 2026-10-08).
+               Left alone, everything is one inquiry. -->
+          <Panel
+            v-if="!loading && data && multiDoc && !closed && !data.dossier.outcome && !data.dossier.inquiryId"
+            caption="BESTANDEN INDELEN"
+            :meta="`${commitGroups.length} inquir${commitGroups.length === 1 ? 'y' : 'ies'}`"
+          >
+            <p class="text-md mb-2 text-muted">
+              Staat alles in Inquiry 1, dan wordt het één inquiry. Hoort een bestand bij een ander onderzoek, kies dan
+              een nieuwe inquiry. Bestanden in één inquiry worden samengevoegd tot één PDF. Een bestand zonder inquiry
+              blijft bij de melding, maar er wordt niets uit overgenomen.
+            </p>
+            <div class="flex flex-col gap-1.5">
+              <div v-for="d in commitDocs" :key="d.id" class="grid grid-cols-[1fr_12rem] items-center gap-3">
+                <button
+                  type="button"
+                  class="truncate text-left font-mono text-md hover:underline"
+                  :class="artifacts[shown]?.id === d.id ? 'text-ink font-semibold' : 'text-body'"
+                  :title="`${bareName(d.originalFilename)} tonen`"
+                  @click="shown = Math.max(0, artifacts.findIndex((a) => a.id === d.id))"
+                >
+                  {{ bareName(d.originalFilename) || `document ${d.id}` }}
+                </button>
+                <select
+                  :id="`set-${d.id}`"
+                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
+                  :aria-label="`Inquiry voor ${bareName(d.originalFilename)}`"
+                  :value="String(groupChoice[d.id] ?? 'vervalt')"
+                  @change="setGroup(d.id, ($event.target as HTMLSelectElement).value)"
+                >
+                  <option v-for="o in docGroupOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                </select>
+              </div>
+            </div>
+          </Panel>
+
           <DossierAddresses
             v-if="!loading && data && !isAudit"
             :dossier-id="data.dossier.id"
@@ -1639,15 +1719,49 @@ async function reopen(f: IProposedField) {
                compact row per proposal in two columns: this pane is half a
                wide screen now, and a row is label, value, citation, three
                buttons -- the drawer with the correction opens on request. -->
-          <section v-for="group in openByAddress" :key="group.key" class="flex flex-col gap-2">
+          <template v-for="sec in openSections" :key="sec.key">
+          <div v-if="sec.set" class="flex flex-col gap-2 rounded-lg border border-line-strong bg-raised p-3">
+            <p class="text-md font-semibold text-strong">
+              Inquiry {{ sec.set.n }}
+              <span class="font-normal text-muted">
+                · {{ sec.set.names.length }} bestand{{ sec.set.names.length === 1 ? '' : 'en' }}<template v-if="sec.set.names.length > 1">, wordt één PDF</template>
+                · {{ sec.groups.reduce((t, g) => t + g.fields.length, 0) }} open
+              </span>
+            </p>
+            <p class="truncate text-sm text-faint" :title="sec.set.names.join(', ')">{{ sec.set.names.join(' · ') }}</p>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-2">
+              <Field
+                :model-value="sec.set.override.type"
+                kind="select"
+                label="Soort rapport"
+                :options="INQUIRY_TYPE_CODE_OPTIONS"
+                empty-label="Uit het document"
+                :hint="sec.set.typeHint"
+                @update:model-value="setGroupOverride(sec.set.n, 'type', $event)"
+              />
+              <Field
+                :model-value="sec.set.override.date"
+                kind="date"
+                label="Datum rapport"
+                :hint="sec.set.dateHint"
+                :error="sec.set.dateMissing ? 'Vul de datum van dit rapport in' : null"
+                @update:model-value="setGroupOverride(sec.set.n, 'date', $event)"
+              />
+            </div>
+            <p class="text-sm text-muted">Uitvoerder: {{ sec.set.contractorLabel }}</p>
+            <p v-if="sec.set.unmergeable.length" class="text-sm text-red">
+              {{ sec.set.unmergeable.join(', ') }} kan niet in één PDF worden samengevoegd: zet het in een eigen inquiry.
+            </p>
+          </div>
+          <section v-for="group in sec.groups" :key="`${sec.key}|${group.key}`" class="flex flex-col gap-2">
             <button
-              v-if="openByAddress.length > 1 || group.key !== ''"
+              v-if="sec.groups.length > 1 || group.key !== ''"
               type="button"
               class="flex items-center gap-2 pt-1 text-left"
-              :aria-expanded="!collapsed[group.key]"
-              @click="collapsed = { ...collapsed, [group.key]: !collapsed[group.key] }"
+              :aria-expanded="!collapsed[`${sec.key}|${group.key}`]"
+              @click="collapsed = { ...collapsed, [`${sec.key}|${group.key}`]: !collapsed[`${sec.key}|${group.key}`] }"
             >
-              <span class="text-sm w-3 text-faint">{{ collapsed[group.key] ? '▸' : '▾' }}</span>
+              <span class="text-sm w-3 text-faint">{{ collapsed[`${sec.key}|${group.key}`] ? '▸' : '▾' }}</span>
               <span class="studio-label">{{ group.address || 'HET RAPPORT' }}</span>
               <Pill v-if="group.spread" :label="`geldt voor ${group.spread.length} adressen`" tone="blue" plain />
               <Pill v-else-if="group.own" label="pand van het dossier" tone="blue" plain />
@@ -1667,12 +1781,12 @@ async function reopen(f: IProposedField) {
             </button>
 
             <!-- A range (#186): what it covers, folded. One Overnemen below decides every address. -->
-            <details v-if="group.spread && !collapsed[group.key]" class="text-sm pl-5 text-muted">
+            <details v-if="group.spread && !collapsed[`${sec.key}|${group.key}`]" class="text-sm pl-5 text-muted">
               <summary class="cursor-pointer">Toon de {{ group.spread.length }} adressen</summary>
               <p class="mt-1">{{ group.spread.join(' · ') }}</p>
             </details>
 
-            <div v-if="!collapsed[group.key]" class="grid grid-cols-2 gap-2">
+            <div v-if="!collapsed[`${sec.key}|${group.key}`]" class="grid grid-cols-2 gap-2">
               <div
                 v-for="f in group.fields"
                 :key="f.id"
@@ -1853,6 +1967,7 @@ async function reopen(f: IProposedField) {
               </div>
             </div>
           </section>
+          </template>
 
           <Panel v-if="isAudit && agreed.length" caption="KOMT OVEREEN" :meta="String(agreed.length)">
             <p class="text-sm mb-1.5 text-muted">
@@ -2167,59 +2282,31 @@ async function reopen(f: IProposedField) {
                 bijgewerkt met {{ taken.length }} overgenomen waarde{{ taken.length === 1 ? '' : 'n' }};
                 er wordt niets nieuws aangemaakt.
               </p>
-              <!-- Several documents: one rapportage per group (API #223). Shown
-                   from the start, not only once every proposal is judged: with
-                   eight documents the grouping is the first thing to decide, and
-                   a hidden block reads as a missing feature (Don, dossier 6177).
-                   Committing still waits for the proposals. -->
-              <div v-else-if="wasRead && multiDoc" class="flex flex-col gap-3">
-                <p v-if="open.length > 0" class="text-md text-muted">
-                  Nog {{ open.length }} voorstel{{ open.length === 1 ? '' : 'len' }} te beoordelen. De indeling kun je
-                  nu al kiezen; overnemen kan zodra alles beoordeeld is.
+              <!-- Several files: the inquiries were set up above (BESTANDEN INDELEN,
+                   and soort/datum per inquiry); here only what closing makes. -->
+              <div v-else-if="multiDoc" class="flex flex-col gap-1.5 text-md">
+                <p v-if="!commitGroups.length" class="text-muted">
+                  Geen enkel bestand staat in een inquiry. Sluit de melding zonder rapportage, of zet bovenaan
+                  een bestand in een inquiry.
                 </p>
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-sm font-semibold uppercase tracking-wide text-label">Documenten in deze melding</span>
-                  <div v-for="d in commitDocs" :key="d.id" class="grid grid-cols-[1fr_15rem] items-center gap-3">
-                    <span class="truncate font-mono text-md" :title="bareName(d.originalFilename)">{{ bareName(d.originalFilename) || `document ${d.id}` }}</span>
-                    <select
-                      class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
-                      :value="String(groupChoice[d.id] ?? 'vervalt')"
-                      @change="setGroup(d.id, ($event.target as HTMLSelectElement).value)"
-                    >
-                      <option v-for="o in docGroupOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-                    </select>
-                  </div>
-                </div>
-                <div v-for="g in commitGroups" :key="g.n" class="flex flex-col gap-2 rounded-lg border border-line p-3">
-                  <p class="text-md font-semibold text-strong">
-                    Rapportage {{ g.n }}
-                    <span class="font-normal text-muted">
-                      · {{ g.names.length }} bestand{{ g.names.length === 1 ? '' : 'en' }}<template v-if="g.names.length > 1">, wordt één PDF</template>
-                    </span>
+                <template v-else>
+                  <p class="text-muted">
+                    Bij overnemen {{ commitGroups.length === 1 ? 'komt er' : 'komen er' }}
+                    <strong class="text-body">{{ commitGroups.length }} inquir{{ commitGroups.length === 1 ? 'y' : 'ies' }}</strong>;
+                    de melder krijgt één afsluiting.
                   </p>
-                  <div class="grid grid-cols-2 gap-x-3 gap-y-2">
-                    <Field
-                      :model-value="g.override.type"
-                      kind="select"
-                      label="Soort"
-                      :options="INQUIRY_TYPE_CODE_OPTIONS"
-                      empty-label="Uit het document"
-                      :hint="g.typeHint"
-                      @update:model-value="setGroupOverride(g.n, 'type', $event)"
-                    />
-                    <Field
-                      :model-value="g.override.date"
-                      kind="date"
-                      label="Datum rapport"
-                      :hint="g.dateHint"
-                      :error="g.dateMissing ? 'Vul de datum van dit rapport in' : null"
-                      @update:model-value="setGroupOverride(g.n, 'date', $event)"
-                    />
-                  </div>
-                  <p class="text-md text-muted">Uitvoerder: {{ g.contractorLabel }}</p>
-                </div>
-                <p v-if="!commitGroups.length" class="text-md text-muted">
-                  Alle documenten vervallen. Sluit de melding zonder rapportage, of zet een document in een rapportage.
+                  <p v-for="g in commitGroups" :key="g.n" class="text-muted">
+                    <span class="font-semibold text-body">Inquiry {{ g.n }}</span>
+                    · {{ g.names.length }} bestand{{ g.names.length === 1 ? '' : 'en' }}<template v-if="g.names.length > 1"> (één PDF)</template>
+                    <span v-if="g.dateMissing" class="text-red"> · datum ontbreekt</span>
+                    <span v-if="g.unmergeable.length" class="text-red"> · {{ g.unmergeable.join(', ') }} kan niet in één PDF</span>
+                  </p>
+                  <p v-if="looseDocs.length" class="text-faint">
+                    {{ looseDocs.length }} bestand{{ looseDocs.length === 1 ? '' : 'en' }} zonder inquiry: blijft bij de melding.
+                  </p>
+                </template>
+                <p v-if="blockingOpen.length" class="text-muted">
+                  Nog {{ blockingOpen.length }} voorstel{{ blockingOpen.length === 1 ? '' : 'len' }} te beoordelen.
                 </p>
               </div>
               <div v-else-if="wasRead && open.length === 0" class="grid grid-cols-3 gap-x-3 gap-y-2">
@@ -2298,9 +2385,9 @@ async function reopen(f: IProposedField) {
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"
-                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc && commitGroups.length > 1 ? `Overnemen als ${commitGroups.length} rapportages` : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
-                  :disabled="committing || closing || open.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
-                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlocked ? (commitGroups.length ? 'Vul eerst bij elke rapportage de datum in' : 'Zet minstens één document in een rapportage') : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
+                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length > 1 ? `Overnemen als ${commitGroups.length} inquiries` : 'Overnemen als inquiry') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
+                  :disabled="committing || closing || blockingOpen.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
+                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlocked ? (!commitGroups.length ? 'Zet minstens één bestand in een inquiry' : commitGroups.some((g) => g.unmergeable.length) ? 'Een bestand kan niet in één PDF: zet het in een eigen inquiry' : 'Vul eerst bij elke inquiry de datum in') : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
                   @click="commitDossier"
                 />
                 <Button
