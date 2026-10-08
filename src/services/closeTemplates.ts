@@ -98,6 +98,16 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
       'een funderingsonderzoek, een archieftekening of een herstelbewijs. Uw vraag past daar niet in. ' +
       'Voor andere vragen over funderingen kunt u terecht op https://funderconsult.com/feedback/form.',
   },
+  // The usual way to close an "Iets anders" melding once the answer has gone
+  // out through the message box (Don, 2026-10-08: "Vraag beantwoord en
+  // dossier afgerond"). Preselected in the Studio when our answer is the last
+  // word on the dossier.
+  {
+    value: 'question_answered',
+    label: 'Vraag beantwoord, melding afgerond',
+    outcome: 'accepted',
+    text: 'Uw vraag is beantwoord en uw melding is afgerond.',
+  },
   {
     value: 'general_question',
     label: 'Algemene vraag, geen melding over een pand',
