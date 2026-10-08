@@ -23,6 +23,7 @@ import type {
 import { describeFailure } from '@/services/fundermaps/errors'
 import { isPreviewableImageMime } from '@/services/documentFile'
 import { parseQuery, toQueueOpts } from '@/services/reviewExplorer'
+import { bareName, defaultGroups, groupOptions, groupsOf, type GroupChoice } from '@/services/rapportageGroups'
 import {
   CHANNEL_LABEL,
   FIELD_LABEL,
@@ -785,6 +786,78 @@ const inquiryTypeLabel = (code: string) => INQUIRY_TYPE_CODE_OPTIONS.find((o) =>
 const commitDateMissing = computed(() => !isAudit.value && !commitDate.value && !builtYearEstimate.value)
 
 /**
+ * A melding with several documents (API #223, Don 2026-10-08): each document
+ * becomes its own rapportage, archive pieces ("NL-…") together as one, photos
+ * nothing was taken over from stay with the melding. The reviewer regroups or
+ * lets a document lapse; until they touch it, the grouping follows what was
+ * taken over. Soort and datum can be set per rapportage; left empty, the API
+ * reads them from that rapportage's own documents, and the bureau too.
+ */
+const commitDocs = computed(() =>
+  (data.value?.artifacts ?? []).filter((a) => a.storageKey.startsWith('dataops/') || a.storageKey.startsWith('intake/')),
+)
+const multiDoc = computed(() => !isAudit.value && commitDocs.value.length > 1)
+const groupChoice = ref<Record<number, GroupChoice>>({})
+const groupTouched = ref(false)
+const groupOverride = ref<Record<number, { type: string | null; date: string | null }>>({})
+const takenFrom = (ids: number[], field: string) => {
+  const f = taken.value.find((t) => t.field === field && ids.includes(t.artifactId))
+  if (!f) return null
+  return decided.value[f.id] === 'corrected' ? (corrections.value[f.id] ?? null) : f.value
+}
+watch(
+  [commitDocs, taken],
+  () => {
+    if (groupTouched.value) return
+    groupChoice.value = defaultGroups(commitDocs.value, (id) => taken.value.filter((t) => t.artifactId === id).length)
+  },
+  { immediate: true },
+)
+watch(
+  () => data.value?.dossier.id,
+  () => {
+    groupTouched.value = false
+    groupOverride.value = {}
+  },
+)
+function setGroup(docId: number, value: string) {
+  groupTouched.value = true
+  groupChoice.value = { ...groupChoice.value, [docId]: value === 'vervalt' ? 'vervalt' : Number(value) }
+}
+function setGroupOverride(n: number, key: 'type' | 'date', value: unknown) {
+  const cur = groupOverride.value[n] ?? { type: null, date: null }
+  groupOverride.value = { ...groupOverride.value, [n]: { ...cur, [key]: value == null || value === '' ? null : String(value) } }
+}
+const docGroupOptions = computed(() => groupOptions(groupChoice.value))
+const commitGroups = computed(() =>
+  groupsOf(commitDocs.value, groupChoice.value).map((g) => {
+    const ids = g.docs.map((d) => d.id)
+    const first = data.value?.artifacts.find((a) => a.id === ids[0])
+    const override = groupOverride.value[g.n] ?? { type: null, date: null }
+    const takenType = takenFrom(ids, 'inquiry_type')
+    const derived = derivedInquiryType(first?.declaredCategory, first?.lane)
+    const type = override.type ?? takenType ?? derived.code
+    const takenDate = takenFrom(ids, 'document_date')
+    const date = override.date ?? (takenDate && /^\d{4}-\d{2}-\d{2}/.test(takenDate) ? takenDate.slice(0, 10) : null)
+    const y = data.value?.dossier.buildingBuiltYear?.slice(0, 4)
+    const estimate = ARCHIVE_TYPES.has(type) && y && /^\d{4}$/.test(y) && y !== '0000' ? y : null
+    const rawContractor = takenFrom(ids, 'contractor')
+    const row = contractorRowFor(rawContractor)
+    return {
+      n: g.n,
+      ids,
+      names: g.docs.map((d) => bareName(d.originalFilename) || `document ${d.id}`),
+      override,
+      typeHint: override.type ? undefined : takenType ? 'Overgenomen uit het document' : `Niet overgenomen: wordt ${labelValue('inquiry_type', derived.code)} (${derived.from})`,
+      dateHint: override.date ? undefined : date ? 'Overgenomen uit het document' : estimate ? `Niet overgenomen: wordt ${estimate} (geschat: bouwjaar)` : 'Verplicht: geen datum in het document gevonden',
+      dateMissing: !date && !estimate,
+      contractorLabel: row?.name ?? (rawContractor ? `${rawContractor} (niet in de lijst: wordt FunderMaps B.V.)` : 'FunderMaps B.V.'),
+    }
+  }),
+)
+const groupsBlocked = computed(() => multiDoc.value && (commitGroups.value.length === 0 || commitGroups.value.some((g) => g.dateMissing)))
+
+/**
  * Overnemen als rapportage: the judged values become an inquiry + samples, the
  * document enters inquiry-report/, the dossier leaves the queue -- and the
  * next one opens.
@@ -799,13 +872,30 @@ async function commitDossier() {
   if (!data.value) return
   committing.value = true
   try {
-    const r = await api.dataops.commit(data.value.dossier.id, {
-      type: commitType.value ?? undefined,
-      documentDate: commitDate.value ?? undefined,
-      contractor: commitContractor.value ? Number(commitContractor.value) : undefined,
-    })
+    const r = await api.dataops.commit(
+      data.value.dossier.id,
+      multiDoc.value
+        ? {
+            rapportages: commitGroups.value.map((g) => ({
+              artifactIds: g.ids,
+              type: g.override.type ?? undefined,
+              documentDate: g.override.date ?? undefined,
+            })),
+          }
+        : {
+            type: commitType.value ?? undefined,
+            documentDate: commitDate.value ?? undefined,
+            contractor: commitContractor.value ? Number(commitContractor.value) : undefined,
+          },
+    )
     closed.value = 'accepted'
     committedInquiryId.value = r.inquiryId
+    if (r.rapportages && r.rapportages.length > 1) {
+      void studio.refreshCounts(null)
+      toastSuccess(`${r.rapportages.length} rapportages aangemaakt: ${r.rapportages.map((m) => `#${m.inquiryId}`).join(', ')}.`)
+      await openNext(data.value.dossier.id, 'accepted')
+      return
+    }
     void studio.refreshCounts(null)
     if (r.audit) {
       toastSuccess(`Rapportage #${r.inquiryId} bijgewerkt: ${r.fields ?? 0} waarde${r.fields === 1 ? '' : 'n'} op ${r.samples} adres${r.samples === 1 ? '' : 'sen'}.`)
@@ -2027,6 +2117,53 @@ async function reopen(f: IProposedField) {
                 bijgewerkt met {{ taken.length }} overgenomen waarde{{ taken.length === 1 ? '' : 'n' }};
                 er wordt niets nieuws aangemaakt.
               </p>
+              <!-- Several documents: one rapportage per group (API #223). -->
+              <div v-else-if="wasRead && open.length === 0 && multiDoc" class="flex flex-col gap-3">
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-sm font-semibold uppercase tracking-wide text-label">Documenten in deze melding</span>
+                  <div v-for="d in commitDocs" :key="d.id" class="grid grid-cols-[1fr_15rem] items-center gap-3">
+                    <span class="truncate font-mono text-md" :title="bareName(d.originalFilename)">{{ bareName(d.originalFilename) || `document ${d.id}` }}</span>
+                    <select
+                      class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
+                      :value="String(groupChoice[d.id] ?? 'vervalt')"
+                      @change="setGroup(d.id, ($event.target as HTMLSelectElement).value)"
+                    >
+                      <option v-for="o in docGroupOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div v-for="g in commitGroups" :key="g.n" class="flex flex-col gap-2 rounded-lg border border-line p-3">
+                  <p class="text-md font-semibold text-strong">
+                    Rapportage {{ g.n }}
+                    <span class="font-normal text-muted">
+                      · {{ g.names.length }} bestand{{ g.names.length === 1 ? '' : 'en' }}<template v-if="g.names.length > 1">, wordt één PDF</template>
+                    </span>
+                  </p>
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-2">
+                    <Field
+                      :model-value="g.override.type"
+                      kind="select"
+                      label="Soort"
+                      :options="INQUIRY_TYPE_CODE_OPTIONS"
+                      empty-label="Uit het document"
+                      :hint="g.typeHint"
+                      @update:model-value="setGroupOverride(g.n, 'type', $event)"
+                    />
+                    <Field
+                      :model-value="g.override.date"
+                      kind="date"
+                      label="Datum rapport"
+                      :hint="g.dateHint"
+                      :error="g.dateMissing ? 'Vul de datum van dit rapport in' : null"
+                      @update:model-value="setGroupOverride(g.n, 'date', $event)"
+                    />
+                  </div>
+                  <p class="text-md text-muted">Uitvoerder: {{ g.contractorLabel }}</p>
+                </div>
+                <p v-if="!commitGroups.length" class="text-md text-muted">
+                  Alle documenten vervallen. Sluit de melding zonder rapportage, of zet een document in een rapportage.
+                </p>
+              </div>
               <div v-else-if="wasRead && open.length === 0" class="grid grid-cols-3 gap-x-3 gap-y-2">
                 <Field
                   v-model="commitType"
@@ -2103,9 +2240,9 @@ async function reopen(f: IProposedField) {
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"
-                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
-                  :disabled="committing || closing || open.length > 0 || !wasRead || commitDateMissing"
-                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
+                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc && commitGroups.length > 1 ? `Overnemen als ${commitGroups.length} rapportages` : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
+                  :disabled="committing || closing || open.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
+                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlocked ? (commitGroups.length ? 'Vul eerst bij elke rapportage de datum in' : 'Zet minstens één document in een rapportage') : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
                   @click="commitDossier"
                 />
                 <Button
