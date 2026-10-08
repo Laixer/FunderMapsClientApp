@@ -228,6 +228,25 @@ export interface IReviewDossier {
   entries: IDossierEntry[]
   /** The addresses this dossier is about, own pand first (#333 part C). */
   addresses: IDossierAddress[]
+  /** Rapportages already on the dossier's pand (API #231); absent from older API builds. */
+  existingRapportages?: IExistingRapportage[]
+}
+
+/**
+ * A rapportage that already has a sample on the dossier's pand, for the
+ * warning before "Overnemen als rapportage" (Don, 2026-10-08).
+ */
+export interface IExistingRapportage {
+  id: number
+  /** Inquiry type code, e.g. foundation_research. */
+  type: string
+  documentDate: string | null
+  documentName: string | null
+  auditStatus: string
+  addresses: number
+  samples: number
+  /** Its stored file has the byte size of one of this dossier's documents. */
+  sameFile: boolean
 }
 
 export type VerdictOutcome = 'confirmed' | 'corrected' | 'rejected'
