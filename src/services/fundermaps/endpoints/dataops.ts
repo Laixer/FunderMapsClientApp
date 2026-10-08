@@ -179,6 +179,24 @@ export async function create(
   }
 }
 
+/**
+ * Add files to an open dossier (API #233): a WeTransfer link whose pieces are
+ * usable, or files a melder mailed as a reply. Read like an upload; documents
+ * read before are left alone.
+ */
+export async function addDocument(id: number, files: File[], category?: string) {
+  const form = new FormData()
+  for (const f of files) form.append('input', f)
+  if (category) form.append('category', category)
+  return (await post({ endpoint: `/dataops/dossier/${id}/document`, body: form })) as {
+    id: number
+    files: number
+    artifactIds: number[]
+    /** Whether the pipeline was kicked now. False = the hourly sweep will read it. */
+    reading: boolean
+  }
+}
+
 /** A reviewer's internal note on the dossier — lands on the timeline, never mailed. */
 export async function remark(id: number, text: string) {
   return (await post({
@@ -302,6 +320,7 @@ export default {
   commit,
   recordRecovery,
   create,
+  addDocument,
   remark,
   question,
   assign,
