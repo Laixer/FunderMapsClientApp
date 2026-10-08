@@ -387,6 +387,25 @@ const openSections = computed(() => {
   }))
 })
 const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.value[f.id]))
+/**
+ * The judged values in groups: one group with one file; one per inquiry with
+ * several, folded until opened, so a value can be reopened where it belongs
+ * (Don, 2026-10-08). Values of a file in no inquiry are not listed: nothing
+ * of them is taken over.
+ */
+const judgedOpen = ref<Record<string, boolean>>({})
+const settledSections = computed(() => {
+  if (!multiDoc.value) return [{ key: 'all', title: null as string | null, cards: settledCards.value }]
+  const docIds = new Set(commitDocs.value.map((d) => d.id))
+  const out = commitGroups.value.map((g) => ({
+    key: `set${g.n}`,
+    title: `Inquiry ${g.n}` as string | null,
+    cards: settledCards.value.filter((f) => g.ids.includes(f.artifactId)),
+  }))
+  const other = settledCards.value.filter((f) => !docIds.has(f.artifactId))
+  if (other.length) out.push({ key: 'other', title: 'Overige', cards: other })
+  return out.filter((sec) => sec.cards.length)
+})
 /** How a proposal relates to the database, for the row (nalezing only). */
 function currentLabel(f: IProposedField): { text: string; tone: 'amber' | 'red' } | null {
   if (!isAudit.value || f.state === 'agreed') return null
@@ -864,6 +883,14 @@ const commitGroups = computed(() =>
       /** Files the API cannot merge, when the set has more than one (one alone is kept as it is). */
       unmergeable: g.docs.length > 1 ? g.docs.filter((d) => !isMergeable(d)).map((d) => bareName(d.originalFilename) || `document ${d.id}`) : [],
       override,
+      /**
+       * What the fields show: the reviewer's own choice, else what was taken
+       * over from the inquiry's files. The date input used to show only the
+       * reviewer's choice, so a date read from the document looked missing
+       * (Don, 2026-10-08: "zet dat weer door").
+       */
+      shownType: override.type ?? takenType,
+      date,
       typeHint: override.type ? undefined : takenType ? 'Overgenomen uit het document' : `Niet overgenomen: wordt ${labelValue('inquiry_type', derived.code)} (${derived.from})`,
       dateHint: override.date ? undefined : date ? 'Overgenomen uit het document' : estimate ? `Niet overgenomen: wordt ${estimate} (geschat: bouwjaar)` : 'Verplicht: geen datum in het document gevonden',
       dateMissing: !date && !estimate,
@@ -912,7 +939,7 @@ async function commitDossier() {
             rapportages: commitGroups.value.map((g) => ({
               artifactIds: g.ids,
               type: g.override.type ?? undefined,
-              documentDate: g.override.date ?? undefined,
+              documentDate: g.date ?? undefined,
             })),
           }
         : {
@@ -1316,6 +1343,35 @@ const conflicts = computed(() => {
 })
 /** Taken-over values still in conflict: the commit would keep one of them by accident (API #223). */
 const takenConflicts = computed(() => taken.value.filter((f) => conflicts.value.get(f.id)?.others.length))
+/**
+ * The conflicts as the reviewer reads them (Don, 2026-10-08: "geef aan welke
+ * velden dit zijn en welke leidend is"): one row per address and field, every
+ * document's value, the one the precedence rule puts first marked.
+ */
+const conflictRows = computed(() => {
+  const byKey = new Map<string, { key: string; label: string; address: string | null; leadingName: string | null; options: { field: IProposedField; value: string; name: string; leading: boolean; taken: boolean }[] }>()
+  const fieldById = new Map((data.value?.fields ?? []).map((f) => [f.id, f] as const))
+  for (const f of takenConflicts.value) {
+    const c = conflicts.value.get(f.id)!
+    const key = `${f.addressId ?? f.addressText ?? ''}|${f.field}`
+    if (byKey.has(key)) continue
+    const members = [f, ...c.others.map((o) => fieldById.get(o.fieldId)).filter((x): x is IProposedField => !!x)]
+    byKey.set(key, {
+      key,
+      label: FIELD_LABEL[f.field] ?? f.field,
+      address: addressLine(f),
+      leadingName: c.leading?.name ?? null,
+      options: members.map((m) => ({
+        field: m,
+        value: labelValue(m.field, judgedValue(m)),
+        name: documentName(artifacts.value, m.artifactId),
+        leading: !!c.leading && c.leading.artifactId === m.artifactId,
+        taken: decided.value[m.id] === 'confirmed' || decided.value[m.id] === 'corrected',
+      })),
+    })
+  }
+  return [...byKey.values()]
+})
 /**
  * No document at all: the melder asked something, and answering is the whole
  * job. The screen drops the review furniture and puts the question where the
@@ -1731,7 +1787,7 @@ async function reopen(f: IProposedField) {
             <p class="truncate text-sm text-faint" :title="sec.set.names.join(', ')">{{ sec.set.names.join(' · ') }}</p>
             <div class="grid grid-cols-2 gap-x-3 gap-y-2">
               <Field
-                :model-value="sec.set.override.type"
+                :model-value="sec.set.shownType"
                 kind="select"
                 label="Soort rapport"
                 :options="INQUIRY_TYPE_CODE_OPTIONS"
@@ -1740,7 +1796,7 @@ async function reopen(f: IProposedField) {
                 @update:model-value="setGroupOverride(sec.set.n, 'type', $event)"
               />
               <Field
-                :model-value="sec.set.override.date"
+                :model-value="sec.set.date"
                 kind="date"
                 label="Datum rapport"
                 :hint="sec.set.dateHint"
@@ -2007,10 +2063,23 @@ async function reopen(f: IProposedField) {
               </div>
             </div>
           </Panel>
-          <Panel v-if="settled.length" caption="BEOORDEELD" :meta="String(settledCards.length)">
-            <ul class="flex flex-col gap-2">
+          <Panel v-if="settledSections.length" caption="BEOORDEELD" :meta="String(settledCards.length)">
+            <div class="flex flex-col gap-2">
+            <template v-for="sec in settledSections" :key="sec.key">
+            <button
+              v-if="sec.title"
+              type="button"
+              class="flex items-center gap-2 text-left"
+              :aria-expanded="!!judgedOpen[sec.key]"
+              @click="judgedOpen = { ...judgedOpen, [sec.key]: !judgedOpen[sec.key] }"
+            >
+              <span class="text-sm w-3 text-faint">{{ judgedOpen[sec.key] ? '▾' : '▸' }}</span>
+              <span class="studio-label">{{ sec.title }}</span>
+              <span class="text-sm font-mono text-faint">{{ sec.cards.length }} beoordeeld</span>
+            </button>
+            <ul v-if="!sec.title || judgedOpen[sec.key]" class="flex flex-col gap-2" :class="{ 'pl-5': sec.title }">
               <li
-                v-for="f in settledCards"
+                v-for="f in sec.cards"
                 :key="f.id"
                 class="text-md flex gap-2.5 border-b border-canvas pb-2 last:border-b-0 last:pb-0"
               >
@@ -2064,6 +2133,8 @@ async function reopen(f: IProposedField) {
                 />
               </li>
             </ul>
+            </template>
+            </div>
           </Panel>
 
           <!-- #341: a herstel is recorded before the dossier is closed. -->
@@ -2354,11 +2425,33 @@ async function reopen(f: IProposedField) {
               </div>
 
               <!-- Never blocks: the reviewer may know better than the rule. -->
-              <Callout v-if="takenConflicts.length" tone="amber">
-                {{ takenConflicts.length }} overgenomen
-                {{ takenConflicts.length === 1 ? 'waarde botst' : 'waarden botsen' }} met een ander document voor
-                hetzelfde adres. Bij het overnemen blijft er per veld maar één over, en welke is nu toeval. Keur de
-                waarde af die niet klopt (zie BEOORDEELD).
+              <Callout v-if="conflictRows.length" tone="amber">
+                <p>
+                  {{ conflictRows.length }} {{ conflictRows.length === 1 ? 'veld krijgt' : 'velden krijgen' }} van twee
+                  documenten een verschillende waarde. Bij het overnemen blijft per veld maar één over: kies welke leidend is.
+                </p>
+                <ul class="mt-2 flex flex-col gap-2">
+                  <li v-for="r in conflictRows" :key="r.key" class="flex flex-col gap-1">
+                    <span class="font-semibold">
+                      {{ r.label }}<template v-if="r.address"> · {{ r.address }}</template>
+                    </span>
+                    <span v-for="o in r.options" :key="o.field.id" class="flex flex-wrap items-center gap-x-2">
+                      <span>{{ o.value }}</span>
+                      <span class="text-muted">uit {{ o.name }}</span>
+                      <Pill v-if="o.leading" label="leidend volgens de regel" tone="green" plain />
+                      <Pill v-if="o.taken" label="overgenomen" tone="blue" plain />
+                      <button
+                        type="button"
+                        class="font-semibold underline hover:text-strong"
+                        :disabled="busy === o.field.id"
+                        @click="chooseLeading(o.field)"
+                      >
+                        Deze is leidend
+                      </button>
+                    </span>
+                    <span v-if="!r.leadingName" class="text-muted">De regel kan hier niet kiezen: kies zelf.</span>
+                  </li>
+                </ul>
               </Callout>
 
               <!-- Never blocks either: the reviewer decides which copy stays. -->
