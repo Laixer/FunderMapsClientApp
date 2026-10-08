@@ -131,7 +131,14 @@ export async function closeMany(ids: number[], body: IDossierOutcome) {
  */
 export async function commit(
   id: number,
-  body: { type?: string; documentDate?: string; contractor?: number; note?: string } = {},
+  body: {
+    type?: string
+    documentDate?: string
+    contractor?: number
+    note?: string
+    /** One rapportage per group of documents (API #223); without it the API makes one rapportage. */
+    rapportages?: { artifactIds: number[]; type?: string; documentDate?: string; contractor?: number }[]
+  } = {},
 ) {
   return (await post({
     endpoint: `/dataops/dossier/${id}/commit`,
@@ -148,6 +155,8 @@ export async function commit(
     auditStatus: 'done' | 'pending'
     /** True when the dossier was a nalezing: the rapportage was updated, not created. */
     audit?: boolean
+    /** Every rapportage made, in group order (API #223); the top-level fields describe the first. */
+    rapportages?: { inquiryId: number; samples: number; type: string; documentDate: string; documentName: string; artifactIds: number[] }[]
     /** On a nalezing: how many values were written. */
     fields?: number
     unresolved: string[]
