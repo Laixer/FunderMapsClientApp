@@ -2167,8 +2167,16 @@ async function reopen(f: IProposedField) {
                 bijgewerkt met {{ taken.length }} overgenomen waarde{{ taken.length === 1 ? '' : 'n' }};
                 er wordt niets nieuws aangemaakt.
               </p>
-              <!-- Several documents: one rapportage per group (API #223). -->
-              <div v-else-if="wasRead && open.length === 0 && multiDoc" class="flex flex-col gap-3">
+              <!-- Several documents: one rapportage per group (API #223). Shown
+                   from the start, not only once every proposal is judged: with
+                   eight documents the grouping is the first thing to decide, and
+                   a hidden block reads as a missing feature (Don, dossier 6177).
+                   Committing still waits for the proposals. -->
+              <div v-else-if="wasRead && multiDoc" class="flex flex-col gap-3">
+                <p v-if="open.length > 0" class="text-md text-muted">
+                  Nog {{ open.length }} voorstel{{ open.length === 1 ? '' : 'len' }} te beoordelen. De indeling kun je
+                  nu al kiezen; overnemen kan zodra alles beoordeeld is.
+                </p>
                 <div class="flex flex-col gap-1.5">
                   <span class="text-sm font-semibold uppercase tracking-wide text-label">Documenten in deze melding</span>
                   <div v-for="d in commitDocs" :key="d.id" class="grid grid-cols-[1fr_15rem] items-center gap-3">
