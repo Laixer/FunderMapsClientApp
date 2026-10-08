@@ -98,6 +98,11 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
       'een funderingsonderzoek, een archieftekening of een herstelbewijs. Uw vraag past daar niet in. ' +
       'Voor andere vragen over funderingen kunt u terecht op https://funderconsult.com/feedback/form.',
   },
+  // Explaining is not refusing (Don, 2026-10-08: "adviseer me dan ook niet om
+  // op AFWIJZEN te klikken"): the melder reads "afgewezen" as having done
+  // something wrong. Answers that explain our data or point elsewhere close as
+  // Sluiten zonder rapportage; Afwijzen stays for a document we may not use.
+  //
   // The usual way to close an "Iets anders" melding once the answer has gone
   // out through the message box (Don, 2026-10-08: "Vraag beantwoord en
   // dossier afgerond"). Preselected in the Studio when our answer is the last
@@ -111,7 +116,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
     value: 'general_question',
     label: 'Algemene vraag, geen melding over een pand',
-    outcome: 'rejected',
+    outcome: 'accepted',
     text:
       'Uw bericht is een algemene vraag. Dit loket is er voor meldingen over een specifiek pand, met een document waaruit de ' +
       'wijziging blijkt. Algemene vragen over funderingen kunt u stellen via https://funderconsult.com/feedback/form.',
@@ -119,7 +124,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
     value: 'risk_deviates_subsidence',
     label: 'Risico wijkt af door zakkingssnelheid',
-    outcome: 'rejected',
+    outcome: 'accepted',
     asMessage: true,
     text:
       'Het funderingsrisico van dit pand wordt niet alleen door het funderingstype bepaald, maar ook door de zakking ' +
@@ -129,7 +134,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
     value: 'neighbour_differs',
     label: 'Buurwoning heeft een lager risico',
-    outcome: 'rejected',
+    outcome: 'accepted',
     asMessage: true,
     text:
       'Het risico van uw pand is berekend met de zakkingsmeting van uw eigen pand, gemeten vanuit de satelliet. ' +
@@ -150,7 +155,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
     value: 'data_correct',
     label: 'Onze gegevens kloppen',
-    outcome: 'rejected',
+    outcome: 'accepted',
     text:
       'Wij hebben uw melding beoordeeld. Voor dit pand gebruiken wij pandspecifieke gegevens over de fundering, de ondergrond ' +
       'en zakkingsmetingen. Die geven geen aanleiding om onze registratie aan te passen.',
@@ -158,7 +163,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
     value: 'concrete_foundation',
     label: 'Nieuw pand of betonnen fundering',
-    outcome: 'rejected',
+    outcome: 'accepted',
     asMessage: true,
     text:
       `Volgens onze registratie heeft dit pand ${BLANK}. Heeft u een bouwtekening of bestek waaruit de betonnen ` +
@@ -230,7 +235,7 @@ export const CLOSE_TEMPLATES: readonly CloseTemplate[] = [
   {
     value: 'not_fundermaps',
     label: 'Gaat niet over FunderMaps',
-    outcome: 'rejected',
+    outcome: 'accepted',
     text:
       'Uw vraag gaat over een rapport of gegeven dat niet van FunderMaps komt. Neem daarvoor contact op met de ' +
       'opsteller van dat rapport.',
