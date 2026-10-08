@@ -23,12 +23,11 @@ export interface GroupDoc {
 }
 
 /**
- * Whether a QuickScan lapses by default. QuickScans reach the database through
- * FunderConsult; the one inside a melding usually duplicates that route. Open
- * question to Don (2026-10-08): until he answers, it is a rapportage of its
- * own and the reviewer picks "Vervalt".
+ * A QuickScan in a melding lapses by default: QuickScans reach the database
+ * through FunderConsult, and the one inside a melding duplicates that route
+ * (Don, 2026-10-08: "Ja, handig"). The reviewer can still make it a rapportage.
  */
-export const QUICKSCAN_LAPSES_BY_DEFAULT = false
+export const QUICKSCAN_LAPSES_BY_DEFAULT = true
 
 /** The upload adds a 16-hex hash in front of some names; it is not part of the name. */
 export const bareName = (name: string | null | undefined) => (name ?? '').replace(/^[0-9a-f]{16}-/, '')
