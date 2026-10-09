@@ -12,6 +12,7 @@ import Panel from '@/components/Common/Panel.vue'
 import ProgressBar from '@/components/Common/ProgressBar.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
 import WorkPackages from '@/components/Home/WorkPackages.vue'
+import WorkPackageAdmin from '@/components/Home/WorkPackageAdmin.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
@@ -49,7 +50,7 @@ import { useSessionStore } from '@/stores/session'
  * would be worse than no number at all.
  */
 const router = useRouter()
-const { currentUser } = storeToRefs(useSessionStore())
+const { currentUser, isAdministrator } = storeToRefs(useSessionStore())
 
 const loading = ref(true)
 const rowsByLane = ref<Record<string, IInquiry[]>>({})
@@ -254,6 +255,9 @@ function chipActive(types: number[] | null): boolean {
            2026-09-22). First, because it is where the day's work is now;
            the lanes below are the older typed-in route. -->
       <WorkPackages />
+
+      <!-- The admin hands the packages out per colleague (2026-10-09). -->
+      <WorkPackageAdmin v-if="isAdministrator" />
 
       <div class="grid grid-cols-4 gap-3">
         <KpiTile

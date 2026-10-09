@@ -12,6 +12,12 @@
  * packages out by telling people which ones to tick; the choice is kept in
  * that person's browser (see `loadChosen`).
  *
+ * Since 2026-10-09 the admin can also compose a colleague's packages in the
+ * Studio (the admin asked: the same set on every computer, without telling
+ * people what to tick). That set lives in the database and wins over the
+ * browser's (see `effectivePackageIds`); who holds what stays out of this
+ * repository either way.
+ *
  * Two things a filter does not do, stated so nobody assumes otherwise:
  *
  *  - It does not claim anything. A dossier has no owner, so two people whose
@@ -20,6 +26,7 @@
  *    Vandaag; it is still in Beoordelen.
  */
 
+import api from '@/services/fundermaps'
 import type { IQueueListOpts } from '@/services/fundermaps/endpoints/dataops'
 
 export interface WorkPackage {
@@ -143,11 +150,46 @@ export function loadChosen(): string[] {
     if (!raw) return []
     const ids = JSON.parse(raw)
     if (!Array.isArray(ids)) return []
-    const known = new Set(WORK_PACKAGES.map((p) => p.id))
-    return ids.filter((id): id is string => typeof id === 'string' && known.has(id))
+    return knownIds(ids)
   } catch {
     return []
   }
+}
+
+/** Only ids this Studio still defines; anything else (renamed, removed, garbage) is dropped. */
+function knownIds(ids: unknown[]): string[] {
+  const known = new Set(WORK_PACKAGES.map((p) => p.id))
+  return ids.filter((id): id is string => typeof id === 'string' && known.has(id))
+}
+
+/**
+ * The packages the admin composed for this user, or `[]` when there are none.
+ *
+ * `[]` also covers every failure, deliberately: an API that predates the
+ * assignment answers 404, and a slow or broken one must not take Vandaag down
+ * with it. Either way the user is back on the browser's own choice, which is
+ * exactly how Vandaag worked before.
+ */
+export async function loadAssigned(): Promise<string[]> {
+  try {
+    const { packageIds } = await api.dataops.myWorkPackages()
+    return Array.isArray(packageIds) ? knownIds(packageIds) : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * The packages that are this user's work: the admin's set when there is one,
+ * else what was ticked in this browser. Vandaag and the sidebar count both go
+ * through here, so the number next to "Vandaag" is the sum of what the page
+ * shows.
+ */
+export async function effectivePackageIds(): Promise<{ ids: string[]; assigned: boolean }> {
+  const assigned = await loadAssigned()
+  return assigned.length
+    ? { ids: assigned, assigned: true }
+    : { ids: loadChosen(), assigned: false }
 }
 
 export function saveChosen(ids: string[]): void {
