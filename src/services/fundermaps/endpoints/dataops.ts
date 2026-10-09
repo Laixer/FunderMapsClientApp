@@ -136,8 +136,22 @@ export async function commit(
     documentDate?: string
     contractor?: number
     note?: string
-    /** One rapportage per group of documents (API #223); without it the API makes one rapportage. */
-    rapportages?: { artifactIds: number[]; type?: string; documentDate?: string; contractor?: number }[]
+    /**
+     * One rapportage per group of documents (API #223); without it the API makes one rapportage.
+     * `addressIds`: the panden that rapportage is about (BAG nummeraanduidingen, Don 2026-10-09).
+     * `verdict` + `answer`: taken over or refused, with the text for the melder (Don 2026-10-09).
+     */
+    rapportages?: {
+      artifactIds: number[]
+      type?: string
+      documentDate?: string
+      contractor?: number
+      addressIds?: string[]
+      verdict?: 'accepted' | 'rejected'
+      answer?: string
+    }[]
+    /** The Reden for the melder; reaches the closing mail. */
+    closingNote?: string
   } = {},
 ) {
   return (await post({
@@ -145,7 +159,8 @@ export async function commit(
     body: { ...body } as unknown as Record<string, unknown>,
   })) as {
     ok: boolean
-    inquiryId: number
+    /** Null when every rapportage was refused: nothing was made, the dossier closed as rejected. */
+    inquiryId: number | null
     samples: number
     /** Samples written for a confirmed address without values: to be filled in by hand. */
     emptySamples?: number
@@ -157,6 +172,8 @@ export async function commit(
     audit?: boolean
     /** Every rapportage made, in group order (API #223); the top-level fields describe the first. */
     rapportages?: { inquiryId: number; samples: number; type: string; documentDate: string; documentName: string; artifactIds: number[] }[]
+    /** The numbers of the refused rapportages. */
+    rejected?: number[]
     /** On a nalezing: how many values were written. */
     fields?: number
     unresolved: string[]
