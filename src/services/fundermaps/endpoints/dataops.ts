@@ -136,8 +136,11 @@ export async function commit(
     documentDate?: string
     contractor?: number
     note?: string
-    /** One rapportage per group of documents (API #223); without it the API makes one rapportage. */
-    rapportages?: { artifactIds: number[]; type?: string; documentDate?: string; contractor?: number }[]
+    /**
+     * One rapportage per group of documents (API #223); without it the API makes one rapportage.
+     * `addressIds`: the panden that rapportage is about (BAG nummeraanduidingen, Don 2026-10-09).
+     */
+    rapportages?: { artifactIds: number[]; type?: string; documentDate?: string; contractor?: number; addressIds?: string[] }[]
   } = {},
 ) {
   return (await post({

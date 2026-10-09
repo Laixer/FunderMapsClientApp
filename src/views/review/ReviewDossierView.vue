@@ -833,6 +833,18 @@ const multiDoc = computed(() => !isAudit.value && commitDocs.value.length > 1)
 const groupChoice = ref<Record<number, GroupChoice>>({})
 const groupTouched = ref(false)
 const groupOverride = ref<Record<number, { type: string | null; date: string | null }>>({})
+/**
+ * The panden each inquiry is about (Don, 2026-10-09): an archive piece can
+ * cover several, a QuickScan in the same dossier one. Untouched, an inquiry is
+ * about every address of the dossier that was not put aside.
+ */
+const groupAddresses = ref<Record<number, string[]>>({})
+const addressesOfGroup = (n: number) =>
+  (groupAddresses.value[n] ?? moveTargets.value.map((a) => a.value)).filter((id) => moveTargets.value.some((a) => a.value === id))
+function toggleGroupAddress(n: number, addressId: string, on: boolean) {
+  const cur = addressesOfGroup(n).filter((id) => id !== addressId)
+  groupAddresses.value = { ...groupAddresses.value, [n]: on ? [...cur, addressId] : cur }
+}
 const takenFrom = (ids: number[], field: string) => {
   const f = taken.value.find((t) => t.field === field && ids.includes(t.artifactId))
   if (!f) return null
@@ -851,6 +863,7 @@ watch(
   () => {
     groupTouched.value = false
     groupOverride.value = {}
+    groupAddresses.value = {}
   },
 )
 function setGroup(docId: number, value: string) {
@@ -895,11 +908,15 @@ const commitGroups = computed(() =>
       dateHint: override.date ? undefined : date ? 'Overgenomen uit het document' : estimate ? `Niet overgenomen: wordt ${estimate} (geschat: bouwjaar)` : 'Verplicht: geen datum in het document gevonden',
       dateMissing: !date && !estimate,
       contractorLabel: row?.name ?? (rawContractor ? `${rawContractor} (niet in de lijst: wordt FunderMaps B.V.)` : 'FunderMaps B.V.'),
+      /** Null when the dossier has no resolved address to choose from: the API then uses the melder's pand. */
+      addressIds: moveTargets.value.length ? addressesOfGroup(g.n) : null,
     }
   }),
 )
 const groupsBlocked = computed(
-  () => multiDoc.value && (commitGroups.value.length === 0 || commitGroups.value.some((g) => g.dateMissing || g.unmergeable.length > 0)),
+  () =>
+    multiDoc.value &&
+    (commitGroups.value.length === 0 || commitGroups.value.some((g) => g.dateMissing || g.unmergeable.length > 0 || g.addressIds?.length === 0)),
 )
 /** Files in no inquiry: they stay with the melding, nothing read from them is taken over. */
 const looseDocs = computed(() => commitDocs.value.filter((d) => typeof groupChoice.value[d.id] !== 'number'))
@@ -940,6 +957,7 @@ async function commitDossier() {
               artifactIds: g.ids,
               type: g.override.type ?? undefined,
               documentDate: g.date ?? undefined,
+              addressIds: g.addressIds ?? undefined,
             })),
           }
         : {
@@ -1805,6 +1823,19 @@ async function reopen(f: IProposedField) {
               />
             </div>
             <p class="text-sm text-muted">Uitvoerder: {{ sec.set.contractorLabel }}</p>
+            <fieldset v-if="sec.set.addressIds" class="flex flex-col gap-1">
+              <legend class="text-sm text-muted">Adressen van deze inquiry</legend>
+              <label v-for="a in moveTargets" :key="a.value" class="flex items-center gap-2 text-sm text-body">
+                <input
+                  type="checkbox"
+                  :checked="sec.set.addressIds.includes(a.value)"
+                  :disabled="!!closed"
+                  @change="toggleGroupAddress(sec.set.n, a.value, ($event.target as HTMLInputElement).checked)"
+                />
+                {{ a.label }}
+              </label>
+              <p v-if="!sec.set.addressIds.length" class="text-sm text-red">Kies minstens één adres voor deze inquiry.</p>
+            </fieldset>
             <p v-if="sec.set.unmergeable.length" class="text-sm text-red">
               {{ sec.set.unmergeable.join(', ') }} kan niet in één PDF worden samengevoegd: zet het in een eigen inquiry.
             </p>
@@ -2480,7 +2511,7 @@ async function reopen(f: IProposedField) {
                   variant="primary"
                   :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length > 1 ? `Overnemen als ${commitGroups.length} inquiries` : 'Overnemen als inquiry') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
                   :disabled="committing || closing || blockingOpen.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
-                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlocked ? (!commitGroups.length ? 'Zet minstens één bestand in een inquiry' : commitGroups.some((g) => g.unmergeable.length) ? 'Een bestand kan niet in één PDF: zet het in een eigen inquiry' : 'Vul eerst bij elke inquiry de datum in') : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
+                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlocked ? (!commitGroups.length ? 'Zet minstens één bestand in een inquiry' : commitGroups.some((g) => g.unmergeable.length) ? 'Een bestand kan niet in één PDF: zet het in een eigen inquiry' : commitGroups.some((g) => g.addressIds?.length === 0) ? 'Kies bij elke inquiry minstens één adres' : 'Vul eerst bij elke inquiry de datum in') : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
                   @click="commitDossier"
                 />
                 <Button
