@@ -226,6 +226,15 @@ export async function assign(id: number, userId: string | null, note?: string) {
   })) as { ok: boolean; unchanged?: boolean }
 }
 
+/**
+ * The work packages the admin composed for you (Vandaag). `[]` = nobody did,
+ * and the packages you ticked in this browser apply. An API without the
+ * endpoint answers 404; callers treat that as `[]`.
+ */
+export async function myWorkPackages() {
+  return (await get({ endpoint: '/dataops/work-packages/me' })) as { packageIds: string[] }
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -333,6 +342,7 @@ export default {
   remark,
   question,
   assign,
+  myWorkPackages,
   addressVerdict,
   addressAdd,
   addressRelink,

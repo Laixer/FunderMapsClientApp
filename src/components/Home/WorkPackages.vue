@@ -12,23 +12,29 @@ import { emptyQuery, toRouteQuery } from '@/services/reviewExplorer'
 import {
   PACKAGE_PREVIEW,
   WORK_PACKAGES,
-  loadChosen,
+  effectivePackageIds,
   packagesFor,
   saveChosen,
   type WorkPackage,
 } from '@/services/workPackages'
+import { useStudioStore } from '@/stores/studio'
 import { formatRelative } from '@/utils/date'
 
 /**
  * Your part of the review queue, on the page Studio opens on.
  *
- * Each ticked package is one filtered slice, oldest first, with its exact
- * count; "alles bekijken" opens that same slice in Beoordelen. Nothing here is
- * assigned to you by the system — the packages are what you picked, and the
- * same dossier can sit in someone else's too. See services/workPackages.ts.
+ * Each package is one filtered slice, oldest first, with its exact count;
+ * "alles bekijken" opens that same slice in Beoordelen. The packages are the
+ * ones the admin composed for you or, when there are none, the ones you ticked
+ * in this browser. Either way the same dossier can sit in someone else's too.
+ * See services/workPackages.ts.
  */
 
+const studio = useStudioStore()
+
 const chosen = ref<string[]>([])
+/** The admin composed this set: shown as such, and not yours to change here. */
+const assigned = ref(false)
 const choosing = ref(false)
 const draft = ref<string[]>([])
 
@@ -65,11 +71,16 @@ async function load() {
   }
 }
 
-onBeforeMount(() => {
-  chosen.value = loadChosen()
+onBeforeMount(async () => {
+  // The admin's set first, so someone who has one never sees the chooser
+  // flash open. No set, or an API without the endpoint: the browser's own
+  // choice, exactly as before.
+  const effective = await effectivePackageIds()
+  chosen.value = effective.ids
+  assigned.value = effective.assigned
   // Nothing picked yet: open the chooser straight away rather than show an
   // empty section that says nothing.
-  if (!chosen.value.length) startChoosing()
+  if (!assigned.value && !chosen.value.length) startChoosing()
   load()
 })
 
@@ -87,6 +98,8 @@ function saveChoice() {
   saveChosen(chosen.value)
   choosing.value = false
   load()
+  // The sidebar number is the sum of these packages; keep it in step.
+  void studio.refreshCounts(null)
 }
 
 const total = (p: WorkPackage) => counts.value[p.id] ?? rows.value[p.id]?.length ?? 0
@@ -107,7 +120,7 @@ function queueLink(p: WorkPackage) {
     <div class="flex items-baseline gap-3">
       <h2 class="text-2xl font-display font-bold text-ink">Jouw werk</h2>
       <button
-        v-if="!choosing && chosen.length"
+        v-if="!choosing && !assigned && chosen.length"
         type="button"
         class="text-sm font-semibold text-blue hover:underline"
         @click="startChoosing"
@@ -115,6 +128,9 @@ function queueLink(p: WorkPackage) {
         Pakketten wijzigen
       </button>
     </div>
+    <p v-if="assigned" class="text-base text-muted">
+      Je werkpakketten zijn klaargezet door de beheerder.
+    </p>
 
     <!-- The chooser. Ticked once, remembered in this browser. -->
     <Panel v-if="choosing">
