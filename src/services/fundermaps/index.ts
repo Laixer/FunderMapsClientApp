@@ -10,6 +10,7 @@ import dataops from './endpoints/dataops'
 import geocoder from './endpoints/geocoder'
 import organization from './endpoints/organization'
 import pdok from './endpoints/pdok'
+import management from './endpoints/management'
 
 export default {
   auth,
@@ -24,4 +25,5 @@ export default {
   geocoder,
   organization,
   pdok,
+  management,
 }

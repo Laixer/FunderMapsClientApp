@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import WizardHeader from '@/components/Layout/WizardHeader.vue'
@@ -16,7 +17,9 @@ import type { IUser } from '@/services/fundermaps/interfaces/IUser'
 import { describeFailure } from '@/services/fundermaps/errors'
 import type { SelectOption } from '@/services/options'
 import { RECOVERY_DOCUMENT_TYPE_OPTIONS } from '@/services/recoveryEnums'
+import { reviewerHintFor, reviewerOptionsFor } from '@/services/reviewerOptions'
 import { toastError, toastSuccess } from '@/services/toast'
+import { useSessionStore } from '@/stores/session'
 import { formatTime } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
 import { recoverySteps } from '@/services/wizard'
@@ -31,6 +34,7 @@ import { recoverySteps } from '@/services/wizard'
  */
 const route = useRoute()
 const router = useRouter()
+const { currentUser } = storeToRefs(useSessionStore())
 
 const recoveryId = computed(() => {
   const id = route.params.id
@@ -48,6 +52,9 @@ const showErrors = ref(false)
 const contractors: Ref<IContractor[]> = ref([])
 const reviewers: Ref<IUser[]> = ref([])
 const dataOwnerName = ref('')
+/** Who made the herstel — the one colleague who can never be its beoordelaar. On a new one: you. */
+const storedCreatorId = ref<string | null>(null)
+const creatorId = computed(() => (isNew.value ? currentUser.value?.id ?? null : storedCreatorId.value))
 
 const form = ref({
   documentName: '',
@@ -65,12 +72,8 @@ const contractorOptions = computed<SelectOption[]>(() =>
   contractors.value.map((c) => ({ value: c.id, label: c.name })),
 )
 
-const reviewerOptions = computed<SelectOption[]>(() =>
-  reviewers.value.map((r) => ({
-    value: r.id,
-    label: [r.given_name, r.family_name].filter(Boolean).join(' ').trim() || r.email,
-  })),
-)
+const reviewerOptions = computed(() => reviewerOptionsFor(reviewers.value, creatorId.value))
+const reviewerHint = computed(() => reviewerHintFor(reviewers.value, creatorId.value))
 
 const errors = computed<Record<string, string | null>>(() => ({
   documentName: !form.value.documentName.trim()
@@ -141,6 +144,7 @@ async function persist(): Promise<number | null> {
   try {
     if (isNew.value) {
       const created = await api.recovery.create(body())
+      storedCreatorId.value = created.attribution.creator
       savedAt.value = new Date().toISOString()
       await router.replace({ name: 'recovery-edit-1', params: { id: created.id } })
       return created.id
@@ -195,6 +199,7 @@ onBeforeMount(async () => {
         note: recovery.note ?? '',
       }
       dataOwnerName.value = recovery.attribution.dataOwnerName ?? ''
+      storedCreatorId.value = recovery.attribution.creator
       if (recovery.documentFile) {
         attached.value = { name: 'Gekoppeld document', sizeBytes: null, uploaded: true }
       }
@@ -290,7 +295,7 @@ onBeforeMount(async () => {
               required
               :options="reviewerOptions"
               empty-label="Kies een beoordelaar"
-              hint="krijgt het dossier na aanbieden"
+              :hint="reviewerHint"
               :error="errorFor('reviewer')"
             />
           </div>
