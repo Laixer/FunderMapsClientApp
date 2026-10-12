@@ -379,7 +379,7 @@ function chipActive(types: number[] | null): boolean {
         </Panel>
 
         <aside class="flex flex-col gap-4">
-          <Panel caption="JOUW WERK">
+          <Panel caption="JOUW RAPPORTAGES">
             <div v-if="lanesTotal" class="flex flex-col gap-2.5">
               <div v-for="row in distribution" :key="row.label" class="flex flex-col gap-1.5">
                 <p class="text-base flex text-muted">
