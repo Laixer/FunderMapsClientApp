@@ -437,7 +437,7 @@ watch(
             class="text-xs font-mono"
             :class="address.filled ? 'text-green-ink' : 'text-red'"
           >
-            {{ address.filled }} velden
+            {{ address.filled }} {{ address.filled === 1 ? 'veld' : 'velden' }}
           </span>
           <ProgressBar
             :value="address.ratio"

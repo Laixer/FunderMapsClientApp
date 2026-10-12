@@ -52,11 +52,18 @@ export function keyLabel(spec: string): string {
   return spec.replace('⌘', MOD)
 }
 
-/** The three worth pinning to the sidebar. The rest live behind `?`. */
+/**
+ * The three worth pinning to the sidebar. The rest live behind `?`.
+ *
+ * Only keys that work on every screen, for every role: the box used to offer
+ * "Volgend dossier J" (nothing is bound to a capital J, and `j` moves through
+ * the rows of a list, not to a next dossier), "Goedkeuren ⇧A" (also to an
+ * opsteller, who cannot approve) and "Opslaan" (only on the entry screens).
+ */
 export const SIDEBAR_HINTS: readonly Shortcut[] = [
-  { keys: 'J', label: 'Volgend dossier' },
-  { keys: '⇧A', label: 'Goedkeuren' },
-  { keys: keyLabel('⌘S'), label: 'Opslaan' },
+  { keys: keyLabel('⌘K'), label: 'Zoeken of springen' },
+  { keys: 'j / k', label: 'Volgende / vorige rij' },
+  { keys: '?', label: 'Alle sneltoetsen' },
 ]
 
 export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
@@ -93,6 +100,11 @@ export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
     shortcuts: [
       { keys: keyLabel('⌘S'), label: 'Nu opslaan' },
       { keys: keyLabel('⌘↵'), label: 'Volgende stap' },
+    ],
+  },
+  {
+    title: 'Algemeen',
+    shortcuts: [
       { keys: '?', label: 'Dit overzicht' },
       { keys: 'Esc', label: 'Sluiten of focus loslaten' },
     ],

@@ -20,7 +20,7 @@ import { NAV_ITEMS } from '@/services/navigation'
 import { recoveryDocumentTypeLabel } from '@/services/recoveryEnums'
 import { outcomeLabel } from '@/services/reviewExplorer'
 
-export type PaletteKind = 'GA NAAR' | 'DOSSIER' | 'HERSTEL' | 'ACTIE'
+export type PaletteKind = 'GA NAAR' | 'DOSSIER' | 'RAPPORTAGE' | 'HERSTEL' | 'ACTIE'
 
 export interface PaletteItem {
   id: string
@@ -75,7 +75,8 @@ const MELDCODE = /^FM\d{4}-\d{6}$/i
  * error instead of results is a search box people stop using.
  */
 export async function recordItems(query: string): Promise<PaletteItem[]> {
-  const q = query.trim()
+  // Every screen prints a number as "#160810"; pasted like that it found nothing.
+  const q = query.trim().replace(/^#/, '')
   if (q.length < 2) return []
 
   const [inquiries, recoveries, meldingen] = await Promise.all([
@@ -99,7 +100,7 @@ export async function recordItems(query: string): Promise<PaletteItem[]> {
     })),
     ...inquiries.map((row) => ({
       id: `inquiry:${row.id}`,
-      kind: 'DOSSIER' as const,
+      kind: 'RAPPORTAGE' as const,
       label: `#${row.id} · ${row.documentName}`,
       hint: inquiryTypeLabel(row.type),
       to: { name: 'inquiry-view', params: { id: row.id } } satisfies RouteLocationRaw,

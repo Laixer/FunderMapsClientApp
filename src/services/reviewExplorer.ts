@@ -119,6 +119,15 @@ const STATES = new Set(STATE_OPTIONS.map((o) => o.value))
 const KINDS = new Set(KIND_OPTIONS.map((o) => o.value))
 const OUTCOMES = new Set(OUTCOME_OPTIONS.map((o) => o.value))
 
+/**
+ * A label inside a sentence or a chip: its first letter in lower case, but a
+ * name keeps its capitals. Lower-casing the whole label gave "via api of
+ * studio" and "soort quickscan (addendum)".
+ */
+const NAMES = /^(API|Studio|QuickScan|FunderMaps)(?![a-z])/
+export const inSentence = (label: string) =>
+  NAMES.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1)
+
 export const channelLabel = (value: string) =>
   CHANNEL_OPTIONS.find((o) => o.value === value)?.label ?? value
 export const kindLabel = (value: string) => INQUIRY_TYPE_CODE_LABELS[value] ?? value
@@ -255,7 +264,7 @@ export interface Chip {
 export function chipsFor(query: ReviewQuery): Chip[] {
   const chips: Chip[] = []
   const labels = <T extends string>(values: T[], f: (v: T) => string) =>
-    values.map((v) => f(v).toLowerCase()).join(' of ')
+    values.map((v) => inSentence(f(v))).join(' of ')
 
   if (query.state.length) {
     chips.push({
@@ -411,6 +420,8 @@ export function saveView(label: string, query: ReviewQuery): SavedView {
       building: query.building,
       kind: query.kind,
       outcome: query.outcome,
+      // Left out before: a view saved from "Aan mij toegewezen" reopened as the whole queue.
+      mine: query.mine,
       sort: query.sort,
       order: query.order,
     },

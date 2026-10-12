@@ -28,7 +28,12 @@ function display(field: SampleFieldDef): string {
     case 'enum':
       return field.options?.find((o) => o.value === value)?.label ?? String(value)
     case 'date':
+      // A construction year is a year: stored as 1 January, it read "1 jan 1920".
+      if (field.key === 'builtYear') return String(new Date(value as string).getFullYear())
       return formatDate(value as string)
+    case 'number':
+      // Dutch decimals, as everywhere a person reads a number: -1,88 and not -1.88.
+      return typeof value === 'number' ? value.toLocaleString('nl-NL', { maximumFractionDigits: 3 }) : String(value)
     default:
       return String(value)
   }

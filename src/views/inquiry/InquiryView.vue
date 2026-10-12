@@ -169,9 +169,10 @@ const blocker = computed<string | null>(() => {
   const { total, empty } = completeness.value
   if (total === 0) return 'Dit dossier heeft nog geen adressen. Voeg er minstens één toe via Invoer.'
   if (empty > 0) {
+    if (total === 1) return 'Het adres is nog helemaal leeg. Vul het in; daarna kun je het dossier aanbieden.'
     return empty === 1
-      ? '1 van de adressen is nog helemaal leeg. Zodra dat gevuld is kan het dossier ter controle.'
-      : `${empty} van de ${total} adressen zijn nog helemaal leeg. Zodra die gevuld zijn kan het dossier ter controle.`
+      ? `1 van de ${total} adressen is nog helemaal leeg. Vul het in; daarna kun je het dossier aanbieden.`
+      : `${empty} van de ${total} adressen zijn nog helemaal leeg. Vul ze in; daarna kun je het dossier aanbieden.`
   }
   return null
 })
@@ -324,7 +325,9 @@ function handleSubmitForReview() {
     {
       title: 'Aanbieden ter review?',
       body: `De beoordelaar krijgt bericht en het rapport wordt vergrendeld tot de controle klaar is.${
-        completeness.value.empty ? ` Let op: ${completeness.value.empty} adres(sen) zijn nog leeg.` : ''
+        completeness.value.empty
+          ? ` Let op: ${completeness.value.empty === 1 ? '1 adres is' : `${completeness.value.empty} adressen zijn`} nog leeg.`
+          : ''
       }`,
       confirmLabel: 'Aanbieden',
     },
@@ -337,7 +340,7 @@ function handleApprove() {
   return run(
     {
       title: 'Rapport goedkeuren?',
-      body: `${samples.value.length} adres(sen) worden vastgesteld en werken door in kaart en producten. Alleen een beheerder kan het rapport daarna nog heropenen.`,
+      body: `${samples.value.length === 1 ? '1 adres wordt vastgesteld en werkt' : `${samples.value.length} adressen worden vastgesteld en werken`} door in kaart en producten. Alleen een beheerder kan het rapport daarna nog heropenen.`,
       confirmLabel: 'Goedkeuren',
     },
     () => api.inquiry.approve(inquiryId.value),
@@ -361,7 +364,7 @@ function handleDelete() {
   return run(
     {
       title: 'Rapport verwijderen?',
-      body: `${samples.value.length} bijbehorend(e) adres(sen) worden ook verwijderd. Dit kan niet ongedaan worden gemaakt.`,
+      body: `${samples.value.length === 1 ? 'Het bijbehorende adres wordt' : `De ${samples.value.length} bijbehorende adressen worden`} ook verwijderd. Dit kan niet ongedaan worden gemaakt.`,
       confirmLabel: 'Verwijderen',
       danger: true,
     },
@@ -563,7 +566,7 @@ useActionShortcuts(() => {
                           class="text-sm shrink-0 font-mono"
                           :class="address.filled ? 'text-green-ink' : 'text-red'"
                         >
-                          {{ address.filled }} velden
+                          {{ address.filled }} {{ address.filled === 1 ? 'veld' : 'velden' }}
                         </span>
                       </span>
                       <ProgressBar

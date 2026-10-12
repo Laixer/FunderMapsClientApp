@@ -10,6 +10,7 @@ import {
   type PaletteAction,
   type PaletteItem,
 } from '@/services/palette'
+import { trapFocus } from '@/services/focusTrap'
 import { acquireModalLock } from '@/services/shortcuts'
 import { useStudioStore } from '@/stores/studio'
 
@@ -28,15 +29,9 @@ import { useStudioStore } from '@/stores/studio'
 const router = useRouter()
 const studio = useStudioStore()
 
-const ACTIONS: PaletteAction[] = [
-  {
-    id: 'new-inquiry',
-    label: 'Nieuwe rapportage aanmaken',
-    hint: 'g n',
-    to: { name: 'inquiry-new' },
-  },
-  { id: 'new-recovery', label: 'Nieuw herstel aanmaken', hint: 'g e', to: { name: 'recovery-new' } },
-]
+// "Nieuwe rapportage" and "Nieuw herstel" are already in the navigation list
+// with the same key; listed here as well they showed up twice under one query.
+const ACTIONS: PaletteAction[] = []
 
 const query = ref('')
 const debouncedQuery = refDebounced(query, 180)
@@ -44,6 +39,7 @@ const records = ref<PaletteItem[]>([])
 const searching = ref(false)
 const cursor = ref(0)
 const input = ref<HTMLInputElement | null>(null)
+const panel = ref<HTMLElement | null>(null)
 
 const items = computed<PaletteItem[]>(() => [
   ...navigationItems(query.value),
@@ -57,6 +53,14 @@ const items = computed<PaletteItem[]>(() => [
  * the wrong list under the cursor.
  */
 let searchToken = 0
+
+// The moment the text changes, the records under it belong to another question.
+// Left in place for the 180 ms debounce plus the request, Enter opened the
+// previous query's first hit.
+watch(query, (q) => {
+  records.value = []
+  searching.value = q.trim().length >= 2
+})
 
 watch(debouncedQuery, async (q) => {
   const token = ++searchToken
@@ -79,6 +83,7 @@ watch(items, () => {
 })
 
 let releaseModalLock: (() => void) | null = null
+let releaseFocus: (() => void) | null = null
 
 watch(
   () => studio.paletteOpen,
@@ -91,10 +96,15 @@ watch(
       // the table behind it. Released the moment it closes.
       releaseModalLock = acquireModalLock()
       await nextTick()
-      input.value?.focus()
+      // Focus goes to the box (data-autofocus), Tab stays in the sheet, and on
+      // closing the focus returns to where it was.
+      if (panel.value) releaseFocus = trapFocus(panel.value)
+      else input.value?.focus()
     } else {
       releaseModalLock?.()
       releaseModalLock = null
+      releaseFocus?.()
+      releaseFocus = null
     }
   },
 )
@@ -122,6 +132,7 @@ function choose(item: PaletteItem | undefined) {
     @click.self="studio.closePalette()"
   >
     <div
+      ref="panel"
       class="studio-fade h-fit w-[560px] overflow-hidden rounded-3xl border border-line bg-surface shadow-overlay"
       role="dialog"
       aria-modal="true"
@@ -134,7 +145,13 @@ function choose(item: PaletteItem | undefined) {
           v-model="query"
           type="text"
           class="studio-control text-[14px]"
-          placeholder="Dossier, adres, pand-ID of actie…"
+          placeholder="Rapportage, herstel, pand-ID of actie…"
+          aria-label="Zoeken of springen"
+          role="combobox"
+          aria-controls="palette-list"
+          :aria-expanded="items.length > 0"
+          :aria-activedescendant="items[cursor] ? `palette-option-${cursor}` : undefined"
+          data-autofocus
           autocomplete="off"
           spellcheck="false"
           @keydown.down.prevent="move(1)"
@@ -146,11 +163,14 @@ function choose(item: PaletteItem | undefined) {
         </kbd>
       </div>
 
-      <div class="max-h-[52vh] overflow-y-auto p-2">
+      <div id="palette-list" role="listbox" aria-label="Resultaten" class="max-h-[52vh] overflow-y-auto p-2">
         <button
           v-for="(item, i) in items"
+          :id="`palette-option-${i}`"
           :key="item.id"
           type="button"
+          role="option"
+          :aria-selected="i === cursor"
           class="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left"
           :class="i === cursor ? 'bg-canvas' : 'hover:bg-canvas'"
           @click="choose(item)"
@@ -169,6 +189,10 @@ function choose(item: PaletteItem | undefined) {
         </button>
 
         <p v-if="searching" class="text-md px-2.5 py-2 text-muted">Zoeken…</p>
+        <!-- One letter searches the screens and actions only; records need two. -->
+        <p v-else-if="!items.length && query.trim().length === 1" class="text-md px-2.5 py-2 text-muted">
+          Typ minstens 2 tekens om rapportages en herstel te zoeken.
+        </p>
         <p v-else-if="!items.length" class="text-md px-2.5 py-2 text-muted">
           Niets gevonden voor “{{ query }}”.
         </p>

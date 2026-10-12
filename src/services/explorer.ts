@@ -241,7 +241,9 @@ export function toListOpts(query: ExplorerQuery, userId: string | null): IInquir
     limit: PAGE_SIZE,
     offset: (query.page - 1) * PAGE_SIZE,
   }
-  if (query.q.trim()) opts.q = query.q.trim()
+  // "#160810", the way every screen prints a number, is that number.
+  const q = query.q.trim().replace(/^#/, '')
+  if (q) opts.q = q
   if (query.status.length) opts.status = [...query.status]
   if (query.type.length) opts.type = [...query.type]
   if (query.mine === 'creator' && userId) opts.creator = userId
