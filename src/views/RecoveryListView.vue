@@ -44,7 +44,7 @@ const hasMore = computed(() => rows.value.length === PAGE_SIZE)
 async function load() {
   try {
     loading.value = true
-    const q = search.value.trim()
+    const q = search.value.trim().replace(/^#/, '')
     rows.value = await api.recovery.list({
       ...(q ? { q } : {}),
       limit: PAGE_SIZE,
@@ -68,11 +68,12 @@ watch(page, load)
 
 const COLUMNS: DataColumn[] = [
   { field: 'id', title: 'ID', width: '84px' },
+  // Status 140px for its longest pill; the 12px come off Documenttype, whose longest label fits in 148px.
   { field: 'documentName', title: 'Naam', width: 'minmax(260px,1fr)' },
-  { field: 'type', title: 'Documenttype', width: '160px' },
+  { field: 'type', title: 'Documenttype', width: '148px' },
   { field: 'documentDate', title: 'Datum', width: '92px' },
   { field: 'reviewer', title: 'Beoordelaar', width: '150px' },
-  { field: 'status', title: 'Status', width: '128px' },
+  { field: 'status', title: 'Status', width: '140px' },
 ]
 
 const selected = ref<IRecovery | null>(null)
@@ -107,7 +108,7 @@ watch(activeId, (id) => {
     <h1 class="sr-only">Herstel</h1>
     <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
       <div
-        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5"
+        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
       >
         <span aria-hidden="true" class="text-md text-faint">⌕</span>
         <input
@@ -121,7 +122,7 @@ watch(activeId, (id) => {
 
       <div class="ml-auto flex items-center gap-2">
         <span class="text-sm font-mono text-faint">
-          {{ rows.length }}{{ hasMore ? '+' : '' }} rijen
+          {{ rows.length }}{{ hasMore ? '+' : '' }} {{ rows.length === 1 && !hasMore ? 'rij' : 'rijen' }}
         </span>
         <Button
           variant="primary"
@@ -149,7 +150,7 @@ watch(activeId, (id) => {
             <span class="text-sm font-mono text-faint">#{{ row.id }}</span>
           </template>
           <template #documentName="{ row }">
-            <span class="text-lg font-semibold text-body">{{ row.documentName }}</span>
+            <span class="text-lg font-semibold text-body" :title="row.documentName">{{ row.documentName }}</span>
           </template>
           <template #type="{ row }">
             <span class="text-base text-muted">{{ recoveryDocumentTypeLabel(row.type) }}</span>
@@ -158,7 +159,7 @@ watch(activeId, (id) => {
             <span class="text-sm font-mono text-muted">{{ formatDateShort(row.documentDate) }}</span>
           </template>
           <template #reviewer="{ row }">
-            <span class="text-base text-muted">{{ row.attribution?.reviewerName ?? '—' }}</span>
+            <span class="text-base text-muted" :title="row.attribution?.reviewerName ?? undefined">{{ row.attribution?.reviewerName ?? '—' }}</span>
           </template>
           <template #status="{ row }">
             <StatusBadge :status="row.state?.auditStatus" />
@@ -201,7 +202,7 @@ watch(activeId, (id) => {
 
           <div>
             <h3 class="studio-label mb-1.5">VELDEN</h3>
-            <KeyValueList :items="inspectorFields" ratio="46%" />
+            <KeyValueList :items="inspectorFields" ratio="38%" />
           </div>
         </div>
 

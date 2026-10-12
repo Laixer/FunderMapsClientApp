@@ -113,7 +113,9 @@ async function submit() {
     body: [
       'De beoordelaar krijgt bericht en het dossier wordt vergrendeld tot de controle klaar is.',
       ...(unknownType.value.length
-        ? [`Let op: ${unknownType.value.length} pand(en) hebben nog hersteltype "Onbekend".`]
+        ? [
+            `Let op: ${unknownType.value.length === 1 ? '1 pand heeft' : `${unknownType.value.length} panden hebben`} nog hersteltype “Onbekend”.`,
+          ]
         : []),
     ].join('\n\n'),
     confirmLabel: 'Aanbieden',
@@ -189,7 +191,7 @@ useActionShortcuts((): Record<string, () => void> =>
         </Callout>
 
         <Callout v-else tone="green" title="Klaar om aan te bieden">
-          Alle {{ samples.length }} panden hebben een hersteltype.
+          {{ samples.length === 1 ? 'Het pand heeft' : `Alle ${samples.length} panden hebben` }} een hersteltype.
         </Callout>
 
         <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-aside)] items-start gap-4">
@@ -217,7 +219,7 @@ useActionShortcuts((): Record<string, () => void> =>
                 <p class="text-sm font-mono text-faint">
                   {{ recoveryStatusLabel(sample.status) }} · gevels: {{ facades(sample) }}
                   <template v-if="sample.recoveryDate">
-                    · uitgevoerd {{ formatDateShort(sample.recoveryDate) }}
+                    · uitvoering {{ formatDateShort(sample.recoveryDate) }}
                   </template>
                 </p>
                 <p v-if="sample.note" class="text-md text-muted">{{ sample.note }}</p>

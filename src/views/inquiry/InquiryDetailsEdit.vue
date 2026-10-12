@@ -16,7 +16,7 @@ import api from '@/services/fundermaps'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { IUser } from '@/services/fundermaps/interfaces/IUser'
 import { describeFailure } from '@/services/fundermaps/errors'
-import { INQUIRY_TYPE_LABELS } from '@/services/inquiryEnums'
+import { INQUIRY_TYPE_OPTIONS } from '@/services/inquiryEnums'
 import type { SelectOption } from '@/services/options'
 import { reviewerHintFor, reviewerOptionsFor } from '@/services/reviewerOptions'
 import { toastError, toastSuccess } from '@/services/toast'
@@ -81,10 +81,7 @@ const form = ref({
 /** What the dropzone shows. Name and size are client-side; the API returns only a storage name. */
 const attached = ref<AttachedFile | null>(null)
 
-const typeOptions: SelectOption[] = Object.entries(INQUIRY_TYPE_LABELS).map(([value, label]) => ({
-  value: Number(value),
-  label,
-}))
+const typeOptions: SelectOption[] = INQUIRY_TYPE_OPTIONS.map((option) => ({ ...option }))
 
 const contractorOptions = computed<SelectOption[]>(() =>
   contractors.value.map((c) => ({ value: c.id, label: c.name })),
@@ -274,7 +271,7 @@ onBeforeMount(async () => {
           hier in.
         </p>
 
-        <Panel caption="RAPPORT" meta="4 verplichte velden">
+        <Panel caption="RAPPORT" meta="5 verplichte velden">
           <div class="grid grid-cols-2 gap-x-4 gap-y-3">
             <Field
               v-model="form.documentName"
@@ -299,6 +296,7 @@ onBeforeMount(async () => {
               label="Documentdatum"
               kind="date"
               required
+              warn-future
               :error="errorFor('documentDate')"
             />
             <Combobox

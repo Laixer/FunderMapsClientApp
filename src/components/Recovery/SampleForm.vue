@@ -155,7 +155,6 @@ const saveState = computed(() => {
           kind="select"
           required
           :options="RECOVERY_TYPE_OPTIONS"
-          empty-label="—"
           @update:model-value="(v: unknown) => set('type', (v ?? 5) as number)"
         />
         <Field

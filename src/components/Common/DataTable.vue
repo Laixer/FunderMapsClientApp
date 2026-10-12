@@ -115,7 +115,7 @@ function rowClass(row: T): string {
           :key="column.field"
           role="columnheader"
           :type="column.sortable ? 'button' : undefined"
-          class="flex items-center gap-1 truncate"
+          class="flex items-center gap-1 truncate pr-3 last:pr-0"
           :class="[
             column.align === 'right' ? 'justify-end' : 'justify-start',
             column.sortable && 'hover:text-subtle',

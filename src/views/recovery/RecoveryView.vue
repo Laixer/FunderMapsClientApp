@@ -73,11 +73,15 @@ const showRejectModal = ref(false)
 
 const status = computed(() => recovery.value?.state?.auditStatus ?? null)
 
+// The states the API accepts a write in (`requireWritable`: todo, pending,
+// rejected), the same three as on a rapportage. "Te controleren" used to count
+// as editable here, so a herstel that was handed over still offered "Bewerken"
+// and "Naar invoer", although the hand-over promises it is locked.
 const isEditable = computed(
   () =>
-    status.value !== null &&
-    status.value !== AUDIT_STATUS.DONE &&
-    status.value !== AUDIT_STATUS.DISCARDED,
+    status.value === AUDIT_STATUS.TODO ||
+    status.value === AUDIT_STATUS.PENDING ||
+    status.value === AUDIT_STATUS.REJECTED,
 )
 const canSubmitForReview = computed(
   () =>
@@ -149,12 +153,12 @@ async function load() {
 onBeforeMount(load)
 watch(recoveryId, load)
 
-const step = computed(() => nextStep(status.value))
+const step = computed(() => nextStep(status.value, 'panden'))
 
 const blocker = computed<string | null>(() => {
   if (!canSubmitForReview.value) return null
   const { total, unknownType } = completeness.value
-  if (total === 0) return 'Dit dossier heeft nog geen panden. Voeg er minstens één toe in stap 2.'
+  if (total === 0) return 'Dit dossier heeft nog geen panden. Voeg er minstens één toe via Invoer.'
   if (unknownType > 0) {
     return unknownType === 1
       ? '1 pand heeft nog hersteltype “Onbekend”.'
@@ -192,7 +196,7 @@ const details = computed<KeyValueItem[]>(() => {
     { label: 'Aangemaakt', value: formatDateShort(row.record.createDate), mono: true },
     {
       label: 'Uitgevoerd',
-      value: `${completeness.value.executed} van ${completeness.value.total} panden`,
+      value: `${completeness.value.executed} van ${completeness.value.total} ${completeness.value.total === 1 ? 'pand' : 'panden'}`,
     },
   ]
   if (row.note) items.push({ label: 'Notitie', value: row.note })
@@ -281,7 +285,7 @@ function handleApprove() {
   return run(
     {
       title: 'Herstel goedkeuren?',
-      body: `${samples.value.length} pand(en) worden vastgesteld. Alleen een beheerder kan het dossier daarna nog heropenen.`,
+      body: `${samples.value.length === 1 ? '1 pand wordt' : `${samples.value.length} panden worden`} vastgesteld. Alleen een beheerder kan het dossier daarna nog heropenen.`,
       confirmLabel: 'Goedkeuren',
     },
     () => api.recovery.approve(recoveryId.value),
@@ -305,7 +309,7 @@ function handleDelete() {
   return run(
     {
       title: 'Herstel verwijderen?',
-      body: `${samples.value.length} bijbehorend(e) pand(en) worden ook verwijderd. Dit kan niet ongedaan worden gemaakt.`,
+      body: `${samples.value.length === 1 ? 'Het bijbehorende pand wordt' : `De ${samples.value.length} bijbehorende panden worden`} ook verwijderd. Dit kan niet ongedaan worden gemaakt.`,
       confirmLabel: 'Verwijderen',
       danger: true,
     },

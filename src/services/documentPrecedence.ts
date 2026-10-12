@@ -23,7 +23,7 @@
 import type { IReviewArtifact, IProposedField } from '@/services/fundermaps/interfaces/IDataops'
 
 /** Values that describe the document itself, one per document by nature: never a conflict. */
-const DOCUMENT_FIELDS = new Set(['document_date', 'inquiry_type', 'contractor'])
+export const DOCUMENT_FIELDS = new Set(['document_date', 'inquiry_type', 'contractor'])
 
 /** What the foundation is: Don's first order. Unlisted types rank last, as in the model. */
 const TYPE_ORDER = [

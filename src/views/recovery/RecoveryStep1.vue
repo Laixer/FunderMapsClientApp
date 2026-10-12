@@ -173,7 +173,9 @@ async function next() {
 const draftStatus = computed(() => {
   if (saving.value) return 'bezig met opslaan…'
   if (savedAt.value) return `concept · opgeslagen ${formatTime(savedAt.value)}`
-  if (!isNew.value) return `#${recoveryId.value} · wijzigingen nog niet opgeslagen`
+  // Nothing here knows whether the form differs from what was loaded, so it does
+  // not claim so: it used to say "wijzigingen nog niet opgeslagen" on arrival.
+  if (!isNew.value) return `#${recoveryId.value}`
   return 'concept · nog niet opgeslagen'
 })
 
@@ -246,7 +248,7 @@ onBeforeMount(async () => {
           concept.
         </p>
 
-        <Panel caption="DOCUMENT" meta="4 verplichte velden">
+        <Panel caption="DOCUMENT" meta="5 verplichte velden">
           <div class="grid grid-cols-2 gap-x-4 gap-y-3">
             <Field
               v-model="form.documentName"
@@ -270,6 +272,7 @@ onBeforeMount(async () => {
               label="Documentdatum"
               kind="date"
               required
+              warn-future
               :error="errorFor('documentDate')"
             />
             <Field

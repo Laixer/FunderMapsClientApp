@@ -145,7 +145,7 @@ const subtitle = computed(() => {
     archiveTotal.value == null
       ? ''
       : ` · ${archiveTotal.value.toLocaleString('nl-NL')} dossiers in het archief`
-  if (werkbank.value === 0) return `Niks op je bord. Mooi zo.${archive}`
+  if (werkbank.value === 0) return `Niets op je bord. Mooi zo.${archive}`
   const dossiers = werkbank.value === 1 ? 'dossier wacht' : 'dossiers wachten'
   return `${werkbank.value.toLocaleString('nl-NL')} ${dossiers} op jou${archive}`
 })
@@ -322,6 +322,7 @@ function chipActive(types: number[] | null): boolean {
                   ? 'border-line bg-canvas text-strong'
                   : 'border-line bg-surface text-subtle hover:border-line-hover'
               "
+              :aria-pressed="chipActive(chip.types)"
               @click="typeFilter = chip.types"
             >
               {{ chip.label }}
@@ -333,7 +334,7 @@ function chipActive(types: number[] | null): boolean {
             :columns="COLUMNS"
             :loading="loading"
             :active-id="activeId"
-            empty-message="Niks te controleren. Mooi zo."
+            empty-message="Niets te controleren. Mooi zo."
             @select="open"
           >
             <template #id="{ row }">
@@ -384,7 +385,7 @@ function chipActive(types: number[] | null): boolean {
               <div v-for="row in distribution" :key="row.label" class="flex flex-col gap-1.5">
                 <p class="text-base flex text-muted">
                   <span>{{ row.label }}</span>
-                  <span class="ml-auto font-mono text-strong">{{ row.count }}</span>
+                  <span class="ml-auto font-mono text-strong">{{ row.count.toLocaleString('nl-NL') }}</span>
                 </p>
                 <ProgressBar :value="row.value" :tone="row.tone" size="md" :label="row.label" />
               </div>

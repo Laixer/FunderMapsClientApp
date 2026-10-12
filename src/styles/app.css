@@ -49,6 +49,31 @@
   @apply text-label;
 }
 
+/*
+ * A control that stands on its own, outside `Field`, with its own hairline
+ * frame.
+ *
+ * `.studio-control` cannot do this job: it is the *unframed* inner control of a
+ * Field, and because this sheet loads after the utilities, its `border-0`,
+ * `p-0`, `bg-transparent` and `w-full` beat any `border`, `px-2`, `bg-sunken`
+ * or `w-28` written on the same element. Eleven selects and inputs in the
+ * review lane were written that way and rendered as loose text; one of them
+ * (the note that goes with handing a dossier to a colleague) had no width left
+ * at all. `:where()` keeps this rule at zero specificity, so a utility on the
+ * element (a width, another background) wins.
+ */
+:where(.studio-input) {
+  @apply text-md min-w-0 rounded-md border border-line bg-sunken px-2 py-1.5 text-body outline-none;
+}
+
+.studio-input:focus-visible {
+  @apply border-green ring-2 ring-green/30;
+}
+
+.studio-input::placeholder {
+  @apply text-label;
+}
+
 /* Spinners steal ~16px from a 32px control and are useless for measurements. */
 .studio-control[type="number"] {
   appearance: textfield;

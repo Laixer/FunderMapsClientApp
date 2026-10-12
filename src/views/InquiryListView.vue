@@ -86,14 +86,32 @@ const chips = computed(() => chipsFor(query.value))
 
 /** Read the URL into state. The address bar is the source of truth, not a mirror. */
 function adoptRoute() {
-  query.value = parseQuery(route.query as Record<string, unknown>)
-  search.value = query.value.q
   const key = typeof route.query.view === 'string' ? route.query.view : 'alles'
-  viewKey.value = views.value.some((view) => view.key === key) ? key : 'alles'
+  const view = views.value.find((candidate) => candidate.key === key)
+  viewKey.value = view ? key : 'alles'
+  // A link that names only a view (the tiles on Vandaag, a bookmark) asks that
+  // view's own question. It used to open the whole archive under the
+  // underlined tab "Te controleren".
+  const bare = !QUESTION_PARAMS.some((param) => route.query[param] !== undefined)
+  query.value = view && bare ? fromView(view) : parseQuery(route.query as Record<string, unknown>)
+  search.value = query.value.q
+}
+
+/** The query-string parameters that make up the question, as opposed to naming a view. */
+const QUESTION_PARAMS = ['q', 'status', 'type', 'mine', 'sort', 'order', 'page'] as const
+
+/** Whether two queries ask for the same rows; order and page are how you look at them. */
+function sameFilters(a: ExplorerQuery, b: ExplorerQuery): boolean {
+  const list = (values: number[]) => [...values].sort((x, y) => x - y).join(',')
+  return a.q === b.q && a.mine === b.mine && list(a.status) === list(b.status) && list(a.type) === list(b.type)
 }
 
 /** Write state back to the URL, which re-triggers the load through the watcher. */
 function push(next: ExplorerQuery, key = viewKey.value) {
+  // A tab is the name of its question. Take a filter away and the underline
+  // goes back to "Alles", rather than staying under "Concepten" over all rows.
+  const view = views.value.find((candidate) => candidate.key === key)
+  if (view && !sameFilters(next, fromView(view))) key = 'alles'
   router.push({ name: 'inquiry-list', query: toRouteQuery(next, key) })
 }
 
@@ -176,11 +194,14 @@ function onDeleteView(view: SavedView) {
 
 const COLUMNS: DataColumn[] = [
   { field: 'id', title: 'ID', width: '84px', sortable: true },
-  { field: 'documentName', title: 'Naam', width: 'minmax(260px,1fr)', sortable: true },
+  // Status is 140px: its longest pill ("Nog te beoordelen") is 132px and was cut
+  // flat by a 128px column. The 12px come off the name's minimum, so the fixed
+  // columns still fit the table at the shell's minimum width.
+  { field: 'documentName', title: 'Naam', width: 'minmax(248px,1fr)', sortable: true },
   { field: 'type', title: 'Type', width: '148px', sortable: true },
   { field: 'documentDate', title: 'Datum', width: '92px', sortable: true },
   { field: 'reviewer', title: 'Beoordelaar', width: '150px', sortable: true },
-  { field: 'status', title: 'Status', width: '128px', sortable: true },
+  { field: 'status', title: 'Status', width: '140px', sortable: true },
 ]
 
 /** Table column field → API sort key. */
@@ -219,10 +240,18 @@ function toggleRow(row: IInquiry) {
   selectedIds.value = next
 }
 
+// About the rows on screen: all of them ticked means untick them, otherwise
+// tick them. Comparing only the *number* selected made "Alles selecteren" on
+// page 2 clear a selection of 20 made on page 1.
 function toggleAll() {
-  selectedIds.value = selectedIds.value.size === visibleRows.value.length
-    ? new Set()
-    : new Set(visibleRows.value.map((row) => row.id))
+  const visible = visibleRows.value.map((row) => row.id)
+  const allVisible = visible.length > 0 && visible.every((id) => selectedIds.value.has(id))
+  const next = new Set(selectedIds.value)
+  for (const id of visible) {
+    if (allVisible) next.delete(id)
+    else next.add(id)
+  }
+  selectedIds.value = next
 }
 
 /* -------------------------------------------------------------- inspector */
@@ -314,7 +343,7 @@ const mode = ref<Mode>('tabel')
 const MODES: { key: Mode; label: string }[] = [
   { key: 'tabel', label: 'Tabel' },
   { key: 'kaart', label: 'Kaart' },
-  { key: 'split', label: 'Split' },
+  { key: 'split', label: 'Gesplitst' },
 ]
 </script>
 
@@ -326,30 +355,36 @@ const MODES: { key: Mode; label: string }[] = [
     <!-- Saved views. The active one carries a 2px green underline rather than a
          filled tab: these sit directly on the white filter bar, and a filled
          tab there would read as a button. -->
-    <div class="flex shrink-0 items-center gap-1.5 border-b border-line bg-surface px-6 pt-2.5">
-      <button
+    <div class="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-line bg-surface px-6 pt-2.5">
+      <!-- The tab and its delete cross are two buttons side by side: a cross
+           *inside* the tab button could not be reached with the keyboard. -->
+      <span
         v-for="view in views"
         :key="view.key"
-        type="button"
-        class="text-lg group flex items-center gap-1.5 border-b-2 px-3 pt-1.5 pb-2.5"
-        :class="
-          viewKey === view.key
-            ? 'border-green font-bold text-ink'
-            : 'border-transparent font-medium text-subtle hover:text-strong'
-        "
-        @click="selectView(view)"
+        class="group flex shrink-0 items-center border-b-2 pt-1.5 pb-2.5"
+        :class="viewKey === view.key ? 'border-green' : 'border-transparent'"
       >
-        {{ view.label }}
-        <span
+        <button
+          type="button"
+          class="text-lg px-3 whitespace-nowrap"
+          :class="
+            viewKey === view.key ? 'font-bold text-ink' : 'font-medium text-subtle hover:text-strong'
+          "
+          :aria-current="viewKey === view.key ? 'page' : undefined"
+          @click="selectView(view)"
+        >
+          {{ view.label }}
+        </button>
+        <button
           v-if="!view.builtin"
-          class="text-xs text-label opacity-0 group-hover:opacity-100 hover:text-red"
-          role="button"
+          type="button"
+          class="text-xs -ml-1.5 mr-1.5 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
           :aria-label="`Weergave ${view.label} verwijderen`"
-          @click.stop="onDeleteView(view)"
+          @click="onDeleteView(view)"
         >
           ×
-        </span>
-      </button>
+        </button>
+      </span>
 
       <button
         type="button"
@@ -362,7 +397,7 @@ const MODES: { key: Mode; label: string }[] = [
 
     <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
       <div
-        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5"
+        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
       >
         <span aria-hidden="true" class="text-md text-faint">⌕</span>
         <input
@@ -386,7 +421,13 @@ const MODES: { key: Mode; label: string }[] = [
 
       <div class="ml-auto flex items-center gap-2">
         <span class="text-sm font-mono text-faint">
-          {{ visibleRows.length }}{{ hasMore ? '+' : '' }} rijen
+          <template v-if="total != null">
+            {{ total.toLocaleString('nl-NL') }} {{ total === 1 ? 'rij' : 'rijen' }}
+          </template>
+          <template v-else>
+            {{ visibleRows.length }}{{ hasMore ? '+' : '' }}
+            {{ visibleRows.length === 1 && !hasMore ? 'rij' : 'rijen' }}
+          </template>
         </span>
         <div class="flex rounded-lg border border-line bg-canvas p-0.5">
           <button
@@ -397,6 +438,7 @@ const MODES: { key: Mode; label: string }[] = [
             :class="
               mode === option.key ? 'bg-surface text-strong shadow-segment' : 'text-subtle'
             "
+            :aria-pressed="mode === option.key"
             @click="mode = option.key"
           >
             {{ option.label }}
@@ -455,7 +497,7 @@ const MODES: { key: Mode; label: string }[] = [
               <span class="text-sm font-mono text-faint">#{{ row.id }}</span>
             </template>
             <template #documentName="{ row }">
-              <span class="text-lg font-semibold text-body">{{ row.documentName }}</span>
+              <span class="text-lg font-semibold text-body" :title="row.documentName">{{ row.documentName }}</span>
             </template>
             <template #type="{ row }">
               <span class="text-base text-muted">{{ inquiryTypeLabel(row.type) }}</span>
@@ -466,7 +508,7 @@ const MODES: { key: Mode; label: string }[] = [
               </span>
             </template>
             <template #reviewer="{ row }">
-              <span class="text-base text-muted">{{ row.attribution?.reviewerName ?? '—' }}</span>
+              <span class="text-base text-muted" :title="row.attribution?.reviewerName ?? undefined">{{ row.attribution?.reviewerName ?? '—' }}</span>
             </template>
             <template #status="{ row }">
               <StatusBadge :status="row.state?.auditStatus" />
@@ -474,7 +516,10 @@ const MODES: { key: Mode; label: string }[] = [
 
             <template #footer>
               <span class="text-base text-subtle">
-                Pagina {{ query.page }} ·
+                Pagina {{ query.page.toLocaleString('nl-NL')
+                }}<template v-if="total != null">
+                  van {{ Math.max(1, Math.ceil(total / PAGE_SIZE)).toLocaleString('nl-NL') }}</template>
+                ·
                 {{
                   total != null
                     ? `${total.toLocaleString('nl-NL')} in totaal`
@@ -512,7 +557,9 @@ const MODES: { key: Mode; label: string }[] = [
             :empty-message="
               selected
                 ? 'Dit dossier heeft nog geen adressen met een bekende locatie.'
-                : 'Kies een rij om de panden op de kaart te zien.'
+                : mode === 'kaart'
+                  ? 'Kies eerst een rij in Tabel of Gesplitst; de kaart toont de panden van die rapportage.'
+                  : 'Kies een rij om de panden op de kaart te zien.'
             "
           />
         </div>
@@ -553,11 +600,11 @@ const MODES: { key: Mode; label: string }[] = [
 
             <div>
               <h3 class="studio-label mb-1.5">VELDEN</h3>
-              <KeyValueList :items="inspectorFields" ratio="46%" />
+              <KeyValueList :items="inspectorFields" ratio="38%" />
             </div>
 
             <p v-if="selectedFilled != null" class="text-sm text-label">
-              {{ selectedFilled }} ingevulde waarden over
+              {{ selectedFilled }} {{ selectedFilled === 1 ? 'ingevulde waarde' : 'ingevulde waarden' }} over
               {{ selectedAddressCount }} {{ selectedAddressCount === 1 ? 'adres' : 'adressen' }}.
             </p>
           </div>

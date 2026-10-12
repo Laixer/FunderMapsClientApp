@@ -85,6 +85,26 @@ export const INQUIRY_TYPE_CODE_LABELS: Record<string, string> = {
   unknown: 'Onbekend',
 }
 
+/**
+ * The integer types as options, in the order a person wants to pick from:
+ * the order of `INQUIRY_TYPE_CODE_LABELS` above (common kinds first, "Onbekend"
+ * last) instead of the order of the wire numbers, which put "Onbekend" fifth
+ * and the two QuickScans eleven places apart. Matched on the label, never on
+ * position; a type without a twin in the code table still gets listed, at the end.
+ */
+export const INQUIRY_TYPE_OPTIONS: readonly { value: number; label: string }[] = (() => {
+  const byLabel = new Map(Object.entries(INQUIRY_TYPE_LABELS).map(([value, label]) => [label, Number(value)]))
+  const ordered: { value: number; label: string }[] = []
+  for (const label of Object.values(INQUIRY_TYPE_CODE_LABELS)) {
+    const value = byLabel.get(label)
+    if (value === undefined) continue
+    ordered.push({ value, label })
+    byLabel.delete(label)
+  }
+  for (const [label, value] of byLabel) ordered.push({ value, label })
+  return ordered
+})()
+
 export function inquiryTypeLabel(type: number | null | undefined): string {
   return INQUIRY_TYPE_LABELS[type ?? -1] ?? 'Onbekend'
 }

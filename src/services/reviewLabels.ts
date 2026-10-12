@@ -162,12 +162,14 @@ const FOUNDATION_QUALITY: Record<string, string> = {
   mediocre_bad: 'matig tot slecht',
 }
 
+// The words of the entry form (sampleEnums.ts, CRACK_TYPE_OPTIONS). `nil` read
+// "geen" here as well, so the list offered "geen" twice.
 const CRACK: Record<string, string> = {
   none: 'geen',
-  nil: 'geen',
-  small: 'licht',
+  nil: 'zeer klein',
+  small: 'klein',
   mediocre: 'matig',
-  big: 'ernstig',
+  big: 'groot',
 }
 
 const INFECTION: Record<string, string> = {

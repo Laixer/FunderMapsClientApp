@@ -56,7 +56,7 @@ import { confirmAction } from '@/services/confirm'
 import { toastError, toastInfo, toastSuccess } from '@/services/toast'
 import { splitQuoted, tidyMailText } from '@/services/mailQuote'
 import { addressSetKey, hiddenMembers, spreadSets } from '@/utils/spread'
-import { describeDocument, documentName, findConflicts } from '@/services/documentPrecedence'
+import { describeDocument, documentName, findConflicts, DOCUMENT_FIELDS as DOCUMENT_LEVEL_FIELDS } from '@/services/documentPrecedence'
 import type { MelderMessageKind } from '@/services/fundermaps/endpoints/dataops'
 
 /**
@@ -760,6 +760,11 @@ const addValue = ref('')
 const addAddress = ref<string | null>(null)
 const addNote = ref('')
 const addBusy = ref(false)
+// Another field is another kind of value: a year left in the box would be sent
+// as a funderingstype (the select showed nothing, the button stayed enabled).
+watch(addField, () => {
+  addValue.value = ''
+})
 const addValueOptions = computed(() => {
   const map = addField.value ? VALUE_LABEL[addField.value] : undefined
   return map ? Object.entries(map).map(([value, label]) => ({ value, label })) : null
@@ -1457,7 +1462,8 @@ const metaLine = computed(() => {
     month: 'long',
     year: 'numeric',
   })
-  return [d.externalRef ?? 'zonder kenmerk', `via ${CHANNEL_LABEL[d.channel] ?? d.channel}`, `ontvangen ${when}`].join(' · ')
+  // A melding has a meldcode (FM2026-…) and no external reference; the list shows it, the header said "zonder kenmerk".
+  return [d.reference ?? d.externalRef ?? 'zonder kenmerk', `via ${CHANNEL_LABEL[d.channel] ?? d.channel}`, `ontvangen ${when}`].join(' · ')
 })
 
 const artifacts = computed(() => data.value?.artifacts ?? [])
@@ -1670,17 +1676,34 @@ async function reopen(f: IProposedField) {
         {{ data.dossier.subject ?? 'Dossier' }}
       </h1>
       <Pill v-if="closed" :label="OUTCOME_LABEL[closed] ?? closed" tone="neutral" plain />
+      <!-- Closed on an earlier visit: say so, instead of "4 te beoordelen" on a dossier that left the desk. -->
+      <Pill
+        v-else-if="data.dossier.outcome"
+        :label="OUTCOME_LABEL[data.dossier.outcome] ?? data.dossier.outcome"
+        tone="neutral"
+        plain
+      />
       <Pill v-else-if="nothingProposed" label="geen voorstellen" tone="red" plain />
       <Pill v-else :label="`${openCards} te beoordelen`" tone="blue" plain />
-      <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint">{{ metaLine }}</p>
+      <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint" :title="metaLine">{{ metaLine }}</p>
       <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
     </header>
 
     <div
       v-if="error && !missing"
-      class="text-md shrink-0 border-b border-red bg-red-tint px-6 py-2.5 text-red"
+      class="text-md flex shrink-0 items-start gap-3 border-b border-red bg-red-tint px-6 py-2.5 text-red"
+      role="alert"
     >
-      {{ error }}
+      <span class="min-w-0 flex-1">{{ error }}</span>
+      <!-- It stayed on screen for the rest of the visit, over work that had since gone well. -->
+      <button
+        type="button"
+        class="shrink-0 px-1 text-[18px] leading-none hover:text-ink"
+        aria-label="Melding sluiten"
+        @click="error = null"
+      >
+        ×
+      </button>
     </div>
 
     <!-- Half and half, not a fixed inspector: this screen lives on a wide
@@ -1700,6 +1723,7 @@ async function reopen(f: IProposedField) {
             :key="a.id"
             type="button"
             class="text-md max-w-[220px] truncate border-b-2 px-3 pt-1.5 pb-2.5"
+            :title="a.originalFilename ?? undefined"
             :class="
               i === shown
                 ? 'border-green font-bold text-ink'
@@ -1904,7 +1928,7 @@ async function reopen(f: IProposedField) {
                 </button>
                 <select
                   :id="`set-${d.id}`"
-                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
+                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1.5"
                   :aria-label="`Inquiry voor ${bareName(d.originalFilename)}`"
                   :value="String(groupChoice[d.id] ?? 'vervalt')"
                   @change="setGroup(d.id, ($event.target as HTMLSelectElement).value)"
@@ -1952,6 +1976,7 @@ async function reopen(f: IProposedField) {
                 :model-value="sec.set.date"
                 kind="date"
                 label="Datum rapport"
+                warn-future
                 :hint="sec.set.dateHint"
                 :error="sec.set.verdict === 'accepted' && sec.set.dateMissing ? 'Vul de datum van dit rapport in' : null"
                 @update:model-value="setGroupOverride(sec.set.n, 'date', $event)"
@@ -1982,7 +2007,7 @@ async function reopen(f: IProposedField) {
               :rows="3"
               label="Antwoord over deze inquiry"
               :error="answerError(sec.set, commitNote, autoNoteHeld)"
-              hint="Komt met de antwoorden van de andere inquiries in één mail aan de melder."
+              :hint="melderEmail ? 'Komt met de antwoorden van de andere inquiries in één mail aan de melder.' : 'Blijft bij het dossier: er is geen melder met een e-mailadres.'"
               @update:model-value="setGroupAnswer(sec.set.n, $event)"
             />
             <fieldset v-if="moveTargets.length && sec.set.verdict === 'accepted'" class="flex flex-col gap-1">
@@ -2169,6 +2194,7 @@ async function reopen(f: IProposedField) {
                     v-model="corrections[f.id]"
                     kind="date"
                     label="Andere datum"
+                    warn-future
                   />
                   <Combobox
                     v-else-if="f.field === 'contractor' && contractors.length"
@@ -2189,10 +2215,10 @@ async function reopen(f: IProposedField) {
 
                   <!-- The value is right, the address is not: move it (#333, 4).
                        Takes effect at once; the group changes under your hands. -->
-                  <label v-if="moveTargets.length && membersOf(f).length === 1" class="col-span-2 flex flex-col gap-1">
+                  <label v-if="moveTargets.length && membersOf(f).length === 1 && !DOCUMENT_LEVEL_FIELDS.has(f.field)" class="col-span-2 flex flex-col gap-1">
                     <span class="text-sm font-semibold uppercase tracking-wide text-label">Hoort bij adres</span>
                     <select
-                      class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
+                      class="studio-input rounded-md border border-line bg-sunken px-2 py-1.5"
                       :value="f.addressId ?? ''"
                       :disabled="busy === f.id"
                       @change="moveField(f, ($event.target as HTMLSelectElement).value)"
@@ -2260,7 +2286,7 @@ async function reopen(f: IProposedField) {
               </div>
             </div>
           </Panel>
-          <Panel v-if="settledSections.length" caption="BEOORDEELD" :meta="String(settledCards.length)">
+          <Panel v-if="settledCards.length" caption="BEOORDEELD" :meta="String(settledCards.length)">
             <div class="flex flex-col gap-2">
             <template v-for="sec in settledSections" :key="sec.key">
             <button
@@ -2416,7 +2442,7 @@ async function reopen(f: IProposedField) {
               <input
                 v-model="remarkText"
                 type="text"
-                class="studio-control flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
+                class="studio-input flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
                 placeholder="Notitie voor het dossier (intern)"
                 aria-label="Notitie toevoegen"
                 @keydown.enter="addRemark"
@@ -2449,7 +2475,7 @@ async function reopen(f: IProposedField) {
                 <select
                   id="melder-message-kind"
                   v-model="messageKind"
-                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1"
+                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1"
                   aria-label="Soort bericht"
                 >
                   <option value="question">Vraag: ik wil iets weten</option>
@@ -2458,7 +2484,7 @@ async function reopen(f: IProposedField) {
                 <select
                   id="melder-message-template"
                   v-model="messageTemplate"
-                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1"
+                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1"
                   aria-label="Standaardantwoord"
                 >
                   <option :value="null">Standaardantwoord…</option>
@@ -2470,7 +2496,7 @@ async function reopen(f: IProposedField) {
                 <textarea
                   v-model="questionText"
                   rows="3"
-                  class="studio-control flex-1 resize-y rounded-md border border-line bg-sunken px-2 py-1.5"
+                  class="studio-input flex-1 resize-y rounded-md border border-line bg-sunken px-2 py-1.5"
                   :placeholder="`${MESSAGE_KIND_LABEL[messageKind]} aan de melder (gemaild naar ${melderEmail}). Ctrl+Enter verstuurt.`"
                   :aria-label="`${MESSAGE_KIND_LABEL[messageKind]} aan de melder`"
                   @keydown.enter.ctrl.prevent="askQuestion"
@@ -2507,7 +2533,7 @@ async function reopen(f: IProposedField) {
                 <select
                   id="dossier-assign-to"
                   v-model="assignTo"
-                  class="studio-control rounded-md border border-line bg-sunken px-2 py-1.5"
+                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1.5"
                   aria-label="Collega"
                 >
                   <option :value="null">Kies een collega…</option>
@@ -2520,7 +2546,7 @@ async function reopen(f: IProposedField) {
                   v-model="assignNote"
                   type="text"
                   maxlength="1000"
-                  class="studio-control flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
+                  class="studio-input flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
                   placeholder="Wat moet de collega beslissen? (intern)"
                   aria-label="Toelichting bij het doorzetten"
                   @keydown.enter="assignTo && assignDossier(assignTo)"
@@ -2559,7 +2585,7 @@ async function reopen(f: IProposedField) {
                 </p>
                 <template v-else>
                   <p class="text-muted">
-                    <strong class="text-body">{{ commitSummary(commitGroups) }}</strong>; de melder krijgt één afsluiting.
+                    <strong class="text-body">{{ commitSummary(commitGroups) }}</strong><template v-if="melderEmail">; de melder krijgt één afsluiting</template>.
                   </p>
                   <p v-for="g in commitGroups" :key="g.n" class="text-muted">
                     <span class="font-semibold text-body">Inquiry {{ g.n }}</span>
@@ -2571,7 +2597,7 @@ async function reopen(f: IProposedField) {
                     </template>
                   </p>
                   <p v-if="looseDocs.length" class="text-faint">
-                    {{ looseDocs.length }} bestand{{ looseDocs.length === 1 ? '' : 'en' }} zonder inquiry: blijft bij de melding.
+                    {{ looseDocs.length }} bestand{{ looseDocs.length === 1 ? '' : 'en' }} zonder inquiry: {{ looseDocs.length === 1 ? 'blijft' : 'blijven' }} bij de melding.
                   </p>
                 </template>
                 <p v-if="blockingOpen.length" class="text-muted">
@@ -2591,6 +2617,7 @@ async function reopen(f: IProposedField) {
                   v-model="commitDate"
                   kind="date"
                   label="Datum rapport"
+                  warn-future
                   :hint="commitDateHint"
                 />
                 <div class="flex flex-col gap-1">
@@ -2678,7 +2705,7 @@ async function reopen(f: IProposedField) {
                   variant="primary"
                   :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length && !acceptedGroups.length ? 'Afwijzen en afsluiten' : acceptedGroups.length > 1 ? `Overnemen als ${acceptedGroups.length} inquiries` : 'Overnemen als inquiry') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
                   :disabled="committing || closing || blockingOpen.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
-                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlockedBy ? groupsBlockedBy : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
+                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? (artifacts.length ? 'Wacht tot het document gelezen is' : 'Er is geen document: beantwoord de melding of sluit het dossier') : multiDoc && groupsBlockedBy ? groupsBlockedBy : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
                   @click="commitDossier"
                 />
                 <Button
@@ -2715,7 +2742,9 @@ async function reopen(f: IProposedField) {
               <!-- Two ways to be done with a dossier, and they are not the same
                    thing: one makes a rapportage, the other only closes (#333, 9). -->
               <p v-if="!isAudit" class="text-sm text-label">
-                <strong class="font-semibold text-muted">Overnemen als rapportage</strong> zet de
+                <!-- "Overnemen", not the button's full label: that reads "als inquiry",
+                     "als 2 inquiries" or "als rapportage" depending on the dossier. -->
+                <strong class="font-semibold text-muted">Overnemen</strong> zet de
                 overgenomen waarden als rapportage in de database.
                 <strong class="font-semibold text-muted">Sluiten zonder rapportage</strong> handelt het
                 dossier af zonder iets in de database te zetten, bijvoorbeeld als de rapportage er al
@@ -2741,7 +2770,9 @@ async function reopen(f: IProposedField) {
                 :hint="
                   autoNoteHeld
                     ? 'Automatisch gekozen omdat ons antwoord het laatste bericht is. Gaat mee als je het dossier sluit; bij overnemen alleen als je de tekst aanpast of zelf een antwoord kiest.'
-                    : 'Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage.'
+                    : melderEmail
+                      ? 'Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage.'
+                      : 'Blijft bij het dossier: er is geen melder met een e-mailadres, dus er gaat geen mail uit. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage.'
                 "
               />
             </div>

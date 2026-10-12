@@ -134,7 +134,11 @@ export interface NextStep {
  * The wording names the responsible role and not the current user, because the
  * same panel is read by the person who is up and by the person waiting on them.
  */
-export function nextStep(status: number | null | undefined): NextStep {
+export function nextStep(
+  status: number | null | undefined,
+  /** What the dossier is made of: a rapportage has adressen, a herstel has panden. */
+  units: 'adressen' | 'panden' = 'adressen',
+): NextStep {
   switch (status) {
     case AUDIT_STATUS.TODO:
       return {
@@ -147,7 +151,7 @@ export function nextStep(status: number | null | undefined): NextStep {
       return {
         role: 'creator',
         title: 'Invoer afmaken en aanbieden',
-        detail: 'Zodra de adressen compleet zijn kan het dossier ter controle worden aangeboden.',
+        detail: `Zodra de ${units} compleet zijn kan het dossier ter controle worden aangeboden.`,
         tone: 'green',
       }
     case AUDIT_STATUS.PENDING_REVIEW:

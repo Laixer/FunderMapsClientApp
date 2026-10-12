@@ -45,7 +45,9 @@ const routes: RouteRecordRaw[] = [
       return false
     },
   },
-  { name: 'logout', path: '/logout', component: Logout },
+  // Public: without a session there is nothing to restore first. Guarded, a
+  // visitor on /logout was sent to log in, to be logged out right after.
+  { name: 'logout', path: '/logout', component: Logout, meta: { public: true } },
   // Shown to signed-in users who are not FunderMaps staff. Public so the guard
   // can land here without looping; the view itself decides what to show.
   { name: 'no-access', path: '/no-access', component: NoAccess, meta: { public: true } },

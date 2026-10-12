@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
+import { trapFocus } from '@/services/focusTrap'
 import { acquireModalLock } from '@/services/shortcuts'
 
 const props = withDefaults(
@@ -23,13 +24,19 @@ const handleKey = (e: KeyboardEvent) => {
 // would scroll the table behind the dialog.
 let releaseModalLock: (() => void) | null = null
 
+// ...and the focus stays inside the sheet, and goes back where it was after.
+const sheet = ref<HTMLElement | null>(null)
+let releaseFocus: (() => void) | null = null
+
 onMounted(() => {
   window.addEventListener('keydown', handleKey)
   releaseModalLock = acquireModalLock()
+  if (sheet.value) releaseFocus = trapFocus(sheet.value)
 })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKey)
   releaseModalLock?.()
+  releaseFocus?.()
 })
 
 function handleBackdrop() {
@@ -43,7 +50,9 @@ function handleBackdrop() {
     @click.self="handleBackdrop"
   >
     <div
-      class="studio-fade w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-overlay"
+      ref="sheet"
+      tabindex="-1"
+      class="studio-fade w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-overlay outline-none"
       :class="wide ? 'max-w-3xl' : 'max-w-lg'"
       role="dialog"
       aria-modal="true"

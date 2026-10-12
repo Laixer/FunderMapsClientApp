@@ -175,6 +175,8 @@ export interface IReviewDossier {
     channel: string
     subject: string | null
     externalRef: string | null
+    /** Melder-facing code (`FM2026-000042`); null on bulk drops. Absent from older API builds. */
+    reference?: string | null
     duplicateOf: number | null
     inquiryId: number | null
     /** The rapportage this dossier re-reads (channel audit); null on intake dossiers. */

@@ -118,7 +118,9 @@ function toggle(id: string) {
 function saveChoice() {
   chosen.value = [...draft.value]
   saveChosen(chosen.value)
-  choosing.value = false
+  // Back to none is a choice too (it could not be saved before). The chooser
+  // then stays open, as on a first visit: closed, there would be nothing to reopen it with.
+  choosing.value = chosen.value.length === 0
   load()
   // The sidebar number is the sum of these packages; keep it in step.
   void studio.refreshCounts(null)
@@ -208,7 +210,7 @@ const panels = computed(() => [
         <button
           type="button"
           class="text-md h-8 rounded-lg bg-green px-3 font-semibold text-white disabled:opacity-50"
-          :disabled="!draft.length"
+          :disabled="!draft.length && !chosen.length"
           @click="saveChoice"
         >
           Opslaan
@@ -230,7 +232,7 @@ const panels = computed(() => [
         <template #header>
           <span class="text-lg font-bold text-strong">{{ p.title }}</span>
           <span class="text-sm rounded-sm bg-green-tint px-1.5 py-px font-mono text-green-ink">
-            {{ p.busy ? '…' : p.total }}
+            {{ p.busy ? '…' : p.total.toLocaleString('nl-NL') }}
           </span>
         </template>
 
@@ -250,7 +252,7 @@ const panels = computed(() => [
 
         <div v-if="p.total > p.rows.length" class="border-t border-divider px-4 py-2">
           <RouterLink :to="p.link" class="text-base font-semibold text-blue hover:underline">
-            Alle {{ p.total }} bekijken in Controle →
+            Alle {{ p.total.toLocaleString('nl-NL') }} bekijken in Controle →
           </RouterLink>
         </div>
       </Panel>

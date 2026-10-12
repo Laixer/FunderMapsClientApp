@@ -104,7 +104,11 @@ function personFor(index: number): string | null {
       <span class="text-sm truncate text-subtle" :title="personFor(i) ?? undefined">
         <template v-if="personFor(i)">{{ personFor(i) }}</template>
         <template v-else-if="stage.role">niet toegewezen</template>
-        <template v-else>{{ states[i] === 'done' ? 'vastgesteld' : 'wacht op controle' }}</template>
+        <!-- "wacht op controle" only while it is with the reviewer: it also said so on a
+             dossier that was sent back, or not started, and so waits for the opsteller. -->
+        <template v-else>{{
+          states[i] === 'done' ? 'vastgesteld' : pos.index === 1 ? 'wacht op controle' : 'nog niet vastgesteld'
+        }}</template>
       </span>
 
       <ProgressBar :value="fillFor(i)" :tone="BAR[states[i]!]" :label="stage.label" />

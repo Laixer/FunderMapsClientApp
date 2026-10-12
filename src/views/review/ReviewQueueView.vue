@@ -21,6 +21,7 @@ import {
   deleteView,
   emptyQuery,
   fromView,
+  inSentence,
   isWideSearch,
   kindLabel,
   outcomeLabel,
@@ -194,7 +195,7 @@ const items = computed(() =>
     reference: r.reference ?? r.externalRef ?? '—',
     subject: r.subject ?? 'Zonder omschrijving',
     kind: r.kind ? kindLabel(r.kind) : null,
-    channel: channelLabel(r.channel).toLowerCase(),
+    channel: inSentence(channelLabel(r.channel)),
     files: r.files,
     open: r.open,
     read: r.read,
@@ -277,34 +278,40 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
     <!-- Saved views, exactly as on Rapportages: the active one carries a
          2px green underline rather than a filled tab. -->
-    <div class="flex shrink-0 items-center gap-1.5 border-b border-line bg-surface px-6 pt-2.5">
-      <button
+    <div class="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-line bg-surface px-6 pt-2.5">
+      <!-- The tab and its delete cross are two buttons side by side: a cross
+           *inside* the tab button could not be reached with the keyboard. -->
+      <span
         v-for="view in views"
         :key="view.key"
-        type="button"
-        class="text-lg group flex items-center gap-1.5 border-b-2 px-3 pt-1.5 pb-2.5"
-        :class="
-          viewKey === view.key
-            ? 'border-green font-bold text-ink'
-            : 'border-transparent font-medium text-subtle hover:text-strong'
-        "
-        @click="selectView(view)"
+        class="group flex shrink-0 items-center border-b-2 pt-1.5 pb-2.5"
+        :class="viewKey === view.key ? 'border-green' : 'border-transparent'"
       >
-        {{ view.label }}
-        <span
+        <button
+          type="button"
+          class="text-lg px-3 whitespace-nowrap"
+          :class="
+            viewKey === view.key ? 'font-bold text-ink' : 'font-medium text-subtle hover:text-strong'
+          "
+          :aria-current="viewKey === view.key ? 'page' : undefined"
+          @click="selectView(view)"
+        >
+          {{ view.label }}
+        </button>
+        <button
           v-if="!view.builtin"
-          class="text-xs text-label opacity-0 group-hover:opacity-100 hover:text-red"
-          role="button"
+          type="button"
+          class="text-xs -ml-1.5 mr-1.5 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
           :aria-label="`Weergave ${view.label} verwijderen`"
-          @click.stop="onDeleteView(view)"
+          @click="onDeleteView(view)"
         >
           ×
-        </span>
-      </button>
+        </button>
+      </span>
 
       <button
         type="button"
-        class="text-sm ml-1.5 mb-2 rounded-md border border-dashed border-line-strong bg-surface px-2.5 py-1.5 text-subtle hover:border-line-hover hover:text-strong"
+        class="text-sm ml-1.5 mb-2 shrink-0 rounded-md border border-dashed border-line-strong bg-surface px-2.5 py-1.5 whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
         @click="onSaveView"
       >
         + Weergave
@@ -313,7 +320,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
     <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
       <div
-        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5"
+        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
       >
         <span aria-hidden="true" class="text-md text-faint">⌕</span>
         <input
@@ -336,7 +343,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       <ReviewFilterBuilder :query="query" @update="push($event)" />
 
       <span class="text-sm ml-auto font-mono text-faint">
-        <template v-if="total != null">{{ total.toLocaleString('nl-NL') }} dossiers<template v-if="wideSearch">, ook gesloten</template></template>
+        <template v-if="total != null">{{ total.toLocaleString('nl-NL') }} {{ total === 1 ? 'dossier' : 'dossiers' }}<template v-if="wideSearch">, ook gesloten</template></template>
         <template v-else>{{ items.length }}{{ hasMore ? '+' : '' }} rijen</template>
       </span>
     </div>
@@ -356,7 +363,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       <input
         v-model="bulkNote"
         type="text"
-        class="studio-control max-w-[360px] flex-1 rounded-md border border-line bg-surface px-2 py-1"
+        class="studio-input max-w-[360px] flex-1 rounded-md border border-line bg-surface px-2 py-1"
         placeholder="Reden (verplicht bij afwijzen / duplicaat)"
         aria-label="Reden voor sluiten"
       />
@@ -395,7 +402,11 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         @toggle="toggleRow"
         @toggle-all="toggleAll"
         :empty-message="
-          search
+          error
+            ? 'De lijst is niet geladen.'
+            : query.page > 1
+              ? 'Geen dossiers op deze pagina.'
+              : search
             ? `Niets gevonden voor “${search}”.`
             : closedView
               ? 'Geen gesloten dossiers die hieraan voldoen.'
@@ -413,7 +424,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           </span>
         </template>
         <template #outcomeNote="{ row }">
-          <span v-if="row.outcomeNote" class="text-base line-clamp-2 text-muted" :title="row.outcomeNote">
+          <span v-if="row.outcomeNote" class="text-base line-clamp-2 whitespace-normal text-muted" :title="row.outcomeNote">
             {{ row.outcomeNote }}
           </span>
           <span v-else class="text-base text-faint">—</span>
@@ -422,10 +433,10 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           <span class="text-muted">{{ row.outcomeAt ?? '—' }}</span>
         </template>
         <template #reference="{ row }">
-          <span class="text-sm font-mono text-faint">{{ row.reference }}</span>
+          <span class="text-sm font-mono text-faint" :title="row.reference">{{ row.reference }}</span>
         </template>
         <template #subject="{ row }">
-          <span class="text-lg font-semibold text-body">{{ row.subject }}</span>
+          <span class="text-lg font-semibold text-body" :title="row.subject">{{ row.subject }}</span>
         </template>
         <template #kind="{ row }">
           <span v-if="row.kind" class="text-base text-muted">{{ row.kind }}</span>

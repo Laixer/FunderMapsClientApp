@@ -42,7 +42,9 @@ defineProps<{ entries: TimelineEntry[] }>()
         />
       </div>
 
-      <div class="min-w-0 pb-3.5 last:pb-0">
+      <!-- `last:pb-0` on this div never let the padding through: it is always the last
+           child of its own row. Entries sat on top of each other. -->
+      <div class="min-w-0" :class="i < entries.length - 1 && 'pb-3.5'">
         <p class="text-md text-body">
           <strong v-if="entry.who" class="font-bold">{{ entry.who }}</strong>
           {{ entry.what }}

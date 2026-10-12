@@ -46,8 +46,14 @@ const props = withDefaults(
     step?: number | string
     /** Placeholder option for a select; `null` clears the value. */
     emptyLabel?: string
+    /**
+     * For a date that cannot lie ahead, such as a document's own date: a date
+     * after today gets an amber line asking about the year. It never blocks;
+     * the QuickScan feed has real reports dated a few days ahead.
+     */
+    warnFuture?: boolean
   }>(),
-  { kind: 'text', required: false, disabled: false, mono: false, rows: 4 },
+  { kind: 'text', required: false, disabled: false, mono: false, rows: 4, warnFuture: false },
 )
 
 const model = defineModel<unknown>()
@@ -67,9 +73,31 @@ const suffix = computed(() => {
   return props.unit ?? null
 })
 
+/** Today as the date input spells it, in the user's own timezone. */
+function todayIso(): string {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * "15-05-2926" was saved as a rapportage's date on 2026-09-23 and nobody was
+ * told. A sentence under the field is enough to catch the slip while the
+ * document is still open next to it.
+ */
+const futureWarning = computed(() => {
+  if (!props.warnFuture || props.kind !== 'date' || typeof model.value !== 'string') return null
+  const day = model.value.slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null
+  return day > todayIso() ? 'Deze datum ligt in de toekomst. Klopt het jaar?' : null
+})
+
+/** What goes in the amber line: the caller's error first, then our own doubt. */
+const warning = computed(() => props.error || futureWarning.value)
+
 const frameClass = computed(() => {
   if (props.disabled) return 'border-line bg-canvas'
-  if (props.error) return 'border-amber-field bg-surface'
+  if (warning.value) return 'border-amber-field bg-surface'
   return 'border-line-strong bg-surface'
 })
 </script>
@@ -98,7 +126,7 @@ const frameClass = computed(() => {
         :disabled="disabled"
         :aria-label="label ? undefined : ariaLabel"
         :aria-invalid="error ? true : undefined"
-        :aria-describedby="error || hint ? `${id}-help` : undefined"
+        :aria-describedby="warning || hint ? `${id}-help` : undefined"
       />
     </div>
 
@@ -115,7 +143,7 @@ const frameClass = computed(() => {
         :disabled="disabled"
         :aria-label="label ? undefined : ariaLabel"
         :aria-invalid="error ? true : undefined"
-        :aria-describedby="error || hint ? `${id}-help` : undefined"
+        :aria-describedby="warning || hint ? `${id}-help` : undefined"
       >
         <option v-if="emptyLabel || placeholder" :value="null">
           {{ emptyLabel ?? placeholder }}
@@ -139,13 +167,13 @@ const frameClass = computed(() => {
         :step="step"
         :aria-label="label ? undefined : ariaLabel"
         :aria-invalid="error ? true : undefined"
-        :aria-describedby="error || hint ? `${id}-help` : undefined"
+        :aria-describedby="warning || hint ? `${id}-help` : undefined"
       />
 
       <span v-if="suffix" class="text-xs shrink-0 text-label" aria-hidden="true">{{ suffix }}</span>
     </div>
 
-    <p v-if="error" :id="`${id}-help`" class="text-sm text-amber-ink">{{ error }}</p>
+    <p v-if="warning" :id="`${id}-help`" class="text-sm text-amber-ink">{{ warning }}</p>
     <p v-else-if="hint" :id="`${id}-help`" class="text-sm text-label">{{ hint }}</p>
   </div>
 </template>

@@ -136,7 +136,7 @@ async function record() {
           :options="options(DOCUMENT_TYPE_CODES, RECOVERY_DOCUMENT_TYPE_LABELS)"
           required
         />
-        <Field id="herstel-document-date" v-model="documentDate" kind="date" label="Datum document" required />
+        <Field id="herstel-document-date" v-model="documentDate" kind="date" label="Datum document" required warn-future />
         <Field
           id="herstel-type"
           v-model="recoveryType"

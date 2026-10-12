@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 
-import { INQUIRY_TYPE_LABELS, STATUS_META } from '@/services/inquiryEnums'
+import { INQUIRY_TYPE_OPTIONS, STATUS_META } from '@/services/inquiryEnums'
 import {
   SORT_OPTIONS,
   isDefaultSort,
@@ -44,10 +44,7 @@ const STATUSES = Object.entries(STATUS_META).map(([value, meta]) => ({
   label: meta.label,
 }))
 
-const TYPES = Object.entries(INQUIRY_TYPE_LABELS).map(([value, label]) => ({
-  value: Number(value),
-  label,
-}))
+const TYPES = INQUIRY_TYPE_OPTIONS
 
 function toggle(list: number[], value: number): number[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
@@ -124,6 +121,7 @@ const direction = computed(() => {
                 ? 'border-blue-border bg-blue-tint text-blue-ink'
                 : 'border-line bg-surface text-muted hover:border-line-hover'
             "
+            :aria-pressed="query.status.includes(status.value)"
             @click="setStatus(status.value)"
           >
             {{ status.label }}
@@ -147,6 +145,7 @@ const direction = computed(() => {
                 ? 'border-blue-border bg-blue-tint text-blue-ink'
                 : 'border-line bg-surface text-muted hover:border-line-hover'
             "
+            :aria-pressed="query.mine === option.value"
             @click="setMine(option.value)"
           >
             {{ option.label }}
@@ -169,6 +168,7 @@ const direction = computed(() => {
                 ? 'border-blue-border bg-blue-tint text-blue-ink'
                 : 'border-line bg-surface text-muted hover:border-line-hover'
             "
+            :aria-pressed="query.type.includes(type.value)"
             @click="setType(type.value)"
           >
             {{ type.label }}
@@ -224,8 +224,8 @@ const direction = computed(() => {
           <template v-if="isDefaultSort(query)">Dit is de standaardvolgorde.</template>
         </p>
         <p v-if="query.sort === 'type' || query.sort === 'status'" class="text-sm mt-1 text-label">
-          Type en status volgen de volgorde van de database-enum: dat groepeert de rijen,
-          maar rangschikt ze niet.
+          Op type of status sorteren zet gelijke rijen bij elkaar; de groepen zelf staan niet op
+          alfabet.
         </p>
       </section>
     </div>

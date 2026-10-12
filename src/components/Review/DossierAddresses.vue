@@ -297,11 +297,11 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
           <div class="flex flex-wrap items-end gap-2">
             <label class="flex flex-col gap-1 text-sm">
               <span class="font-semibold uppercase tracking-wide text-label">T/m huisnummer</span>
-              <input id="range-end" v-model="rangeEnd" type="number" min="1" class="studio-control w-28 rounded-md border border-line bg-surface px-2 py-1.5" />
+              <input id="range-end" v-model="rangeEnd" type="number" min="1" class="studio-input w-28 rounded-md border border-line bg-surface px-2 py-1.5" />
             </label>
             <label class="flex flex-col gap-1 text-sm">
               <span class="font-semibold uppercase tracking-wide text-label">Nummers</span>
-              <select id="range-step" v-model="rangeStep" class="studio-control rounded-md border border-line bg-surface px-2 py-1.5">
+              <select id="range-step" v-model="rangeStep" class="studio-input rounded-md border border-line bg-surface px-2 py-1.5">
                 <option value="same">{{ parseInt(rangeStart.building_number ?? '0', 10) % 2 ? 'oneven' : 'even' }}</option>
                 <option value="all">alle</option>
               </select>

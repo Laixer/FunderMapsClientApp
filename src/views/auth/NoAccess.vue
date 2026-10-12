@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 
@@ -7,7 +8,15 @@ import { useSessionStore } from '@/stores/session'
 import { logoutRedirect } from '@/services/auth'
 
 const { t } = useI18n()
-const { currentUser } = storeToRefs(useSessionStore())
+const sessionStore = useSessionStore()
+const { currentUser } = storeToRefs(sessionStore)
+
+// This page is public, so the router does not restore the session for it: opened
+// directly or reloaded, it read "Je bent ingelogd als ." with an empty name. Ask
+// once; without a session the sentence about the account simply stays away.
+onMounted(() => {
+  if (!currentUser.value) sessionStore.authenticate().catch(() => {})
+})
 </script>
 
 <template>
@@ -17,7 +26,10 @@ const { currentUser } = storeToRefs(useSessionStore())
     >
       <p class="font-mono text-2xl text-label">403</p>
       <p class="text-lg text-body">
-        {{ t('error.noAccess', { email: currentUser?.email ?? '' }) }}
+        {{ t('error.noAccess') }}
+        <template v-if="currentUser?.email">
+          {{ t('error.noAccessSignedInAs', { email: currentUser.email }) }}
+        </template>
       </p>
       <a
         href="https://maps.fundermaps.com"
@@ -26,6 +38,7 @@ const { currentUser } = storeToRefs(useSessionStore())
         {{ t('error.goToMaps') }}
       </a>
       <button
+        v-if="currentUser"
         type="button"
         class="text-md font-semibold text-label underline underline-offset-2"
         @click="logoutRedirect()"
