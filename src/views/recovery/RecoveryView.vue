@@ -106,6 +106,8 @@ const completeness = computed(() => {
 })
 
 async function load() {
+  // Leaving this screen changes the route first; without an id there is nothing to load.
+  if (!Number.isInteger(recoveryId.value)) return
   loadFailure.value = null
   try {
     loading.value = true

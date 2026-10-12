@@ -11,3 +11,11 @@ export interface SelectOption {
   value: string | number | boolean | null
   label: string
 }
+
+/**
+ * A list of named things in the order a person looks for one: by name, the
+ * Dutch way. The 109 uitvoerders came in the order they were created.
+ */
+export function byName<T extends { name: string }>(items: readonly T[]): T[] {
+  return [...items].sort((a, b) => a.name.localeCompare(b.name, 'nl', { sensitivity: 'base' }))
+}

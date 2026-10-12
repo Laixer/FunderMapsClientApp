@@ -15,6 +15,7 @@ import StatusBadge from '@/components/Common/StatusBadge.vue'
 
 import type { SamplePin } from '@/components/Mapbox/SampleMap.vue'
 import api from '@/services/fundermaps'
+import { canEdit } from '@/services/pipeline'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
 import { describeFailure } from '@/services/fundermaps/errors'
 import {
@@ -593,6 +594,7 @@ const MODES: { key: Mode; label: string }[] = [
                 @click="router.push({ name: 'inquiry-view', params: { id: selected.id } })"
               />
               <Button
+                v-if="canEdit(selected.state?.auditStatus)"
                 label="Invoer"
                 @click="router.push({ name: 'inquiry-edit-samples', params: { id: selected.id } })"
               />

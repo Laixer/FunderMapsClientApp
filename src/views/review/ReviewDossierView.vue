@@ -13,6 +13,7 @@ import Pill from '@/components/Common/Pill.vue'
 import DossierAddresses from '@/components/Review/DossierAddresses.vue'
 import RecordRecoveryPanel from '@/components/Review/RecordRecoveryPanel.vue'
 import api from '@/services/fundermaps'
+import { byName } from '@/services/options'
 import type {
   IReviewDossier,
   IProposedField,
@@ -319,7 +320,7 @@ watch(
   async (needed) => {
     if (!needed || contractors.value.length) return
     try {
-      contractors.value = await api.contractor.list()
+      contractors.value = byName(await api.contractor.list())
     } catch {
       /* the select stays empty; the reviewer can still confirm or reject the printed name */
     }
@@ -1153,7 +1154,10 @@ const KIND_LABEL: Record<string, string> = {
   verdict: 'oordeel',
   remark: 'notitie',
   question: 'vraag',
-  reply: 'antwoord',
+  // What the melder sends back: the list's tab is "Reactie ontvangen" and the
+  // button "Reactie afgehandeld". It was "antwoord" here, the word the screen
+  // uses for what *we* send.
+  reply: 'reactie',
   status: 'status',
 }
 
@@ -2407,7 +2411,7 @@ async function reopen(f: IProposedField) {
               <li v-for="e in entries" :key="e.id" class="text-md flex gap-2.5">
                 <span class="text-sm w-[84px] shrink-0 font-mono text-faint">{{ entryWhen(e.at) }}</span>
                 <span class="min-w-0">
-                  <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ isOurAnswer(e) ? 'reactie' : (KIND_LABEL[e.kind] ?? e.kind) }}</span>
+                  <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ isOurAnswer(e) ? 'antwoord' : (KIND_LABEL[e.kind] ?? e.kind) }}</span>
                   <!-- #356: replies and questions as a mail card, quoted history folded. -->
                   <div v-if="mailCards[e.id]" class="mt-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
                     <div class="mb-1 flex flex-wrap items-baseline gap-x-1.5 text-faint">
