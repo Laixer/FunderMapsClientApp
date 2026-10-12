@@ -112,6 +112,8 @@ const errors = computed<Record<string, string | null>>(() => ({
 }))
 
 const isValid = computed(() => Object.values(errors.value).every((error) => error === null))
+/** Why the primary button is greyed out: the first thing still missing. */
+const firstProblem = computed(() => Object.values(errors.value).find((error) => error !== null) ?? undefined)
 
 /** Only surfaced after a failed attempt — see `showErrors`. */
 function errorFor(field: string): string | null {
@@ -259,6 +261,7 @@ onBeforeMount(async () => {
           label="Opslaan en terug"
           shortcut="⌘↵"
           :disabled="!isValid || saving || uploading"
+          :title="firstProblem"
           @click="done"
         />
       </template>

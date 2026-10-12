@@ -116,7 +116,7 @@ watch(activeId, (id) => {
           v-model="search"
           type="search"
           class="studio-control"
-          placeholder="Filter op naam, ID of pand-ID"
+          placeholder="Filter op naam, nummer of pand-ID"
           aria-label="Zoeken in herstel-dossiers"
         />
       </div>
