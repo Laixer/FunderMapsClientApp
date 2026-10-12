@@ -2612,7 +2612,7 @@ async function reopen(f: IProposedField) {
                     class="self-start"
                     :label="addingContractor ? 'Bezig…' : `“${contractorUnmatched}” toevoegen`"
                     :disabled="addingContractor"
-                    title="Voegt de opsteller toe aan de lijst en selecteert hem voor dit dossier"
+                    title="Voegt de uitvoerder toe aan de lijst en selecteert hem voor dit dossier"
                     @click="addContractor"
                   />
                 </div>
