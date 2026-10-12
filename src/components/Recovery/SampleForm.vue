@@ -168,7 +168,7 @@ const saveState = computed(() => {
         />
         <Field
           :model-value="form.pileType"
-          label="Type funderingsbalk"
+          label="Paaltype"
           kind="select"
           :options="PILE_TYPE_OPTIONS"
           empty-label="—"

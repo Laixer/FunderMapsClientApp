@@ -62,7 +62,7 @@ const SOURCE_LABEL: Record<IDossierAddress['source'], string> = {
 const rejected = computed(() => props.addresses.filter((a) => a.state === 'rejected').length)
 const meta = computed(() => {
   const n = props.addresses.length
-  return rejected.value ? `${n}, ${rejected.value} hoort er niet bij` : String(n)
+  return rejected.value ? `${n}, ${rejected.value} ${rejected.value === 1 ? 'hoort' : 'horen'} er niet bij` : String(n)
 })
 
 /** How the row is described under the label. */
