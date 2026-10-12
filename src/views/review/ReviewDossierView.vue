@@ -912,6 +912,9 @@ const setOf = (artifactId: number): number | null => {
  * The proposals that still need a verdict before closing. With several files,
  * only those of files in an inquiry: a file in no inquiry is not taken over,
  * so its proposals need no judging (the API sets them aside on commit).
+ * Sluiten zonder rapportage and Geen gegevens use the same rule: with every
+ * file on 'Geen inquiry' they stayed grey on open proposals nobody needs to
+ * judge (Don, dossier 6148, 2026-10-09).
  */
 const blockingOpen = computed(() =>
   multiDoc.value ? open.value.filter((f) => setOf(f.artifactId) != null || !commitDocs.value.some((d) => d.id === f.artifactId)) : open.value,
@@ -2486,14 +2489,14 @@ async function reopen(f: IProposedField) {
                 <Button
                   v-if="!isAudit"
                   label="Sluiten zonder rapportage"
-                  :disabled="closing || committing || open.length > 0"
-                  :title="open.length > 0 ? 'Beoordeel eerst alle voorstellen' : 'Het dossier is afgehandeld, maar er komt geen rapportage in de database'"
+                  :disabled="closing || committing || blockingOpen.length > 0"
+                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : 'Het dossier is afgehandeld, maar er komt geen rapportage in de database'"
                   @click="closeDossier('accepted')"
                 />
                 <Button
                   label="Geen gegevens"
-                  :disabled="closing || committing || open.length > 0"
-                  :title="open.length > 0 ? 'Er staan nog voorstellen open: neem ze over of keur ze af' : 'Gelezen, niets bruikbaars gevonden'"
+                  :disabled="closing || committing || blockingOpen.length > 0"
+                  :title="blockingOpen.length > 0 ? 'Er staan nog voorstellen open: neem ze over of keur ze af' : 'Gelezen, niets bruikbaars gevonden'"
                   @click="closeDossier('no_data')"
                 />
                 <Button
