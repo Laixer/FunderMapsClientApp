@@ -60,9 +60,12 @@ export interface InquiryForCommit {
 
 /**
  * Why the commit cannot go yet, in the words for the button's tooltip; null
- * when it can. `closeNote` is the Reden as the commit will send it.
+ * when it can. `closeNote` is the Reden as the commit will send it;
+ * `noteHeld` says the Reden on screen is the prefilled one that a commit
+ * leaves behind, so "fill in the reason" would point at a field that looks
+ * filled.
  */
-export function commitBlocker(groups: InquiryForCommit[], closeNote: string): string | null {
+export function commitBlocker(groups: InquiryForCommit[], closeNote: string, noteHeld = false): string | null {
   if (!groups.length) return 'Zet minstens één bestand in een inquiry'
   if (groups.length > INQUIRIES_MAX) return `Meer dan ${INQUIRIES_MAX} inquiries in één melding kan niet: voeg bestanden samen`
   const accepted = groups.filter((g) => g.verdict === 'accepted')
@@ -71,7 +74,7 @@ export function commitBlocker(groups: InquiryForCommit[], closeNote: string): st
   if (groups.some((g) => g.answer.length > ANSWER_MAX) || closeNote.length > ANSWER_MAX) return `Een antwoord of de reden is langer dan ${ANSWER_MAX} tekens`
   // A refusal the melder reads needs a reason: per inquiry, or one for the dossier.
   if (!closeNote.trim() && groups.some((g) => g.verdict === 'rejected' && !g.answer.trim())) {
-    return 'Geef bij elke afgewezen inquiry een antwoord, of vul de reden in'
+    return `Geef bij elke afgewezen inquiry een antwoord, of ${noteHeld ? 'pas de automatisch gekozen reden aan' : 'vul de reden in'}`
   }
   if (accepted.some((g) => g.addressIds?.length === 0)) return 'Kies bij elke inquiry minstens één adres'
   if (accepted.some((g) => (g.addressIds?.length ?? 0) > ADDRESSES_MAX)) return `Meer dan ${ADDRESSES_MAX} adressen in één inquiry kan niet`
@@ -80,10 +83,12 @@ export function commitBlocker(groups: InquiryForCommit[], closeNote: string): st
 }
 
 /** The error under one inquiry's answer, or null. */
-export function answerError(g: Pick<InquiryForCommit, 'verdict' | 'answer'>, closeNote: string): string | null {
+export function answerError(g: Pick<InquiryForCommit, 'verdict' | 'answer'>, closeNote: string, noteHeld = false): string | null {
   if (hasBlank(g.answer)) return `Vul eerst de ${BLANK} in`
   if (g.answer.length > ANSWER_MAX) return `Maximaal ${ANSWER_MAX} tekens; dit zijn er ${g.answer.length}`
-  if (g.verdict === 'rejected' && !g.answer.trim() && !closeNote.trim()) return 'Geef een antwoord voor de melder, of vul onderaan de reden in'
+  if (g.verdict === 'rejected' && !g.answer.trim() && !closeNote.trim()) {
+    return `Geef een antwoord voor de melder, of ${noteHeld ? 'pas onderaan de automatisch gekozen reden aan' : 'vul onderaan de reden in'}`
+  }
   return null
 }
 

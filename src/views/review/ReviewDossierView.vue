@@ -124,7 +124,9 @@ const closeTemplateHint = computed(() => {
  */
 const autoNote = ref<string | null>(null)
 /** The prefilled text is still in the Reden, untouched, and this commit makes a rapportage: it stays here. */
-const autoNoteHeld = computed(() => !!autoNote.value && closeNote.value === autoNote.value && (!multiDoc.value || acceptedGroups.value.length > 0))
+const autoNoteHeld = computed(
+  () => !!autoNote.value && closeNote.value === autoNote.value && commitDocs.value.length > 0 && (!multiDoc.value || acceptedGroups.value.length > 0),
+)
 /** The Reden as a commit sends it: what the reviewer wrote or picked, not what the screen prefilled. */
 const commitNote = computed(() => (autoNoteHeld.value ? '' : closeNote.value.trim()))
 const closing = ref(false)
@@ -970,7 +972,7 @@ const commitGroups = computed(() =>
   }),
 )
 /** Why the commit of several files cannot go yet, for the button's tooltip; null when it can. */
-const groupsBlockedBy = computed(() => (multiDoc.value ? commitBlocker(commitGroups.value, commitNote.value) : null))
+const groupsBlockedBy = computed(() => (multiDoc.value ? commitBlocker(commitGroups.value, commitNote.value, autoNoteHeld.value) : null))
 const groupsBlocked = computed(() => groupsBlockedBy.value != null)
 /**
  * An inquiry number that is no longer in use takes its choices with it: a new
@@ -1965,7 +1967,7 @@ async function reopen(f: IProposedField) {
               kind="textarea"
               :rows="3"
               label="Antwoord over deze inquiry"
-              :error="answerError(sec.set, commitNote)"
+              :error="answerError(sec.set, commitNote, autoNoteHeld)"
               hint="Komt met de antwoorden van de andere inquiries in één mail aan de melder."
               @update:model-value="setGroupAnswer(sec.set.n, $event)"
             />
@@ -1983,7 +1985,7 @@ async function reopen(f: IProposedField) {
               <p v-if="sec.set.addressIds?.length === 0" class="text-sm text-red">Kies minstens één adres voor deze inquiry.</p>
               <p class="text-sm text-faint">
                 Wat het document zonder adres noemt, komt op elk aangevinkt adres. Een waarde bij één adres blijft op
-                dat adres. Een adres dat nog te bevestigen is, staat uit tot u het aanvinkt.
+                dat adres. Een adres dat nog te bevestigen is, staat uit tot je het aanvinkt.
               </p>
             </fieldset>
             <p v-if="sec.set.unmergeable.length" class="text-sm text-red">
@@ -2724,7 +2726,7 @@ async function reopen(f: IProposedField) {
                 :error="noteError"
                 :hint="
                   autoNoteHeld
-                    ? 'Automatisch gekozen omdat ons antwoord het laatste bericht is: gaat mee met sluiten zonder rapportage, niet met overnemen. Pas de tekst aan of kies zelf een antwoord om hem ook dan te versturen.'
+                    ? 'Automatisch gekozen omdat ons antwoord het laatste bericht is. Gaat mee als je het dossier sluit; bij overnemen alleen als je de tekst aanpast of zelf een antwoord kiest.'
                     : 'Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage.'
                 "
               />

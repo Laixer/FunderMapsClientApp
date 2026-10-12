@@ -81,25 +81,26 @@ One required `VITE_` var (see `.env.example`):
 
 ### Authentication
 
-**OIDC** authorization-code + PKCE (`client_id=clientapp`). The login form lives in the
-auth app (auth.fundermaps.com), not here. The access token is an **opaque bearer** — *not* a
-JWT — and there is **no refresh token**: on expiry the app re-obtains a token by bouncing
-back through the login redirect.
+The session is the **Better Auth cookie on the API origin**. Every FunderMaps app lives on a
+`*.fundermaps.com` subdomain, so the browser sends that cookie on credentialed fetches to the
+API. Nothing is stored in this app: no token, no `localStorage`. (Until October 2026 this was
+OIDC with a bearer token; `services/oidc.ts` and `services/fundermaps/session.ts` are gone.)
+The login form lives in the auth app (auth.fundermaps.com), not here.
 
-- `services/oidc.ts` — `loginRedirect()` sends the browser to the provider's `/authorize`;
-  `exchangeCode()` (called from `views/auth/Callback.vue` at `/auth/callback`) swaps the code
-  for tokens; `logoutRedirect()` does RP-initiated end-session (passing `id_token_hint`).
-- `services/fundermaps/session.ts` — stores the access token in `localStorage` under
-  `access_token`, plus the `id_token` (kept only for `id_token_hint` on logout).
-- `services/fundermaps/client.ts` — `fetch` wrapper (`makeCall`) that injects
-  `Authorization: Bearer <token>`, JSON-encodes object bodies, and throws typed errors
-  (`errors.ts`). A registered `setUnauthorizedHandler` callback fires on `401`.
-- `stores/session.ts` — `authenticateFromAccessToken()` re-verifies the bearer (`user.me()`)
-  on a fresh page load; `logout()` clears local state and best-effort signs out server-side.
-  Role flags (`isSuperUser`/`isVerifier`/`isWriter`/`isReader`, `canWrite`, `canApprove`)
-  derive from the user's **first** organization's role (`currentUser.organizations[0].role`).
-- `components/UserMenu.vue` logs out via `logoutRedirect()` (ends the SSO session).
-- `App.vue` wires the `401` handler in `onMounted` → `logout()` + bounce to `login`.
+- `services/auth.ts` — `loginRedirect()` sends the browser to `${VITE_AUTH_URL}/login?redirect=…`
+  (default `https://auth.fundermaps.com`), which brings the user back once the cookie is set;
+  `hasSession()` probes `/api/auth/get-session`; `logoutRedirect()` posts `/api/auth/sign-out`
+  and returns to the auth app.
+- `services/fundermaps/client.ts` — `fetch` wrapper (`makeCall`) that sends
+  `credentials: 'include'`, JSON-encodes object bodies, and throws typed errors (`errors.ts`).
+  A registered `setUnauthorizedHandler` callback fires on `401`.
+- `stores/session.ts` — `authenticate()` loads the user behind the cookie (`user.me()`) and
+  throws when there is none; `logout()` signs out at the API and clears local state.
+  `isStaff` is `platform_member`; the role flags (`isSuperUser`/`isVerifier`/`isWriter`/
+  `isReader`, `canWrite`, `canApprove`) derive from the user's **first** organization's role
+  (`currentUser.organizations[0].role`); `isAdministrator` from the user's own `role`.
+- `components/UserMenu.vue` logs out via `logoutRedirect()`.
+- `App.vue` wires the `401` handler in `onMounted` → `loginRedirect()`.
 
 ### Routing
 
@@ -112,9 +113,9 @@ in the **query string**, serialised by `services/explorer.ts`. That is what make
 shareable link, and it is why the list routes carry no `:page?` path segment: there is one
 place a page number lives, and it is `?page=`.
 
-The `beforeEach` guard restores the session from a stored bearer on first load, then redirects
-unauthenticated users to `login`. Routes opt out of the auth check with `meta.public: true`
-(login, callback and 404). Layouts are **not** chosen via route meta — each view wraps itself
+The `beforeEach` guard restores the user from the session cookie on first load, sends anyone
+without a session to the auth app, and sends a signed-in account that is not platform staff to
+`no-access`. Routes opt out of the check with `meta.public: true`. Layouts are **not** chosen via route meta — each view wraps itself
 in `AuthWrapper` (auth/error pages) or `AppShell` (sidebar + top bar + palette + toasts).
 `AppShell` takes a `crumb` and an optional `fill`: `fill` pins the content to the viewport and
 hands scrolling to the panes inside it, which is what the explorer and the Invoer editor use.
@@ -125,8 +126,8 @@ hands scrolling to the panes inside it, which is what the explorer and the Invoe
 `inquiry`, `inquirySample`, `recovery`, `recoverySample`, `contractor`, `reviewer`,
 `geocoder`, `organization`, `pdok`) into a single default-exported `api` object — call as
 `api.inquiry.list(...)`, `api.user.me()`, etc. Response shapes live in `interfaces/`
-(`IInquiry`, `IRecovery`, `IUser`, …). The API expects the bearer as
-`Authorization: Bearer <token>`.
+(`IInquiry`, `IRecovery`, `IUser`, …). Every call carries the session cookie
+(`credentials: 'include'`); there is no `Authorization` header.
 
 ### Styling (Tailwind v4) — the Data Studio design system
 
