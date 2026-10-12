@@ -2,7 +2,8 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import api from '@/services/fundermaps'
-import { LANES, laneCountQuery } from '@/services/worklist'
+import { effectivePackageIds, packagesFor } from '@/services/workPackages'
+import { useSessionStore } from '@/stores/session'
 
 /**
  * Shell-level state: the counts in the sidebar, and whether the command
@@ -62,9 +63,31 @@ export const useStudioStore = defineStore('studio', () => {
           .catch(() => {}),
       ]
 
-      if (userId) {
+      // The number next to "Vandaag" is the work in your packages plus the
+      // dossiers handed to you, i.e. what the Vandaag page puts in front of
+      // you. Until 2026-10-09 it summed the old rapportage lanes (report.inquiry
+      // with you as reviewer in pending_review etc., services/worklist.ts),
+      // which for the admin was 11,163 rapportages of backlog going back to
+      // 2019 while the whole review queue ("Controle") was 1,146: a number
+      // nobody could act on. The admin asked for it to count the packages.
+      //
+      // A dossier two packages cover, or one in a package and also handed to
+      // you, counts twice. The queue has no "any of these filters" query, and
+      // the page shows it twice too, so the sum matches what you see.
+      //
+      // The user id is no longer part of the query (the API reads you from the
+      // session); it still says "someone is signed in", falling back to the
+      // session for the callers that pass null after a review action -- which
+      // is exactly when this number moves.
+      if (userId ?? useSessionStore().currentUser?.id) {
         jobs.push(
-          Promise.all(LANES.map((lane) => api.inquiry.getCount(laneCountQuery(lane, userId))))
+          effectivePackageIds()
+            .then(({ ids }) =>
+              Promise.all([
+                ...packagesFor(ids).map((p) => api.dataops.queueCount(p.opts)),
+                api.dataops.queueCount({ assignedTo: 'me' }),
+              ]),
+            )
             .then((results) => void (werkbank.value = results.reduce((n, r) => n + r.count, 0)))
             .catch(() => {}),
         )

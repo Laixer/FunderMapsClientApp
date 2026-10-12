@@ -11,6 +11,13 @@ const isAuthenticated = computed<boolean>(() => currentUser.value !== null)
 /** Staff = member of the platform organisation; the API gates /api/dataops on the same flag. */
 const isStaff = computed<boolean>(() => currentUser.value?.platform_member === true)
 
+/**
+ * The global `administrator` role (application.user.role), not an org role:
+ * what the API's adminMiddleware checks for /api/management/*. The org role
+ * `superuser` is a different thing.
+ */
+const isAdministrator = computed<boolean>(() => currentUser.value?.role === 'administrator')
+
 const orgRole = computed<OrgRole | null>(
   () => currentUser.value?.organizations?.[0]?.role ?? null,
 )
@@ -54,6 +61,7 @@ function useSession() {
     currentUser,
     isAuthenticated,
     isStaff,
+    isAdministrator,
     orgRole,
     isSuperUser,
     isVerifier,
