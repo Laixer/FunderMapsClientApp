@@ -46,6 +46,7 @@ import {
   OUTCOME_HINT,
   hasBlank,
 } from '@/services/closeTemplates'
+import { ANSWER_MAX, answerError, commitBlocker, commitSummary, defaultInquiryAddresses, inquiryAddresses } from '@/services/inquiryVerdicts'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { IUser } from '@/services/fundermaps/interfaces/IUser'
 import type { SelectOption } from '@/services/options'
@@ -115,6 +116,17 @@ const closeTemplateHint = computed(() => {
   const t = CLOSE_TEMPLATES.find((x) => x.value === closeTemplate.value)
   return t ? `Hoort bij “${OUTCOME_HINT[t.outcome]}”; pas de tekst aan waar nodig.` : 'Vult de reden met een vaste tekst; daarna aanpassen waar nodig.'
 })
+/**
+ * The text the screen picked by itself (see "our answer is the last word"
+ * below). It is meant for closing without a rapportage: a commit the reviewer
+ * never touched the Reden for must not mail "Uw vraag is beantwoord" along
+ * with a rapportage. Cleared as soon as the reviewer picks an answer.
+ */
+const autoNote = ref<string | null>(null)
+/** The prefilled text is still in the Reden, untouched, and this commit makes a rapportage: it stays here. */
+const autoNoteHeld = computed(() => !!autoNote.value && closeNote.value === autoNote.value && (!multiDoc.value || acceptedGroups.value.length > 0))
+/** The Reden as a commit sends it: what the reviewer wrote or picked, not what the screen prefilled. */
+const commitNote = computed(() => (autoNoteHeld.value ? '' : closeNote.value.trim()))
 const closing = ref(false)
 const closed = ref<DossierOutcome | null>(null)
 /** The rapportage a commit made, for a link that outlives the toast (Don #321 §6). */
@@ -133,6 +145,7 @@ async function load() {
   data.value = null
   busy.value = null
   closeTemplate.value = null
+  autoNote.value = null
   decided.value = {}
   notes.value = {}
   corrections.value = {}
@@ -448,6 +461,8 @@ const noteMissingFor = ref<DossierOutcome | null>(null)
 const noteError = computed(() =>
   hasBlank(closeNote.value)
     ? `Vul eerst de open plekken (${BLANK}) in de tekst in.`
+    : closeNote.value.length > ANSWER_MAX
+    ? `Maximaal ${ANSWER_MAX} tekens; dit zijn er ${closeNote.value.length}.`
     : noteMissingFor.value && !closeNote.value.trim()
     ? `Geef eerst een reden: waarom wordt dit dossier ${noteMissingFor.value === 'duplicate' ? 'als duplicaat gesloten' : noteMissingFor.value === 'accepted' ? 'gesloten zonder rapportage' : 'afgewezen'}?`
     : null,
@@ -463,8 +478,9 @@ async function closeDossier(outcome: DossierOutcome) {
     document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
     return
   }
-  // A standard answer with an unfilled blank goes to the melder as "…" (2026-10-02).
-  if (hasBlank(closeNote.value)) {
+  // A standard answer with an unfilled blank goes to the melder as "…" (2026-10-02);
+  // a text over the limit is said in the field, so it is not sent either.
+  if (hasBlank(closeNote.value) || closeNote.value.length > ANSWER_MAX) {
     document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
     return
   }
@@ -833,6 +849,51 @@ const multiDoc = computed(() => !isAudit.value && commitDocs.value.length > 1)
 const groupChoice = ref<Record<number, GroupChoice>>({})
 const groupTouched = ref(false)
 const groupOverride = ref<Record<number, { type: string | null; date: string | null }>>({})
+/**
+ * The panden each inquiry is about (Don, 2026-10-09): an archive piece can
+ * cover several, a QuickScan in the same dossier one. Untouched, an inquiry is
+ * about the dossier's own address and the ones a person confirmed; an address
+ * that is still "te bevestigen" is ticked by the reviewer, not by default.
+ */
+const groupAddresses = ref<Record<number, string[]>>({})
+const addressesOfGroup = (n: number) =>
+  inquiryAddresses({
+    offered: moveTargets.value.map((a) => a.value),
+    defaults: defaultInquiryAddresses(addresses.value),
+    chosen: groupAddresses.value[n],
+    ownId: addresses.value.find((a) => a.own)?.addressId ?? null,
+  })
+/**
+ * The verdict and the answer per inquiry (Don, 2026-10-09): one inquiry can be
+ * taken over and another refused, each with its own reason, while the melder
+ * still gets one closing mail. A refused inquiry becomes no rapportage.
+ */
+const groupVerdict = ref<Record<number, 'accepted' | 'rejected'>>({})
+const groupAnswer = ref<Record<number, string>>({})
+const groupTemplate = ref<Record<number, string | null>>({})
+const VERDICT_OPTIONS = [
+  { value: 'accepted', label: 'Overnemen' },
+  { value: 'rejected', label: 'Afwijzen' },
+]
+function setGroupVerdict(n: number, value: unknown) {
+  groupVerdict.value = { ...groupVerdict.value, [n]: value === 'rejected' ? 'rejected' : 'accepted' }
+}
+/** Same rule as the dossier's note: a pick fills an empty answer or replaces the previous pick, never typed text. */
+function setGroupTemplate(n: number, value: unknown) {
+  const v = value == null || value === '' ? null : String(value)
+  const prevText = CLOSE_TEMPLATES.find((t) => t.value === groupTemplate.value[n])?.text
+  const next = CLOSE_TEMPLATES.find((t) => t.value === v)
+  const cur = groupAnswer.value[n] ?? ''
+  groupTemplate.value = { ...groupTemplate.value, [n]: v }
+  if (next && (!cur.trim() || cur === prevText)) groupAnswer.value = { ...groupAnswer.value, [n]: next.text }
+}
+function setGroupAnswer(n: number, value: unknown) {
+  groupAnswer.value = { ...groupAnswer.value, [n]: value == null ? '' : String(value) }
+}
+function toggleGroupAddress(n: number, addressId: string, on: boolean) {
+  const cur = addressesOfGroup(n).shown.filter((id) => id !== addressId)
+  groupAddresses.value = { ...groupAddresses.value, [n]: on ? [...cur, addressId] : cur }
+}
 const takenFrom = (ids: number[], field: string) => {
   const f = taken.value.find((t) => t.field === field && ids.includes(t.artifactId))
   if (!f) return null
@@ -851,6 +912,10 @@ watch(
   () => {
     groupTouched.value = false
     groupOverride.value = {}
+    groupAddresses.value = {}
+    groupVerdict.value = {}
+    groupAnswer.value = {}
+    groupTemplate.value = {}
   },
 )
 function setGroup(docId: number, value: string) {
@@ -895,12 +960,39 @@ const commitGroups = computed(() =>
       dateHint: override.date ? undefined : date ? 'Overgenomen uit het document' : estimate ? `Niet overgenomen: wordt ${estimate} (geschat: bouwjaar)` : 'Verplicht: geen datum in het document gevonden',
       dateMissing: !date && !estimate,
       contractorLabel: row?.name ?? (rawContractor ? `${rawContractor} (niet in de lijst: wordt FunderMaps B.V.)` : 'FunderMaps B.V.'),
+      /** The ticks in the checklist, and what the commit sends: null leaves the addresses to the API (the melder's pand). */
+      shownAddressIds: addressesOfGroup(g.n).shown,
+      addressIds: addressesOfGroup(g.n).send,
+      verdict: groupVerdict.value[g.n] ?? ('accepted' as 'accepted' | 'rejected'),
+      answer: groupAnswer.value[g.n] ?? '',
+      template: groupTemplate.value[g.n] ?? null,
     }
   }),
 )
-const groupsBlocked = computed(
-  () => multiDoc.value && (commitGroups.value.length === 0 || commitGroups.value.some((g) => g.dateMissing || g.unmergeable.length > 0)),
+/** Why the commit of several files cannot go yet, for the button's tooltip; null when it can. */
+const groupsBlockedBy = computed(() => (multiDoc.value ? commitBlocker(commitGroups.value, commitNote.value) : null))
+const groupsBlocked = computed(() => groupsBlockedBy.value != null)
+/**
+ * An inquiry number that is no longer in use takes its choices with it: a new
+ * Inquiry 2 made later is another set of files, and it used to inherit the
+ * refusal, the answer, the addresses and the date of the one before.
+ */
+watch(
+  () => commitGroups.value.map((g) => g.n).join(','),
+  () => {
+    const inUse = new Set(commitGroups.value.map((g) => g.n))
+    const prune = <T,>(r: Record<number, T>) => Object.fromEntries(Object.entries(r).filter(([n]) => inUse.has(Number(n)))) as Record<number, T>
+    groupOverride.value = prune(groupOverride.value)
+    groupAddresses.value = prune(groupAddresses.value)
+    groupVerdict.value = prune(groupVerdict.value)
+    groupAnswer.value = prune(groupAnswer.value)
+    groupTemplate.value = prune(groupTemplate.value)
+  },
 )
+/** Answers typed per inquiry: only a commit sends them, the other closing buttons send the Reden alone. */
+const answersTyped = computed(() => multiDoc.value && commitGroups.value.some((g) => g.answer.trim()))
+/** Inquiries that become a rapportage; the rest is refused with its answer. */
+const acceptedGroups = computed(() => commitGroups.value.filter((g) => g.verdict === 'accepted'))
 /** Files in no inquiry: they stay with the melding, nothing read from them is taken over. */
 const looseDocs = computed(() => commitDocs.value.filter((d) => typeof groupChoice.value[d.id] !== 'number'))
 /** The set a document is in, for "uit Inquiry 2" and for filtering. */
@@ -917,7 +1009,13 @@ const setOf = (artifactId: number): number | null => {
  * judge (Don, dossier 6148, 2026-10-09).
  */
 const blockingOpen = computed(() =>
-  multiDoc.value ? open.value.filter((f) => setOf(f.artifactId) != null || !commitDocs.value.some((d) => d.id === f.artifactId)) : open.value,
+  multiDoc.value
+    ? open.value.filter((f) => {
+        const n = setOf(f.artifactId)
+        if (n != null) return (groupVerdict.value[n] ?? 'accepted') === 'accepted'
+        return !commitDocs.value.some((d) => d.id === f.artifactId)
+      })
+    : open.value,
 )
 
 /**
@@ -933,6 +1031,12 @@ const blockingOpen = computed(() =>
  */
 async function commitDossier() {
   if (!data.value) return
+  // The Reden goes into the closing mail: an unfilled blank or a text the API
+  // refuses is said in the field, as it is for the other closing buttons.
+  if (!isAudit.value && (hasBlank(commitNote.value) || commitNote.value.length > ANSWER_MAX)) {
+    document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
+    return
+  }
   committing.value = true
   try {
     const r = await api.dataops.commit(
@@ -943,19 +1047,41 @@ async function commitDossier() {
               artifactIds: g.ids,
               type: g.override.type ?? undefined,
               documentDate: g.date ?? undefined,
+              // A refused inquiry is about no address: nothing of it is written.
+              addressIds: g.verdict === 'accepted' ? (g.addressIds ?? undefined) : undefined,
+              verdict: g.verdict,
+              answer: g.answer.trim() || undefined,
             })),
+            closingNote: commitNote.value || undefined,
           }
         : {
             type: commitType.value ?? undefined,
             documentDate: commitDate.value ?? undefined,
             contractor: commitContractor.value ? Number(commitContractor.value) : undefined,
+            // A nalezing sends no closing mail; the API ignores a Reden there.
+            closingNote: isAudit.value ? undefined : commitNote.value || undefined,
           },
     )
+    if (r.inquiryId == null) {
+      // Every inquiry refused: the dossier is closed as rejected, nothing was made.
+      closed.value = 'rejected'
+      void studio.refreshCounts(null)
+      toastSuccess('Afgewezen: er is niets in de database gezet. De melder krijgt één mail met uw antwoord.')
+      await openNext(data.value.dossier.id, 'rejected')
+      return
+    }
     closed.value = 'accepted'
     committedInquiryId.value = r.inquiryId
     if (r.rapportages && r.rapportages.length > 1) {
       void studio.refreshCounts(null)
       toastSuccess(`${r.rapportages.length} rapportages aangemaakt: ${r.rapportages.map((m) => `#${m.inquiryId}`).join(', ')}.`)
+      // An address ticked for an inquiry whose files give no values for it: the
+      // sample is there, empty. Name the rapportages so they can be filled in.
+      const empty = r.rapportages.filter((m) => m.emptySamples)
+      if (empty.length) {
+        const n = empty.reduce((t, m) => t + (m.emptySamples ?? 0), 0)
+        toastInfo(`${n} adres${n === 1 ? '' : 'sen'} nog zonder gegevens in ${empty.map((m) => `#${m.inquiryId}`).join(', ')}; vul die in bij de rapportage.`)
+      }
       await openNext(data.value.dossier.id, 'accepted')
       return
     }
@@ -1141,7 +1267,10 @@ watch(
   (entries) => {
     if (!entries || data.value?.dossier.outcome || closeTemplate.value || closeNote.value.trim()) return
     const last = [...entries].reverse().find((e) => e.kind === 'question' || e.kind === 'reply')
-    if (last && isOurAnswer(last)) closeTemplate.value = 'question_answered'
+    if (last && isOurAnswer(last)) {
+      autoNote.value = CLOSE_TEMPLATES.find((t) => t.value === 'question_answered')?.text ?? null
+      closeTemplate.value = 'question_answered'
+    }
   },
 )
 
@@ -1708,6 +1837,11 @@ async function reopen(f: IProposedField) {
             kies dan “Rapportage aanmaken, handmatig invullen”.
           </Callout>
 
+          <Callout v-else-if="blockingOpen.length === 0 && open.length > 0" tone="green" title="Niets meer te beoordelen">
+            De voorstellen die nog openstaan horen bij een afgewezen inquiry of bij een bestand zonder inquiry: die
+            hoeven niet beoordeeld te worden.
+          </Callout>
+
           <Callout v-else-if="blockingOpen.length === 0" tone="green" title="Alles beoordeeld">
             Er staan geen voorstellen meer open op dit dossier.
           </Callout>
@@ -1803,11 +1937,55 @@ async function reopen(f: IProposedField) {
                 kind="date"
                 label="Datum rapport"
                 :hint="sec.set.dateHint"
-                :error="sec.set.dateMissing ? 'Vul de datum van dit rapport in' : null"
+                :error="sec.set.verdict === 'accepted' && sec.set.dateMissing ? 'Vul de datum van dit rapport in' : null"
                 @update:model-value="setGroupOverride(sec.set.n, 'date', $event)"
               />
             </div>
             <p class="text-sm text-muted">Uitvoerder: {{ sec.set.contractorLabel }}</p>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-2">
+              <Field
+                :model-value="sec.set.verdict"
+                kind="select"
+                label="Oordeel"
+                :options="VERDICT_OPTIONS"
+                :hint="sec.set.verdict === 'rejected' ? 'Wordt geen rapportage; niets uit deze bestanden gaat de database in' : undefined"
+                @update:model-value="setGroupVerdict(sec.set.n, $event)"
+              />
+              <Field
+                :model-value="sec.set.template"
+                kind="select"
+                label="Standaardantwoord"
+                :options="CLOSE_TEMPLATE_OPTIONS"
+                empty-label="Geen, zelf schrijven"
+                @update:model-value="setGroupTemplate(sec.set.n, $event)"
+              />
+            </div>
+            <Field
+              :model-value="sec.set.answer"
+              kind="textarea"
+              :rows="3"
+              label="Antwoord over deze inquiry"
+              :error="answerError(sec.set, commitNote)"
+              hint="Komt met de antwoorden van de andere inquiries in één mail aan de melder."
+              @update:model-value="setGroupAnswer(sec.set.n, $event)"
+            />
+            <fieldset v-if="moveTargets.length && sec.set.verdict === 'accepted'" class="flex flex-col gap-1">
+              <legend class="text-sm text-muted">Adressen van deze inquiry</legend>
+              <label v-for="a in moveTargets" :key="a.value" class="flex items-center gap-2 text-sm text-body">
+                <input
+                  type="checkbox"
+                  :checked="sec.set.shownAddressIds.includes(a.value)"
+                  :disabled="!!closed"
+                  @change="toggleGroupAddress(sec.set.n, a.value, ($event.target as HTMLInputElement).checked)"
+                />
+                {{ a.label }}
+              </label>
+              <p v-if="sec.set.addressIds?.length === 0" class="text-sm text-red">Kies minstens één adres voor deze inquiry.</p>
+              <p class="text-sm text-faint">
+                Wat het document zonder adres noemt, komt op elk aangevinkt adres. Een waarde bij één adres blijft op
+                dat adres. Een adres dat nog te bevestigen is, staat uit tot u het aanvinkt.
+              </p>
+            </fieldset>
             <p v-if="sec.set.unmergeable.length" class="text-sm text-red">
               {{ sec.set.unmergeable.join(', ') }} kan niet in één PDF worden samengevoegd: zet het in een eigen inquiry.
             </p>
@@ -2365,15 +2543,16 @@ async function reopen(f: IProposedField) {
                 </p>
                 <template v-else>
                   <p class="text-muted">
-                    Bij overnemen {{ commitGroups.length === 1 ? 'komt er' : 'komen er' }}
-                    <strong class="text-body">{{ commitGroups.length }} inquir{{ commitGroups.length === 1 ? 'y' : 'ies' }}</strong>;
-                    de melder krijgt één afsluiting.
+                    <strong class="text-body">{{ commitSummary(commitGroups) }}</strong>; de melder krijgt één afsluiting.
                   </p>
                   <p v-for="g in commitGroups" :key="g.n" class="text-muted">
                     <span class="font-semibold text-body">Inquiry {{ g.n }}</span>
-                    · {{ g.names.length }} bestand{{ g.names.length === 1 ? '' : 'en' }}<template v-if="g.names.length > 1"> (één PDF)</template>
-                    <span v-if="g.dateMissing" class="text-red"> · datum ontbreekt</span>
-                    <span v-if="g.unmergeable.length" class="text-red"> · {{ g.unmergeable.join(', ') }} kan niet in één PDF</span>
+                    · {{ g.names.length }} bestand{{ g.names.length === 1 ? '' : 'en' }}<template v-if="g.names.length > 1 && g.verdict === 'accepted'"> (één PDF)</template>
+                    <template v-if="g.verdict === 'rejected'"> · wordt afgewezen</template>
+                    <template v-else>
+                      <span v-if="g.dateMissing" class="text-red"> · datum ontbreekt</span>
+                      <span v-if="g.unmergeable.length" class="text-red"> · {{ g.unmergeable.join(', ') }} kan niet in één PDF</span>
+                    </template>
                   </p>
                   <p v-if="looseDocs.length" class="text-faint">
                     {{ looseDocs.length }} bestand{{ looseDocs.length === 1 ? '' : 'en' }} zonder inquiry: blijft bij de melding.
@@ -2481,9 +2660,9 @@ async function reopen(f: IProposedField) {
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"
-                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length > 1 ? `Overnemen als ${commitGroups.length} inquiries` : 'Overnemen als inquiry') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
+                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length && !acceptedGroups.length ? 'Afwijzen en afsluiten' : acceptedGroups.length > 1 ? `Overnemen als ${acceptedGroups.length} inquiries` : 'Overnemen als inquiry') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
                   :disabled="committing || closing || blockingOpen.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
-                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlocked ? (!commitGroups.length ? 'Zet minstens één bestand in een inquiry' : commitGroups.some((g) => g.unmergeable.length) ? 'Een bestand kan niet in één PDF: zet het in een eigen inquiry' : 'Vul eerst bij elke inquiry de datum in') : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
+                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? 'Wacht tot het document gelezen is' : multiDoc && groupsBlockedBy ? groupsBlockedBy : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
                   @click="commitDossier"
                 />
                 <Button
@@ -2512,6 +2691,11 @@ async function reopen(f: IProposedField) {
                 />
               </div>
 
+              <p v-if="answersTyped" class="text-sm text-amber-ink">
+                De antwoorden per inquiry gaan alleen mee met de groene knop. Sluiten zonder rapportage, Geen gegevens,
+                Afwijzen en Duplicaat sturen alleen de reden hieronder.
+              </p>
+
               <!-- Two ways to be done with a dossier, and they are not the same
                    thing: one makes a rapportage, the other only closes (#333, 9). -->
               <p v-if="!isAudit" class="text-sm text-label">
@@ -2529,6 +2713,7 @@ async function reopen(f: IProposedField) {
                 :options="CLOSE_TEMPLATE_OPTIONS"
                 empty-label="Geen, zelf schrijven"
                 :hint="closeTemplateHint"
+                @update:model-value="autoNote = null"
               />
               <Field
                 id="review-close-note"
@@ -2537,7 +2722,11 @@ async function reopen(f: IProposedField) {
                 :rows="answerMode ? 5 : 3"
                 label="Reden"
                 :error="noteError"
-                hint="Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage."
+                :hint="
+                  autoNoteHeld
+                    ? 'Automatisch gekozen omdat ons antwoord het laatste bericht is: gaat mee met sluiten zonder rapportage, niet met overnemen. Pas de tekst aan of kies zelf een antwoord om hem ook dan te versturen.'
+                    : 'Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage.'
+                "
               />
             </div>
           </Panel>

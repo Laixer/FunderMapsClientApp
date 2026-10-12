@@ -144,7 +144,7 @@ export interface IDossierEntry {
 export interface IDossierAddress {
   /** What the values are grouped by: the address id, or `text:<address_text>` when unresolved. */
   key: string
-  /** Internal gfm- id, as stored on the dossier today; echo it, never mint one. */
+  /** BAG nummeraanduiding, the only address id there is (Worker #158); echo it, never mint one. */
   addressId: string | null
   /** BAG nummeraanduiding of `addressId`; the id to prefer when sending an address. Absent from older API builds. */
   addressExternalId?: string | null
