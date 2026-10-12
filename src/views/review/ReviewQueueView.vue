@@ -268,7 +268,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       <h1 class="text-lg font-bold text-ink">Controle</h1>
       <p class="text-md flex-1 text-muted">
         Alles wat binnenkwam, ook wat de pipeline niet kon lezen. Niets hiervan staat in
-        FunderMaps tot u het overneemt.
+        FunderMaps tot je het overneemt.
       </p>
       <span v-if="studio.controle != null" class="text-md font-mono tabular-nums text-faint">
         {{ studio.controle.toLocaleString('nl-NL') }} open

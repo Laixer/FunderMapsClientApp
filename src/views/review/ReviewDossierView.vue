@@ -1068,7 +1068,7 @@ async function commitDossier() {
       // Every inquiry refused: the dossier is closed as rejected, nothing was made.
       closed.value = 'rejected'
       void studio.refreshCounts(null)
-      toastSuccess('Afgewezen: er is niets in de database gezet. De melder krijgt één mail met uw antwoord.')
+      toastSuccess('Afgewezen: er is niets in de database gezet. De melder krijgt één mail met je antwoord.')
       await openNext(data.value.dossier.id, 'rejected')
       return
     }
@@ -2129,7 +2129,7 @@ async function reopen(f: IProposedField) {
                     variant="primary"
                     label="Overnemen"
                     :disabled="busy === f.id || isRefused(f) || draftedChange(f)"
-                    :title="draftedChange(f) ? 'U heeft hieronder iets ingevuld: kies Aanpassen en overnemen of Afkeuren met toelichting' : ''"
+                    :title="draftedChange(f) ? 'Je hebt hieronder iets ingevuld: kies Aanpassen en overnemen of Afkeuren met toelichting' : ''"
                     @click="decide(f, 'confirmed')"
                   />
                   <!-- No bare Afkeuren here (Don, #348): a rejection is either a
@@ -2234,7 +2234,7 @@ async function reopen(f: IProposedField) {
                confirmed proposal with a "human added" finding (Don's casus 2). -->
           <Panel v-if="!loading && data && !closed && !data.dossier.outcome && !isAudit && !answerMode" caption="WAARDE TOEVOEGEN">
             <div v-if="!addOpen" class="flex items-center justify-between gap-3">
-              <p class="text-sm text-muted">Ziet u iets in het document dat hierboven niet staat? Voeg de waarde toe; het model leert ervan.</p>
+              <p class="text-sm text-muted">Zie je iets in het document dat hierboven niet staat? Voeg de waarde toe; het model leert ervan.</p>
               <Button label="Waarde toevoegen" variant="secondary" @click="addOpen = true" />
             </div>
             <div v-else class="grid grid-cols-2 gap-x-3 gap-y-2">
