@@ -171,7 +171,7 @@ export async function commit(
     /** True when the dossier was a nalezing: the rapportage was updated, not created. */
     audit?: boolean
     /** Every rapportage made, in group order (API #223); the top-level fields describe the first. */
-    rapportages?: { inquiryId: number; samples: number; type: string; documentDate: string; documentName: string; artifactIds: number[] }[]
+    rapportages?: { inquiryId: number; samples: number; emptySamples?: number; type: string; documentDate: string; documentName: string; artifactIds: number[] }[]
     /** The numbers of the refused rapportages. */
     rejected?: number[]
     /** On a nalezing: how many values were written. */

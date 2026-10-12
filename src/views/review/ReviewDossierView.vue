@@ -478,8 +478,9 @@ async function closeDossier(outcome: DossierOutcome) {
     document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
     return
   }
-  // A standard answer with an unfilled blank goes to the melder as "…" (2026-10-02).
-  if (hasBlank(closeNote.value)) {
+  // A standard answer with an unfilled blank goes to the melder as "…" (2026-10-02);
+  // a text over the limit is said in the field, so it is not sent either.
+  if (hasBlank(closeNote.value) || closeNote.value.length > ANSWER_MAX) {
     document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
     return
   }
@@ -1057,7 +1058,8 @@ async function commitDossier() {
             type: commitType.value ?? undefined,
             documentDate: commitDate.value ?? undefined,
             contractor: commitContractor.value ? Number(commitContractor.value) : undefined,
-            closingNote: commitNote.value || undefined,
+            // A nalezing sends no closing mail; the API ignores a Reden there.
+            closingNote: isAudit.value ? undefined : commitNote.value || undefined,
           },
     )
     if (r.inquiryId == null) {
@@ -1073,6 +1075,13 @@ async function commitDossier() {
     if (r.rapportages && r.rapportages.length > 1) {
       void studio.refreshCounts(null)
       toastSuccess(`${r.rapportages.length} rapportages aangemaakt: ${r.rapportages.map((m) => `#${m.inquiryId}`).join(', ')}.`)
+      // An address ticked for an inquiry whose files give no values for it: the
+      // sample is there, empty. Name the rapportages so they can be filled in.
+      const empty = r.rapportages.filter((m) => m.emptySamples)
+      if (empty.length) {
+        const n = empty.reduce((t, m) => t + (m.emptySamples ?? 0), 0)
+        toastInfo(`${n} adres${n === 1 ? '' : 'sen'} nog zonder gegevens in ${empty.map((m) => `#${m.inquiryId}`).join(', ')}; vul die in bij de rapportage.`)
+      }
       await openNext(data.value.dossier.id, 'accepted')
       return
     }
