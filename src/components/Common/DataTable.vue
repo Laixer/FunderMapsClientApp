@@ -86,117 +86,125 @@ function rowClass(row: T): string {
 </script>
 
 <template>
-  <div role="table" class="min-w-0">
-    <div
-      role="row"
-      class="text-xs sticky top-0 z-2 grid items-center gap-0 border-b border-line bg-raised px-5 py-2 font-bold tracking-[0.07em] text-label uppercase"
-      :style="{ gridTemplateColumns: template }"
-    >
-      <button
-        v-if="selectable"
-        type="button"
-        class="flex h-3 w-3 items-center justify-center rounded-xs border"
-        :class="allSelected ? 'border-blue bg-blue' : 'border-line-hover bg-surface'"
-        :aria-label="allSelected ? 'Selectie wissen' : 'Alles selecteren'"
-        :aria-pressed="allSelected"
-        @click="emit('toggleAll')"
+  <!-- role="table" holds rows and nothing else: a screen reader announces a
+       table by its rows and cells, and anything loose in between (the select
+       box, the empty line, the footer) breaks that. -->
+  <div class="min-w-0">
+    <div role="table">
+      <div
+        role="row"
+        class="text-xs sticky top-0 z-2 grid items-center gap-0 border-b border-line bg-raised px-5 py-2 font-bold tracking-[0.07em] text-label uppercase"
+        :style="{ gridTemplateColumns: template }"
       >
-        <span v-if="allSelected" class="text-2xs leading-none text-white" aria-hidden="true">✓</span>
-      </button>
+        <div v-if="selectable" role="columnheader" class="flex items-center">
+          <button
+            type="button"
+            class="flex h-3 w-3 items-center justify-center rounded-xs border"
+            :class="allSelected ? 'border-blue bg-blue' : 'border-line-hover bg-surface'"
+            :aria-label="allSelected ? 'Selectie wissen' : 'Alles selecteren'"
+            :aria-pressed="allSelected"
+            @click="emit('toggleAll')"
+          >
+            <span v-if="allSelected" class="text-2xs leading-none text-white" aria-hidden="true">✓</span>
+          </button>
+        </div>
 
-      <component
-        :is="column.sortable ? 'button' : 'span'"
-        v-for="column in columns"
-        :key="column.field"
-        role="columnheader"
-        :type="column.sortable ? 'button' : undefined"
-        class="flex items-center gap-1 truncate"
-        :class="[
-          column.align === 'right' ? 'justify-end' : 'justify-start',
-          column.sortable && 'hover:text-subtle',
-        ]"
-        :aria-sort="
-          sortField === column.field
-            ? sortOrder === 'asc'
-              ? 'ascending'
-              : 'descending'
-            : undefined
-        "
-        @click="column.sortable && emit('sort', column.field)"
-      >
-        {{ column.title }}
-        <span v-if="column.sortable && sortField === column.field" aria-hidden="true">
-          {{ sortOrder === 'asc' ? '▲' : '▼' }}
-        </span>
-      </component>
+        <component
+          :is="column.sortable ? 'button' : 'span'"
+          v-for="column in columns"
+          :key="column.field"
+          role="columnheader"
+          :type="column.sortable ? 'button' : undefined"
+          class="flex items-center gap-1 truncate"
+          :class="[
+            column.align === 'right' ? 'justify-end' : 'justify-start',
+            column.sortable && 'hover:text-subtle',
+          ]"
+          :aria-sort="
+            sortField === column.field
+              ? sortOrder === 'asc'
+                ? 'ascending'
+                : 'descending'
+              : undefined
+          "
+          @click="column.sortable && emit('sort', column.field)"
+        >
+          {{ column.title }}
+          <span v-if="column.sortable && sortField === column.field" aria-hidden="true">
+            {{ sortOrder === 'asc' ? '▲' : '▼' }}
+          </span>
+        </component>
+      </div>
+
+      <!-- Skeleton rows keep the table's shape while it loads, so nothing jumps
+           when the data lands. `animate-pulse` is already neutralised by the
+           global prefers-reduced-motion rule. -->
+      <template v-if="loading">
+        <div
+          v-for="n in skeletonRows"
+          :key="`skeleton-${n}`"
+          class="grid items-center gap-0 border-b border-divider px-5 py-2.5"
+          :style="{ gridTemplateColumns: template }"
+          aria-hidden="true"
+        >
+          <span v-if="selectable" />
+          <span v-for="(column, i) in columns" :key="column.field" class="pr-3">
+            <span
+              class="block h-3 animate-pulse rounded-xs bg-divider"
+              :class="SKELETON_WIDTHS[i % SKELETON_WIDTHS.length]"
+            />
+          </span>
+        </div>
+      </template>
+
+      <template v-else>
+        <div
+          v-for="row in rows"
+          :key="row.id"
+          role="row"
+          tabindex="0"
+          class="grid cursor-pointer items-center gap-0 border-b border-divider px-5 py-2.5"
+          :class="rowClass(row)"
+          :style="{ gridTemplateColumns: template }"
+          :aria-selected="activeId === row.id"
+          @click="emit('select', row)"
+          @keydown.enter.prevent="emit('select', row)"
+          @keydown.space.prevent="emit('select', row)"
+        >
+          <!-- Stops at the checkbox: staging a row for a bulk action should not
+               also swing the inspector over to it. -->
+          <div v-if="selectable" role="cell" class="flex items-center">
+            <button
+              type="button"
+              class="flex h-3 w-3 items-center justify-center rounded-xs border"
+              :class="selectedIds?.has(row.id) ? 'border-blue bg-blue' : 'border-line-hover bg-surface'"
+              :aria-label="`Rij ${row.id} selecteren`"
+              :aria-pressed="selectedIds?.has(row.id) ?? false"
+              @click.stop="emit('toggle', row)"
+            >
+              <span v-if="selectedIds?.has(row.id)" class="text-2xs leading-none text-white" aria-hidden="true">
+                ✓
+              </span>
+            </button>
+          </div>
+
+          <div
+            v-for="column in columns"
+            :key="column.field"
+            role="cell"
+            class="min-w-0 truncate pr-3 last:pr-0"
+            :class="column.align === 'right' && 'text-right'"
+          >
+            <slot :name="column.field" :row="row" />
+          </div>
+        </div>
+      </template>
     </div>
 
-    <!-- Skeleton rows keep the table's shape while it loads, so nothing jumps
-         when the data lands. `animate-pulse` is already neutralised by the
-         global prefers-reduced-motion rule. -->
-    <template v-if="loading">
-      <div
-        v-for="n in skeletonRows"
-        :key="`skeleton-${n}`"
-        class="grid items-center gap-0 border-b border-divider px-5 py-2.5"
-        :style="{ gridTemplateColumns: template }"
-        aria-hidden="true"
-      >
-        <span v-if="selectable" />
-        <span v-for="(column, i) in columns" :key="column.field" class="pr-3">
-          <span
-            class="block h-3 animate-pulse rounded-xs bg-divider"
-            :class="SKELETON_WIDTHS[i % SKELETON_WIDTHS.length]"
-          />
-        </span>
-      </div>
-      <p class="sr-only" role="status">Laden…</p>
-    </template>
-
+    <p v-if="loading" class="sr-only" role="status">Laden…</p>
     <p v-else-if="!rows.length" class="text-md border-b border-divider px-5 py-6 text-muted">
       {{ emptyMessage }}
     </p>
-
-    <div
-      v-for="row in rows"
-      v-else
-      :key="row.id"
-      role="row"
-      tabindex="0"
-      class="grid cursor-pointer items-center gap-0 border-b border-divider px-5 py-2.5"
-      :class="rowClass(row)"
-      :style="{ gridTemplateColumns: template }"
-      :aria-selected="activeId === row.id"
-      @click="emit('select', row)"
-      @keydown.enter.prevent="emit('select', row)"
-      @keydown.space.prevent="emit('select', row)"
-    >
-      <!-- Stops at the checkbox: staging a row for a bulk action should not
-           also swing the inspector over to it. -->
-      <button
-        v-if="selectable"
-        type="button"
-        class="flex h-3 w-3 items-center justify-center rounded-xs border"
-        :class="selectedIds?.has(row.id) ? 'border-blue bg-blue' : 'border-line-hover bg-surface'"
-        :aria-label="`Rij ${row.id} selecteren`"
-        :aria-pressed="selectedIds?.has(row.id) ?? false"
-        @click.stop="emit('toggle', row)"
-      >
-        <span v-if="selectedIds?.has(row.id)" class="text-2xs leading-none text-white" aria-hidden="true">
-          ✓
-        </span>
-      </button>
-
-      <div
-        v-for="column in columns"
-        :key="column.field"
-        role="cell"
-        class="min-w-0 truncate pr-3 last:pr-0"
-        :class="column.align === 'right' && 'text-right'"
-      >
-        <slot :name="column.field" :row="row" />
-      </div>
-    </div>
 
     <div v-if="$slots.footer" class="flex items-center gap-3 px-5 py-3">
       <slot name="footer" />
