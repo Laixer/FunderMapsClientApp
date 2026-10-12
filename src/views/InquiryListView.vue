@@ -405,7 +405,7 @@ const MODES: { key: Mode; label: string }[] = [
           v-model="search"
           type="search"
           class="studio-control"
-          placeholder="Filter op naam, ID, adres of pand-ID"
+          placeholder="Filter op naam, nummer of BAG-ID"
           aria-label="Zoeken in rapportages"
         />
       </div>

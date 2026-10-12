@@ -327,7 +327,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           v-model="search"
           type="search"
           class="studio-control"
-          placeholder="Filter op kenmerk, naam, adres, pand-ID of e-mail"
+          placeholder="Filter op kenmerk, onderwerp, bestandsnaam, BAG-ID of e-mail"
           aria-label="Zoeken in de controlelijst"
         />
       </div>

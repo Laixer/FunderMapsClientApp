@@ -127,6 +127,20 @@ export const INQUIRY_TYPE_CODE_OPTIONS: SelectOption[] = Object.entries(
  * What the melder's label becomes as an inquiry type. Mirrors
  * TYPE_FROM_CATEGORY in the API's dataops-commit.ts: keep the two in step.
  */
+/**
+ * The same choices in the words the melder saw on the upload form (the melden
+ * site's ATTACHMENT_CATEGORIES: keep the two in step). The hint under "Soort
+ * rapport" used to print the stored code: "(label 'archieveresearch')".
+ */
+const CATEGORY_LABEL: Record<string, string> = {
+  archieveresearch: 'Bouwtekening / archiefstuk',
+  foundationresearch: 'Funderingsonderzoek (Fase 1 of 2)',
+  quickscan: 'QuickScan / Fase 0',
+  herstelbewijs: 'Bewijs van funderingsherstel',
+  foto: 'Foto’s van de woning',
+  overig: 'Anders / weet ik niet',
+}
+
 const TYPE_FROM_CATEGORY: Record<string, string> = {
   foundationresearch: 'foundation_research',
   archieveresearch: 'archive_research',
@@ -148,8 +162,11 @@ export function derivedInquiryType(category: string | null | undefined, lane: st
   from: string
 } {
   const fromLabel = category ? TYPE_FROM_CATEGORY[category] : undefined
-  if (fromLabel) return { code: fromLabel, from: `label '${category}'` }
-  return { code: lane === 'text' ? 'foundation_research' : 'archive_research', from: category ? `onbekend label '${category}'` : 'geen label' }
+  if (fromLabel) return { code: fromLabel, from: `de melder koos “${CATEGORY_LABEL[category!] ?? category}”` }
+  return {
+    code: lane === 'text' ? 'foundation_research' : 'archive_research',
+    from: category ? `de melder koos “${category}”, dat kennen we niet` : 'de melder koos geen soort',
+  }
 }
 
 /** `report.foundation_quality`. The four-step `report.quality` (nil/small/mediocre/large) is a different scale and is left as its code until the pipeline emits it. */
