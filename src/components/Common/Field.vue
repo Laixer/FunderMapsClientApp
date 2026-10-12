@@ -25,6 +25,8 @@ export type FieldKind = 'text' | 'number' | 'date' | 'select' | 'textarea'
 const props = withDefaults(
   defineProps<{
     label?: string
+    /** Names the control for a screen reader when there is no visible label (a panel caption does that job on screen). */
+    ariaLabel?: string
     kind?: FieldKind
     options?: SelectOption[]
     placeholder?: string
@@ -94,6 +96,7 @@ const frameClass = computed(() => {
         :rows="rows"
         :placeholder="placeholder"
         :disabled="disabled"
+        :aria-label="label ? undefined : ariaLabel"
         :aria-invalid="error ? true : undefined"
         :aria-describedby="error || hint ? `${id}-help` : undefined"
       />
@@ -110,6 +113,7 @@ const frameClass = computed(() => {
         v-model="model"
         class="studio-control"
         :disabled="disabled"
+        :aria-label="label ? undefined : ariaLabel"
         :aria-invalid="error ? true : undefined"
         :aria-describedby="error || hint ? `${id}-help` : undefined"
       >
@@ -133,6 +137,7 @@ const frameClass = computed(() => {
         :min="min"
         :max="max"
         :step="step"
+        :aria-label="label ? undefined : ariaLabel"
         :aria-invalid="error ? true : undefined"
         :aria-describedby="error || hint ? `${id}-help` : undefined"
       />

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { watchEffect } from 'vue'
+
 /**
  * The chrome for the pages that exist outside the studio: the OIDC hand-off and
  * the 404.
@@ -7,7 +9,11 @@
  * you are passing through, and the previous version's full-bleed background
  * image made a two-second redirect look like a destination.
  */
-defineProps<{ title?: string }>()
+const props = defineProps<{ title?: string }>()
+
+watchEffect(() => {
+  document.title = props.title ? `${props.title} · FunderMaps Studio` : 'FunderMaps Studio'
+})
 </script>
 
 <template>

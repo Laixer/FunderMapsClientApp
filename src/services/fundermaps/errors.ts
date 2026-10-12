@@ -111,6 +111,17 @@ export function getErrorMessage(err: unknown): string | null {
 }
 
 /**
+ * Whether the API said "there is no such thing" (404). A dossier that does not
+ * exist is not a failed request: the screen should say so and offer a way back,
+ * not show an empty dossier.
+ */
+export function isNotFound(err: unknown): boolean {
+  if (err instanceof APIErrorResponse) return err.status === 404
+  if (err instanceof APICallError) return isNotFound(err.err)
+  return false
+}
+
+/**
  * What to put in front of a person when a write fails.
  *
  * `getErrorMessage` returns whatever the server said, which for this API is

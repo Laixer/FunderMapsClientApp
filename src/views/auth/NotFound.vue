@@ -8,7 +8,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <AuthWrapper title="404">
+  <AuthWrapper title="Pagina niet gevonden">
     <div
       class="flex w-full max-w-md flex-col items-center gap-2 rounded-2xl border border-line bg-surface px-8 py-7 text-center"
     >

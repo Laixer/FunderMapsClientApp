@@ -305,6 +305,7 @@ onBeforeMount(async () => {
           <Field
             v-model="form.note"
             kind="textarea"
+            aria-label="Notitie voor de beoordelaar"
             :rows="4"
             placeholder="Optionele notitie voor de beoordelaar…"
           />

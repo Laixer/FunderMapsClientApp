@@ -20,7 +20,7 @@ import api from '@/services/fundermaps'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
 import type { IRecoverySample } from '@/services/fundermaps/interfaces/IRecoverySample'
 import type { DocumentFileInfo } from '@/services/documentFile'
-import { describeFailure } from '@/services/fundermaps/errors'
+import { describeFailure, isNotFound } from '@/services/fundermaps/errors'
 import {
   AUDIT_STATUS,
   FACADE_LABELS,
@@ -67,6 +67,8 @@ const events: Ref<DossierEvent[]> = ref([])
 const documentFile: Ref<DocumentFileInfo | null> = ref(null)
 const documentLoading = ref(true)
 const loading = ref(true)
+// Why there is nothing to show: the number does not exist, or the request failed.
+const loadFailure = ref<'missing' | 'failed' | null>(null)
 const showRejectModal = ref(false)
 
 const status = computed(() => recovery.value?.state?.auditStatus ?? null)
@@ -100,6 +102,7 @@ const completeness = computed(() => {
 })
 
 async function load() {
+  loadFailure.value = null
   try {
     loading.value = true
     const [r, s] = await Promise.all([
@@ -111,7 +114,13 @@ async function load() {
     remember('recovery', r.id, r.documentName)
     await addressStore.ensureMany(s.map((row) => row.building))
   } catch (e) {
-    toastError(describeFailure(e, 'Dit dossier kon niet worden geladen.'))
+    // Said on the page itself (below), where it stays; a toast is gone in seconds.
+    loadFailure.value = isNotFound(e) ? 'missing' : 'failed'
+    if (loadFailure.value === 'failed') {
+      toastError(describeFailure(e, 'Dit dossier kon niet worden geladen.'))
+    }
+    // Nothing to enrich: skip the trail and the document.
+    return
   } finally {
     loading.value = false
   }
@@ -381,6 +390,28 @@ useActionShortcuts(() => {
           <EmptyState>Dossier ophalen…</EmptyState>
         </Panel>
 
+        <div v-else-if="loadFailure" class="flex flex-col items-start gap-3">
+          <h1 class="text-4xl font-display font-bold text-ink">
+            {{ loadFailure === 'missing' ? 'Herstel niet gevonden' : 'Herstel niet geladen' }}
+          </h1>
+          <p class="text-md max-w-xl text-muted">
+            <template v-if="loadFailure === 'missing'">
+              Er is geen herstel met nummer <span class="font-mono">#{{ route.params.id }}</span>.
+              Mogelijk is het verwijderd, of klopt het nummer in de link niet.
+            </template>
+            <template v-else>Het ophalen is mislukt. Probeer het opnieuw.</template>
+          </p>
+          <div class="flex gap-2">
+            <Button
+              v-if="loadFailure === 'failed'"
+              variant="primary"
+              label="Opnieuw proberen"
+              @click="load"
+            />
+            <Button label="Naar het hersteloverzicht" @click="router.push({ name: 'recovery-list' })" />
+          </div>
+        </div>
+
         <template v-else-if="recovery">
           <Panel>
             <template #header>
@@ -456,7 +487,10 @@ useActionShortcuts(() => {
         </template>
       </div>
 
-      <aside class="sticky top-[calc(var(--spacing-topbar)+1.5rem)] flex flex-col gap-4">
+      <aside
+        v-if="!loadFailure"
+        class="sticky top-[calc(var(--spacing-topbar)+1.5rem)] flex flex-col gap-4"
+      >
         <Panel caption="BETROKKEN">
           <ul v-if="involved.length" class="flex flex-col gap-2.5">
             <li v-for="person in involved" :key="person.role" class="flex items-center gap-2.5">

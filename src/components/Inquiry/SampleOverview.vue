@@ -44,6 +44,7 @@ function filledLabel(sample: IInquirySample): string {
             <ProgressBar
               :value="sampleCompleteness(sample)"
               :tone="countFilledSampleFields(sample) ? 'green' : 'red'"
+              :label="formatAddress(addressStore.cache[sample.address])"
             />
           </span>
           <span

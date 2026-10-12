@@ -20,7 +20,7 @@ import type {
   VerdictOutcome,
   DossierOutcome,
 } from '@/services/fundermaps/interfaces/IDataops'
-import { describeFailure } from '@/services/fundermaps/errors'
+import { describeFailure, isNotFound } from '@/services/fundermaps/errors'
 import { isPreviewableImageMime } from '@/services/documentFile'
 import { parseQuery, toQueueOpts } from '@/services/reviewExplorer'
 import { bareName, defaultGroups, groupOptions, groupsOf, isMergeable, type GroupChoice } from '@/services/rapportageGroups'
@@ -80,6 +80,8 @@ const session = useSessionStore()
 const data = ref<IReviewDossier | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+// The load answered 404: there is no such dossier (as opposed to a request that failed).
+const missing = ref(false)
 const busy = ref<number | null>(null)
 const decided = ref<Record<number, VerdictOutcome>>({})
 const notes = ref<Record<number, string>>({})
@@ -144,6 +146,7 @@ let openedAt = Date.now()
 async function load() {
   loading.value = true
   error.value = null
+  missing.value = false
   data.value = null
   busy.value = null
   closeTemplate.value = null
@@ -186,6 +189,7 @@ async function load() {
     }
     decided.value = seeded
   } catch (e) {
+    missing.value = isNotFound(e)
     error.value = describeFailure(e, 'Dit dossier kon niet worden geladen.')
   } finally {
     loading.value = false
@@ -1673,7 +1677,7 @@ async function reopen(f: IProposedField) {
     </header>
 
     <div
-      v-if="error"
+      v-if="error && !missing"
       class="text-md shrink-0 border-b border-red bg-red-tint px-6 py-2.5 text-red"
     >
       {{ error }}
@@ -1682,7 +1686,7 @@ async function reopen(f: IProposedField) {
     <!-- Half and half, not a fixed inspector: this screen lives on a wide
          monitor, and the judging happens on the right. A 380px column left
          the document with the room and the decisions with the scrollbar. -->
-    <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div v-if="loading || data" class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <!-- ------------------------------------------------------- document -->
       <section class="flex min-w-0 flex-col border-r border-line bg-sunken">
         <!-- Tabs only when there is something to choose between; the bar
@@ -2744,6 +2748,25 @@ async function reopen(f: IProposedField) {
           </Panel>
         </div>
       </aside>
+    </div>
+    <!-- The dossier did not load (the number does not exist, or the request
+         failed). The red bar above says which; without this the two panes
+         rendered empty and the right one announced "Alles beoordeeld". -->
+    <div v-else class="flex min-h-0 flex-1 flex-col items-start gap-3 px-6 py-6">
+      <h1 class="text-4xl font-display font-bold text-ink">
+        {{ missing ? 'Dossier niet gevonden' : 'Dossier niet geladen' }}
+      </h1>
+      <p class="text-md max-w-xl text-muted">
+        <template v-if="missing">
+          Er is geen dossier met nummer <span class="font-mono">#{{ route.params.id }}</span>.
+          Mogelijk klopt het nummer in de link niet.
+        </template>
+        <template v-else>Het ophalen is mislukt. Probeer het opnieuw.</template>
+      </p>
+      <div class="flex gap-2">
+        <Button v-if="!missing" variant="primary" label="Opnieuw proberen" @click="load" />
+        <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
+      </div>
     </div>
   </AppShell>
 </template>
