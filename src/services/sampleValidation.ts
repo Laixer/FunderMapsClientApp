@@ -299,7 +299,7 @@ export function findingsFor(sample: IInquirySample, context: SampleContext = {})
   if (recoveryAdvised === true && damageCause === null) {
     findings.push({
       id: 'advice-without-cause',
-      message: 'Er is funderingsherstel geadviseerd, maar er is geen schade-oorzaak ingevuld.',
+      message: 'Er is funderingsherstel geadviseerd, maar er is geen schadeoorzaak ingevuld.',
     })
   }
 

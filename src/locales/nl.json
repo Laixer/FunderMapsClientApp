@@ -59,7 +59,7 @@
     "view": {
       "back": "Terug naar rapportages",
       "reopen": "Heropenen",
-      "reopenConfirm": "Goedgekeurd rapport heropenen voor correcties? De status keert terug naar 'In behandeling'."
+      "reopenConfirm": "Goedgekeurd rapport heropenen voor correcties? De status keert terug naar 'In bewerking'."
     }
   },
   "recovery": {
@@ -81,7 +81,7 @@
     "view": {
       "back": "Terug naar herstel",
       "reopen": "Heropenen",
-      "reopenConfirm": "Goedgekeurd herstel-dossier heropenen voor correcties? De status keert terug naar 'In behandeling'."
+      "reopenConfirm": "Goedgekeurd herstel-dossier heropenen voor correcties? De status keert terug naar 'In bewerking'."
     }
   },
   "sample": {

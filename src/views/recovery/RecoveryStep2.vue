@@ -302,7 +302,7 @@ watch(
               class="text-sm self-start text-subtle underline underline-offset-2"
               @click="showPicker = false"
             >
-              annuleren
+              Annuleren
             </button>
           </div>
         </div>

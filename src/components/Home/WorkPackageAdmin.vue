@@ -36,16 +36,25 @@ const unavailable = ref(false)
 const personName = (u: IUser) =>
   [u.given_name, u.family_name].filter(Boolean).join(' ').trim() || u.email
 
+/**
+ * A package that was saved for someone and later left the catalogue has no
+ * checkbox here, so it could never be unticked. It is treated as not there,
+ * as Vandaag already does (`packagesFor`): not counted, not shown, and gone
+ * from the stored set the next time that colleague's packages are saved.
+ */
+const KNOWN = new Set(WORK_PACKAGES.map((p) => p.id))
+const knownOnly = (ids: string[] | undefined) => (ids ?? []).filter((id) => KNOWN.has(id))
+
 const options = computed(() =>
   colleagues.value
     .map((u) => ({
       value: u.id,
-      label: `${personName(u)}${assignments.value[u.id]?.length ? ` (${assignments.value[u.id]!.length})` : ''}`,
+      label: `${personName(u)}${knownOnly(assignments.value[u.id]).length ? ` (${knownOnly(assignments.value[u.id]).length})` : ''}`,
     }))
     .sort((a, b) => a.label.localeCompare(b.label, 'nl')),
 )
 
-const saved = computed(() => (userId.value ? (assignments.value[userId.value] ?? []) : []))
+const saved = computed(() => (userId.value ? knownOnly(assignments.value[userId.value]) : []))
 const dirty = computed(() => [...draft.value].sort().join() !== [...saved.value].sort().join())
 
 onBeforeMount(async () => {
@@ -89,7 +98,7 @@ async function save() {
         : 'Leeg opgeslagen: de collega kiest weer zelf.',
     )
   } catch (e) {
-    toastError(describeFailure(e, 'Werkpakketten opslaan is niet gelukt'))
+    toastError(describeFailure(e, 'Werkpakketten opslaan is niet gelukt.'))
   } finally {
     saving.value = false
   }

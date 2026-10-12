@@ -20,8 +20,8 @@ export const FOUNDATION_TYPE_OPTIONS: SelectOption[] = [
   { value: 3, label: 'Beton' },
   { value: 4, label: 'Niet onderheid' },
   { value: 5, label: 'Niet onderheid: gemetseld' },
-  { value: 6, label: 'Niet onderheid: stroken fundering' },
-  { value: 7, label: 'Niet onderheid: fundering met dragen vloer' },
+  { value: 6, label: 'Niet onderheid: strokenfundering' },
+  { value: 7, label: 'Niet onderheid: fundering met dragende vloer' },
   { value: 8, label: 'Niet onderheid: dragende betonvloer' },
   { value: 9, label: 'Niet onderheid: slieten' },
   { value: 10, label: 'Hout met oplanger' },
@@ -51,9 +51,9 @@ export const FOUNDATION_DAMAGE_CAUSE_OPTIONS: SelectOption[] = [
   { value: 3, label: 'Overbelasting' },
   { value: 4, label: 'Overbelasting (negatieve kleef)' },
   { value: 5, label: 'Negatieve kleef' },
-  { value: 6, label: 'Bacteriele aantasting' },
-  { value: 8, label: 'Schimmel aantasting' },
-  { value: 9, label: 'Bacterien en schimmel aantasting' },
+  { value: 6, label: 'Bacteriële aantasting' },
+  { value: 8, label: 'Schimmelaantasting' },
+  { value: 9, label: 'Bacterie- en schimmelaantasting' },
   { value: 10, label: 'Funderingstechnische schade' },
   { value: 11, label: 'Afglijden fundering' },
   { value: 12, label: 'Bodemdaling' },
@@ -97,8 +97,8 @@ export const WOOD_TYPE_OPTIONS: SelectOption[] = [
 
 export const WOOD_ENCROACHMENT_OPTIONS: SelectOption[] = [
   { value: 0, label: 'Schimmelaantasting' },
-  { value: 1, label: 'Bacteriele- of schimmelaantasting' },
-  { value: 2, label: 'Bacteriele aantasting' },
+  { value: 1, label: 'Bacteriële of schimmelaantasting' },
+  { value: 2, label: 'Bacteriële aantasting' },
 ]
 
 export const CRACK_TYPE_OPTIONS: SelectOption[] = [

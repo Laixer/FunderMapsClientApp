@@ -250,7 +250,7 @@ const panels = computed(() => [
 
         <div v-if="p.total > p.rows.length" class="border-t border-divider px-4 py-2">
           <RouterLink :to="p.link" class="text-base font-semibold text-blue hover:underline">
-            Alle {{ p.total }} bekijken in Beoordelen →
+            Alle {{ p.total }} bekijken in Controle →
           </RouterLink>
         </div>
       </Panel>
