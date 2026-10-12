@@ -291,7 +291,7 @@ onBeforeMount(async () => {
               required
               :options="typeOptions"
               empty-label="Kies een type"
-              hint="QuickScan, Archief onderzoek, Notitie…"
+              hint="QuickScan, Archiefonderzoek, Notitie…"
               :error="errorFor('type')"
             />
             <Field

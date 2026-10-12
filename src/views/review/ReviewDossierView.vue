@@ -611,7 +611,7 @@ async function addContractor() {
     if (row.created) toastSuccess(`“${row.name}” toegevoegd en geselecteerd`)
     else toastInfo(`Stond al in de lijst als “${row.name}” — die is geselecteerd`)
   } catch (e) {
-    toastError(describeFailure(e, 'Toevoegen van de uitvoerder is niet gelukt'))
+    toastError(describeFailure(e, 'Toevoegen van de uitvoerder is niet gelukt.'))
   } finally {
     addingContractor.value = false
   }
@@ -1192,7 +1192,7 @@ async function onAddDocument(ev: Event) {
     )
     await load()
   } catch (e) {
-    toastError(describeFailure(e, 'Bestand toevoegen is niet gelukt'))
+    toastError(describeFailure(e, 'Bestand toevoegen is niet gelukt.'))
   } finally {
     addingDocument.value = false
   }

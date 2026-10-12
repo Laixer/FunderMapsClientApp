@@ -340,7 +340,7 @@ function handleReopen() {
   return run(
     {
       title: 'Heropenen',
-      body: "Goedgekeurd rapport heropenen voor correcties? De status keert terug naar 'In behandeling'.",
+      body: "Goedgekeurd rapport heropenen voor correcties? De status keert terug naar 'In bewerking'.",
       confirmLabel: 'Heropenen',
     },
     () => api.inquiry.reset(inquiryId.value),

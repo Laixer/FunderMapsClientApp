@@ -284,7 +284,7 @@ function handleReopen() {
   return run(
     {
       title: 'Heropenen',
-      body: "Goedgekeurd herstel-dossier heropenen voor correcties? De status keert terug naar 'In behandeling'.",
+      body: "Goedgekeurd herstel-dossier heropenen voor correcties? De status keert terug naar 'In bewerking'.",
       confirmLabel: 'Heropenen',
     },
     () => api.recovery.reset(recoveryId.value),

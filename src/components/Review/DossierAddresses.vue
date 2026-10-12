@@ -321,7 +321,7 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
           <Button
             v-if="rangeFound.length"
             variant="primary"
-            :label="busy === 'range' ? 'Bezig…' : `${Object.values(rangeChosen).filter(Boolean).length} adressen toevoegen`"
+            :label="busy === 'range' ? 'Bezig…' : Object.values(rangeChosen).filter(Boolean).length === 1 ? '1 adres toevoegen' : `${Object.values(rangeChosen).filter(Boolean).length} adressen toevoegen`"
             :disabled="busy !== null"
             @click="addRange"
           />

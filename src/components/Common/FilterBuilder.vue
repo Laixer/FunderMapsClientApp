@@ -220,7 +220,7 @@ const direction = computed(() => {
         </div>
 
         <p class="text-sm mt-2 text-label">
-          Klik dezelfde kolom nog eens om de richting om te draaien.
+          Klik nog eens op dezelfde kolom om de richting om te draaien.
           <template v-if="isDefaultSort(query)">Dit is de standaardvolgorde.</template>
         </p>
         <p v-if="query.sort === 'type' || query.sort === 'status'" class="text-sm mt-1 text-label">

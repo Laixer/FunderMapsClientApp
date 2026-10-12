@@ -108,7 +108,7 @@ export const FOUNDATION_TYPE_CODE_LABELS: Record<string, string> = {
   combined: 'Gecombineerd',
   no_pile: 'Niet onderheid',
   no_pile_masonry: 'Niet onderheid: gemetseld',
-  no_pile_strips: 'Niet onderheid: stroken fundering',
+  no_pile_strips: 'Niet onderheid: strokenfundering',
   no_pile_bearing_floor: 'Niet onderheid: fundering met dragende vloer',
   no_pile_concrete_floor: 'Niet onderheid: dragende betonvloer',
   no_pile_slit: 'Niet onderheid: slieten',

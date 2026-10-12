@@ -54,7 +54,7 @@ export function keyLabel(spec: string): string {
 
 /** The three worth pinning to the sidebar. The rest live behind `?`. */
 export const SIDEBAR_HINTS: readonly Shortcut[] = [
-  { keys: 'J', label: 'Volgende dossier' },
+  { keys: 'J', label: 'Volgend dossier' },
   { keys: '⇧A', label: 'Goedkeuren' },
   { keys: keyLabel('⌘S'), label: 'Opslaan' },
 ]
