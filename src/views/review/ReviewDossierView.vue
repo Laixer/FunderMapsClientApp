@@ -123,8 +123,10 @@ const closeTemplateHint = computed(() => {
  * with a rapportage. Cleared as soon as the reviewer picks an answer.
  */
 const autoNote = ref<string | null>(null)
+/** The prefilled text is still in the Reden, untouched, and this commit makes a rapportage: it stays here. */
+const autoNoteHeld = computed(() => !!autoNote.value && closeNote.value === autoNote.value && (!multiDoc.value || acceptedGroups.value.length > 0))
 /** The Reden as a commit sends it: what the reviewer wrote or picked, not what the screen prefilled. */
-const commitNote = computed(() => (closeNote.value === autoNote.value ? '' : closeNote.value.trim()))
+const commitNote = computed(() => (autoNoteHeld.value ? '' : closeNote.value.trim()))
 const closing = ref(false)
 const closed = ref<DossierOutcome | null>(null)
 /** The rapportage a commit made, for a link that outlives the toast (Don #321 §6). */
@@ -1030,7 +1032,7 @@ async function commitDossier() {
   if (!data.value) return
   // The Reden goes into the closing mail: an unfilled blank or a text the API
   // refuses is said in the field, as it is for the other closing buttons.
-  if (hasBlank(commitNote.value) || commitNote.value.length > ANSWER_MAX) {
+  if (!isAudit.value && (hasBlank(commitNote.value) || commitNote.value.length > ANSWER_MAX)) {
     document.querySelector<HTMLTextAreaElement>('#review-close-note textarea')?.focus()
     return
   }
@@ -2711,7 +2713,11 @@ async function reopen(f: IProposedField) {
                 :rows="answerMode ? 5 : 3"
                 label="Reden"
                 :error="noteError"
-                hint="Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage."
+                :hint="
+                  autoNoteHeld
+                    ? 'Automatisch gekozen omdat ons antwoord het laatste bericht is: gaat mee met sluiten zonder rapportage, niet met overnemen. Pas de tekst aan of kies zelf een antwoord om hem ook dan te versturen.'
+                    : 'Gaat als tekst in de mail aan de melder. Verplicht bij afwijzen, duplicaat en sluiten zonder rapportage.'
+                "
               />
             </div>
           </Panel>
