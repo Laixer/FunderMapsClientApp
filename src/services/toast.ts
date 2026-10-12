@@ -31,8 +31,12 @@ const DEFAULT_TTL_MS = 5000
 let nextId = 1
 
 function push(tone: Tone, message: string, options?: { sticky?: boolean }): number {
-  const id = nextId++
   const sticky = options?.sticky ?? false
+  // The same sticky message again is the same news: an autosave that keeps
+  // failing stacked a red toast per attempt, until the stack covered the form.
+  const standing = sticky ? toasts.value.find((toast) => toast.sticky && toast.tone === tone && toast.message === message) : undefined
+  if (standing) return standing.id
+  const id = nextId++
   toasts.value = [...toasts.value, { id, tone, message, sticky }]
   if (!sticky) setTimeout(() => dismiss(id), DEFAULT_TTL_MS)
   return id

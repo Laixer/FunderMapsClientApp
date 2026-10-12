@@ -134,6 +134,15 @@ export interface NextStep {
  * The wording names the responsible role and not the current user, because the
  * same panel is read by the person who is up and by the person waiting on them.
  */
+/**
+ * Whether a dossier in this state takes edits: the three states the API accepts
+ * a write in (todo, pending, rejected). Handed over for review or approved, it
+ * is locked, and a button into the editor only leads to refused saves.
+ */
+export function canEdit(status: number | null | undefined): boolean {
+  return status === AUDIT_STATUS.TODO || status === AUDIT_STATUS.PENDING || status === AUDIT_STATUS.REJECTED
+}
+
 export function nextStep(
   status: number | null | undefined,
   /** What the dossier is made of: a rapportage has adressen, a herstel has panden. */

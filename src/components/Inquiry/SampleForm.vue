@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+
+import { keyLabel } from '@/services/shortcuts'
 import { useI18n } from 'vue-i18n'
 import cloneDeep from 'lodash-es/cloneDeep'
 
@@ -96,6 +98,7 @@ function schedule() {
   timer = setTimeout(() => {
     timer = null
     dirty.value = false
+    failed.value = false
     emit('save', payload())
   }, AUTOSAVE_MS)
 }
@@ -108,10 +111,26 @@ function flush() {
   }
   if (!dirty.value) return
   dirty.value = false
+  failed.value = false
   emit('save', payload())
 }
 
-defineExpose({ flush, hasPendingEdits: computed(() => dirty.value) })
+/**
+ * The parent's write failed: what is on screen is not on the server.
+ *
+ * Without this the pill stayed green on "Opgeslagen" after a failed autosave,
+ * and the save shortcut had nothing left to send, so there was no way to try
+ * again short of changing a value. Only for the sample this form is showing: a
+ * late failure for the previous one must not mark this one.
+ */
+const failed = ref(false)
+function markUnsaved(sampleId: number) {
+  if (sampleId !== props.sample.id) return
+  dirty.value = true
+  failed.value = true
+}
+
+defineExpose({ flush, markUnsaved, hasPendingEdits: computed(() => dirty.value) })
 
 watch(
   () => props.sample.id,
@@ -119,6 +138,7 @@ watch(
     // Switching address must not carry the outgoing address's pending write
     // into the incoming one's payload.
     flush()
+    failed.value = false
     form.value = cloneDeep(props.sample)
   },
 )
@@ -205,6 +225,7 @@ const addressLabel = computed(() => formatAddress(addressStore.cache[form.value.
 /** What the header pill says about the last write. */
 const saveState = computed(() => {
   if (props.saving) return { label: 'Opslaan…', tone: 'blue' as const }
+  if (failed.value) return { label: `Niet opgeslagen · ${keyLabel('⌘S')} probeert opnieuw`, tone: 'red' as const }
   if (dirty.value) return { label: 'Niet opgeslagen', tone: 'amber' as const }
   return { label: 'Opgeslagen', tone: 'green' as const }
 })

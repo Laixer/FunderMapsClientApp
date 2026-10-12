@@ -90,10 +90,12 @@ function move(delta: number) {
     <p v-else-if="loading" class="text-sm text-muted">Zoeken…</p>
     <p v-if="error" class="text-sm text-red">{{ error }}</p>
 
-    <ul v-if="suggestions.length" class="overflow-hidden rounded-lg border border-line">
+    <ul v-if="suggestions.length" role="listbox" aria-label="Gevonden adressen" class="overflow-hidden rounded-lg border border-line">
       <li
         v-for="(suggestion, i) in suggestions"
         :key="suggestion.id"
+        role="option"
+        :aria-selected="i === cursor"
         class="text-md cursor-pointer border-b border-divider px-2.5 py-1.5 text-body last:border-b-0"
         :class="i === cursor ? 'bg-blue-wash' : 'hover:bg-raised'"
         @click="pick(suggestion)"
@@ -105,6 +107,10 @@ function move(delta: number) {
 
     <p v-else-if="query.trim().length >= 3 && !loading" class="text-sm text-muted">
       Geen suggesties.
+    </p>
+    <!-- One or two letters search nothing; say so instead of showing nothing. -->
+    <p v-else-if="query.trim().length > 0 && query.trim().length < 3" class="text-sm text-muted">
+      Typ minstens 3 tekens.
     </p>
   </div>
 </template>

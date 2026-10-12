@@ -96,6 +96,8 @@ const isPendingReview = computed(() => status.value === AUDIT_STATUS.PENDING_REV
 const isReopenable = computed(() => status.value === AUDIT_STATUS.DONE)
 
 async function load() {
+  // Leaving this screen changes the route first; without an id there is nothing to load.
+  if (!Number.isInteger(inquiryId.value)) return
   loadFailure.value = null
   try {
     loading.value = true
@@ -553,10 +555,15 @@ useActionShortcuts(() => {
 
                 <ul v-if="addressRows.length" class="flex flex-col gap-2">
                   <li v-for="address in addressRows" :key="address.id">
-                    <button
-                      type="button"
-                      class="flex w-full flex-col gap-2 rounded-xl border border-line px-3 py-2.5 text-left hover:border-line-hover hover:bg-raised"
-                      @click="goInvoer"
+                    <!-- A card that opens the editor only while the dossier can be
+                         edited. Handed over or approved, it is a plain card: it used to
+                         lead straight into the editor of a locked rapportage. -->
+                    <component
+                      :is="isEditable && canWrite ? 'button' : 'div'"
+                      :type="isEditable && canWrite ? 'button' : undefined"
+                      class="flex w-full flex-col gap-2 rounded-xl border border-line px-3 py-2.5 text-left"
+                      :class="isEditable && canWrite && 'hover:border-line-hover hover:bg-raised'"
+                      @click="isEditable && canWrite && goInvoer()"
                     >
                       <span class="flex items-center gap-2.5">
                         <span class="text-lg min-w-0 flex-1 truncate font-semibold text-body">
@@ -574,7 +581,7 @@ useActionShortcuts(() => {
                         :tone="address.filled ? 'green' : 'red'"
                         :label="address.label"
                       />
-                    </button>
+                    </component>
                   </li>
                 </ul>
                 <EmptyState v-else>Nog geen adressen toegevoegd.</EmptyState>

@@ -12,6 +12,7 @@ import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 
 import api from '@/services/fundermaps'
+import { byName } from '@/services/options'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { IUser } from '@/services/fundermaps/interfaces/IUser'
 import { describeFailure } from '@/services/fundermaps/errors'
@@ -186,7 +187,7 @@ useActionShortcuts(() => ({ '⌘S': () => void saveDraft(), '⌘↵': () => void
 onBeforeMount(async () => {
   try {
     const [c, r] = await Promise.all([api.contractor.list(), api.reviewer.list()])
-    contractors.value = c
+    contractors.value = byName(c)
     reviewers.value = r
 
     if (!isNew.value) {

@@ -54,7 +54,7 @@ const showPicker = ref(false)
 const selectedId = ref<number | null>(null)
 const selected = computed(() => samples.value.find((s) => s.id === selectedId.value) ?? null)
 
-const sampleForm = ref<{ flush: () => void } | null>(null)
+const sampleForm = ref<{ flush: () => void; markUnsaved: (sampleId: number) => void } | null>(null)
 
 async function load() {
   try {
@@ -162,6 +162,7 @@ async function handleSave(data: IRecoverySampleInput) {
     savedAt.value = new Date().toISOString()
   } catch (e) {
     if (index >= 0) samples.value[index] = previous
+    sampleForm.value?.markUnsaved(target.id)
     toastError(describeFailure(e, 'Opslaan van dit pand is niet gelukt.'))
   } finally {
     saving.value = false

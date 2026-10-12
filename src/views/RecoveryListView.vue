@@ -10,6 +10,7 @@ import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueLis
 import StatusBadge from '@/components/Common/StatusBadge.vue'
 
 import api from '@/services/fundermaps'
+import { canEdit } from '@/services/pipeline'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { recoveryDocumentTypeLabel } from '@/services/recoveryEnums'
@@ -195,6 +196,7 @@ watch(activeId, (id) => {
               @click="router.push({ name: 'recovery-view', params: { id: selected.id } })"
             />
             <Button
+              v-if="canEdit(selected.state?.auditStatus)"
               label="Invoer"
               @click="router.push({ name: 'recovery-edit-2', params: { id: selected.id } })"
             />

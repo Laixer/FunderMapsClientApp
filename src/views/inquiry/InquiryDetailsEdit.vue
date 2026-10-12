@@ -13,6 +13,7 @@ import Panel from '@/components/Common/Panel.vue'
 import ToggleChip from '@/components/Common/ToggleChip.vue'
 
 import api from '@/services/fundermaps'
+import { byName } from '@/services/options'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type { IUser } from '@/services/fundermaps/interfaces/IUser'
 import { describeFailure } from '@/services/fundermaps/errors'
@@ -212,7 +213,7 @@ useActionShortcuts(() => ({
 onBeforeMount(async () => {
   try {
     const [c, r] = await Promise.all([api.contractor.list(), api.reviewer.list()])
-    contractors.value = c
+    contractors.value = byName(c)
     reviewers.value = r
 
     {

@@ -84,7 +84,7 @@ watch(selectedId, () => {
   draft.value = null
 })
 
-const sampleForm = ref<{ flush: () => void } | null>(null)
+const sampleForm = ref<{ flush: () => void; markUnsaved: (sampleId: number) => void } | null>(null)
 
 /**
  * Per-sample record of which fields were prefilled from another address rather
@@ -292,6 +292,9 @@ async function handleSave(data: IInquirySampleInput) {
     savedAt.value = new Date().toISOString()
   } catch (e) {
     if (index >= 0) samples.value[index] = previous
+    // The form keeps what was typed; tell it that it is not saved, so the pill
+    // says so and the save shortcut can send it again.
+    sampleForm.value?.markUnsaved(target.id)
     toastError(describeFailure(e, 'Opslaan van dit adres is niet gelukt.'))
   } finally {
     saving.value = false

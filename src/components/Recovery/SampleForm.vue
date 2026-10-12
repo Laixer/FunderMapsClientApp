@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, watch, type Ref } from 'vue'
 
+import { keyLabel } from '@/services/shortcuts'
+
 import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import ToggleChip from '@/components/Common/ToggleChip.vue'
 
 import api from '@/services/fundermaps'
+import { byName } from '@/services/options'
 import type { IContractor } from '@/services/fundermaps/interfaces/IContractor'
 import type {
   IRecoverySample,
@@ -69,6 +72,7 @@ function schedule() {
   timer = setTimeout(() => {
     timer = null
     dirty.value = false
+    failed.value = false
     emit('save', payload())
   }, AUTOSAVE_MS)
 }
@@ -80,10 +84,26 @@ function flush() {
   }
   if (!dirty.value) return
   dirty.value = false
+  failed.value = false
   emit('save', payload())
 }
 
-defineExpose({ flush })
+/**
+ * The parent's write failed: what is on screen is not on the server.
+ *
+ * Without this the pill stayed green on "Opgeslagen" after a failed autosave,
+ * and the save shortcut had nothing left to send, so there was no way to try
+ * again short of changing a value. Only for the sample this form is showing: a
+ * late failure for the previous one must not mark this one.
+ */
+const failed = ref(false)
+function markUnsaved(sampleId: number) {
+  if (sampleId !== props.sample.id) return
+  dirty.value = true
+  failed.value = true
+}
+
+defineExpose({ flush, markUnsaved })
 
 watch(
   () => props.sample.id,
@@ -122,7 +142,7 @@ function toggleFacade(value: number) {
 
 onBeforeMount(async () => {
   try {
-    contractors.value = await api.contractor.list()
+    contractors.value = byName(await api.contractor.list())
   } catch {
     // The contractor list is a convenience here; losing it costs one dropdown.
   }
@@ -132,6 +152,7 @@ const addressLabel = computed(() => formatAddress(addressStore.cache[form.value.
 
 const saveState = computed(() => {
   if (props.saving) return { label: 'Opslaan…', tone: 'blue' as const }
+  if (failed.value) return { label: `Niet opgeslagen · ${keyLabel('⌘S')} probeert opnieuw`, tone: 'red' as const }
   if (dirty.value) return { label: 'Niet opgeslagen', tone: 'amber' as const }
   return { label: 'Opgeslagen', tone: 'green' as const }
 })

@@ -83,7 +83,7 @@ function onChange(event: Event) {
       @drop.prevent="onDrop"
     >
       <label :for="id" class="text-lg cursor-pointer font-bold text-strong">
-        Sleep de PDF hierheen
+        Sleep het document hierheen
       </label>
       <p class="text-base text-subtle">
         of
@@ -92,7 +92,7 @@ function onChange(event: Event) {
         </label>
         · max {{ formatBytes(maxBytes) }}
       </p>
-      <p class="text-xs font-mono text-label">naam en datum worden uitgelezen</p>
+      <p class="text-xs font-mono text-label">de naam wordt voorgesteld uit de bestandsnaam</p>
       <input
         :id="id"
         ref="input"

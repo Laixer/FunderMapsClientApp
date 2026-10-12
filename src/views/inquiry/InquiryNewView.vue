@@ -41,6 +41,7 @@ const router = useRouter()
 const studio = useStudioStore()
 
 const ACCEPT = 'application/pdf,image/jpeg,image/png,image/tiff'
+const ACCEPTED_TYPES = new Set(ACCEPT.split(','))
 const MAX_BYTES = 40 * 1024 * 1024
 const MAX_FILES = 10
 
@@ -62,6 +63,12 @@ function add(list: FileList | File[] | null) {
     }
     if (f.size > MAX_BYTES) {
       error.value = `${f.name} is groter dan ${formatBytes(MAX_BYTES)}.`
+      continue
+    }
+    // The file picker filters on type; a drop does not. A spreadsheet or a video
+    // used to enter the list and enable "Aanmaken en lezen".
+    if (!ACCEPTED_TYPES.has(f.type)) {
+      error.value = `${f.name} is geen PDF of afbeelding (JPEG, PNG of TIFF).`
       continue
     }
     if (files.value.some((x) => x.name === f.name && x.size === f.size)) continue
@@ -137,7 +144,14 @@ useActionShortcuts(() => ({ '⌘↵': submit }))
           dan maak je vanuit de controle alsnog een rapportage aan en vul je die met de hand.
         </p>
 
-        <Panel caption="DOCUMENT" :meta="files.length ? `${files.length} · ${formatBytes(totalBytes)}` : undefined">
+        <Panel
+          caption="DOCUMENT"
+          :meta="
+            files.length
+              ? `${files.length} ${files.length === 1 ? 'bestand' : 'bestanden'} · ${formatBytes(totalBytes)}`
+              : undefined
+          "
+        >
           <div
             class="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors"
             :class="dragging ? 'border-green bg-green-tint' : 'border-line bg-sunken'"
@@ -149,8 +163,8 @@ useActionShortcuts(() => ({ '⌘↵': submit }))
             <p class="text-md text-body">Sleep het rapport hierheen, of</p>
             <Button label="Kies bestanden" @click="fileInput?.click()" />
             <p class="text-sm text-faint">
-              PDF of afbeelding · max {{ formatBytes(MAX_BYTES) }} per bestand · meerdere bestanden =
-              één dossier
+              PDF of afbeelding · max {{ formatBytes(MAX_BYTES) }} per bestand · tot
+              {{ MAX_FILES }} bestanden = één dossier
             </p>
             <input
               ref="fileInput"
@@ -170,7 +184,7 @@ useActionShortcuts(() => ({ '⌘↵': submit }))
             >
               <span class="min-w-0 flex-1 truncate text-body">{{ f.name }}</span>
               <span class="shrink-0 font-mono text-sm text-faint">{{ formatBytes(f.size) }}</span>
-              <Button label="Verwijder" @click="remove(i)" />
+              <Button label="Verwijder" :aria-label="`${f.name} verwijderen`" @click="remove(i)" />
             </li>
           </ul>
 
