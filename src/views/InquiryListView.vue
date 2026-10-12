@@ -272,6 +272,7 @@ let selectionToken = 0
 
 async function select(row: IInquiry) {
   selected.value = row
+  setActive(row.id)
   const token = ++selectionToken
   inspectorLoading.value = true
   selectedPins.value = []
@@ -327,14 +328,15 @@ const inspectorSummary = computed(() => {
 
 // j / k / Enter over the table. Enter opens the dossier; j/k only move the
 // inspector, which is the whole point of the two-pane layout.
-const { activeId } = useRowKeyboard({
+const { activeId, setActive } = useRowKeyboard({
   rows: visibleRows,
   onOpen: (row) => router.push({ name: 'inquiry-view', params: { id: row.id } }),
 })
 
 watch(activeId, (id) => {
   const row = visibleRows.value.find((r) => r.id === id)
-  if (row) select(row)
+  // Not the row that is selected already: a click sets both, and must not load its summary twice.
+  if (row && selected.value?.id !== row.id) select(row)
 })
 
 /* ------------------------------------------------------------- view modes */

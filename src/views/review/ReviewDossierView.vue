@@ -110,14 +110,24 @@ const closeNote = ref('')
  * overwritten. The outcome stays the reviewer's click.
  */
 const closeTemplate = ref<string | null>(null)
+/** The last pick left the Reden alone, because it held hand-typed text. */
+const closeTemplateSkipped = ref(false)
 watch(closeTemplate, (v, prev) => {
   const next = CLOSE_TEMPLATES.find((t) => t.value === v)
   const prevText = CLOSE_TEMPLATES.find((t) => t.value === prev)?.text
-  if (next && (!closeNote.value.trim() || closeNote.value === prevText)) closeNote.value = next.text
+  const fills = !!next && (!closeNote.value.trim() || closeNote.value === prevText)
+  if (next && fills) closeNote.value = next.text
+  closeTemplateSkipped.value = !!next && !fills
 })
 const closeTemplateHint = computed(() => {
   const t = CLOSE_TEMPLATES.find((x) => x.value === closeTemplate.value)
-  return t ? `Hoort bij “${OUTCOME_HINT[t.outcome]}”; pas de tekst aan waar nodig.` : 'Vult de reden met een vaste tekst; daarna aanpassen waar nodig.'
+  if (!t) return 'Vult de reden met een vaste tekst; daarna aanpassen waar nodig.'
+  // Hand-typed text is never overwritten (above), so a pick made after typing
+  // changes nothing. Say so: the list showed the pick as if it had been used.
+  if (closeTemplateSkipped.value) {
+    return 'Niet ingevuld: de Reden bevat je eigen tekst. Maak de Reden leeg en kies het standaardantwoord opnieuw.'
+  }
+  return `Hoort bij “${OUTCOME_HINT[t.outcome]}”; pas de tekst aan waar nodig.`
 })
 /**
  * The text the screen picked by itself (see "our answer is the last word"

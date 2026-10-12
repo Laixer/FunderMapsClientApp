@@ -75,6 +75,25 @@ const value = computed({
   set: (v) => update(v),
 })
 
+/**
+ * A number outside the field's own range gets a line, and nothing more: it is
+ * still sent (a tool that refuses what the report says gets worked around).
+ * The range sat on the input as min/max, where the browser shows it to nobody:
+ * -99999 m NAP went in without a word.
+ */
+const rangeRemark = computed(() => {
+  if (props.field.kind !== 'number' || typeof props.modelValue !== 'number') return null
+  const { min, max } = props.field
+  const nl = (n: number) => n.toLocaleString('nl-NL')
+  if (min !== undefined && props.modelValue < min) {
+    return max !== undefined ? `Buiten het bereik van ${nl(min)} tot ${nl(max)}. Klopt de waarde?` : `Lager dan ${nl(min)}. Klopt de waarde?`
+  }
+  if (max !== undefined && props.modelValue > max) {
+    return min !== undefined ? `Buiten het bereik van ${nl(min)} tot ${nl(max)}. Klopt de waarde?` : `Hoger dan ${nl(max)}. Klopt de waarde?`
+  }
+  return null
+})
+
 const pending = computed(() => props.provenance !== undefined && !isConfirmed(props.provenance))
 const confirmed = computed(() => isConfirmed(props.provenance))
 
@@ -121,7 +140,7 @@ const inheritedFromAddress = computed(() =>
       :max="field.max"
       :step="field.step"
       :hint="pending || confirmed ? undefined : field.hint"
-      :error="warning"
+      :error="warning ?? rangeRemark"
       empty-label="—"
     />
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref, watch, type Ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { refDebounced } from '@vueuse/core'
 
 import AppShell from '@/components/Layout/AppShell.vue'
@@ -30,15 +30,36 @@ import { useRowKeyboard } from '@/services/useRowKeyboard'
  * inspector are the whole job.
  */
 const router = useRouter()
+const route = useRoute()
 
 /** Same page as the explorer — see `PAGE_SIZE` in `services/explorer.ts`. */
 const PAGE_SIZE = 20
 
+/**
+ * The search text and the page live in the address, as on Rapportages: a
+ * reload on page 2 came back on page 1, and Back from a dossier returned to an
+ * emptied search.
+ */
+const queryText = (value: unknown) => (typeof value === 'string' ? value : '')
+const queryPage = (value: unknown) => {
+  const n = Number.parseInt(queryText(value), 10)
+  return Number.isInteger(n) && n > 0 ? n : 1
+}
+
 const rows: Ref<IRecovery[]> = ref([])
 const loading = ref(true)
-const search = ref('')
+const search = ref(queryText(route.query.q))
 const debouncedSearch = refDebounced(search, 300)
-const page = ref(1)
+const page = ref(queryPage(route.query.page))
+
+/** Written into the entry that is open (replace): typing is not a step to go Back through. */
+function syncAddress() {
+  const q = search.value.trim()
+  router.replace({
+    name: 'recovery-list',
+    query: { ...(q ? { q } : {}), ...(page.value > 1 ? { page: String(page.value) } : {}) },
+  })
+}
 
 const hasMore = computed(() => rows.value.length === PAGE_SIZE)
 
@@ -61,11 +82,30 @@ async function load() {
 
 onBeforeMount(load)
 
-watch(debouncedSearch, () => {
-  page.value = 1
+watch(debouncedSearch, (text, previous) => {
+  // A new search starts on its first page (the page watcher below then loads it);
+  // the page that came with the address stays.
+  if (text.trim() !== previous.trim() && page.value !== 1) {
+    page.value = 1
+    return
+  }
+  syncAddress()
   load()
 })
-watch(page, load)
+watch(page, () => {
+  syncAddress()
+  load()
+})
+
+// The address changed from outside (the sidebar's "Herstel", Back/Forward): follow it.
+watch(
+  () => [route.query.q, route.query.page],
+  ([q, p]) => {
+    if (route.name !== 'recovery-list') return
+    if (queryText(q) !== search.value.trim()) search.value = queryText(q)
+    if (queryPage(p) !== page.value) page.value = queryPage(p)
+  },
+)
 
 const COLUMNS: DataColumn[] = [
   { field: 'id', title: 'ID', width: '84px' },
@@ -93,7 +133,7 @@ const inspectorFields = computed<KeyValueItem[]>(() => {
   ]
 })
 
-const { activeId } = useRowKeyboard({
+const { activeId, setActive } = useRowKeyboard({
   rows,
   onOpen: (row) => router.push({ name: 'recovery-view', params: { id: row.id } }),
 })
@@ -102,6 +142,12 @@ watch(activeId, (id) => {
   const row = rows.value.find((r) => r.id === id)
   if (row) selected.value = row
 })
+
+/** A click on a row: show it in the pane, and let Enter and j/k carry on from it. */
+function select(row: IRecovery) {
+  selected.value = row
+  setActive(row.id)
+}
 </script>
 
 <template>
@@ -145,7 +191,7 @@ watch(activeId, (id) => {
           :empty-message="
             search ? `Niets gevonden voor “${search}”.` : 'Geen herstel-dossiers gevonden.'
           "
-          @select="selected = $event"
+          @select="select"
         >
           <template #id="{ row }">
             <span class="text-sm font-mono text-faint">#{{ row.id }}</span>
