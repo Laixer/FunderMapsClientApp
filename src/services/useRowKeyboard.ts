@@ -35,18 +35,24 @@ export function useRowKeyboard<T extends { id: string | number }>(options: RowKe
   })
 
   /**
-   * Keep the highlighted row on screen.
+   * Keep the highlighted row on screen, and take the keyboard focus along.
    *
    * Reaches for the row element by position rather than through a ref, because
-   * `Table` renders its own `<tr>`s and threading a ref array through the slot
-   * API would complicate every other caller for one feature. Scoped to the
-   * first table on the page — these views render exactly one, which is also why
-   * this composable is not used on the multi-table home view.
+   * `DataTable` renders its own rows and threading a ref array through the
+   * slot API would complicate every other caller for one feature. The rows are
+   * focusable grid rows (`role="row" tabindex="0"`); this used to look for
+   * `table tbody tr`, which matches nothing since the table became a grid, so
+   * the highlight could walk off screen.
+   *
+   * Focus follows the highlight so that Enter belongs to the highlighted row:
+   * left on a row that was clicked earlier, Enter opened that one instead.
    */
   function scrollActiveIntoView() {
     if (activeIndex.value < 0) return
-    const row = document.querySelectorAll<HTMLElement>('table tbody tr')[activeIndex.value]
-    row?.scrollIntoView({ block: 'nearest' })
+    const row = document.querySelectorAll<HTMLElement>('[role="row"][tabindex="0"]')[activeIndex.value]
+    if (!row) return
+    row.focus({ preventScroll: true })
+    row.scrollIntoView({ block: 'nearest' })
   }
 
   function move(delta: number) {
@@ -88,8 +94,20 @@ export function useRowKeyboard<T extends { id: string | number }>(options: RowKe
     }
   }
 
+  /**
+   * A row picked with the mouse is where the keyboard carries on from: Enter
+   * opens it and `j` moves on from it. Without this the cursor only knew the
+   * rows it had been walked to with j/k, so after a click Enter did nothing and
+   * `j` jumped back to the first row.
+   */
+  function setActive(id: string | number | null) {
+    const index = id === null ? -1 : rows.value.findIndex((row) => idOf(row) === id)
+    activeIndex.value = index
+    activeId.value = index < 0 ? null : id
+  }
+
   onMounted(() => window.addEventListener('keydown', onKeydown))
   onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
-  return { activeId, activeIndex }
+  return { activeId, activeIndex, setActive }
 }
