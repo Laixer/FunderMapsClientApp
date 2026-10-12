@@ -2,8 +2,9 @@
 
 Internal "invoer app" (data-entry app) used by FunderMaps staff to enter and
 review foundation **inquiries** and **recoveries** (and their samples). Not
-customer-facing — that's WebFront. Authentication is OIDC (authorization-code +
-PKCE) against the FunderMaps API; the login form lives in the auth app.
+customer-facing — that's WebFront. Authentication is the session cookie the
+FunderMaps API sets (Better Auth), shared by every `*.fundermaps.com` app; the
+login form lives in the auth app.
 
 **Stack:** Vue 3 (`<script setup>`), TypeScript, Vite, Pinia, vue-router,
 vue-i18n, Tailwind CSS 4. Package manager: **pnpm**; Node `>=22`.

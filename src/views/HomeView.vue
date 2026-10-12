@@ -32,6 +32,7 @@ import {
 } from '@/services/worklist'
 import { useRowKeyboard } from '@/services/useRowKeyboard'
 import { useSessionStore } from '@/stores/session'
+import { useStudioStore } from '@/stores/studio'
 
 /**
  * Vandaag: your part of the work, not the archive. (Called the Werkbank
@@ -51,6 +52,7 @@ import { useSessionStore } from '@/stores/session'
  */
 const router = useRouter()
 const { currentUser, isAdministrator } = storeToRefs(useSessionStore())
+const { werkbank } = storeToRefs(useStudioStore())
 
 const loading = ref(true)
 const rowsByLane = ref<Record<string, IInquiry[]>>({})
@@ -127,17 +129,25 @@ function laneCount(key: string, rows: readonly unknown[]): string {
   return exact != null ? exact.toLocaleString('nl-NL') : laneCountLabel(rows)
 }
 
-const waitingOnMe = computed(() => LANES.reduce((n, lane) => n + laneTotal(lane.key), 0))
+/** The three rapportage lanes together: what the rail's bars are a share of. */
+const lanesTotal = computed(() => LANES.reduce((n, lane) => n + laneTotal(lane.key), 0))
 
+/**
+ * The line under "Vandaag" says the number the sidebar shows next to it: your
+ * work packages plus what was handed to you (stores/studio.ts). It summed the
+ * rapportage lanes below until 2026-10-12, so after the sidebar moved to the
+ * packages the two numbers on one screen disagreed (49 here, 16 there). The
+ * lanes keep their own counts on their tiles.
+ */
 const subtitle = computed(() => {
-  if (loading.value) return 'Je werk wordt opgehaald…'
+  if (loading.value || werkbank.value == null) return 'Je werk wordt opgehaald…'
   const archive =
     archiveTotal.value == null
       ? ''
       : ` · ${archiveTotal.value.toLocaleString('nl-NL')} dossiers in het archief`
-  if (waitingOnMe.value === 0) return `Niks op je bord. Mooi zo.${archive}`
-  const dossiers = waitingOnMe.value === 1 ? 'dossier wacht' : 'dossiers wachten'
-  return `${waitingOnMe.value} ${dossiers} op jou${archive}`
+  if (werkbank.value === 0) return `Niks op je bord. Mooi zo.${archive}`
+  const dossiers = werkbank.value === 1 ? 'dossier wacht' : 'dossiers wachten'
+  return `${werkbank.value.toLocaleString('nl-NL')} ${dossiers} op jou${archive}`
 })
 
 /* ---------------------------------------------------------------- the tiles */
@@ -230,7 +240,7 @@ const { activeId } = useRowKeyboard({ rows: queue, onOpen: open })
  * trend — three counts we have, drawn to scale.
  */
 const distribution = computed(() => {
-  const total = waitingOnMe.value || 1
+  const total = lanesTotal.value || 1
   return [
     { label: 'Te controleren', count: laneTotal('review'), tone: 'blue' as Tone },
     { label: 'Jouw invoer', count: laneTotal('entry'), tone: 'amber' as Tone },
@@ -370,7 +380,7 @@ function chipActive(types: number[] | null): boolean {
 
         <aside class="flex flex-col gap-4">
           <Panel caption="JOUW WERK">
-            <div v-if="waitingOnMe" class="flex flex-col gap-2.5">
+            <div v-if="lanesTotal" class="flex flex-col gap-2.5">
               <div v-for="row in distribution" :key="row.label" class="flex flex-col gap-1.5">
                 <p class="text-base flex text-muted">
                   <span>{{ row.label }}</span>

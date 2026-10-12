@@ -45,7 +45,29 @@ const counts = ref<Record<string, number | null>>({})
 
 const mine = computed(() => packagesFor(chosen.value))
 
+/**
+ * Dossiers a colleague handed to you. The number next to "Vandaag" counts
+ * them (stores/studio.ts), so this page lists them: without it the sidebar
+ * said more than the page showed. Only there when there are any.
+ */
+const handedRows = ref<IReviewQueueItem[]>([])
+const handedCount = ref<number | null>(null)
+const handedTotal = computed(() => handedCount.value ?? handedRows.value.length)
+
+async function loadHanded() {
+  const [list, count] = await Promise.all([
+    api.dataops.queue({ assignedTo: 'me', limit: PACKAGE_PREVIEW }).catch(() => [] as IReviewQueueItem[]),
+    api.dataops
+      .queueCount({ assignedTo: 'me' })
+      .then((r) => r.count as number | null)
+      .catch(() => null),
+  ])
+  handedRows.value = list
+  handedCount.value = count
+}
+
 async function load() {
+  void loadHanded()
   if (!mine.value.length) return
   loading.value = true
   try {
@@ -113,6 +135,27 @@ function queueLink(p: WorkPackage) {
   if (p.opts.q) q.q = p.opts.q
   return { name: 'review-queue', query: toRouteQuery(q, 'alles') }
 }
+
+/**
+ * What the page shows, one panel each: your packages, then what was handed to
+ * you. While the chooser is open the packages are being picked, so only the
+ * handed-over dossiers stay: they are yours whatever you tick.
+ */
+const panels = computed(() => [
+  ...(choosing.value ? [] : mine.value).map((p) => ({ id: p.id, title: p.title, rows: rows.value[p.id] ?? [], total: total(p), link: queueLink(p), busy: loading.value })),
+  ...(handedTotal.value > 0
+    ? [
+        {
+          id: 'handed-to-me',
+          title: 'Aan jou toegewezen',
+          rows: handedRows.value,
+          total: handedTotal.value,
+          link: { name: 'review-queue', query: toRouteQuery({ ...emptyQuery(), mine: true }, 'mij') },
+          busy: false,
+        },
+      ]
+    : []),
+])
 </script>
 
 <template>
@@ -182,17 +225,17 @@ function queueLink(p: WorkPackage) {
     </Panel>
 
     <!-- One panel per package, oldest work first. -->
-    <div v-else-if="mine.length" class="grid grid-cols-2 gap-3">
-      <Panel v-for="p in mine" :key="p.id" flush>
+    <div v-if="panels.length" class="grid grid-cols-2 gap-3">
+      <Panel v-for="p in panels" :key="p.id" flush>
         <template #header>
           <span class="text-lg font-bold text-strong">{{ p.title }}</span>
           <span class="text-sm rounded-sm bg-green-tint px-1.5 py-px font-mono text-green-ink">
-            {{ loading ? '…' : total(p) }}
+            {{ p.busy ? '…' : p.total }}
           </span>
         </template>
 
-        <ul v-if="rows[p.id]?.length" class="divide-y divide-divider">
-          <li v-for="r in rows[p.id]" :key="r.id">
+        <ul v-if="p.rows.length" class="divide-y divide-divider">
+          <li v-for="r in p.rows" :key="r.id">
             <RouterLink
               :to="{ name: 'review-dossier', params: { id: r.id } }"
               class="flex items-baseline gap-3 px-4 py-2 hover:bg-canvas"
@@ -203,14 +246,11 @@ function queueLink(p: WorkPackage) {
             </RouterLink>
           </li>
         </ul>
-        <p v-else-if="!loading" class="px-4 py-3 text-base text-subtle">Niets open. Mooi zo.</p>
+        <p v-else-if="!p.busy" class="px-4 py-3 text-base text-subtle">Niets open. Mooi zo.</p>
 
-        <div
-          v-if="total(p) > (rows[p.id]?.length ?? 0)"
-          class="border-t border-divider px-4 py-2"
-        >
-          <RouterLink :to="queueLink(p)" class="text-base font-semibold text-blue hover:underline">
-            Alle {{ total(p) }} bekijken in Beoordelen →
+        <div v-if="p.total > p.rows.length" class="border-t border-divider px-4 py-2">
+          <RouterLink :to="p.link" class="text-base font-semibold text-blue hover:underline">
+            Alle {{ p.total }} bekijken in Beoordelen →
           </RouterLink>
         </div>
       </Panel>
