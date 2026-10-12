@@ -21,6 +21,7 @@ import {
   deleteView,
   emptyQuery,
   fromView,
+  isWideSearch,
   kindLabel,
   outcomeLabel,
   parseQuery,
@@ -86,7 +87,7 @@ let loadToken = 0
 
 async function load() {
   const token = ++loadToken
-  const opts = toQueueOpts(query.value)
+  const opts = toQueueOpts(query.value, viewKey.value)
   total.value = null
   api.dataops
     .queueCount(opts)
@@ -174,11 +175,13 @@ const CLOSED_COLUMNS: DataColumn[] = [
  * they came with: "why is this not in FunderMaps?".
  */
 const PINPOINT = /^(FM\d{4}-\d{6}|\d+)$/i
-const pinpointHit = computed(
-  () => PINPOINT.test(search.value.trim()) && rows.value.some((r) => r.outcome),
+/** A search on "Alles" reaches closed dossiers too (API #191); same columns then, for the same reason. */
+const wideSearch = computed(() => isWideSearch(query.value, viewKey.value))
+const closedHit = computed(
+  () => (PINPOINT.test(search.value.trim()) || wideSearch.value) && rows.value.some((r) => r.outcome),
 )
 const columns = computed(() =>
-  closedView.value || pinpointHit.value ? CLOSED_COLUMNS : DESK_COLUMNS,
+  closedView.value || closedHit.value ? CLOSED_COLUMNS : DESK_COLUMNS,
 )
 
 const WEEK = 7 * 24 * 3600 * 1000
@@ -223,7 +226,9 @@ const selectedIds = ref<Set<string | number>>(new Set())
 const bulkNote = ref('')
 const bulkBusy = ref(false)
 
-function toggleRow(row: { id: number }) {
+/** Only an open dossier can be closed: a closed one found by a search is never part of the selection. */
+function toggleRow(row: { id: number; outcome?: string | null }) {
+  if (row.outcome) return
   const next = new Set(selectedIds.value)
   if (next.has(row.id)) next.delete(row.id)
   else next.add(row.id)
@@ -231,10 +236,8 @@ function toggleRow(row: { id: number }) {
 }
 
 function toggleAll() {
-  selectedIds.value =
-    selectedIds.value.size === items.value.length
-      ? new Set()
-      : new Set(items.value.map((row) => row.id))
+  const openIds = items.value.filter((row) => !row.outcome).map((row) => row.id)
+  selectedIds.value = selectedIds.value.size === openIds.length ? new Set() : new Set(openIds)
 }
 
 /**
@@ -333,7 +336,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       <ReviewFilterBuilder :query="query" @update="push($event)" />
 
       <span class="text-sm ml-auto font-mono text-faint">
-        <template v-if="total != null">{{ total.toLocaleString('nl-NL') }} dossiers</template>
+        <template v-if="total != null">{{ total.toLocaleString('nl-NL') }} dossiers<template v-if="wideSearch">, ook gesloten</template></template>
         <template v-else>{{ items.length }}{{ hasMore ? '+' : '' }} rijen</template>
       </span>
     </div>
@@ -404,7 +407,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       >
         <template #outcome="{ row }">
           <span class="flex items-center gap-1.5">
-            <Pill :label="row.outcome ?? '—'" :tone="row.outcomeTone" plain />
+            <Pill :label="row.outcome ?? 'open'" :tone="row.outcomeTone" plain />
             <span v-if="row.inquiryId" class="text-sm font-mono text-faint">#{{ row.inquiryId }}</span>
             <span v-else-if="row.duplicateOf" class="text-sm font-mono text-faint">van {{ row.duplicateOf }}</span>
           </span>

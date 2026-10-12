@@ -30,6 +30,8 @@ export interface IQueueListOpts {
   outcome?: QueueOutcome[]
   /** Who holds the dossier (API #222): me, nobody, or a user id. */
   assignedTo?: 'me' | 'none' | string
+  /** Every dossier, open or closed, instead of the desk (API #191). An API without it ignores it. */
+  scope?: 'all'
   sort?: QueueSort
   order?: 'asc' | 'desc'
 }
@@ -46,6 +48,7 @@ function queueQueryString(opts: IQueueListOpts): Record<string, string> {
   if (opts.kind?.length) queryString.kind = opts.kind.join(',')
   if (opts.outcome?.length) queryString.outcome = opts.outcome.join(',')
   if (opts.assignedTo) queryString.assignedTo = opts.assignedTo
+  if (opts.scope) queryString.scope = opts.scope
   if (opts.sort) queryString.sort = opts.sort
   if (opts.order) queryString.order = opts.order
   return queryString
@@ -171,7 +174,7 @@ export async function commit(
     /** True when the dossier was a nalezing: the rapportage was updated, not created. */
     audit?: boolean
     /** Every rapportage made, in group order (API #223); the top-level fields describe the first. */
-    rapportages?: { inquiryId: number; samples: number; emptySamples?: number; type: string; documentDate: string; documentName: string; artifactIds: number[] }[]
+    rapportages?: { inquiryId: number; samples: number; emptySamples?: number; auditStatus?: string; type: string; documentDate: string; documentName: string; artifactIds: number[] }[]
     /** The numbers of the refused rapportages. */
     rejected?: number[]
     /** On a nalezing: how many values were written. */
