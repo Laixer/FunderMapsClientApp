@@ -1113,8 +1113,16 @@ async function commitDossier() {
     }
     // An address added by hand has a sample with nothing in it yet: go and
     // fill it in, the way a rapportage without addresses is filled in.
-    if (r.emptySamples) {
-      toastSuccess(`Rapportage #${r.inquiryId} aangemaakt met ${r.samples} adres${r.samples === 1 ? '' : 'sen'}, ${r.emptySamples} nog zonder gegevens; vul die nu in.`)
+    //
+    // The same goes when nothing was taken over that fills a sample
+    // ("Rapportage aanmaken, handmatig invullen", or only soort and datum
+    // were): the API ties the rapportage to the melder's address with one
+    // sample, empty, and does not count that one in emptySamples. The
+    // rapportage is `pending` then. The button promised filling in by hand,
+    // and until 2026-10-12 this went on to the next dossier instead.
+    const toFill = r.emptySamples || (r.auditStatus === 'pending' ? r.samples : 0)
+    if (toFill) {
+      toastSuccess(`Rapportage #${r.inquiryId} aangemaakt met ${r.samples} adres${r.samples === 1 ? '' : 'sen'}, ${toFill} nog zonder gegevens; vul die nu in.`)
       await router.push({ name: 'inquiry-edit-samples', params: { id: r.inquiryId } })
       return
     }
