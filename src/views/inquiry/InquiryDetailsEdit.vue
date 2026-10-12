@@ -18,6 +18,7 @@ import type { IUser } from '@/services/fundermaps/interfaces/IUser'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { INQUIRY_TYPE_LABELS } from '@/services/inquiryEnums'
 import type { SelectOption } from '@/services/options'
+import { reviewerHintFor, reviewerOptionsFor } from '@/services/reviewerOptions'
 import { toastError, toastSuccess } from '@/services/toast'
 import { formatTime } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
@@ -55,6 +56,8 @@ const showErrors = ref(false)
 
 const contractors: Ref<IContractor[]> = ref([])
 const reviewers: Ref<IUser[]> = ref([])
+/** Who made the report — the one colleague who can never be its beoordelaar. */
+const creatorId = ref<string | null>(null)
 
 // #999: read-only display of the owning organization (attribution.dataOwnerName,
 // introduced by #973). Kept out of the submit body — the data-owner is assigned
@@ -87,12 +90,8 @@ const contractorOptions = computed<SelectOption[]>(() =>
   contractors.value.map((c) => ({ value: c.id, label: c.name })),
 )
 
-const reviewerOptions = computed<SelectOption[]>(() =>
-  reviewers.value.map((r) => ({
-    value: r.id,
-    label: [r.given_name, r.family_name].filter(Boolean).join(' ').trim() || r.email,
-  })),
-)
+const reviewerOptions = computed(() => reviewerOptionsFor(reviewers.value, creatorId.value))
+const reviewerHint = computed(() => reviewerHintFor(reviewers.value, creatorId.value))
 
 /* -------------------------------------------------------------- validation */
 
@@ -235,6 +234,7 @@ onBeforeMount(async () => {
         note: inquiry.note ?? '',
       }
       dataOwnerName.value = inquiry.attribution.dataOwnerName ?? ''
+      creatorId.value = inquiry.attribution.creator
       if (inquiry.documentFile) {
         // The stored name is a GUID; the original filename lives in
         // file_resources and only 22% of dossiers have one. Say "gekoppeld"
@@ -324,7 +324,7 @@ onBeforeMount(async () => {
               required
               :options="reviewerOptions"
               empty-label="Kies een beoordelaar"
-              hint="krijgt het dossier na aanbieden"
+              :hint="reviewerHint"
               :error="errorFor('reviewer')"
             />
           </div>
