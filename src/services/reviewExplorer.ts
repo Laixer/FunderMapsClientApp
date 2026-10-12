@@ -214,7 +214,16 @@ export function toRouteQuery(query: ReviewQuery, viewKey: string): LocationQuery
 
 /* -------------------------------------------------------------- API mapping */
 
-export function toQueueOpts(query: ReviewQuery): IQueueListOpts {
+/**
+ * A search typed on "Alles" looks at every dossier, closed ones too (API
+ * #191; Don, 2026-09-19: "je zou dat ook verwachten te vinden onder Alles").
+ * A named view keeps its own scope, and so does a closed tab: its outcome
+ * filter already says which dossiers it means.
+ */
+export const isWideSearch = (query: ReviewQuery, viewKey: string | undefined): boolean =>
+  viewKey === 'alles' && query.q.trim() !== '' && query.outcome.length === 0
+
+export function toQueueOpts(query: ReviewQuery, viewKey?: string): IQueueListOpts {
   const opts: IQueueListOpts = {
     limit: PAGE_SIZE,
     offset: (query.page - 1) * PAGE_SIZE,
@@ -229,6 +238,7 @@ export function toQueueOpts(query: ReviewQuery): IQueueListOpts {
   if (query.kind.length) opts.kind = [...query.kind]
   if (query.outcome.length) opts.outcome = [...query.outcome]
   if (query.mine) opts.assignedTo = 'me'
+  if (isWideSearch(query, viewKey)) opts.scope = 'all'
   return opts
 }
 

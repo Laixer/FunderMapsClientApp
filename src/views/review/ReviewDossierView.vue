@@ -1077,12 +1077,14 @@ async function commitDossier() {
     if (r.rapportages && r.rapportages.length > 1) {
       void studio.refreshCounts(null)
       toastSuccess(`${r.rapportages.length} rapportages aangemaakt: ${r.rapportages.map((m) => `#${m.inquiryId}`).join(', ')}.`)
-      // An address ticked for an inquiry whose files give no values for it: the
-      // sample is there, empty. Name the rapportages so they can be filled in.
-      const empty = r.rapportages.filter((m) => m.emptySamples)
-      if (empty.length) {
-        const n = empty.reduce((t, m) => t + (m.emptySamples ?? 0), 0)
-        toastInfo(`${n} adres${n === 1 ? '' : 'sen'} nog zonder gegevens in ${empty.map((m) => `#${m.inquiryId}`).join(', ')}; vul die in bij de rapportage.`)
+      // A rapportage that still has to be filled in by hand: an address
+      // ticked for an inquiry whose files give no values for it, or an inquiry
+      // nothing was taken over from (the API then puts one empty sample on the
+      // melder's address and does not count it in emptySamples, so `pending`
+      // is the signal that covers both). Name them so they can be filled in.
+      const toFill = r.rapportages.filter((m) => m.emptySamples || m.auditStatus === 'pending')
+      if (toFill.length) {
+        toastInfo(`${toFill.map((m) => `#${m.inquiryId}`).join(', ')} ${toFill.length === 1 ? 'heeft' : 'hebben'} nog adressen zonder gegevens; vul die in bij de rapportage.`)
       }
       await openNext(data.value.dossier.id, 'accepted')
       return
