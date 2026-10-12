@@ -320,6 +320,9 @@ const MODES: { key: Mode; label: string }[] = [
 
 <template>
   <AppShell crumb="Rapportages" fill>
+    <!-- The crumb names the screen for the eye; this names it for a screen
+         reader and for anyone jumping by heading. -->
+    <h1 class="sr-only">Rapportages</h1>
     <!-- Saved views. The active one carries a 2px green underline rather than a
          filled tab: these sit directly on the white filter bar, and a filled
          tab there would read as a button. -->

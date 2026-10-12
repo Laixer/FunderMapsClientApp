@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, watch } from 'vue'
+import { onBeforeMount, watch, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import CommandPalette from '@/components/Layout/CommandPalette.vue'
@@ -27,7 +27,13 @@ import { useStudioStore } from '@/stores/studio'
  * makes the explorer's table and the Invoer editor scroll independently while
  * their headers stay put.
  */
-withDefaults(defineProps<{ crumb: string; fill?: boolean }>(), { fill: false })
+const props = withDefaults(defineProps<{ crumb: string; fill?: boolean }>(), { fill: false })
+
+// The browser tab says where you are: with five dossiers open side by side,
+// five tabs called "FunderMaps Studio" are no help finding one back.
+watchEffect(() => {
+  document.title = `${props.crumb} · FunderMaps Studio`
+})
 
 // Mounted here rather than per view: the shell is the one component every
 // authenticated page passes through, so the bindings live exactly as long as

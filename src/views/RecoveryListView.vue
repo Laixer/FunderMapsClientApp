@@ -104,6 +104,7 @@ watch(activeId, (id) => {
 
 <template>
   <AppShell crumb="Herstel" fill>
+    <h1 class="sr-only">Herstel</h1>
     <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
       <div
         class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5"

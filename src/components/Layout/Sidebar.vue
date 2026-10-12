@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 
 import UserMenu from '@/components/UserMenu.vue'
 import { NAV_GROUPS } from '@/services/navigation'
-import { SIDEBAR_HINTS } from '@/services/shortcuts'
+import { keyLabel, SIDEBAR_HINTS } from '@/services/shortcuts'
 import { useStudioStore } from '@/stores/studio'
 
 /**
@@ -88,7 +88,7 @@ const formatCount = (value: number | null | undefined): string =>
       <kbd
         class="text-2xs ml-auto rounded-xs border border-line bg-surface px-1 py-px font-mono text-faint"
       >
-        ⌘K
+        {{ keyLabel('⌘K') }}
       </kbd>
     </button>
 

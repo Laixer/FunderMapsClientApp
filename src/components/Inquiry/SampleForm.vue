@@ -271,6 +271,7 @@ const saveState = computed(() => {
       <Field
         :model-value="form.note"
         kind="textarea"
+        aria-label="Notitie bij dit adres"
         :rows="4"
         placeholder="Optionele notitie bij dit adres…"
         @update:model-value="(value: unknown) => onNoteInput(value as string | null)"
