@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import Field from '@/components/Common/Field.vue'
 import ToggleChip from '@/components/Common/ToggleChip.vue'
-import type { SampleFieldDef } from '@/services/sampleFields'
+import { dateOfYear, yearOfDate, type SampleFieldDef } from '@/services/sampleFields'
 import { isConfirmed, type FieldProvenance } from '@/services/sampleProvenance'
 
 /**
@@ -55,6 +55,9 @@ const kind = computed(() => {
   switch (props.field.kind) {
     case 'number':
       return 'number' as const
+    case 'year':
+      // A text box, not a number input: that one takes "193e1" for 1930.
+      return 'text' as const
     case 'date':
       return 'date' as const
     case 'enum':
@@ -70,9 +73,62 @@ const boolValue = computed<boolean | null>({
   set: (v) => update(v),
 })
 
+const isYear = computed(() => props.field.kind === 'year')
+
+/** A year field takes `min` up to `max`; without a `max`, up to this year (nothing is built in the future). */
+const firstYear = computed(() => props.field.min ?? 1000)
+const lastYear = computed(() => props.field.max ?? new Date().getFullYear())
+
+const yearLabel = (date: unknown) => String(yearOfDate(date) ?? '')
+
+/**
+ * What is typed in a year box. Kept apart from the stored date, so that a
+ * half-typed year is not sent and a re-render does not take it out of the box.
+ */
+const yearText = ref(yearLabel(props.modelValue))
+
+/** The year in the box, or null as long as it holds anything else. */
+const typedYear = computed(() => {
+  if (!/^\d{4}$/.test(yearText.value)) return null
+  const year = Number(yearText.value)
+  return year >= firstYear.value && year <= lastYear.value ? year : null
+})
+
+// An edit made in the box arrives here with the box already saying that year.
+// Anything else moved the value from outside (the form went on to another
+// address), and the box has to follow.
+watch(
+  () => props.modelValue,
+  (date) => {
+    if (!isYear.value) return
+    if (typedYear.value === null || typedYear.value !== yearOfDate(date)) yearText.value = yearLabel(date)
+  },
+)
+
+/**
+ * An emptied box means no year (null). Four digits in range become 1 January
+ * of that year, which is how the date column holds a year. Anything else is
+ * not a year yet: nothing is sent, the value stays what it was, and the line
+ * under the box says so. Sending "0193-01-01" for a half-typed 1931 would make
+ * the API refuse the whole address.
+ */
+function updateYear(raw: unknown) {
+  yearText.value = raw === null || raw === undefined ? '' : String(raw).trim()
+  if (yearText.value === '') emit('update:modelValue', null)
+  else if (typedYear.value !== null) emit('update:modelValue', dateOfYear(typedYear.value))
+}
+
+const yearRemark = computed(() => {
+  if (!isYear.value || yearText.value === '' || typedYear.value !== null) return null
+  const kept = yearOfDate(props.modelValue)
+  return `Vul een jaar in van ${firstYear.value} tot en met ${lastYear.value}. Tot dan blijft ${
+    kept === null ? 'het veld leeg' : `de vorige waarde (${kept}) staan`
+  }.`
+})
+
 const value = computed({
-  get: () => props.modelValue,
-  set: (v) => update(v),
+  get: () => (isYear.value ? yearText.value : props.modelValue),
+  set: (v) => (isYear.value ? updateYear(v) : update(v)),
 })
 
 /**
@@ -109,7 +165,7 @@ const inheritedFromAddress = computed(() =>
   <!-- `items-start` so the chip hugs its own label instead of stretching to the
        width of the grid column it happens to land in. -->
   <div v-if="field.kind === 'bool'" class="flex h-full flex-col items-start justify-center gap-1.5">
-    <ToggleChip v-model="boolValue" :label="label" />
+    <ToggleChip v-model="boolValue" :label="label" tristate />
     <p v-if="pending" class="text-sm flex flex-wrap items-center gap-x-1.5 text-muted">
       <span aria-hidden="true" class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber" />
       <span>
@@ -136,11 +192,13 @@ const inheritedFromAddress = computed(() =>
       :kind="kind"
       :unit="field.unit"
       :options="field.options"
-      :min="field.min"
-      :max="field.max"
+      :min="isYear ? undefined : field.min"
+      :max="isYear ? undefined : field.max"
       :step="field.step"
+      :mono="isYear"
+      :placeholder="isYear ? 'jjjj' : undefined"
       :hint="pending || confirmed ? undefined : field.hint"
-      :error="warning ?? rangeRemark"
+      :error="yearRemark ?? warning ?? rangeRemark"
       empty-label="—"
     />
 

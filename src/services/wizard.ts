@@ -13,8 +13,12 @@
 
 import type { WizardStep } from '@/components/Common/StepPills.vue'
 
-/** Step 2 is named after what it collects: a recovery records work done on a *pand*. */
-const LABELS = ['Gegevens', 'Panden', 'Controle'] as const
+/**
+ * Step 2 carries the name its own title and every link to it use, the same
+ * word as the rapportage editor: the pill said "Panden" above a page titled
+ * "Invoer".
+ */
+const LABELS = ['Gegevens', 'Invoer', 'Controle'] as const
 
 export function recoverySteps(id: number | null): WizardStep[] {
   return LABELS.map((label, i) => ({
