@@ -81,6 +81,8 @@ export function useUnsavedChanges(state: () => unknown) {
       confirmLabel: 'Verlaten',
       cancelLabel: 'Blijven',
       danger: true,
+      // Enter stays: the question interrupts, and a reflex must not lose the input.
+      cautious: true,
     }).finally(() => (question = null))
     return question
   })

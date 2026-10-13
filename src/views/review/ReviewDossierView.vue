@@ -37,7 +37,6 @@ import {
   displayValue as labelValue,
   fieldLabel,
   formatDate,
-  inLaneWords,
   readableEntry,
 } from '@/services/reviewLabels'
 import {
@@ -950,8 +949,7 @@ function setGroupOverride(n: number, key: 'type' | 'date', value: unknown) {
   const cur = groupOverride.value[n] ?? { type: null, date: null }
   groupOverride.value = { ...groupOverride.value, [n]: { ...cur, [key]: value == null || value === '' ? null : String(value) } }
 }
-// The options come from the sorting module, the words from the lane ("Rapportage 1", "Geen rapportage").
-const docGroupOptions = computed(() => groupOptions(groupChoice.value).map((o) => ({ ...o, label: inLaneWords(o.label) })))
+const docGroupOptions = computed(() => groupOptions(groupChoice.value))
 const commitGroups = computed(() =>
   groupsOf(commitDocs.value, groupChoice.value).map((g) => {
     const ids = g.docs.map((d) => d.id)
@@ -995,10 +993,7 @@ const commitGroups = computed(() =>
   }),
 )
 /** Why the commit of several files cannot go yet, for the button's tooltip; null when it can. */
-const groupsBlockedBy = computed(() => {
-  const blocker = multiDoc.value ? commitBlocker(commitGroups.value, commitNote.value, autoNoteHeld.value) : null
-  return blocker && inLaneWords(blocker)
-})
+const groupsBlockedBy = computed(() => (multiDoc.value ? commitBlocker(commitGroups.value, commitNote.value, autoNoteHeld.value) : null))
 const groupsBlocked = computed(() => groupsBlockedBy.value != null)
 /**
  * An inquiry number that is no longer in use takes its choices with it: a new
@@ -2635,7 +2630,7 @@ async function reopen(f: IProposedField) {
                 </p>
                 <template v-else>
                   <p class="text-muted">
-                    <strong class="text-body">{{ inLaneWords(commitSummary(commitGroups)) }}</strong><template v-if="melderEmail">; de melder krijgt één afsluiting</template>.
+                    <strong class="text-body">{{ commitSummary(commitGroups) }}</strong><template v-if="melderEmail">; de melder krijgt één afsluiting</template>.
                   </p>
                   <p v-for="g in commitGroups" :key="g.n" class="text-muted">
                     <span class="font-semibold text-body">Rapportage {{ g.n }}</span>

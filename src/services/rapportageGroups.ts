@@ -81,8 +81,8 @@ export function groupOptions(choice: Record<number, GroupChoice>): { value: stri
   const used = [...new Set(Object.values(choice).filter((c): c is number => typeof c === 'number'))].sort((a, b) => a - b)
   const next = (used[used.length - 1] ?? 0) + 1
   return [
-    ...used.map((n) => ({ value: String(n), label: `Inquiry ${n}` })),
-    { value: String(next), label: `Inquiry ${next} (nieuw)` },
-    { value: 'vervalt', label: 'Geen inquiry' },
+    ...used.map((n) => ({ value: String(n), label: `Rapportage ${n}` })),
+    { value: String(next), label: `Rapportage ${next} (nieuw)` },
+    { value: 'vervalt', label: 'Geen rapportage' },
   ]
 }

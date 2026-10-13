@@ -269,7 +269,7 @@ onBeforeMount(async () => {
         />
         <Button
           variant="primary"
-          label="Volgende: panden"
+          label="Volgende: invoer"
           shortcut="⌘↵"
           :disabled="!isValid || saving || uploading"
           :title="firstProblem"
@@ -364,7 +364,7 @@ onBeforeMount(async () => {
           />
         </Panel>
 
-        <Callout tone="green" title="Hierna: panden" plain>
+        <Callout tone="green" title="Hierna: invoer" plain>
           Zoek de panden waar het herstel is uitgevoerd; per pand leg je het hersteltype, de gevels
           en de vergunning vast.
         </Callout>

@@ -154,7 +154,7 @@ const direction = computed(() => {
       </section>
 
       <section>
-        <h3 class="studio-label mb-2">TYPE</h3>
+        <h3 class="studio-label mb-2">SOORT</h3>
         <!-- Fifteen types is more than fits; the list scrolls rather than
              growing the popover past the filter bar it hangs from. -->
         <div class="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
@@ -224,7 +224,7 @@ const direction = computed(() => {
           <template v-if="isDefaultSort(query)">Dit is de standaardvolgorde.</template>
         </p>
         <p v-if="query.sort === 'type' || query.sort === 'status'" class="text-sm mt-1 text-label">
-          Op type of status sorteren zet gelijke rijen bij elkaar; de groepen zelf staan niet op
+          Op soort of status sorteren zet gelijke rijen bij elkaar; de groepen zelf staan niet op
           alfabet.
         </p>
       </section>

@@ -66,19 +66,19 @@ export interface InquiryForCommit {
  * filled.
  */
 export function commitBlocker(groups: InquiryForCommit[], closeNote: string, noteHeld = false): string | null {
-  if (!groups.length) return 'Zet minstens één bestand in een inquiry'
-  if (groups.length > INQUIRIES_MAX) return `Meer dan ${INQUIRIES_MAX} inquiries in één melding kan niet: voeg bestanden samen`
+  if (!groups.length) return 'Zet minstens één bestand in een rapportage'
+  if (groups.length > INQUIRIES_MAX) return `Meer dan ${INQUIRIES_MAX} rapportages in één melding kan niet: voeg bestanden samen`
   const accepted = groups.filter((g) => g.verdict === 'accepted')
-  if (accepted.some((g) => g.unmergeable.length)) return 'Een bestand kan niet in één PDF: zet het in een eigen inquiry'
+  if (accepted.some((g) => g.unmergeable.length)) return 'Een bestand kan niet in één PDF: zet het in een eigen rapportage'
   if (groups.some((g) => hasBlank(g.answer)) || hasBlank(closeNote)) return `Vul eerst de open plekken (${BLANK}) in de tekst in`
   if (groups.some((g) => g.answer.length > ANSWER_MAX) || closeNote.length > ANSWER_MAX) return `Een antwoord of de reden is langer dan ${ANSWER_MAX} tekens`
   // A refusal the melder reads needs a reason: per inquiry, or one for the dossier.
   if (!closeNote.trim() && groups.some((g) => g.verdict === 'rejected' && !g.answer.trim())) {
-    return `Geef bij elke afgewezen inquiry een antwoord, of ${noteHeld ? 'pas de automatisch gekozen reden aan' : 'vul de reden in'}`
+    return `Geef bij elke afgewezen rapportage een antwoord, of ${noteHeld ? 'pas de automatisch gekozen reden aan' : 'vul de reden in'}`
   }
-  if (accepted.some((g) => g.addressIds?.length === 0)) return 'Kies bij elke inquiry minstens één adres'
-  if (accepted.some((g) => (g.addressIds?.length ?? 0) > ADDRESSES_MAX)) return `Meer dan ${ADDRESSES_MAX} adressen in één inquiry kan niet`
-  if (accepted.some((g) => g.dateMissing)) return 'Vul eerst bij elke inquiry de datum in'
+  if (accepted.some((g) => g.addressIds?.length === 0)) return 'Kies bij elke rapportage minstens één adres'
+  if (accepted.some((g) => (g.addressIds?.length ?? 0) > ADDRESSES_MAX)) return `Meer dan ${ADDRESSES_MAX} adressen in één rapportage kan niet`
+  if (accepted.some((g) => g.dateMissing)) return 'Vul eerst bij elke rapportage de datum in'
   return null
 }
 
@@ -96,7 +96,7 @@ export function answerError(g: Pick<InquiryForCommit, 'verdict' | 'answer'>, clo
 export function commitSummary(groups: Pick<InquiryForCommit, 'verdict'>[]): string {
   const accepted = groups.filter((g) => g.verdict === 'accepted').length
   const rejected = groups.length - accepted
-  const made = accepted === 1 ? 'komt er 1 inquiry' : `komen er ${accepted} inquiries`
-  if (!accepted) return `${groups.length === 1 ? 'De inquiry wordt' : 'Alle inquiries worden'} afgewezen: er komt geen rapportage, het dossier wordt afgewezen`
+  const made = accepted === 1 ? 'komt er 1 rapportage' : `komen er ${accepted} rapportages`
+  if (!accepted) return `${groups.length === 1 ? 'De rapportage wordt' : 'Alle rapportages worden'} afgewezen: er wordt niets overgenomen, het dossier wordt afgewezen`
   return rejected ? `Bij overnemen ${made}; ${rejected} ${rejected === 1 ? 'wordt' : 'worden'} afgewezen` : `Bij overnemen ${made}`
 }
