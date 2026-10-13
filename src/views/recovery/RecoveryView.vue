@@ -164,7 +164,7 @@ const blocker = computed<string | null>(() => {
   if (unknownType > 0) {
     return unknownType === 1
       ? '1 pand heeft nog hersteltype “Onbekend”.'
-      : `${unknownType} van de ${total} panden hebben nog hersteltype “Onbekend”.`
+      : `${unknownType.toLocaleString('nl-NL')} van de ${total.toLocaleString('nl-NL')} panden hebben nog hersteltype “Onbekend”.`
   }
   return null
 })
@@ -198,7 +198,7 @@ const details = computed<KeyValueItem[]>(() => {
     { label: 'Aangemaakt', value: formatDateShort(row.record.createDate), mono: true },
     {
       label: 'Uitgevoerd',
-      value: `${completeness.value.executed} van ${completeness.value.total} ${completeness.value.total === 1 ? 'pand' : 'panden'}`,
+      value: `${completeness.value.executed.toLocaleString('nl-NL')} van ${completeness.value.total.toLocaleString('nl-NL')} ${completeness.value.total === 1 ? 'pand' : 'panden'}`,
     },
   ]
   if (row.note) items.push({ label: 'Notitie', value: row.note })
@@ -423,9 +423,9 @@ useActionShortcuts(() => {
             <template #header>
               <span class="studio-caption">VOORTGANG</span>
               <span class="text-xs font-mono text-faint">
-                {{ completeness.total }} {{ completeness.total === 1 ? 'pand' : 'panden' }}
+                {{ completeness.total.toLocaleString('nl-NL') }} {{ completeness.total === 1 ? 'pand' : 'panden' }}
                 <template v-if="completeness.total">
-                  · {{ completeness.executed }} uitgevoerd
+                  · {{ completeness.executed.toLocaleString('nl-NL') }} uitgevoerd
                 </template>
               </span>
             </template>
@@ -456,7 +456,7 @@ useActionShortcuts(() => {
           <Panel flush>
             <template #header>
               <span class="text-lg font-bold text-strong">Panden</span>
-              <span class="text-xs font-mono text-faint">{{ samples.length }}</span>
+              <span class="text-xs font-mono text-faint">{{ samples.length.toLocaleString('nl-NL') }}</span>
             </template>
 
             <ul v-if="samples.length">
@@ -474,7 +474,9 @@ useActionShortcuts(() => {
                     :label="recoveryTypeLabel(sample.type)"
                     :tone="sample.type === 5 ? 'amber' : 'green'"
                   />
+                  <!-- No pill for a pand without a status: it read "-". -->
                   <Pill
+                    v-if="sample.status != null"
                     :label="recoveryStatusLabel(sample.status)"
                     :tone="sample.status === EXECUTED ? 'green' : 'neutral'"
                   />
@@ -483,7 +485,7 @@ useActionShortcuts(() => {
                   gevels: {{ facades(sample) }}
                   <template v-if="sample.permit"> · vergunning {{ sample.permit }}</template>
                   <template v-if="sample.recoveryDate">
-                    · uitgevoerd {{ formatDateShort(sample.recoveryDate) }}
+                    · uitvoering {{ formatDateShort(sample.recoveryDate) }}
                   </template>
                 </p>
                 <p v-if="sample.note" class="text-md text-muted">{{ sample.note }}</p>

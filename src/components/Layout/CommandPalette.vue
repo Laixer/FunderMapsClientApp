@@ -159,7 +159,7 @@ function choose(item: PaletteItem | undefined) {
           @keydown.enter.prevent="choose(items[cursor])"
         />
         <kbd class="text-2xs rounded-xs border border-line px-1.5 py-px font-mono text-faint">
-          ESC
+          Esc
         </kbd>
       </div>
 

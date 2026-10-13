@@ -223,8 +223,8 @@ const details = computed<KeyValueItem[]>(() => {
     { label: 'Documentdatum', value: formatDateShort(row.documentDate), mono: true },
     { label: 'Aangemaakt', value: formatDateShort(row.record.createDate), mono: true },
     { label: 'F3O standaard', value: row.standardF3o ? 'Ja' : 'Nee' },
-    { label: 'Inspectie', value: row.inspection ? 'Ja' : 'Nee' },
     { label: 'Voegmeting', value: row.jointMeasurement ? 'Ja' : 'Nee' },
+    { label: 'Inspectie', value: row.inspection ? 'Ja' : 'Nee' },
     { label: 'Vloermeting', value: row.floorMeasurement ? 'Ja' : 'Nee' },
   ]
   if (row.note) items.push({ label: 'Notitie', value: row.note })

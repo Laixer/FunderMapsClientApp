@@ -20,6 +20,8 @@ const props = defineProps<{
   provenance?: FieldProvenance
   /** A cross-field finding that mentions this field, in words. */
   warning?: string | null
+  /** This field shares its grid row with a labelled control (only a yes/no chip cares). */
+  besideControl?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -164,7 +166,15 @@ const inheritedFromAddress = computed(() =>
        its neighbours, and ends up looking like a field that failed to load. -->
   <!-- `items-start` so the chip hugs its own label instead of stretching to the
        width of the grid column it happens to land in. -->
-  <div v-if="field.kind === 'bool'" class="flex h-full flex-col items-start justify-center gap-1.5">
+  <!-- Beside labelled controls the chip stands on their line: 21px down, which is
+       their label line and gap, less 1px because the chip is 2px taller. Centred
+       on the cell it sank below them once they grew a remark underneath. A row
+       of chips only has no label line to leave room for. -->
+  <div
+    v-if="field.kind === 'bool'"
+    class="flex h-full flex-col items-start gap-1.5"
+    :class="besideControl ? 'pt-[21px]' : 'justify-center'"
+  >
     <ToggleChip v-model="boolValue" :label="label" tristate />
     <p v-if="pending" class="text-sm flex flex-wrap items-center gap-x-1.5 text-muted">
       <span aria-hidden="true" class="h-1.5 w-1.5 shrink-0 rounded-full bg-amber" />

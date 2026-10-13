@@ -110,7 +110,7 @@ function handleLogout() {
         :key="app.url"
         :href="app.url"
         role="menuitem"
-        class="text-md block px-3 py-2 text-body hover:bg-canvas"
+        class="text-md block px-3 py-2 text-body hover:bg-canvas focus-visible:-outline-offset-2"
         @click="open = false"
       >
         {{ app.label }}
@@ -121,7 +121,7 @@ function handleLogout() {
       <button
         type="button"
         role="menuitem"
-        class="text-md flex w-full items-center gap-2 px-3 py-2 text-left text-red hover:bg-red-wash"
+        class="text-md flex w-full items-center gap-2 px-3 py-2 text-left text-red hover:bg-red-wash focus-visible:-outline-offset-2"
         @click="handleLogout"
       >
         {{ t('auth.logout') }}

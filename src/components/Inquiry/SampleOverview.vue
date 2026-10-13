@@ -32,7 +32,7 @@ function filledLabel(sample: IInquirySample): string {
     <li v-for="sample in samples" :key="sample.id" class="border-b border-divider last:border-b-0">
       <details :open="expanded" class="group">
         <summary
-          class="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 select-none hover:bg-raised"
+          class="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 select-none hover:bg-raised focus-visible:-outline-offset-2"
         >
           <span aria-hidden="true" class="text-faint transition-transform group-open:rotate-90">
             ▸

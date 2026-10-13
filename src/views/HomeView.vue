@@ -63,6 +63,8 @@ const rowsByLane = ref<Record<string, IInquiry[]>>({})
  */
 const countByLane = ref<Record<string, number | null>>({})
 const archiveTotal = ref<number | null>(null)
+/** The archive count is asked after the lanes, so its tile waits on its own. */
+const archiveLoading = ref(true)
 const recentlyOpened: Ref<RecentEntry[]> = ref([])
 
 /** Which type chip is narrowing the queue. `null` is "Alles". */
@@ -106,6 +108,8 @@ async function load() {
     archiveTotal.value = (await api.inquiry.getCount()).count
   } catch {
     archiveTotal.value = null
+  } finally {
+    archiveLoading.value = false
   }
 }
 
@@ -277,7 +281,7 @@ function chipActive(types: number[] | null): boolean {
           :value="tile.value"
           :caption="tile.caption"
           :tone="tile.tone"
-          :loading="loading && tile.key !== 'archive'"
+          :loading="tile.key === 'archive' ? archiveLoading : loading"
           @click="router.push({ name: 'inquiry-list', query: tile.query })"
         />
       </div>
@@ -307,7 +311,7 @@ function chipActive(types: number[] | null): boolean {
           <template #header>
             <span class="text-lg font-bold text-strong">Te controleren door jou</span>
             <span class="text-sm rounded-sm bg-green-tint px-1.5 py-px font-mono text-green-ink">
-              {{ laneCount('review', reviewLane) }}
+              {{ loading ? '…' : laneCount('review', reviewLane) }}
             </span>
           </template>
 
@@ -381,7 +385,8 @@ function chipActive(types: number[] | null): boolean {
 
         <aside class="flex flex-col gap-4">
           <Panel caption="JOUW RAPPORTAGES">
-            <div v-if="lanesTotal" class="flex flex-col gap-2.5">
+            <EmptyState v-if="loading">Laden…</EmptyState>
+            <div v-else-if="lanesTotal" class="flex flex-col gap-2.5">
               <div v-for="row in distribution" :key="row.label" class="flex flex-col gap-1.5">
                 <p class="text-base flex text-muted">
                   <span>{{ row.label }}</span>

@@ -89,8 +89,12 @@ watch(
           <span class="text-md block truncate font-semibold text-body">
             {{ inquiryTypeLabel(row.type) }}
           </span>
+          <!-- Number and date on one line, the status on the next: on one line
+               it broke inside the status ("te / controleren"). -->
+          <span class="text-xs block font-mono whitespace-nowrap text-faint">
+            #{{ row.id }} · {{ formatDateShort(row.documentDate) }}
+          </span>
           <span class="text-xs block font-mono text-faint">
-            #{{ row.id }} · {{ formatDateShort(row.documentDate) }} ·
             {{ statusMeta(row.state?.auditStatus).label.toLowerCase() }}
           </span>
         </span>
@@ -113,8 +117,10 @@ watch(
           <span class="text-md block truncate font-semibold text-body">
             Herstel: {{ recoveryDocumentTypeLabel(row.type) }}
           </span>
+          <span class="text-xs block font-mono whitespace-nowrap text-faint">
+            #{{ row.id }} · {{ formatDateShort(row.documentDate) }}
+          </span>
           <span class="text-xs block font-mono text-faint">
-            #{{ row.id }} · {{ formatDateShort(row.documentDate) }} ·
             {{ statusMeta(row.state?.auditStatus).label.toLowerCase() }}
           </span>
         </span>

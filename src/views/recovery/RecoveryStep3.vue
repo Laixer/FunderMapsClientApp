@@ -112,7 +112,7 @@ async function submit() {
       'De beoordelaar krijgt bericht en het dossier wordt vergrendeld tot de controle klaar is.',
       ...(unknownType.value.length
         ? [
-            `Let op: ${unknownType.value.length === 1 ? '1 pand heeft' : `${unknownType.value.length} panden hebben`} nog hersteltype “Onbekend”.`,
+            `Let op: ${unknownType.value.length === 1 ? '1 pand heeft' : `${unknownType.value.length.toLocaleString('nl-NL')} panden hebben`} nog hersteltype “Onbekend”.`,
           ]
         : []),
     ].join('\n\n'),
@@ -148,7 +148,7 @@ useActionShortcuts((): Record<string, () => void> =>
   <AppShell :crumb="recovery ? `Controle · ${recovery.documentName}` : 'Controle'">
     <WizardHeader
       :title="recovery ? `Controle · ${recovery.documentName}` : 'Controle'"
-      :status="`#${recoveryId} · ${samples.length} ${samples.length === 1 ? 'pand' : 'panden'}`"
+      :status="`#${recoveryId} · ${samples.length.toLocaleString('nl-NL')} ${samples.length === 1 ? 'pand' : 'panden'}`"
       :steps="steps"
       :current="3"
     >
@@ -179,7 +179,7 @@ useActionShortcuts((): Record<string, () => void> =>
         <Callout
           v-else-if="unknownType.length"
           tone="amber"
-          :title="`${unknownType.length} ${unknownType.length === 1 ? 'pand heeft' : 'panden hebben'} nog hersteltype “Onbekend”`"
+          :title="`${unknownType.length.toLocaleString('nl-NL')} ${unknownType.length === 1 ? 'pand heeft' : 'panden hebben'} nog hersteltype “Onbekend”`"
         >
           Zonder hersteltype zegt het dossier wel dát er hersteld is, maar niet hoe — en dat is
           precies wat de kaart ervan gebruikt.
@@ -189,14 +189,16 @@ useActionShortcuts((): Record<string, () => void> =>
         </Callout>
 
         <Callout v-else tone="green" title="Klaar om aan te bieden">
-          {{ samples.length === 1 ? 'Het pand heeft' : `Alle ${samples.length} panden hebben` }} een hersteltype.
+          {{ samples.length === 1 ? 'Het pand heeft' : `Alle ${samples.length.toLocaleString('nl-NL')} panden hebben` }} een hersteltype.
         </Callout>
 
-        <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-aside)] items-start gap-4">
+        <!-- The inspector's width and key column, where the same values (an e-mail
+             address as opsteller or beoordelaar) fit on one line. -->
+        <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-inspector)] items-start gap-4">
           <Panel flush>
             <template #header>
               <span class="text-lg font-bold text-strong">Panden</span>
-              <span class="text-xs font-mono text-faint">{{ samples.length }}</span>
+              <span class="text-xs font-mono text-faint">{{ samples.length.toLocaleString('nl-NL') }}</span>
             </template>
 
             <ul v-if="samples.length">
@@ -216,7 +218,7 @@ useActionShortcuts((): Record<string, () => void> =>
                   />
                 </div>
                 <p class="text-sm font-mono text-faint">
-                  {{ recoveryStatusLabel(sample.status) }} · gevels: {{ facades(sample) }}
+                  {{ sample.status == null ? 'status onbekend' : recoveryStatusLabel(sample.status) }} · gevels: {{ facades(sample) }}
                   <template v-if="sample.recoveryDate">
                     · uitvoering {{ formatDateShort(sample.recoveryDate) }}
                   </template>
@@ -228,7 +230,7 @@ useActionShortcuts((): Record<string, () => void> =>
           </Panel>
 
           <Panel caption="DOSSIER">
-            <KeyValueList :items="summary" ratio="42%" />
+            <KeyValueList :items="summary" ratio="38%" />
           </Panel>
         </div>
       </template>

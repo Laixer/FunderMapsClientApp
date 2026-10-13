@@ -206,7 +206,9 @@ const COLUMNS: DataColumn[] = [
   { field: 'documentName', title: 'Naam', width: 'minmax(248px,1fr)', sortable: true },
   { field: 'type', title: 'Soort', width: '148px', sortable: true },
   { field: 'documentDate', title: 'Datum', width: '92px', sortable: true },
-  { field: 'reviewer', title: 'Beoordelaar', width: '150px', sortable: true },
+  // Up to 210px where the window has room: at 150px the usual value (an e-mail
+  // address) was cut in every row. Still 150px at the shell's minimum width.
+  { field: 'reviewer', title: 'Beoordelaar', width: 'minmax(150px,210px)', sortable: true },
   { field: 'status', title: 'Status', width: '140px', sortable: true },
 ]
 
@@ -282,6 +284,21 @@ async function select(row: IInquiry) {
     if (token === selectionToken) inspectorLoading.value = false
   }
 }
+
+// The inspector shows a row of the list on screen. When another view, a search
+// or a page turn takes that row away, the pane closes: it used to go on showing
+// a rapportage next to a table that said "Niets gevonden".
+watch(visibleRows, (rows) => {
+  const row = selected.value
+  if (!row || rows.some((r) => r.id === row.id)) return
+  // Also for a summary still under way, so it cannot fill the pins afterwards.
+  selectionToken++
+  selected.value = null
+  selectedPins.value = []
+  selectedAddressCount.value = null
+  selectedFilled.value = null
+  inspectorLoading.value = false
+})
 
 const inspectorFields = computed<KeyValueItem[]>(() => {
   const row = selected.value
@@ -384,9 +401,11 @@ const MODES: { key: Mode; label: string }[] = [
       </button>
     </div>
 
-    <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
+    <!-- Wraps onto a second line once the chips no longer fit: squeezed onto one
+         line, the search box shrank to its icon and the button broke in three. -->
+    <div class="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
       <div
-        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
+        class="flex max-w-[340px] min-w-[220px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
       >
         <span aria-hidden="true" class="text-md text-faint">⌕</span>
         <input
@@ -409,7 +428,7 @@ const MODES: { key: Mode; label: string }[] = [
       <FilterBuilder :query="query" @update="push($event)" />
 
       <div class="ml-auto flex items-center gap-2">
-        <span class="text-sm font-mono text-faint">
+        <span class="text-sm shrink-0 font-mono whitespace-nowrap text-faint">
           <template v-if="total != null">
             {{ total.toLocaleString('nl-NL') }} {{ total === 1 ? 'rij' : 'rijen' }}
           </template>
@@ -437,7 +456,7 @@ const MODES: { key: Mode; label: string }[] = [
     </div>
 
     <div class="grid min-h-0 flex-1 grid-cols-[minmax(var(--spacing-table-min),1fr)_var(--spacing-inspector)]">
-      <div class="flex min-w-0 flex-col">
+      <div class="flex min-h-0 min-w-0 flex-col">
         <div
           v-if="mode !== 'kaart'"
           class="min-w-0 overflow-auto bg-surface"

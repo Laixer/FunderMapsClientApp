@@ -139,7 +139,9 @@ function typeFindings(sample: IInquirySample, inquiryType: number): SampleFindin
     if (missingInspection.length) {
       findings.push({
         id: partsId('foundation-research-missing-inspection', missingInspection),
-        message: `Funderingsonderzoek: ${enumerate(missingInspection.map((p) => p.label))} ontbreekt — de inspectiegegevens horen bij dit onderzoekstype vastgelegd te zijn.`,
+        message: `Funderingsonderzoek: ${enumerate(missingInspection.map((p) => p.label))} ${
+          missingInspection.length === 1 ? 'ontbreekt' : 'ontbreken'
+        } — de inspectiegegevens horen bij dit onderzoekstype vastgelegd te zijn.`,
       })
     }
   }

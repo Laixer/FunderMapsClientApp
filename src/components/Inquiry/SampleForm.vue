@@ -14,7 +14,12 @@ import type {
   IInquirySample,
   IInquirySampleInput,
 } from '@/services/fundermaps/interfaces/IInquirySample'
-import { builtYearToSend, countFilledInSection, SAMPLE_SECTIONS } from '@/services/sampleFields'
+import {
+  builtYearToSend,
+  countFilledInSection,
+  SAMPLE_SECTIONS,
+  type SampleSectionDef,
+} from '@/services/sampleFields'
 import type { SampleFinding } from '@/services/sampleValidation'
 import {
   confirm as confirmEntry,
@@ -205,6 +210,13 @@ const sectionSummary = computed(() => {
   return out
 })
 
+/** Whether the field at `index` shares its grid row with a labelled control. */
+function besideControl(section: SampleSectionDef, index: number): boolean {
+  const columns = section.columns ?? 2
+  const start = index - (index % columns)
+  return section.fields.slice(start, start + columns).some((field) => field.kind !== 'bool')
+}
+
 /**
  * Which finding, if any, belongs on a given field. Matched on the field's key
  * appearing in the finding's id, which is how `sampleValidation` names them —
@@ -283,12 +295,13 @@ const saveState = computed(() => {
         :class="section.columns === 3 ? 'grid-cols-3' : 'grid-cols-2'"
       >
         <SampleField
-          v-for="field in section.fields"
+          v-for="(field, index) in section.fields"
           :key="field.key"
           :field="field"
           :model-value="form[field.key]"
           :provenance="provenance[field.key as ProvenanceKey]"
           :warning="warningFor(field.key)"
+          :beside-control="besideControl(section, index)"
           @update:model-value="(value: unknown) => setField(field.key, value)"
           @confirm="confirmField(field.key as ProvenanceKey)"
         />

@@ -122,7 +122,7 @@ function rowClass(row: T): string {
           :key="column.field"
           role="columnheader"
           :type="column.sortable ? 'button' : undefined"
-          class="flex items-center gap-1 truncate pr-3 last:pr-0"
+          class="flex items-center gap-1 truncate pr-3 uppercase last:pr-0"
           :class="[
             column.align === 'right' ? 'justify-end' : 'justify-start',
             column.sortable && 'hover:text-subtle',
@@ -170,7 +170,7 @@ function rowClass(row: T): string {
           :key="row.id"
           role="row"
           tabindex="0"
-          class="grid cursor-pointer items-center gap-0 border-b border-divider px-5 py-2.5"
+          class="grid cursor-pointer items-center gap-0 border-b border-divider px-5 py-2.5 focus-visible:-outline-offset-2"
           :class="rowClass(row)"
           :style="{ gridTemplateColumns: template }"
           :aria-selected="activeId === row.id"
