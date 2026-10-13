@@ -240,7 +240,7 @@ const panels = computed(() => [
           <li v-for="r in p.rows" :key="r.id">
             <RouterLink
               :to="{ name: 'review-dossier', params: { id: r.id } }"
-              class="flex items-baseline gap-3 px-4 py-2 hover:bg-canvas"
+              class="flex items-baseline gap-3 px-4 py-2 hover:bg-canvas focus-visible:-outline-offset-2"
             >
               <span class="text-sm font-mono text-faint shrink-0">{{ r.reference ?? `#${r.id}` }}</span>
               <span class="text-base text-body min-w-0 truncate">{{ r.subject ?? 'Zonder omschrijving' }}</span>

@@ -112,7 +112,11 @@ onMounted(() => {
     style,
     center: initial ? [initial.lng, initial.lat] : FALLBACK_CENTER,
     zoom: initial ? props.singlePinZoom : 8,
-    attributionControl: false,
+    // The base map is OpenFreeMap / OpenStreetMap, which ask to be named.
+    // MapLibre's own control, bottom right (the zoom buttons are top right):
+    // open when the map appears, folded to the "i" once the map is dragged.
+    attributionControl: { compact: true },
+    locale: { 'AttributionControl.ToggleAttribution': 'Bronvermelding van de kaart tonen of verbergen' },
   })
 
   map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
@@ -157,9 +161,9 @@ watch(() => props.selectedId, updateSelection)
   width: 16px;
   height: 16px;
   border-radius: 9999px;
-  background: var(--color-grey-400);
+  background: var(--color-muted);
   border: 2px solid white;
-  box-shadow: 0 0 0 1px var(--color-grey-400);
+  box-shadow: 0 0 0 1px var(--color-muted);
   cursor: pointer;
   transition:
     transform 150ms ease,
@@ -168,14 +172,14 @@ watch(() => props.selectedId, updateSelection)
 }
 
 :deep(.sample-pin:hover) {
-  background: var(--color-grey-800);
-  box-shadow: 0 0 0 1px var(--color-grey-800);
+  background: var(--color-ink);
+  box-shadow: 0 0 0 1px var(--color-ink);
 }
 
 :deep(.sample-pin[data-selected="true"]) {
-  background: var(--color-green-500);
+  background: var(--color-green);
   box-shadow:
-    0 0 0 2px var(--color-green-500),
+    0 0 0 2px var(--color-green),
     0 4px 8px rgb(0 0 0 / 0.15);
   transform: scale(1.25);
 }

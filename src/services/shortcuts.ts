@@ -46,10 +46,11 @@ export const MOD = IS_APPLE ? '⌘' : 'Ctrl+'
  * Bindings are written the Mac way everywhere in the code (`⌘S`, `⌘↵`) because
  * one canonical spelling keeps the handler, the cheatsheet and the button hint
  * in step. This is the one place that translates: a ⌘ on a keyboard that has no
- * ⌘ key is a shortcut nobody tries.
+ * ⌘ key is a shortcut nobody tries. `↵` is written out as well, so the key has
+ * one name on screen: the overlay said "Enter" in one row and "Ctrl+↵" in the next.
  */
 export function keyLabel(spec: string): string {
-  return spec.replace('⌘', MOD)
+  return spec.replace('⌘', MOD).replace('↵', 'Enter')
 }
 
 /**
@@ -83,7 +84,7 @@ export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
       { keys: '/', label: 'Zoeken' },
       { keys: 'j', label: 'Volgende rij' },
       { keys: 'k', label: 'Vorige rij' },
-      { keys: 'Enter', label: 'Geselecteerde rij openen' },
+      { keys: keyLabel('↵'), label: 'Geselecteerde rij openen' },
     ],
   },
   {

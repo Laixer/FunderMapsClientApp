@@ -213,7 +213,19 @@ button:not(:disabled),
  */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--color-green);
-  outline-offset: 1px;
+}
+
+/*
+ * The offset alone sits in the base layer, where a utility can move it: next
+ * to the ring, outside every layer, it would outrank them all. A row that
+ * fills a clipping pane (table row, list row, menu item) has no room around
+ * it, so only the lines above and below it showed; those rows draw the ring
+ * inside themselves with `focus-visible:-outline-offset-2`.
+ */
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline-offset: 1px;
+  }
 }
 
 /*

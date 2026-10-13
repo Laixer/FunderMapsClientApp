@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 
 import { INQUIRY_TYPE_OPTIONS, STATUS_META } from '@/services/inquiryEnums'
@@ -38,6 +38,34 @@ const open = ref(false)
 const root = ref<HTMLElement | null>(null)
 onClickOutside(root, () => (open.value = false))
 onKeyStroke('Escape', () => (open.value = false))
+
+/**
+ * Which edge of the button the popover hangs from. The button stands after the
+ * chips, so with three or four of them it is far to the right, and a popover
+ * that always opened rightwards ran off the screen there. Chosen when it opens,
+ * and again when a choice inside it adds a chip and moves the button.
+ */
+const POPOVER_WIDTH = 420 // the `w-[420px]` in the template
+const alignRight = ref(false)
+
+function place() {
+  if (!root.value) return
+  const { left } = root.value.getBoundingClientRect()
+  alignRight.value = left + POPOVER_WIDTH > document.documentElement.clientWidth - 16
+}
+
+function toggleOpen() {
+  if (!open.value) place()
+  open.value = !open.value
+}
+
+watch(
+  () => props.query,
+  () => {
+    if (open.value) place()
+  },
+  { flush: 'post' },
+)
 
 const STATUSES = Object.entries(STATUS_META).map(([value, meta]) => ({
   value: Number(value),
@@ -94,19 +122,20 @@ const direction = computed(() => {
 </script>
 
 <template>
-  <div ref="root" class="relative">
+  <div ref="root" class="relative shrink-0">
     <button
       type="button"
-      class="text-base rounded-full border border-dashed border-line-strong bg-surface px-2.5 py-[5px] text-subtle hover:border-line-hover hover:text-strong"
+      class="text-base rounded-full border border-dashed border-line-strong bg-surface px-2.5 py-[5px] whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
       :aria-expanded="open"
-      @click="open = !open"
+      @click="toggleOpen"
     >
       Filteren &amp; sorteren
     </button>
 
     <div
       v-if="open"
-      class="studio-fade absolute top-full left-0 z-30 mt-2 flex w-[420px] flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-overlay"
+      class="studio-fade absolute top-full z-30 mt-2 flex w-[420px] flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-overlay"
+      :class="alignRight ? 'right-0' : 'left-0'"
     >
       <section>
         <h3 class="studio-label mb-2">STATUS</h3>

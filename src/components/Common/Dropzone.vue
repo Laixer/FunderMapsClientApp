@@ -26,7 +26,10 @@ const props = withDefaults(
   defineProps<{
     file?: AttachedFile | null
     uploading?: boolean
+    /** An upload that failed, or a file that was refused. Red. */
     error?: string | null
+    /** A document that is still to come: amber, as the other fields still to fill. */
+    missing?: string | null
     accept?: string
     maxBytes?: number
   }>(),
@@ -34,6 +37,7 @@ const props = withDefaults(
     file: null,
     uploading: false,
     error: null,
+    missing: null,
     accept: 'application/pdf,image/*',
     maxBytes: 40 * 1024 * 1024,
   },
@@ -92,7 +96,7 @@ function onChange(event: Event) {
         </label>
         · max {{ formatBytes(maxBytes) }}
       </p>
-      <p class="text-xs font-mono text-label">de naam wordt voorgesteld uit de bestandsnaam</p>
+      <p class="text-xs font-mono text-label">naam volgt uit de bestandsnaam</p>
       <input
         :id="id"
         ref="input"
@@ -106,6 +110,7 @@ function onChange(event: Event) {
 
     <p v-if="uploading" class="text-md text-muted">Bezig met uploaden…</p>
     <p v-if="error" class="text-md text-red">{{ error }}</p>
+    <p v-else-if="missing" class="text-sm text-amber-ink">{{ missing }}</p>
 
     <div
       v-if="file"

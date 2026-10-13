@@ -292,7 +292,7 @@ export function chipsFor(query: ExplorerQuery): Chip[] {
     chips.push({
       id: 'status',
       label: 'status',
-      value: query.status.map((s) => statusMeta(s).label.toLowerCase()).join(' of '),
+      value: query.status.map((s) => statusMeta(s).label).join(' of '),
       clear: (q) => ({ ...q, status: [], page: 1 }),
     })
   }

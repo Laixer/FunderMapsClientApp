@@ -202,8 +202,8 @@ const pins = computed<SamplePin[]>(() => {
 const headerStatus = computed(() => {
   const parts = [`#${recoveryId.value}`]
   if (saving.value) parts.push('opslaan…')
-  else if (savedAt.value) parts.push(`autosave ${formatTime(savedAt.value)}`)
-  else parts.push('autosave aan')
+  else if (savedAt.value) parts.push(`opgeslagen ${formatTime(savedAt.value)}`)
+  else parts.push('slaat automatisch op')
   parts.push(`${keyLabel('⌘S')} om te forceren`)
   return parts.join(' · ')
 })
@@ -242,7 +242,7 @@ watch(
     >
       <template #actions>
         <span class="text-base text-muted">
-          {{ samples.length }} {{ samples.length === 1 ? 'pand' : 'panden' }}
+          {{ samples.length.toLocaleString('nl-NL') }} {{ samples.length === 1 ? 'pand' : 'panden' }}
         </span>
         <Button label="Vorige" @click="previous" />
         <Button variant="primary" label="Volgende" shortcut="⌘↵" @click="next" />
@@ -254,8 +254,10 @@ watch(
     >
       <div class="flex min-h-0 flex-col overflow-y-auto border-r border-line bg-surface">
         <div class="flex flex-col gap-2 border-b border-divider px-3.5 py-3">
-          <h2 class="studio-label">PANDEN ({{ samples.length }})</h2>
-          <div class="flex items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5">
+          <h2 class="studio-label">PANDEN ({{ samples.length.toLocaleString('nl-NL') }})</h2>
+          <div
+            class="flex items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
+          >
             <span aria-hidden="true" class="text-base text-faint">⌕</span>
             <input
               v-model="buildingSearch"
@@ -271,7 +273,7 @@ watch(
           v-for="building in visibleBuildings"
           :key="building.id"
           type="button"
-          class="flex flex-col gap-1 border-b border-canvas py-2.5 pr-3.5 pl-[11px] text-left"
+          class="flex flex-col gap-1 border-b border-canvas py-2.5 pr-3.5 pl-[11px] text-left focus-visible:-outline-offset-2"
           :class="
             building.id === selectedId
               ? 'border-l-[3px] border-l-green bg-green-wash'
@@ -331,7 +333,13 @@ watch(
           :pins="pins"
           height="250px"
           :selected-id="selectedId"
-          empty-message="Geen bekende locatie voor dit pand."
+          :empty-message="
+            loading
+              ? 'Locatie ophalen…'
+              : selected
+                ? 'Geen bekende locatie voor dit pand.'
+                : 'Nog geen pand gekozen.'
+          "
         />
 
         <div class="flex flex-col gap-4 p-4">

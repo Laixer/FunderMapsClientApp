@@ -357,7 +357,8 @@ onBeforeMount(async () => {
           <Dropzone
             :file="attached"
             :uploading="uploading"
-            :error="uploadError ?? errorFor('documentFile')"
+            :error="uploadError"
+            :missing="errorFor('documentFile')"
             @pick="onPick"
             @remove="onRemove"
             @reject="uploadError = $event"

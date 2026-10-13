@@ -71,7 +71,9 @@ function move(delta: number) {
 
 <template>
   <div class="flex flex-col gap-2">
-    <div class="flex items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5">
+    <div
+      class="flex items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
+    >
       <span aria-hidden="true" class="text-base text-faint">⌕</span>
       <input
         v-model="query"

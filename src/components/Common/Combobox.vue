@@ -26,7 +26,10 @@ const props = withDefaults(
     error?: string | null
     required?: boolean
     disabled?: boolean
-    /** Label of the choice that clears the value. Omit for a required pick. */
+    /**
+     * What an empty value stands for. Given: the pick can be cleared with the
+     * cross. Omitted: a pick that cannot be taken back.
+     */
     emptyLabel?: string
     /** Rows visible before the list scrolls. */
     visible?: number
@@ -187,8 +190,8 @@ const frameClass = computed(() => {
         v-if="selected && emptyLabel && !disabled"
         type="button"
         class="text-xs shrink-0 text-label hover:text-strong"
-        :title="emptyLabel"
-        :aria-label="emptyLabel"
+        title="Keuze wissen"
+        aria-label="Keuze wissen"
         tabindex="-1"
         @mousedown.prevent
         @click="clear"
