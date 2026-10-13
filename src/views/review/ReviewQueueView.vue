@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeMount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { refDebounced } from '@vueuse/core'
 
@@ -12,6 +12,7 @@ import ReviewFilterBuilder from '@/components/Review/ReviewFilterBuilder.vue'
 import api from '@/services/fundermaps'
 import type { IReviewQueueItem } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
+import { confirmAction } from '@/services/confirm'
 import { PAGE_SIZE } from '@/services/explorer'
 import {
   BUILTIN_VIEWS,
@@ -32,6 +33,7 @@ import {
   type ReviewQuery,
   type SavedView,
 } from '@/services/reviewExplorer'
+import { useRowKeyboard } from '@/services/useRowKeyboard'
 import { useStudioStore } from '@/stores/studio'
 
 /**
@@ -215,7 +217,14 @@ const items = computed(() =>
   })),
 )
 
+// j / k / Enter over the rows, as on Rapportages and Herstel: the highlight
+// moves, the focus follows it, Enter opens the dossier.
+const { activeId, setActive } = useRowKeyboard({ rows: items, onOpen: open })
+
 function open(row: { id: number }) {
+  // The cursor goes where the row was opened: Enter on a row reached with Tab
+  // means that row, not the one j/k last stood on.
+  setActive(row.id)
   // The filter travels with the reviewer: the dossier page reads it to pick
   // the next one from the same list (Don, 2026-09-14).
   router.push({ name: 'review-dossier', params: { id: row.id }, query: route.query })
@@ -226,6 +235,14 @@ function open(row: { id: number }) {
 const selectedIds = ref<Set<string | number>>(new Set())
 const bulkNote = ref('')
 const bulkBusy = ref(false)
+
+/**
+ * A page of closed dossiers only, in a list of the desk: "Reactie ontvangen"
+ * holds the melders who wrote back after their dossier was closed, and a search
+ * on "Alles" finds closed ones too. Nothing on it can be selected, so the page
+ * gets no checkboxes.
+ */
+const noneOpen = computed(() => rows.value.length > 0 && rows.value.every((r) => r.outcome))
 
 /** Only an open dossier can be closed: a closed one found by a search is never part of the selection. */
 function toggleRow(row: { id: number; outcome?: string | null }) {
@@ -241,17 +258,42 @@ function toggleAll() {
   selectedIds.value = selectedIds.value.size === openIds.length ? new Set() : new Set(openIds)
 }
 
+const BULK_QUESTION: Record<'no_data' | 'rejected' | 'duplicate', { ask: string; confirm: string }> = {
+  no_data: { ask: 'sluiten als “geen gegevens”', confirm: 'Sluiten' },
+  rejected: { ask: 'afwijzen', confirm: 'Afwijzen' },
+  duplicate: { ask: 'sluiten als duplicaat', confirm: 'Sluiten als duplicaat' },
+}
+
 /**
  * Close every selected dossier with one outcome. One request, one transaction:
  * the case this exists for is thirty logos in a row, and thirty sequential
  * calls is how you half-close a queue.
+ *
+ * It asks first. One click closed the whole selection, there is no way back,
+ * and the API mails every melder who left an address.
  */
 async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
   const ids = [...selectedIds.value].map(Number)
   if (!ids.length) return
+  const note = bulkNote.value.trim()
+  const answer = confirmAction({
+    title: `${ids.length} ${ids.length === 1 ? 'dossier' : 'dossiers'} ${BULK_QUESTION[outcome].ask}?`,
+    body: [
+      ...(note ? [`Reden: “${note}”`] : []),
+      `Melders met een e-mailadres krijgen hierover een mail${note ? ', met deze reden erin' : ''}.`,
+      'Dit kan niet ongedaan worden gemaakt.',
+    ].join('\n'),
+    confirmLabel: BULK_QUESTION[outcome].confirm,
+    danger: true,
+  })
+  // The dialog opens with the keyboard on its confirm button. Here a yes sends
+  // mail, so the keyboard starts on "Annuleren": Enter then closes nothing.
+  await nextTick()
+  document.querySelector<HTMLElement>('[role="dialog"] footer button')?.focus()
+  if (!(await answer)) return
   bulkBusy.value = true
   try {
-    await api.dataops.closeMany(ids, { outcome, note: bulkNote.value.trim() || null })
+    await api.dataops.closeMany(ids, { outcome, note: note || null })
     selectedIds.value = new Set()
     bulkNote.value = ''
     await Promise.all([load(), studio.refreshCounts(null)])
@@ -398,7 +440,8 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         :columns="columns"
         :loading="loading"
         :selected-ids="selectedIds"
-        :selectable="!closedView"
+        :active-id="activeId"
+        :selectable="!closedView && !noneOpen"
         @toggle="toggleRow"
         @toggle-all="toggleAll"
         :empty-message="
@@ -449,9 +492,14 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           <span class="font-mono tabular-nums text-muted">{{ row.files }}</span>
         </template>
         <template #open="{ row }">
+          <!-- A closed dossier in a list of the desk says how it was closed:
+               it looked open, down to "niets gevonden" and a number of proposals. -->
+          <span v-if="row.outcome" class="flex justify-end">
+            <Pill :label="row.outcome" :tone="row.outcomeTone" plain />
+          </span>
           <!-- Don, 2026-10-02: a melding without a file was "nog niet gelezen"
                for ever, which read as a stuck pipeline. There is nothing to read. -->
-          <span v-if="row.files === 0" class="flex justify-end">
+          <span v-else-if="row.files === 0" class="flex justify-end">
             <Pill label="geen document" tone="neutral" plain />
           </span>
           <span v-else-if="!row.read" class="flex justify-end">

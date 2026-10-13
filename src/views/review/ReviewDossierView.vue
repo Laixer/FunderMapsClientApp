@@ -11,6 +11,7 @@ import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import DossierAddresses from '@/components/Review/DossierAddresses.vue'
+import ProposalValueField from '@/components/Review/ProposalValueField.vue'
 import RecordRecoveryPanel from '@/components/Review/RecordRecoveryPanel.vue'
 import api from '@/services/fundermaps'
 import { byName } from '@/services/options'
@@ -27,16 +28,17 @@ import { parseQuery, toQueueOpts } from '@/services/reviewExplorer'
 import { bareName, defaultGroups, groupOptions, groupsOf, isMergeable, type GroupChoice } from '@/services/rapportageGroups'
 import {
   CHANNEL_LABEL,
-  FIELD_LABEL,
   FIELD_UNIT,
   FOUNDATION_TYPE_CODE_OPTIONS,
   INQUIRY_TYPE_CODE_OPTIONS,
   OUTCOME_LABEL,
-  VALUE_LABEL,
   VERDICT_LABEL,
   derivedInquiryType,
   displayValue as labelValue,
+  fieldLabel,
   formatDate,
+  inLaneWords,
+  readableEntry,
 } from '@/services/reviewLabels'
 import {
   BLANK,
@@ -146,6 +148,13 @@ const closing = ref(false)
 const closed = ref<DossierOutcome | null>(null)
 /** The rapportage a commit made, for a link that outlives the toast (Don #321 §6). */
 const committedInquiryId = ref<number | null>(null)
+/**
+ * The dossier has left the desk: closed just now or on an earlier visit, or
+ * committed. What is on screen is then what was decided, to read, without the
+ * controls to judge with: a verdict clicked on a closed dossier is still
+ * stored (the API takes one on any field) and changes nothing that was made.
+ */
+const isClosed = computed(() => !!closed.value || !!data.value?.dossier.outcome || !!data.value?.dossier.inquiryId)
 
 /**
  * Load the dossier in the URL. A function rather than a one-off in
@@ -409,7 +418,9 @@ function byAddress(list: IProposedField[]) {
  * in no inquiry are not shown: nothing from them is taken over.
  */
 const openSections = computed(() => {
-  if (!multiDoc.value) return [{ key: 'all', set: null as (typeof commitGroups.value)[number] | null, groups: byAddress(open.value) }]
+  // A closed dossier gets no inquiry blocks: the sets on screen would be the
+  // default sorting, not the one the reviewer closed it with.
+  if (!multiDoc.value || isClosed.value) return [{ key: 'all', set: null as (typeof commitGroups.value)[number] | null, groups: byAddress(open.value) }]
   return commitGroups.value.map((g) => ({
     key: `set${g.n}`,
     set: g as (typeof commitGroups.value)[number] | null,
@@ -425,11 +436,11 @@ const settled = computed(() => (data.value?.fields ?? []).filter((f) => decided.
  */
 const judgedOpen = ref<Record<string, boolean>>({})
 const settledSections = computed(() => {
-  if (!multiDoc.value) return [{ key: 'all', title: null as string | null, cards: settledCards.value }]
+  if (!multiDoc.value || isClosed.value) return [{ key: 'all', title: null as string | null, cards: settledCards.value }]
   const docIds = new Set(commitDocs.value.map((d) => d.id))
   const out = commitGroups.value.map((g) => ({
     key: `set${g.n}`,
-    title: `Inquiry ${g.n}` as string | null,
+    title: `Rapportage ${g.n}` as string | null,
     cards: settledCards.value.filter((f) => g.ids.includes(f.artifactId)),
   }))
   const other = settledCards.value.filter((f) => !docIds.has(f.artifactId))
@@ -754,7 +765,8 @@ const mailCards = computed(() => {
  * Waarde toevoegen (Don's casus 2, 2026-09-15): a value the reviewer sees and
  * the model did not. Lands as a confirmed proposal on the dossier with a
  * "human added" finding, so the commit takes it and the pipeline learns.
- * Sample fields only; soort/datum/uitvoerder have the close panel.
+ * Sample fields only; soort/datum/uitvoerder have the close panel. The value's
+ * control (list, number or text) is ProposalValueField, shared with the drawer.
  */
 const ADD_FIELDS = [
   'foundation_type', 'built_year', 'foundation_quality', 'wood_type', 'wood_level', 'wood_encroachment',
@@ -764,7 +776,7 @@ const ADD_FIELDS = [
   'crack_facade_back_type', 'crack_indoor_type', 'skewed_parallel', 'skewed_perpendicular',
   'enforcement_term', 'recovery_advised', 'recovery_note', 'follow_up_note',
 ] as const
-const ADD_FIELD_OPTIONS = ADD_FIELDS.map((f) => ({ value: f, label: FIELD_LABEL[f] ?? f }))
+const ADD_FIELD_OPTIONS = ADD_FIELDS.map((f) => ({ value: f, label: fieldLabel(f) }))
 const addOpen = ref(false)
 const addField = ref<string | null>(null)
 const addValue = ref('')
@@ -775,16 +787,6 @@ const addBusy = ref(false)
 // as a funderingstype (the select showed nothing, the button stayed enabled).
 watch(addField, () => {
   addValue.value = ''
-})
-const addValueOptions = computed(() => {
-  const map = addField.value ? VALUE_LABEL[addField.value] : undefined
-  return map ? Object.entries(map).map(([value, label]) => ({ value, label })) : null
-})
-const addValueKind = computed(() => {
-  if (!addField.value) return 'text'
-  if (addValueOptions.value) return 'select'
-  if (FIELD_UNIT[addField.value] || ['built_year', 'skewed_parallel', 'skewed_perpendicular', 'foundation_depth', 'groundlevel'].includes(addField.value)) return 'number'
-  return 'text'
 })
 const addAddressOptions = computed(() =>
   (data.value?.addresses ?? [])
@@ -801,7 +803,7 @@ async function addManualValue() {
       addressId: addAddress.value || null,
       note: addNote.value.trim() || null,
     })
-    toastSuccess(`${FIELD_LABEL[addField.value] ?? addField.value} toegevoegd.`)
+    toastSuccess(`${fieldLabel(addField.value)} toegevoegd.`)
     addValue.value = ''
     addNote.value = ''
     addOpen.value = false
@@ -948,7 +950,8 @@ function setGroupOverride(n: number, key: 'type' | 'date', value: unknown) {
   const cur = groupOverride.value[n] ?? { type: null, date: null }
   groupOverride.value = { ...groupOverride.value, [n]: { ...cur, [key]: value == null || value === '' ? null : String(value) } }
 }
-const docGroupOptions = computed(() => groupOptions(groupChoice.value))
+// The options come from the sorting module, the words from the lane ("Rapportage 1", "Geen rapportage").
+const docGroupOptions = computed(() => groupOptions(groupChoice.value).map((o) => ({ ...o, label: inLaneWords(o.label) })))
 const commitGroups = computed(() =>
   groupsOf(commitDocs.value, groupChoice.value).map((g) => {
     const ids = g.docs.map((d) => d.id)
@@ -992,7 +995,10 @@ const commitGroups = computed(() =>
   }),
 )
 /** Why the commit of several files cannot go yet, for the button's tooltip; null when it can. */
-const groupsBlockedBy = computed(() => (multiDoc.value ? commitBlocker(commitGroups.value, commitNote.value, autoNoteHeld.value) : null))
+const groupsBlockedBy = computed(() => {
+  const blocker = multiDoc.value ? commitBlocker(commitGroups.value, commitNote.value, autoNoteHeld.value) : null
+  return blocker && inLaneWords(blocker)
+})
 const groupsBlocked = computed(() => groupsBlockedBy.value != null)
 /**
  * An inquiry number that is no longer in use takes its choices with it: a new
@@ -1027,7 +1033,7 @@ const setOf = (artifactId: number): number | null => {
  * only those of files in an inquiry: a file in no inquiry is not taken over,
  * so its proposals need no judging (the API sets them aside on commit).
  * Sluiten zonder rapportage and Geen gegevens use the same rule: with every
- * file on 'Geen inquiry' they stayed grey on open proposals nobody needs to
+ * file on 'Geen rapportage' they stayed grey on open proposals nobody needs to
  * judge (Don, dossier 6148, 2026-10-09).
  */
 const blockingOpen = computed(() =>
@@ -1038,6 +1044,22 @@ const blockingOpen = computed(() =>
         return !commitDocs.value.some((d) => d.id === f.artifactId)
       })
     : open.value,
+)
+
+/**
+ * The closing panel is pinned under the pane so the commit is never a scroll
+ * away, and on a 1050px window it took half the pane from the first second,
+ * before a single value was judged. It is one row while something is left to
+ * judge and opens by itself when the last proposal is judged (and folds again
+ * when one is reopened). A click on its button overrules that until then.
+ */
+const closePanelChoice = ref<boolean | null>(null)
+const closePanelOpen = computed(() => closePanelChoice.value ?? blockingOpen.value.length === 0)
+watch(
+  () => blockingOpen.value.length === 0,
+  () => {
+    closePanelChoice.value = null
+  },
 )
 
 /**
@@ -1319,6 +1341,7 @@ watch(
  * commit controls from the new dossier's own taken-over values.
  */
 function resetDossierForms() {
+  closePanelChoice.value = null
   commitType.value = null
   commitDate.value = null
   commitContractor.value = null
@@ -1526,7 +1549,7 @@ const conflictRows = computed(() => {
     const members = [f, ...c.others.map((o) => fieldById.get(o.fieldId)).filter((x): x is IProposedField => !!x)]
     byKey.set(key, {
       key,
-      label: FIELD_LABEL[f.field] ?? f.field,
+      label: fieldLabel(f.field),
       address: addressLine(f),
       leadingName: c.leading?.name ?? null,
       options: members.map((m) => ({
@@ -1667,7 +1690,7 @@ async function reopen(f: IProposedField) {
     }
     decided.value = rest
     corrections.value = cleared
-    toastInfo(`${FIELD_LABEL[f.field] ?? f.field} staat weer open.`)
+    toastInfo(`${fieldLabel(f.field)} staat weer open.`)
     focus(f)
   } catch (e) {
     error.value = describeFailure(e, 'De beoordeling kon niet worden heropend.')
@@ -1892,8 +1915,8 @@ async function reopen(f: IProposedField) {
           </Callout>
 
           <Callout v-else-if="blockingOpen.length === 0 && open.length > 0" tone="green" title="Niets meer te beoordelen">
-            De voorstellen die nog openstaan horen bij een afgewezen inquiry of bij een bestand zonder inquiry: die
-            hoeven niet beoordeeld te worden.
+            De voorstellen die nog openstaan horen bij een afgewezen rapportage of bij een bestand zonder rapportage:
+            die hoeven niet beoordeeld te worden.
           </Callout>
 
           <Callout v-else-if="blockingOpen.length === 0" tone="green" title="Alles beoordeeld">
@@ -1922,12 +1945,12 @@ async function reopen(f: IProposedField) {
           <Panel
             v-if="!loading && data && multiDoc && !closed && !data.dossier.outcome && !data.dossier.inquiryId"
             caption="BESTANDEN INDELEN"
-            :meta="`${commitGroups.length} inquir${commitGroups.length === 1 ? 'y' : 'ies'}`"
+            :meta="`${commitGroups.length} rapportage${commitGroups.length === 1 ? '' : 's'}`"
           >
             <p class="text-md mb-2 text-muted">
-              Staat alles in Inquiry 1, dan wordt het één inquiry. Hoort een bestand bij een ander onderzoek, kies dan
-              een nieuwe inquiry. Bestanden in één inquiry worden samengevoegd tot één PDF. Een bestand zonder inquiry
-              blijft bij de melding, maar er wordt niets uit overgenomen.
+              Staat alles in Rapportage 1, dan wordt het één rapportage. Hoort een bestand bij een ander onderzoek,
+              kies dan een nieuwe rapportage. Bestanden in één rapportage worden samengevoegd tot één PDF. Een bestand
+              zonder rapportage blijft bij de melding, maar er wordt niets uit overgenomen.
             </p>
             <div class="flex flex-col gap-1.5">
               <div v-for="d in commitDocs" :key="d.id" class="grid grid-cols-[1fr_12rem] items-center gap-3">
@@ -1943,7 +1966,7 @@ async function reopen(f: IProposedField) {
                 <select
                   :id="`set-${d.id}`"
                   class="studio-input rounded-md border border-line bg-sunken px-2 py-1.5"
-                  :aria-label="`Inquiry voor ${bareName(d.originalFilename)}`"
+                  :aria-label="`Rapportage voor ${bareName(d.originalFilename)}`"
                   :value="String(groupChoice[d.id] ?? 'vervalt')"
                   @change="setGroup(d.id, ($event.target as HTMLSelectElement).value)"
                 >
@@ -1969,7 +1992,7 @@ async function reopen(f: IProposedField) {
           <template v-for="sec in openSections" :key="sec.key">
           <div v-if="sec.set" class="flex flex-col gap-2 rounded-lg border border-line-strong bg-raised p-3">
             <p class="text-md font-semibold text-strong">
-              Inquiry {{ sec.set.n }}
+              Rapportage {{ sec.set.n }}
               <span class="font-normal text-muted">
                 · {{ sec.set.names.length }} bestand{{ sec.set.names.length === 1 ? '' : 'en' }}<template v-if="sec.set.names.length > 1">, wordt één PDF</template>
                 · {{ sec.groups.reduce((t, g) => t + g.fields.length, 0) }} open
@@ -2019,13 +2042,13 @@ async function reopen(f: IProposedField) {
               :model-value="sec.set.answer"
               kind="textarea"
               :rows="3"
-              label="Antwoord over deze inquiry"
+              label="Antwoord over deze rapportage"
               :error="answerError(sec.set, commitNote, autoNoteHeld)"
-              :hint="melderEmail ? 'Komt met de antwoorden van de andere inquiries in één mail aan de melder.' : 'Blijft bij het dossier: er is geen melder met een e-mailadres.'"
+              :hint="melderEmail ? 'Komt met de antwoorden van de andere rapportages in één mail aan de melder.' : 'Blijft bij het dossier: er is geen melder met een e-mailadres.'"
               @update:model-value="setGroupAnswer(sec.set.n, $event)"
             />
             <fieldset v-if="moveTargets.length && sec.set.verdict === 'accepted'" class="flex flex-col gap-1">
-              <legend class="text-sm text-muted">Adressen van deze inquiry</legend>
+              <legend class="text-sm text-muted">Adressen van deze rapportage</legend>
               <label v-for="a in moveTargets" :key="a.value" class="flex items-center gap-2 text-sm text-body">
                 <input
                   type="checkbox"
@@ -2035,14 +2058,14 @@ async function reopen(f: IProposedField) {
                 />
                 {{ a.label }}
               </label>
-              <p v-if="sec.set.addressIds?.length === 0" class="text-sm text-red">Kies minstens één adres voor deze inquiry.</p>
+              <p v-if="sec.set.addressIds?.length === 0" class="text-sm text-red">Kies minstens één adres voor deze rapportage.</p>
               <p class="text-sm text-faint">
                 Wat het document zonder adres noemt, komt op elk aangevinkt adres. Een waarde bij één adres blijft op
                 dat adres. Een adres dat nog te bevestigen is, staat uit tot je het aanvinkt.
               </p>
             </fieldset>
             <p v-if="sec.set.unmergeable.length" class="text-sm text-red">
-              {{ sec.set.unmergeable.join(', ') }} kan niet in één PDF worden samengevoegd: zet het in een eigen inquiry.
+              {{ sec.set.unmergeable.join(', ') }} kan niet in één PDF worden samengevoegd: zet het in een eigen rapportage.
             </p>
           </div>
           <section v-for="group in sec.groups" :key="`${sec.key}|${group.key}`" class="flex flex-col gap-2">
@@ -2069,7 +2092,7 @@ async function reopen(f: IProposedField) {
                 :tone="group.state === 'confirmed' ? 'green' : 'amber'"
                 plain
               />
-              <span class="text-sm font-mono text-faint">{{ group.fields.length }} open</span>
+              <span class="text-sm font-mono text-faint">{{ group.fields.length }} {{ isClosed ? 'niet beoordeeld' : 'open' }}</span>
             </button>
 
             <!-- A range (#186): what it covers, folded. One Overnemen below decides every address. -->
@@ -2083,13 +2106,13 @@ async function reopen(f: IProposedField) {
                 v-for="f in group.fields"
                 :key="f.id"
                 class="flex flex-col gap-1.5 rounded-lg border border-line bg-surface p-2.5"
-                :class="{ 'col-span-2': editing[f.id] }"
+                :class="{ 'col-span-2': editing[f.id] && !isClosed }"
                 @focusin="focus(f)"
                 @click="focus(f)"
               >
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span class="text-sm font-semibold uppercase tracking-wide text-label">
-                    {{ FIELD_LABEL[f.field] ?? f.field }}
+                    {{ fieldLabel(f.field) }}
                   </span>
                   <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" plain />
                   <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" plain />
@@ -2139,6 +2162,7 @@ async function reopen(f: IProposedField) {
                     De volgorde kan hier niet kiezen: van een document ontbreekt de soort, of ze zijn even oud. Kies zelf.
                   </p>
                   <Button
+                    v-if="!isClosed"
                     class="self-start"
                     :variant="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'primary' : 'secondary'"
                     :label="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'Deze is leidend (advies)' : 'Deze is leidend'"
@@ -2167,7 +2191,8 @@ async function reopen(f: IProposedField) {
                   {{ contractorNote(f)!.text }}
                 </p>
 
-                <div class="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
+                <!-- Not on a closed dossier: the card is then what was proposed, to read. -->
+                <div v-if="!isClosed" class="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
                   <Button
                     variant="primary"
                     label="Overnemen"
@@ -2187,7 +2212,7 @@ async function reopen(f: IProposedField) {
 
                 <!-- The drawer: correction and toelichting, only when asked. -->
                 <div
-                  v-if="editing[f.id]"
+                  v-if="editing[f.id] && !isClosed"
                   class="mt-1 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-divider pt-2.5"
                 >
                   <Combobox
@@ -2217,7 +2242,9 @@ async function reopen(f: IProposedField) {
                     placeholder="Typ (een deel van) de naam"
                     :options="contractorOptions"
                   />
-                  <Field v-else v-model="corrections[f.id]" label="Andere waarde" />
+                  <!-- Every other field: the control "Waarde toevoegen" uses for it,
+                       so a correction is a code or a number the commit can read. -->
+                  <ProposalValueField v-else v-model="corrections[f.id]" :field="f.field" label="Andere waarde" />
 
                   <Field
                     v-model="notes[f.id]"
@@ -2268,7 +2295,7 @@ async function reopen(f: IProposedField) {
             </p>
             <ul class="flex flex-wrap gap-x-3 gap-y-1">
               <li v-for="f in agreed" :key="f.id" class="text-sm text-muted">
-                <span class="font-semibold text-body">{{ FIELD_LABEL[f.field] ?? f.field }}</span>
+                <span class="font-semibold text-body">{{ fieldLabel(f.field) }}</span>
                 {{ displayValue(f) }}<template v-if="addressLine(f)"> · {{ addressLine(f) }}</template>
               </li>
             </ul>
@@ -2283,15 +2310,7 @@ async function reopen(f: IProposedField) {
             </div>
             <div v-else class="grid grid-cols-2 gap-x-3 gap-y-2">
               <Field v-model="addField" kind="select" label="Gegeven" :options="ADD_FIELD_OPTIONS" empty-label="Kies een gegeven" />
-              <Field
-                v-if="addValueKind === 'select'"
-                v-model="addValue"
-                kind="select"
-                label="Waarde"
-                :options="addValueOptions ?? []"
-                empty-label="Kies een waarde"
-              />
-              <Field v-else v-model="addValue" :kind="addValueKind" label="Waarde" :hint="addField && FIELD_UNIT[addField] ? FIELD_UNIT[addField] : undefined" />
+              <ProposalValueField v-model="addValue" :field="addField" label="Waarde" />
               <Field v-model="addAddress" kind="select" label="Adres" :options="addAddressOptions" empty-label="Pand van de melding" />
               <Field v-model="addNote" kind="text" label="Toelichting (optioneel)" />
               <div class="col-span-2 flex justify-end gap-2">
@@ -2323,7 +2342,7 @@ async function reopen(f: IProposedField) {
                 <span aria-hidden="true" class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-green" />
                 <span class="min-w-0">
                   <span class="block font-semibold text-body">
-                    {{ FIELD_LABEL[f.field] ?? f.field }} — {{ displayValue(f) }}
+                    {{ fieldLabel(f.field) }} — {{ displayValue(f) }}
                     <span v-if="FIELD_UNIT[f.field] && f.value != null" class="font-normal text-muted">
                       {{ FIELD_UNIT[f.field] }}
                     </span>
@@ -2350,6 +2369,7 @@ async function reopen(f: IProposedField) {
                       · advies: {{ conflicts.get(f.id)!.leading!.name }}</template
                     >
                     <button
+                      v-if="!isClosed"
                       type="button"
                       class="ml-1 font-semibold underline hover:text-strong"
                       :disabled="busy === f.id"
@@ -2439,7 +2459,8 @@ async function reopen(f: IProposedField) {
                       <div v-if="shownQuote[e.id]" class="mt-1.5 whitespace-pre-wrap break-words border-l-2 border-line pl-2.5 text-faint">{{ mailCards[e.id].quoted }}</div>
                     </template>
                   </div>
-                  <span v-else class="break-words text-muted">{{ e.text }}</span>
+                  <!-- A line the system wrote carries database names; a notitie is a person's own words. -->
+                  <span v-else class="break-words text-muted">{{ e.kind === 'remark' ? e.text : readableEntry(e.text) }}</span>
                   <!-- Our own mail, the same words the melder got (#350). -->
                   <template v-if="mailOf(e) && !mailCards[e.id]">
                     <button type="button" class="text-sm ml-1.5 text-green-ink underline underline-offset-2" @click="shownMail = { ...shownMail, [e.id]: !shownMail[e.id] }">
@@ -2574,12 +2595,27 @@ async function reopen(f: IProposedField) {
         <!-- Closing the whole dossier, pinned to the bottom of the pane so
              "Overnemen als rapportage" is never a scroll away. Always
              available, because "this is not about anything" is a judgement
-             about the document, not about one of its values. -->
+             about the document, not about one of its values. One row while
+             proposals wait, so they have the pane; one click unfolds it. -->
         <div
-          v-if="!loading && data && !closed && !data.dossier.outcome"
+          v-if="!loading && data && !closed && !data.dossier.outcome && !closePanelOpen"
+          class="flex shrink-0 items-center gap-2.5 border-t border-line bg-surface px-[35px] py-2"
+        >
+          <span class="studio-caption">{{ answerMode ? 'BEANTWOORDEN' : 'DOSSIER SLUITEN' }}</span>
+          <span class="text-xs font-mono text-label">
+            {{ openCards ? `nog ${openCards} te beoordelen` : 'niets meer te beoordelen' }}
+          </span>
+          <Button class="ml-auto" label="Openklappen" aria-expanded="false" @click="closePanelChoice = true" />
+        </div>
+        <div
+          v-else-if="!loading && data && !closed && !data.dossier.outcome"
           class="shrink-0 border-t border-line bg-surface p-4"
         >
           <Panel :caption="answerMode ? 'BEANTWOORDEN' : 'DOSSIER SLUITEN'">
+            <template #actions>
+              <!-- -my-2: the header keeps the height it had without a button. -->
+              <Button class="-my-2" variant="ghost" label="Inklappen" aria-expanded="true" @click="closePanelChoice = false" />
+            </template>
             <div class="flex flex-col gap-3">
               <!-- What "Overnemen als rapportage" writes on the inquiry itself,
                    as controls: prefilled with what was taken over, sent with
@@ -2594,15 +2630,15 @@ async function reopen(f: IProposedField) {
                    and soort/datum per inquiry); here only what closing makes. -->
               <div v-else-if="multiDoc" class="flex flex-col gap-1.5 text-md">
                 <p v-if="!commitGroups.length" class="text-muted">
-                  Geen enkel bestand staat in een inquiry. Sluit de melding zonder rapportage, of zet bovenaan
-                  een bestand in een inquiry.
+                  Geen enkel bestand staat in een rapportage. Sluit de melding zonder rapportage, of zet bovenaan
+                  een bestand in een rapportage.
                 </p>
                 <template v-else>
                   <p class="text-muted">
-                    <strong class="text-body">{{ commitSummary(commitGroups) }}</strong><template v-if="melderEmail">; de melder krijgt één afsluiting</template>.
+                    <strong class="text-body">{{ inLaneWords(commitSummary(commitGroups)) }}</strong><template v-if="melderEmail">; de melder krijgt één afsluiting</template>.
                   </p>
                   <p v-for="g in commitGroups" :key="g.n" class="text-muted">
-                    <span class="font-semibold text-body">Inquiry {{ g.n }}</span>
+                    <span class="font-semibold text-body">Rapportage {{ g.n }}</span>
                     · {{ g.names.length }} bestand{{ g.names.length === 1 ? '' : 'en' }}<template v-if="g.names.length > 1 && g.verdict === 'accepted'"> (één PDF)</template>
                     <template v-if="g.verdict === 'rejected'"> · wordt afgewezen</template>
                     <template v-else>
@@ -2611,7 +2647,7 @@ async function reopen(f: IProposedField) {
                     </template>
                   </p>
                   <p v-if="looseDocs.length" class="text-faint">
-                    {{ looseDocs.length }} bestand{{ looseDocs.length === 1 ? '' : 'en' }} zonder inquiry: {{ looseDocs.length === 1 ? 'blijft' : 'blijven' }} bij de melding.
+                    {{ looseDocs.length }} bestand{{ looseDocs.length === 1 ? '' : 'en' }} zonder rapportage: {{ looseDocs.length === 1 ? 'blijft' : 'blijven' }} bij de melding.
                   </p>
                 </template>
                 <p v-if="blockingOpen.length" class="text-muted">
@@ -2706,18 +2742,18 @@ async function reopen(f: IProposedField) {
                   · {{ inquiryTypeLabel(r.type) }} ·
                   <span class="font-mono">{{ r.documentDate ? formatDate(r.documentDate) : 'geen datum' }}</span>
                   · {{ r.addresses }} {{ r.addresses === 1 ? 'adres' : 'adressen' }}, {{ r.samples }}
-                  {{ r.samples === 1 ? 'sample' : 'samples' }} · zelfde bestand
+                  {{ r.samples === 1 ? 'meting' : 'metingen' }} · zelfde bestand
                 </span>
                 <span class="mt-1 block">
                   Sluit dan met het standaardantwoord "Rapportage staat al in de database". Staat het er al twee
-                  keer, houd dan het meest complete exemplaar: de meeste adressen en samples.
+                  keer, houd dan het meest complete exemplaar: de meeste adressen en metingen.
                 </span>
               </Callout>
 
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"
-                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length && !acceptedGroups.length ? 'Afwijzen en afsluiten' : acceptedGroups.length > 1 ? `Overnemen als ${acceptedGroups.length} inquiries` : 'Overnemen als inquiry') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
+                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length && !acceptedGroups.length ? 'Afwijzen en afsluiten' : acceptedGroups.length > 1 ? `Overnemen als ${acceptedGroups.length} rapportages` : 'Overnemen als rapportage') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
                   :disabled="committing || closing || blockingOpen.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
                   :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? (artifacts.length ? 'Wacht tot het document gelezen is' : 'Er is geen document: beantwoord de melding of sluit het dossier') : multiDoc && groupsBlockedBy ? groupsBlockedBy : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
                   @click="commitDossier"
@@ -2749,15 +2785,15 @@ async function reopen(f: IProposedField) {
               </div>
 
               <p v-if="answersTyped" class="text-sm text-amber-ink">
-                De antwoorden per inquiry gaan alleen mee met de groene knop. Sluiten zonder rapportage, Geen gegevens,
+                De antwoorden per rapportage gaan alleen mee met de groene knop. Sluiten zonder rapportage, Geen gegevens,
                 Afwijzen en Duplicaat sturen alleen de reden hieronder.
               </p>
 
               <!-- Two ways to be done with a dossier, and they are not the same
                    thing: one makes a rapportage, the other only closes (#333, 9). -->
               <p v-if="!isAudit" class="text-sm text-label">
-                <!-- "Overnemen", not the button's full label: that reads "als inquiry",
-                     "als 2 inquiries" or "als rapportage" depending on the dossier. -->
+                <!-- "Overnemen", not the button's full label: that reads "als rapportage"
+                     or "als 2 rapportages" depending on the dossier. -->
                 <strong class="font-semibold text-muted">Overnemen</strong> zet de
                 overgenomen waarden als rapportage in de database.
                 <strong class="font-semibold text-muted">Sluiten zonder rapportage</strong> handelt het

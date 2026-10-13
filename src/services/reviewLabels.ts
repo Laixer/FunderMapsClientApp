@@ -10,57 +10,52 @@
 
 import { INQUIRY_TYPE_CODE_LABELS } from '@/services/inquiryEnums'
 import type { SelectOption } from '@/services/options'
+import { ALL_SAMPLE_FIELDS } from '@/services/sampleFields'
 
-/** Keys are `report.inquiry_sample` column names, plus the three document-level fields and `recovery_note`. */
-export const FIELD_LABEL: Record<string, string> = {
-  // About the document itself: land on report.inquiry, not on a sample.
-  document_date: 'Datum rapport',
-  inquiry_type: 'Soort document',
-  contractor: 'Opsteller (uitvoerder)',
-  foundation_type: 'Funderingstype',
-  built_year: 'Bouwjaar',
-  foundation_quality: 'Funderingskwaliteit',
-  recovery_advised: 'Herstel geadviseerd',
-  recovery_note: 'Hersteladvies (toelichting)',
-  follow_up_note: 'Vervolgadvies (onderzoek / monitoring)',
-  enforcement_term: 'Handhavingstermijn',
-  groundwater_level: 'Grondwaterstand',
-  wood_level: 'Bovenkant hout',
-  pile_head_level: 'Bovenkant paal',
-  pile_tip_level: 'Paalpuntniveau',
-  concrete_charger_length: 'Lengte betonoplanger',
-  pile_diameter_top: 'Paaldiameter kop',
-  pile_diameter_bottom: 'Paaldiameter punt',
-  pile_distance_length: 'Paalafstand (h.o.h.)',
-  wood_type: 'Houtsoort',
-  wood_penetration_depth: 'Indringingsdiepte hout',
-  wood_encroachment: 'Houtaantasting',
-  wood_quality: 'Houtkwaliteit',
-  wood_capacity_horizontal_quality: 'Houtkwaliteit (horizontaal)',
-  carrying_capacity_quality: 'Draagkracht',
-  mason_quality: 'Metselwerkkwaliteit',
-  mason_level: 'Onderkant metselwerk',
-  foundation_depth: 'Aanlegniveau fundering',
-  groundlevel: 'Maaiveld',
-  cpt: 'Sondering',
-  substructure: 'Onderbouw',
-  damage_cause: 'Schadeoorzaak',
-  damage_characteristics: 'Schadebeeld',
-  crack_facade_front_type: 'Scheuren voorgevel',
-  crack_facade_back_type: 'Scheuren achtergevel',
-  crack_facade_left_type: 'Scheuren linkerzijgevel',
-  crack_facade_right_type: 'Scheuren rechterzijgevel',
-  crack_indoor_type: 'Scheuren inpandig',
-  skewed_parallel: 'Lintvoegmeting',
-  skewed_perpendicular: 'Loodmeting',
-  skewed_parallel_facade: 'Lintvoegmeting (gevel)',
-  skewed_perpendicular_facade: 'Loodmeting (gevel)',
-  threshold_front_level: 'Drempelniveau voorzijde',
-  threshold_back_level: 'Drempelniveau achterzijde',
-  settlement_speed: 'Zakkingssnelheid',
-  monitoring_well: 'Peilbuis',
-  note: 'Notitie',
-}
+/**
+ * The names of the fields the entry form does not have: the three that describe
+ * the document itself (they land on report.inquiry, not on a sample), the two
+ * advice texts that end up in the note, and the note. Every other field takes
+ * its name from the form's registry (`sampleFields.ts`), so a value is called
+ * the same before and after it is taken over. Until 2026-10-13 this table named
+ * all 46 of them, and 26 read differently here than in the form ("Maaiveld" /
+ * "Maaiveldhoogte", "Aanlegniveau fundering" / "Onderkant fundering").
+ */
+const LANE_FIELD_LABEL = new Map([
+  ['document_date', 'Datum rapport'],
+  ['inquiry_type', 'Soort document'],
+  ['contractor', 'Opsteller (uitvoerder)'],
+  ['recovery_note', 'Hersteladvies (toelichting)'],
+  ['follow_up_note', 'Vervolgadvies (onderzoek / monitoring)'],
+  ['note', 'Notitie'],
+])
+
+/**
+ * The two fields the commit writes under another name than their own (API
+ * dataops-commit.ts, `applyField`): the form's field is where the value lands,
+ * so that is the name the reviewer has to see. "Grondwaterstand" is the name
+ * of another field in the form.
+ */
+const FORM_KEY = new Map([
+  ['foundation_quality', 'overallQuality'],
+  ['groundwater_level', 'groundwaterLevelTemp'],
+])
+
+/** A key without its spelling: `groundlevel`, `ground_level` and `groundLevel` are one field. */
+const bareKey = (key: string) => key.replace(/_/g, '').toLowerCase()
+
+const FORM_FIELD_LABEL = new Map(ALL_SAMPLE_FIELDS.map((f) => [bareKey(f.key), f.label]))
+
+const formLabel = (field: string) => FORM_FIELD_LABEL.get(bareKey(FORM_KEY.get(field) ?? field))
+
+/** Whether the lane has a name for this field key (its own, or the form's). */
+export const isKnownField = (field: string) => LANE_FIELD_LABEL.has(field) || formLabel(field) !== undefined
+
+/**
+ * A field's name on screen. The form's standalone label, not its short one:
+ * the cards list fields without the form's sections around them.
+ */
+export const fieldLabel = (field: string) => LANE_FIELD_LABEL.get(field) ?? formLabel(field) ?? field
 
 /** Unit shown next to a value, so -2.324 is read as metres NAP and not millimetres. */
 export const FIELD_UNIT: Record<string, string> = {
@@ -251,6 +246,50 @@ export const VALUE_LABEL: Record<string, Record<string, string>> = {
   },
 }
 
+/**
+ * Number fields without a unit of their own: a year, and the n of a 1:n ratio.
+ * (The two levels are in FIELD_UNIT as well; the list is the one "Waarde
+ * toevoegen" has always used.)
+ */
+const NUMBER_FIELDS = new Set(['built_year', 'skewed_parallel', 'skewed_perpendicular', 'foundation_depth', 'groundlevel'])
+
+export type ValueKind = 'select' | 'number' | 'text'
+
+/**
+ * The control a value of this field is entered with: a list for a coded field
+ * (yes/no is one), a number box for a measurement, text for the rest. One rule
+ * for "Waarde toevoegen" and for "Andere waarde" on a proposal: the second was
+ * a text box for every field, so "ja" was stored as false, "1,25" as 1, and a
+ * code could be mistyped.
+ */
+export function valueKind(field: string | null | undefined): ValueKind {
+  if (!field) return 'text'
+  if (VALUE_LABEL[field]) return 'select'
+  if (FIELD_UNIT[field] || NUMBER_FIELDS.has(field)) return 'number'
+  return 'text'
+}
+
+/** The choices of a coded field; the code is the value, as the commit expects it. */
+export function valueOptions(field: string | null | undefined): SelectOption[] {
+  const map = field ? VALUE_LABEL[field] : undefined
+  return map ? Object.entries(map).map(([value, label]) => ({ value, label })) : []
+}
+
+/** What goes under the number box: the unit, or how a ratio is written. */
+export function valueHint(field: string | null | undefined): string | undefined {
+  if (!field) return undefined
+  return FIELD_UNIT[field] ?? (RATIO_FIELDS.has(field) ? 'Het getal achter 1:, bijvoorbeeld 300' : undefined)
+}
+
+/**
+ * A text from the modules that sort a melding's files (`rapportageGroups.ts`,
+ * `inquiryVerdicts.ts`), in the lane's own words. Their sentences and option
+ * labels still say "inquiry"; on screen it is a rapportage, as everywhere else
+ * in the Studio (2026-10-13). Only until those two modules say so themselves.
+ */
+export const inLaneWords = (text: string) =>
+  text.replace(/\b(I|i)nquir(y|ies)\b/g, (_, first: string, end: string) => `${first === 'I' ? 'R' : 'r'}apportage${end === 'y' ? '' : 's'}`)
+
 /** What a reviewer decided about one value. */
 export const VERDICT_LABEL: Record<string, string> = {
   confirmed: 'overgenomen',
@@ -291,4 +330,34 @@ export function displayValue(field: string, value: string | null | undefined): s
   return VALUE_LABEL[field]?.[value] ?? value
 }
 
-export const fieldLabel = (field: string) => FIELD_LABEL[field] ?? field
+/** `<field> = <first word of the value>`, as it is written into a Verloop line. */
+const FIELD_VALUE_PAIR = /\b([a-z][a-z0-9]*(?:_[a-z0-9]+)*) = (\S+)?/
+
+/** "(was confirmed)" at the end of a line: only the state words we have a Dutch word for. */
+const WAS_STATE = new RegExp(` \\(was (${Object.keys({ ...VERDICT_LABEL, ...OUTCOME_LABEL }).join('|')})\\)$`)
+
+/**
+ * A Verloop line as a person reads it.
+ *
+ * The line is stored with the database's own names ("Waarde overgenomen:
+ * foundation_type = wood_charger", "Beoordeling heropend: … (was confirmed)"),
+ * because the API writes the field key and the code it was given. Shown here
+ * with the names the cards use: "Funderingstype: Hout met oplanger", "(was
+ * overgenomen)". Only a pair whose field the lane knows is touched, and of the
+ * value only a code, date or number it can read; a name, a sentence or a note
+ * after it stays exactly as it was written.
+ */
+export function readableEntry(text: string): string {
+  const pair = FIELD_VALUE_PAIR.exec(text)
+  if (!pair || !isKnownField(pair[1]!)) return text
+  const field = pair[1]!
+  // "wood_charger)" or "1929," at the end of a clause: the mark is not part of the value.
+  const [, word = '', mark = ''] = /^(.*?)([),;.]*)$/.exec(pair[2] ?? '') ?? []
+  const shown = word ? displayValue(field, word) : ''
+  const unit = FIELD_UNIT[field] && /^-?\d+([.,]\d+)?$/.test(word) ? ` ${FIELD_UNIT[field]}` : ''
+  // The state a reopened value had, said as the "Beoordeeld" list says it.
+  const rest = text
+    .slice(pair.index + pair[0].length)
+    .replace(WAS_STATE, (_, state: string) => ` (was ${VERDICT_LABEL[state] ?? OUTCOME_LABEL[state]})`)
+  return `${text.slice(0, pair.index)}${fieldLabel(field)}: ${shown}${unit}${mark}${rest}`
+}

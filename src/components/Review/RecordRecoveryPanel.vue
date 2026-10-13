@@ -8,6 +8,10 @@
  * It does not close the dossier: a herstel drawing usually also shows the
  * original foundation type, which the reviewer can still take over and commit
  * as a rapportage below.
+ *
+ * The fields are named as in the herstel wizard (RecoveryStep1, Recovery/
+ * SampleForm), where the record is opened afterwards: "Soort herstel" here was
+ * "Hersteltype" there, "Datum herstel" was "Uitvoeringsdatum".
  */
 import { computed, ref } from 'vue'
 
@@ -71,9 +75,9 @@ const isChosen = (id: string) => chosen.value[id] ?? true
 const chosenPanden = computed(() => panden.value.filter((p) => isChosen(p.buildingId)))
 
 const missing = computed(() => {
-  if (!documentType.value) return 'Kies het soort document.'
-  if (!documentDate.value) return 'Vul de datum van het document in.'
-  if (!recoveryType.value) return 'Kies het soort herstel.'
+  if (!documentType.value) return 'Kies het documenttype.'
+  if (!documentDate.value) return 'Vul de documentdatum in.'
+  if (!recoveryType.value) return 'Kies het hersteltype.'
   if (!chosenPanden.value.length) return 'Kies minstens één pand.'
   return null
 })
@@ -131,17 +135,17 @@ async function record() {
           id="herstel-document-type"
           v-model="documentType"
           kind="select"
-          label="Soort document"
+          label="Documenttype"
           placeholder="Kies…"
           :options="options(DOCUMENT_TYPE_CODES, RECOVERY_DOCUMENT_TYPE_LABELS)"
           required
         />
-        <Field id="herstel-document-date" v-model="documentDate" kind="date" label="Datum document" required warn-future />
+        <Field id="herstel-document-date" v-model="documentDate" kind="date" label="Documentdatum" required warn-future />
         <Field
           id="herstel-type"
           v-model="recoveryType"
           kind="select"
-          label="Soort herstel"
+          label="Hersteltype"
           placeholder="Kies…"
           :options="options(RECOVERY_TYPE_CODES, RECOVERY_TYPE_LABELS)"
           required
@@ -161,9 +165,9 @@ async function record() {
           placeholder="Geen of onbekend"
           :options="options(PILE_TYPE_CODES, PILE_TYPE_LABELS)"
         />
-        <Field id="herstel-date" v-model="recoveryDate" kind="date" label="Datum herstel" />
-        <Field id="herstel-permit" v-model="permit" label="Vergunning" placeholder="Kenmerk, als het document er een noemt" />
-        <Field id="herstel-note" v-model="note" class="col-span-2" label="Toelichting" placeholder="Bijvoorbeeld: 99 stalen buispalen ø168" />
+        <Field id="herstel-date" v-model="recoveryDate" kind="date" label="Uitvoeringsdatum" />
+        <Field id="herstel-permit" v-model="permit" label="Vergunningnummer" placeholder="Kenmerk, als het document er een noemt" />
+        <Field id="herstel-note" v-model="note" class="col-span-2" label="Notitie" placeholder="Bijvoorbeeld: 99 stalen buispalen ø168" />
       </div>
 
       <fieldset class="flex flex-col gap-1">
