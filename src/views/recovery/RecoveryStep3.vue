@@ -8,6 +8,7 @@ import Button from '@/components/Common/Buttons/Button.vue'
 import Callout from '@/components/Common/Callout.vue'
 import EmptyState from '@/components/Common/EmptyState.vue'
 import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueList.vue'
+import LazyAddress from '@/components/Common/LazyAddress.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
@@ -25,11 +26,9 @@ import {
 } from '@/services/recoveryEnums'
 import { confirmAction } from '@/services/confirm'
 import { toastError, toastSuccess } from '@/services/toast'
-import { formatAddress } from '@/utils/address'
 import { formatDateShort } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
 import { recoverySteps } from '@/services/wizard'
-import { useAddressStore } from '@/stores/address'
 import { useSessionStore } from '@/stores/session'
 import { useStudioStore } from '@/stores/studio'
 
@@ -43,7 +42,6 @@ import { useStudioStore } from '@/stores/studio'
  */
 const route = useRoute()
 const router = useRouter()
-const addressStore = useAddressStore()
 const sessionStore = useSessionStore()
 const studio = useStudioStore()
 
@@ -63,7 +61,7 @@ async function load() {
     ])
     recovery.value = r
     samples.value = s
-    await addressStore.ensureMany(s.map((row) => row.building))
+    // The addresses come per row, once it is on screen (LazyAddress).
   } catch (e) {
     toastError(describeFailure(e, 'Het dossier kon niet worden opgehaald.'))
   } finally {
@@ -208,9 +206,10 @@ useActionShortcuts((): Record<string, () => void> =>
                 class="flex flex-col gap-1.5 border-b border-divider px-4 py-3 last:border-b-0"
               >
                 <div class="flex items-center gap-2.5">
-                  <span class="text-lg min-w-0 flex-1 truncate font-semibold text-body">
-                    {{ formatAddress(addressStore.cache[sample.building]) }}
-                  </span>
+                  <LazyAddress
+                    :id="sample.building"
+                    class="text-lg min-w-0 flex-1 truncate font-semibold text-body"
+                  />
                   <Pill
                     :label="recoveryTypeLabel(sample.type)"
                     :tone="sample.type === 5 ? 'amber' : 'green'"

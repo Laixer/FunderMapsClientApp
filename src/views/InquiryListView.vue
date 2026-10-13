@@ -36,6 +36,7 @@ import {
   type SortField,
 } from '@/services/explorer'
 import { inquiryTypeLabel } from '@/services/inquiryEnums'
+import { promptText } from '@/services/prompt'
 import { toastError } from '@/services/toast'
 import { formatDateShort } from '@/utils/date'
 import { useRowKeyboard } from '@/services/useRowKeyboard'
@@ -177,8 +178,12 @@ function selectView(view: SavedView) {
   push({ ...fromView(view) }, view.key)
 }
 
-function onSaveView() {
-  const label = window.prompt('Naam voor deze weergave')?.trim()
+async function onSaveView() {
+  const label = await promptText({
+    title: 'Weergave opslaan',
+    label: 'Naam voor deze weergave',
+    confirmLabel: 'Opslaan',
+  })
   if (!label) return
   const view = saveView(label, query.value)
   views.value = [...BUILTIN_VIEWS, ...customViews()]
@@ -199,7 +204,7 @@ const COLUMNS: DataColumn[] = [
   // flat by a 128px column. The 12px come off the name's minimum, so the fixed
   // columns still fit the table at the shell's minimum width.
   { field: 'documentName', title: 'Naam', width: 'minmax(248px,1fr)', sortable: true },
-  { field: 'type', title: 'Type', width: '148px', sortable: true },
+  { field: 'type', title: 'Soort', width: '148px', sortable: true },
   { field: 'documentDate', title: 'Datum', width: '92px', sortable: true },
   { field: 'reviewer', title: 'Beoordelaar', width: '150px', sortable: true },
   { field: 'status', title: 'Status', width: '140px', sortable: true },
@@ -232,28 +237,9 @@ function onSort(field: string) {
   else push({ ...query.value, order: query.value.order === 'desc' ? 'asc' : 'desc', page: 1 })
 }
 
-const selectedIds = ref<Set<string | number>>(new Set())
-
-function toggleRow(row: IInquiry) {
-  const next = new Set(selectedIds.value)
-  if (next.has(row.id)) next.delete(row.id)
-  else next.add(row.id)
-  selectedIds.value = next
-}
-
-// About the rows on screen: all of them ticked means untick them, otherwise
-// tick them. Comparing only the *number* selected made "Alles selecteren" on
-// page 2 clear a selection of 20 made on page 1.
-function toggleAll() {
-  const visible = visibleRows.value.map((row) => row.id)
-  const allVisible = visible.length > 0 && visible.every((id) => selectedIds.value.has(id))
-  const next = new Set(selectedIds.value)
-  for (const id of visible) {
-    if (allVisible) next.delete(id)
-    else next.add(id)
-  }
-  selectedIds.value = next
-}
+// No row checkboxes: there is no bulk action to stage rows for (the API has no
+// batch endpoints), and a tick that only raises a count is a control that does
+// nothing. `DataTable` still has them (`selectable`) for the day there is one.
 
 /* -------------------------------------------------------------- inspector */
 
@@ -301,7 +287,7 @@ const inspectorFields = computed<KeyValueItem[]>(() => {
   const row = selected.value
   if (!row) return []
   return [
-    { label: 'Type', value: inquiryTypeLabel(row.type) },
+    { label: 'Soort', value: inquiryTypeLabel(row.type) },
     { label: 'Uitvoerder', value: row.attribution.contractorName },
     { label: 'Opsteller', value: row.attribution.creatorName },
     { label: 'Beoordelaar', value: row.attribution.reviewerName },
@@ -450,28 +436,6 @@ const MODES: { key: Mode; label: string }[] = [
       </div>
     </div>
 
-    <div
-      v-if="selectedIds.size"
-      class="flex shrink-0 items-center gap-3 border-b border-blue-border bg-blue-tint px-6 py-2"
-    >
-      <span class="text-md font-semibold text-blue-ink">
-        {{ selectedIds.size }} geselecteerd
-      </span>
-      <button
-        type="button"
-        class="text-md font-semibold text-blue-ink underline underline-offset-2"
-        @click="selectedIds = new Set()"
-      >
-        Selectie wissen
-      </button>
-      <!-- Bulk assign / approve / export are deliberately absent: the API has
-           no batch endpoints, and a button that fires fifty sequential requests
-           is a way to half-approve a queue. -->
-      <span class="text-sm ml-auto text-blue-soft">
-        Bulkacties volgen zodra de API ze ondersteunt.
-      </span>
-    </div>
-
     <div class="grid min-h-0 flex-1 grid-cols-[minmax(var(--spacing-table-min),1fr)_var(--spacing-inspector)]">
       <div class="flex min-w-0 flex-col">
         <div
@@ -484,8 +448,6 @@ const MODES: { key: Mode; label: string }[] = [
             :columns="COLUMNS"
             :loading="loading"
             :active-id="selected?.id ?? null"
-            :selected-ids="selectedIds"
-            selectable
             :sort-field="sortField"
             :sort-order="query.order"
             :empty-message="
@@ -493,8 +455,6 @@ const MODES: { key: Mode; label: string }[] = [
             "
             @select="select"
             @sort="onSort"
-            @toggle="toggleRow"
-            @toggle-all="toggleAll"
           >
             <template #id="{ row }">
               <span class="text-sm font-mono text-faint">#{{ row.id }}</span>

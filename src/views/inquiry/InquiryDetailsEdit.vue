@@ -20,9 +20,11 @@ import { describeFailure } from '@/services/fundermaps/errors'
 import { INQUIRY_TYPE_OPTIONS } from '@/services/inquiryEnums'
 import type { SelectOption } from '@/services/options'
 import { reviewerHintFor, reviewerOptionsFor } from '@/services/reviewerOptions'
+import { withStoredReviewer, type StoredReviewer } from '@/services/storedReviewer'
 import { toastError, toastSuccess } from '@/services/toast'
 import { formatTime } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { useUnsavedChanges } from '@/services/useUnsavedChanges'
 
 /**
  * Gegevens — the report's own facts, and the document it came from.
@@ -59,6 +61,8 @@ const contractors: Ref<IContractor[]> = ref([])
 const reviewers: Ref<IUser[]> = ref([])
 /** Who made the report — the one colleague who can never be its beoordelaar. */
 const creatorId = ref<string | null>(null)
+/** The beoordelaar the report came with, who may not be on today's list. */
+const storedReviewer = ref<StoredReviewer | null>(null)
 
 // #999: read-only display of the owning organization (attribution.dataOwnerName,
 // introduced by #973). Kept out of the submit body — the data-owner is assigned
@@ -88,7 +92,13 @@ const contractorOptions = computed<SelectOption[]>(() =>
   contractors.value.map((c) => ({ value: c.id, label: c.name })),
 )
 
-const reviewerOptions = computed(() => reviewerOptionsFor(reviewers.value, creatorId.value))
+const reviewerOptions = computed(() =>
+  withStoredReviewer(
+    reviewerOptionsFor(reviewers.value, creatorId.value),
+    storedReviewer.value,
+    creatorId.value,
+  ),
+)
 const reviewerHint = computed(() => reviewerHintFor(reviewers.value, creatorId.value))
 
 /* -------------------------------------------------------------- validation */
@@ -104,7 +114,7 @@ const errors = computed<Record<string, string | null>>(() => ({
     : form.value.documentName.length > 64
       ? 'Maximaal 64 tekens.'
       : null,
-  type: form.value.type === null ? 'Kies een type.' : null,
+  type: form.value.type === null ? 'Kies een soort.' : null,
   documentDate: !form.value.documentDate ? 'Vul de documentdatum in.' : null,
   contractor: form.value.contractor === null ? 'Kies een uitvoerder.' : null,
   reviewer: !form.value.reviewer ? 'Kies een beoordelaar.' : null,
@@ -172,15 +182,21 @@ function body() {
   }
 }
 
+/** Changed means: a save would send something else than what was loaded or last saved. */
+const unsaved = useUnsavedChanges(body)
+
 /** Persist and return the dossier's id, or null when nothing was saved. */
 async function persist(): Promise<number | null> {
   showErrors.value = true
   if (!isValid.value || saving.value) return null
 
   saving.value = true
+  // Before the request: what is typed while it is under way has not been saved.
+  const sent = unsaved.snapshot()
   try {
     await api.inquiry.update(inquiryId.value, body())
     savedAt.value = new Date().toISOString()
+    unsaved.markSaved(sent)
     return inquiryId.value
   } catch (err) {
     toastError(describeFailure(err, 'Opslaan is niet gelukt.'))
@@ -199,6 +215,11 @@ async function save() {
 async function done() {
   const id = await persist()
   if (id !== null) router.push({ name: 'inquiry-view', params: { id } })
+}
+
+/** "Annuleren" is the choice to leave, so it is not asked again. */
+function cancel() {
+  return unsaved.leave(() => router.push({ name: 'inquiry-view', params: { id: inquiryId.value } }))
 }
 
 const draftStatus = computed(() => {
@@ -235,6 +256,12 @@ onBeforeMount(async () => {
       }
       dataOwnerName.value = inquiry.attribution.dataOwnerName ?? ''
       creatorId.value = inquiry.attribution.creator
+      storedReviewer.value = {
+        id: inquiry.attribution.reviewer,
+        name: inquiry.attribution.reviewerName,
+      }
+      // From here on the form is the report as stored.
+      unsaved.markSaved()
       if (inquiry.documentFile) {
         // The stored name is a GUID; the original filename lives in
         // file_resources and only 22% of dossiers have one. Say "gekoppeld"
@@ -254,7 +281,7 @@ onBeforeMount(async () => {
   <AppShell crumb="Gegevens bewerken">
     <WizardHeader title="Gegevens bewerken" :status="draftStatus">
       <template #actions>
-        <Button label="Annuleren" @click="router.push({ name: 'inquiry-view', params: { id: inquiryId } })" />
+        <Button label="Annuleren" @click="cancel" />
         <Button label="Opslaan" shortcut="⌘S" :disabled="saving || uploading" @click="save" />
         <Button
           variant="primary"
@@ -287,11 +314,11 @@ onBeforeMount(async () => {
             />
             <Field
               v-model="form.type"
-              label="Type"
+              label="Soort"
               kind="select"
               required
               :options="typeOptions"
-              empty-label="Kies een type"
+              empty-label="Kies een soort"
               hint="QuickScan, Archiefonderzoek, Notitie…"
               :error="errorFor('type')"
             />

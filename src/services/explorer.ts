@@ -170,7 +170,7 @@ export const SORT_OPTIONS: readonly SortOption[] = [
   { value: 'create_date', label: 'Aangemaakt', asc: 'oudste eerst', desc: 'nieuwste eerst' },
   { value: 'id', label: 'ID', asc: 'laagste eerst', desc: 'hoogste eerst' },
   { value: 'document_name', label: 'Naam', asc: 'A → Z', desc: 'Z → A' },
-  { value: 'type', label: 'Type', asc: 'oplopend', desc: 'aflopend' },
+  { value: 'type', label: 'Soort', asc: 'oplopend', desc: 'aflopend' },
   { value: 'status', label: 'Status', asc: 'oplopend', desc: 'aflopend' },
   { value: 'creator', label: 'Opsteller', asc: 'A → Z', desc: 'Z → A' },
   { value: 'reviewer', label: 'Beoordelaar', asc: 'A → Z', desc: 'Z → A' },
@@ -300,7 +300,9 @@ export function chipsFor(query: ExplorerQuery): Chip[] {
   if (query.type.length) {
     chips.push({
       id: 'type',
-      label: 'type',
+      // "Soort" on screen, as on the rapportage itself and in the review lane;
+      // the field, the URL parameter and the API keep their `type`.
+      label: 'soort',
       value: query.type.map((t) => INQUIRY_TYPE_LABELS[t] ?? String(t)).join(' of '),
       clear: (q) => ({ ...q, type: [], page: 1 }),
     })

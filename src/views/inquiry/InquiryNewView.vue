@@ -17,6 +17,7 @@ import { formatBytes } from '@/services/documentFile'
 import { toastSuccess } from '@/services/toast'
 import { formatAddress } from '@/utils/address'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { useUnsavedChanges } from '@/services/useUnsavedChanges'
 import { useStudioStore } from '@/stores/studio'
 
 /**
@@ -52,6 +53,22 @@ const dragging = ref(false)
 const submitting = ref(false)
 const error = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+/** The onderwerp this form filled in by itself, from a file name. */
+let suggestedSubject = ''
+
+/**
+ * What would be lost on leaving: the chosen files, a pand, and an onderwerp
+ * somebody typed. The suggested onderwerp does not count: drop the wrong file,
+ * take it out again, and nothing of yours is left on the form.
+ */
+const unsaved = useUnsavedChanges(() => {
+  const typed = subject.value.trim()
+  return {
+    files: files.value.map((f) => `${f.name}/${f.size}`),
+    subject: typed === suggestedSubject ? '' : typed,
+    building: address.value?.building_id ?? null,
+  }
+})
 
 function add(list: FileList | File[] | null) {
   if (!list) return
@@ -77,6 +94,7 @@ function add(list: FileList | File[] | null) {
   // A suggestion, never an override.
   if (!subject.value.trim() && files.value[0]) {
     subject.value = files.value[0].name.replace(/\.[a-z0-9]+$/i, '').slice(0, 200)
+    suggestedSubject = subject.value.trim()
   }
 }
 function remove(i: number) {
@@ -110,12 +128,18 @@ async function submit() {
         ? `Dossier ${r.reference} aangemaakt; het document wordt nu gelezen.`
         : `Dossier ${r.reference} aangemaakt; het wordt bij de volgende ronde gelezen.`,
     )
-    await router.push({ name: 'review-dossier', params: { id: r.id } })
+    // Everything on the form has been sent: nothing to ask on the way out.
+    await unsaved.leave(() => router.push({ name: 'review-dossier', params: { id: r.id } }))
   } catch (e) {
     error.value = describeFailure(e, 'Het dossier kon niet worden aangemaakt.')
   } finally {
     submitting.value = false
   }
+}
+
+/** "Annuleren" is the choice to leave, so it is not asked again. */
+function cancel() {
+  return unsaved.leave(() => router.push({ name: 'inquiry-list' }))
 }
 
 useActionShortcuts(() => ({ '⌘↵': submit }))
@@ -125,7 +149,7 @@ useActionShortcuts(() => ({ '⌘↵': submit }))
   <AppShell crumb="Nieuwe rapportage">
     <WizardHeader title="Nieuwe rapportage" status="document → gelezen door de pipeline → jouw oordeel">
       <template #actions>
-        <Button label="Annuleren" @click="router.push({ name: 'inquiry-list' })" />
+        <Button label="Annuleren" @click="cancel" />
         <Button
           variant="primary"
           :label="submitting ? 'Bezig…' : 'Aanmaken en lezen'"
