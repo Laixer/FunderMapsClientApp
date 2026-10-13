@@ -19,10 +19,12 @@ import { describeFailure } from '@/services/fundermaps/errors'
 import type { SelectOption } from '@/services/options'
 import { RECOVERY_DOCUMENT_TYPE_OPTIONS } from '@/services/recoveryEnums'
 import { reviewerHintFor, reviewerOptionsFor } from '@/services/reviewerOptions'
+import { withStoredReviewer, type StoredReviewer } from '@/services/storedReviewer'
 import { toastError, toastSuccess } from '@/services/toast'
 import { useSessionStore } from '@/stores/session'
 import { formatTime } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
+import { useUnsavedChanges } from '@/services/useUnsavedChanges'
 import { recoverySteps } from '@/services/wizard'
 
 /**
@@ -56,6 +58,8 @@ const dataOwnerName = ref('')
 /** Who made the herstel — the one colleague who can never be its beoordelaar. On a new one: you. */
 const storedCreatorId = ref<string | null>(null)
 const creatorId = computed(() => (isNew.value ? currentUser.value?.id ?? null : storedCreatorId.value))
+/** The beoordelaar the herstel came with, who may not be on today's list. */
+const storedReviewer = ref<StoredReviewer | null>(null)
 
 const form = ref({
   documentName: '',
@@ -73,7 +77,13 @@ const contractorOptions = computed<SelectOption[]>(() =>
   contractors.value.map((c) => ({ value: c.id, label: c.name })),
 )
 
-const reviewerOptions = computed(() => reviewerOptionsFor(reviewers.value, creatorId.value))
+const reviewerOptions = computed(() =>
+  withStoredReviewer(
+    reviewerOptionsFor(reviewers.value, creatorId.value),
+    storedReviewer.value,
+    creatorId.value,
+  ),
+)
 const reviewerHint = computed(() => reviewerHintFor(reviewers.value, creatorId.value))
 
 const errors = computed<Record<string, string | null>>(() => ({
@@ -138,22 +148,33 @@ function body() {
   }
 }
 
+/** Changed means: a save would send something else than what was loaded or last saved. */
+const unsaved = useUnsavedChanges(body)
+
 /** Creating on the first save is what lets step 2 attach panden to a real record. */
 async function persist(): Promise<number | null> {
   showErrors.value = true
   if (!isValid.value || saving.value) return null
 
   saving.value = true
+  // Before the request: what is typed while it is under way has not been saved.
+  const sent = unsaved.snapshot()
   try {
     if (isNew.value) {
       const created = await api.recovery.create(body())
       storedCreatorId.value = created.attribution.creator
       savedAt.value = new Date().toISOString()
-      await router.replace({ name: 'recovery-edit-1', params: { id: created.id } })
+      unsaved.markSaved(sent)
+      // To the new record's own address. The form stays on screen as it is, so
+      // nothing is left behind and nothing is asked.
+      await unsaved.leave(() =>
+        router.replace({ name: 'recovery-edit-1', params: { id: created.id } }),
+      )
       return created.id
     }
     await api.recovery.update(recoveryId.value!, body())
     savedAt.value = new Date().toISOString()
+    unsaved.markSaved(sent)
     return recoveryId.value
   } catch (err) {
     toastError(describeFailure(err, 'Opslaan is niet gelukt.'))
@@ -173,11 +194,17 @@ async function next() {
   if (id !== null) router.push({ name: 'recovery-edit-2', params: { id } })
 }
 
+/** "Annuleren" is the choice to leave, so it is not asked again. */
+function cancel() {
+  return unsaved.leave(() => router.push({ name: 'recovery-list' }))
+}
+
 const draftStatus = computed(() => {
   if (saving.value) return 'bezig met opslaan…'
   if (savedAt.value) return `concept · opgeslagen ${formatTime(savedAt.value)}`
-  // Nothing here knows whether the form differs from what was loaded, so it does
-  // not claim so: it used to say "wijzigingen nog niet opgeslagen" on arrival.
+  // Says nothing about unsaved changes: it used to say "wijzigingen nog niet
+  // opgeslagen" on arrival, for a form nobody had touched. Whether there are any
+  // is asked on the way out (`unsaved`), not shown here.
   if (!isNew.value) return `#${recoveryId.value}`
   return 'concept · nog niet opgeslagen'
 })
@@ -205,6 +232,12 @@ onBeforeMount(async () => {
       }
       dataOwnerName.value = recovery.attribution.dataOwnerName ?? ''
       storedCreatorId.value = recovery.attribution.creator
+      storedReviewer.value = {
+        id: recovery.attribution.reviewer,
+        name: recovery.attribution.reviewerName,
+      }
+      // From here on the form is the herstel as stored.
+      unsaved.markSaved()
       if (recovery.documentFile) {
         attached.value = { name: 'Gekoppeld document', sizeBytes: null, uploaded: true }
       }
@@ -227,7 +260,7 @@ onBeforeMount(async () => {
       connected
     >
       <template #actions>
-        <Button label="Annuleren" @click="router.push({ name: 'recovery-list' })" />
+        <Button label="Annuleren" @click="cancel" />
         <Button
           label="Concept opslaan"
           shortcut="⌘S"

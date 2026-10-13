@@ -9,6 +9,7 @@ import Callout from '@/components/Common/Callout.vue'
 import DocumentCard from '@/components/Common/DocumentCard.vue'
 import EmptyState from '@/components/Common/EmptyState.vue'
 import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueList.vue'
+import LazyAddress from '@/components/Common/LazyAddress.vue'
 import Panel from '@/components/Common/Panel.vue'
 import PhaseCards from '@/components/Common/PhaseCards.vue'
 import Pill from '@/components/Common/Pill.vue'
@@ -38,10 +39,8 @@ import {
 import { remember } from '@/services/recents'
 import { confirmAction } from '@/services/confirm'
 import { toastError, toastSuccess } from '@/services/toast'
-import { formatAddress } from '@/utils/address'
 import { formatDate, formatDateShort, formatDateTime } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
-import { useAddressStore } from '@/stores/address'
 import { useSessionStore } from '@/stores/session'
 import { useStudioStore } from '@/stores/studio'
 
@@ -56,7 +55,6 @@ const route = useRoute()
 const router = useRouter()
 const sessionStore = useSessionStore()
 const { canWrite, canApprove, isSuperUser } = storeToRefs(sessionStore)
-const addressStore = useAddressStore()
 const studio = useStudioStore()
 
 const recoveryId = computed(() => Number(route.params.id))
@@ -118,7 +116,9 @@ async function load() {
     recovery.value = r
     samples.value = s
     remember('recovery', r.id, r.documentName)
-    await addressStore.ensureMany(s.map((row) => row.building))
+    // No addresses here: each row looks up its own once it is on screen
+    // (LazyAddress). Resolving all of them first cost one request per pand and
+    // kept a record of 1,885 rows on "Dossier ophalen…" for ten seconds.
   } catch (e) {
     // Said on the page itself (below), where it stays; a toast is gone in seconds.
     loadFailure.value = isNotFound(e) ? 'missing' : 'failed'
@@ -466,9 +466,10 @@ useActionShortcuts(() => {
                 class="flex flex-col gap-1.5 border-b border-divider px-4 py-3 last:border-b-0"
               >
                 <div class="flex items-center gap-2.5">
-                  <span class="text-lg min-w-0 flex-1 truncate font-semibold text-body">
-                    {{ formatAddress(addressStore.cache[sample.building]) }}
-                  </span>
+                  <LazyAddress
+                    :id="sample.building"
+                    class="text-lg min-w-0 flex-1 truncate font-semibold text-body"
+                  />
                   <Pill
                     :label="recoveryTypeLabel(sample.type)"
                     :tone="sample.type === 5 ? 'amber' : 'green'"

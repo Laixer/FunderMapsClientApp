@@ -221,7 +221,7 @@ const queue = computed(() => filteredReview.value.slice(0, LANE_PREVIEW))
 const COLUMNS: DataColumn[] = [
   { field: 'id', title: 'ID', width: '78px' },
   { field: 'documentName', title: 'Naam', width: 'minmax(0,1fr)' },
-  { field: 'type', title: 'Type', width: '150px' },
+  { field: 'type', title: 'Soort', width: '150px' },
   { field: 'documentDate', title: 'Datum', width: '96px' },
   { field: 'status', title: 'Status', width: '116px' },
 ]

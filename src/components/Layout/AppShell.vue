@@ -6,6 +6,7 @@ import CommandPalette from '@/components/Layout/CommandPalette.vue'
 import Sidebar from '@/components/Layout/Sidebar.vue'
 import TopBar from '@/components/Layout/TopBar.vue'
 import ConfirmDialog from '@/components/Common/ConfirmDialog.vue'
+import PromptDialog from '@/components/Common/PromptDialog.vue'
 import ShortcutsOverlay from '@/components/Common/ShortcutsOverlay.vue'
 import ToastHost from '@/components/Common/ToastHost.vue'
 import { useGlobalShortcuts } from '@/services/useGlobalShortcuts'
@@ -66,6 +67,7 @@ watch(currentUser, (user) => studio.refreshCounts(user?.id))
     <CommandPalette />
     <ShortcutsOverlay v-if="showShortcuts" @close="showShortcuts = false" />
     <ConfirmDialog />
+    <PromptDialog />
     <ToastHost />
   </div>
 </template>
