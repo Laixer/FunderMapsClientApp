@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { refDebounced } from '@vueuse/core'
 
@@ -14,6 +14,7 @@ import type { IReviewQueueItem } from '@/services/fundermaps/interfaces/IDataops
 import { describeFailure } from '@/services/fundermaps/errors'
 import { confirmAction } from '@/services/confirm'
 import { PAGE_SIZE } from '@/services/explorer'
+import { promptText } from '@/services/prompt'
 import {
   BUILTIN_VIEWS,
   channelLabel,
@@ -132,8 +133,12 @@ function selectView(view: SavedView) {
   push({ ...fromView(view) }, view.key)
 }
 
-function onSaveView() {
-  const label = window.prompt('Naam voor deze weergave')?.trim()
+async function onSaveView() {
+  const label = await promptText({
+    title: 'Weergave opslaan',
+    label: 'Naam voor deze weergave',
+    confirmLabel: 'Opslaan',
+  })
   if (!label) return
   const view = saveView(label, query.value)
   views.value = [...BUILTIN_VIEWS, ...customViews()]
@@ -276,7 +281,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
   const ids = [...selectedIds.value].map(Number)
   if (!ids.length) return
   const note = bulkNote.value.trim()
-  const answer = confirmAction({
+  const confirmed = await confirmAction({
     title: `${ids.length} ${ids.length === 1 ? 'dossier' : 'dossiers'} ${BULK_QUESTION[outcome].ask}?`,
     body: [
       ...(note ? [`Reden: “${note}”`] : []),
@@ -285,12 +290,10 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
     ].join('\n'),
     confirmLabel: BULK_QUESTION[outcome].confirm,
     danger: true,
+    // A yes sends mail: the keyboard starts on "Annuleren", so Enter closes nothing.
+    cautious: true,
   })
-  // The dialog opens with the keyboard on its confirm button. Here a yes sends
-  // mail, so the keyboard starts on "Annuleren": Enter then closes nothing.
-  await nextTick()
-  document.querySelector<HTMLElement>('[role="dialog"] footer button')?.focus()
-  if (!(await answer)) return
+  if (!confirmed) return
   bulkBusy.value = true
   try {
     await api.dataops.closeMany(ids, { outcome, note: note || null })
@@ -442,6 +445,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         :selected-ids="selectedIds"
         :active-id="activeId"
         :selectable="!closedView && !noneOpen"
+        :row-selectable="(row) => !row.outcome"
         @toggle="toggleRow"
         @toggle-all="toggleAll"
         :empty-message="

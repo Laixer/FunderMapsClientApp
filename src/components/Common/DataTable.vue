@@ -39,6 +39,11 @@ const props = withDefaults(
     /** Rows staged for a bulk action. Renders the checkbox column. */
     selectedIds?: ReadonlySet<string | number>
     selectable?: boolean
+    /**
+     * Rows a bulk action cannot apply to (a closed dossier in the review queue):
+     * they get no checkbox, and "select all" does not count them.
+     */
+    rowSelectable?: (row: T) => boolean
     sortField?: string | null
     sortOrder?: 'asc' | 'desc'
     emptyMessage?: string
@@ -67,8 +72,10 @@ const template = computed(() =>
   [props.selectable ? '34px' : '', ...props.columns.map((c) => c.width)].filter(Boolean).join(' '),
 )
 
+const pickable = computed(() => (props.rowSelectable ? props.rows.filter(props.rowSelectable) : props.rows))
+
 const allSelected = computed(
-  () => props.rows.length > 0 && props.rows.every((r) => props.selectedIds?.has(r.id)),
+  () => pickable.value.length > 0 && pickable.value.every((r) => props.selectedIds?.has(r.id)),
 )
 
 /**
@@ -175,6 +182,7 @@ function rowClass(row: T): string {
                also swing the inspector over to it. -->
           <div v-if="selectable" role="cell" class="flex items-center">
             <button
+              v-if="!rowSelectable || rowSelectable(row)"
               type="button"
               class="flex h-3 w-3 items-center justify-center rounded-xs border"
               :class="selectedIds?.has(row.id) ? 'border-blue bg-blue' : 'border-line-hover bg-surface'"

@@ -281,15 +281,6 @@ export function valueHint(field: string | null | undefined): string | undefined 
   return FIELD_UNIT[field] ?? (RATIO_FIELDS.has(field) ? 'Het getal achter 1:, bijvoorbeeld 300' : undefined)
 }
 
-/**
- * A text from the modules that sort a melding's files (`rapportageGroups.ts`,
- * `inquiryVerdicts.ts`), in the lane's own words. Their sentences and option
- * labels still say "inquiry"; on screen it is a rapportage, as everywhere else
- * in the Studio (2026-10-13). Only until those two modules say so themselves.
- */
-export const inLaneWords = (text: string) =>
-  text.replace(/\b(I|i)nquir(y|ies)\b/g, (_, first: string, end: string) => `${first === 'I' ? 'R' : 'r'}apportage${end === 'y' ? '' : 's'}`)
-
 /** What a reviewer decided about one value. */
 export const VERDICT_LABEL: Record<string, string> = {
   confirmed: 'overgenomen',
@@ -348,6 +339,17 @@ const WAS_STATE = new RegExp(` \\(was (${Object.keys({ ...VERDICT_LABEL, ...OUTC
  * after it stays exactly as it was written.
  */
 export function readableEntry(text: string): string {
+  // Two lines carry a code in brackets instead of a pair: where a document came
+  // in ("Document ontvangen (bulk_drop)") and what a nalezing is of ("Nalezing
+  // van rapportage #1 (foundation_research, 3 adressen)").
+  const coded = text
+    .replace(/^(Document ontvangen) \(([a-z_]+)\)/, (all, head: string, code: string) =>
+      CHANNEL_LABEL[code] ? `${head} (via ${CHANNEL_LABEL[code]})` : all,
+    )
+    .replace(/^(Nalezing van rapportage #\d+) \(([a-z_]+), /, (all, head: string, code: string) =>
+      INQUIRY_TYPE_CODE_LABELS[code] ? `${head} (${INQUIRY_TYPE_CODE_LABELS[code]}, ` : all,
+    )
+  if (coded !== text) return coded
   const pair = FIELD_VALUE_PAIR.exec(text)
   if (!pair || !isKnownField(pair[1]!)) return text
   const field = pair[1]!

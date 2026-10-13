@@ -14,7 +14,8 @@ const request = computed(() => currentConfirm.value)
 function onKeydown(event: KeyboardEvent) {
   if (!request.value) return
   // Enter confirms, as it always did: the dialog opens with the focus on its
-  // confirm button. But a key pressed on a button belongs to that button:
+  // confirm button (on "cancel" for a `cautious` question, where Enter then
+  // cancels). But a key pressed on a button belongs to that button:
   // Enter on "Annuleren" used to confirm as well, a delete included, because
   // this listener answered before the button did. Escape is handled by Modal.
   if (event.key === 'Enter') {
@@ -41,11 +42,15 @@ onBeforeUnmount(() => {
     </p>
 
     <template #footer>
-      <Button :label="request.cancelLabel ?? 'Annuleren'" @click="resolveConfirm(false)" />
+      <Button
+        :label="request.cancelLabel ?? 'Annuleren'"
+        :data-autofocus="request.cautious ? '' : undefined"
+        @click="resolveConfirm(false)"
+      />
       <Button
         :variant="request.danger ? 'danger' : 'primary'"
         :label="request.confirmLabel ?? 'Doorgaan'"
-        data-autofocus
+        :data-autofocus="request.cautious ? undefined : ''"
         @click="resolveConfirm(true)"
       />
     </template>

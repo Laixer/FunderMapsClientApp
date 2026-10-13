@@ -25,6 +25,13 @@ export interface ConfirmOptions {
   cancelLabel?: string
   /** Red confirm button, for anything that destroys or cannot be undone. */
   danger?: boolean
+  /**
+   * Open with the focus on the cancel button, so Enter keeps things as they
+   * are. For a question that interrupts someone who was doing something else
+   * (leaving a form with unsaved input): a reflex Enter must not be the answer
+   * that loses their work.
+   */
+  cautious?: boolean
 }
 
 interface PendingConfirm extends ConfirmOptions {
