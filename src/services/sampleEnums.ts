@@ -29,6 +29,12 @@ export const FOUNDATION_TYPE_OPTIONS: SelectOption[] = [
   { value: 12, label: 'Gecombineerd' },
   { value: 13, label: 'Stalen buispalen' },
   { value: 14, label: 'Overig' },
+  // The review lane can write these three; without an option the form showed
+  // an empty dropdown for them. Labels are the lane's (`reviewLabels.ts`),
+  // numbers the API's: 16 is the Rotterdam one, 17 the Amsterdam one.
+  { value: 15, label: 'Hout: gecombineerde Rotterdam/Amsterdam fundering' },
+  { value: 16, label: 'Hout: Rotterdam fundering met bogen' },
+  { value: 17, label: 'Hout: Amsterdam fundering met bogen' },
 ]
 
 export const ENFORCEMENT_TERM_OPTIONS: SelectOption[] = [
@@ -62,6 +68,8 @@ export const FOUNDATION_DAMAGE_CAUSE_OPTIONS: SelectOption[] = [
   { value: 15, label: 'Trillingen' },
   { value: 16, label: 'Funderingsherstel naastgelegen pand' },
   { value: 17, label: 'Japanse duizendknoop' },
+  // Written by the review lane as well; same word as there.
+  { value: 18, label: 'Grondwaterstandverlaging' },
 ]
 
 export const DAMAGE_CHARACTERISTICS_OPTIONS: SelectOption[] = [

@@ -30,7 +30,9 @@ export interface StatusMeta {
 }
 
 export const STATUS_META: Record<number, StatusMeta> = {
-  0: { label: 'Nog te beoordelen', tone: 'neutral' },
+  // Nobody has started on it. "Nog te beoordelen" read as waiting for the
+  // reviewer, which is status 4.
+  0: { label: 'Nog te starten', tone: 'neutral' },
   1: { label: 'In bewerking', tone: 'amber' },
   2: { label: 'Afgerond', tone: 'green' },
   3: { label: 'Afgevallen', tone: 'neutral' },

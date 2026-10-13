@@ -7,6 +7,7 @@ import {
   SAMPLE_SECTIONS,
   fullLabel,
   isSampleFieldFilled,
+  yearOfDate,
   type SampleFieldDef,
 } from '@/services/sampleFields'
 import { formatDate } from '@/utils/date'
@@ -27,9 +28,11 @@ function display(field: SampleFieldDef): string {
       return value ? 'Ja' : 'Nee'
     case 'enum':
       return field.options?.find((o) => o.value === value)?.label ?? String(value)
-    case 'date':
+    case 'year':
       // A construction year is a year: stored as 1 January, it read "1 jan 1920".
-      if (field.key === 'builtYear') return String(new Date(value as string).getFullYear())
+      // The same reading of the date as the form's year box.
+      return String(yearOfDate(value) ?? value)
+    case 'date':
       return formatDate(value as string)
     case 'number':
       // Dutch decimals, as everywhere a person reads a number: -1,88 and not -1.88.
@@ -48,7 +51,7 @@ const filledSections = computed(() =>
       .map<KeyValueItem>((field) => ({
         label: fullLabel(field),
         value: display(field),
-        mono: field.kind === 'number' || field.kind === 'date',
+        mono: field.kind === 'number' || field.kind === 'date' || field.kind === 'year',
       })),
   })).filter((section) => section.items.length > 0),
 )

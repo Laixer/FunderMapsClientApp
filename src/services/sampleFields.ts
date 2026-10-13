@@ -33,7 +33,11 @@ import {
   CONSTRUCTION_PILE_OPTIONS,
 } from '@/services/sampleEnums'
 
-export type SampleFieldKind = 'text' | 'number' | 'bool' | 'enum' | 'date'
+/**
+ * `year` is a date column that carries a year (`builtYear`): the form asks for
+ * four digits, not for a day and a month nobody knows.
+ */
+export type SampleFieldKind = 'text' | 'number' | 'bool' | 'enum' | 'date' | 'year'
 
 export interface SampleFieldDef {
   key: keyof IInquirySample
@@ -54,7 +58,10 @@ export interface SampleFieldDef {
   options?: SelectOption[]
   /** A sentence under the control, for a field whose meaning is not obvious. */
   hint?: string
-  /** Native number-input constraints. Only meaningful for `kind: 'number'`. */
+  /**
+   * Native number-input constraints for `kind: 'number'`. For `kind: 'year'`
+   * the first and last year taken; `max` absent means this year.
+   */
   min?: number
   max?: number
   step?: number
@@ -79,11 +86,18 @@ const LEVEL = { kind: 'number', unit: 'm NAP', min: -999.99, max: 999.99, step: 
 /** A physical length or diameter, so never negative. */
 const MEASURE = { kind: 'number', min: 0, max: 999.99, step: 0.01 } as const
 
+/**
+ * A scheefstand as the n of 1:n. A nearly level lintvoeg gives a large n
+ * (1:1250), so the column holds up to 99999.99 where a `MEASURE` stops at
+ * 999.99; the review lane writes such values and the form has to take them.
+ */
+const RATIO = { kind: 'number', min: 0, max: 99999.99, step: 0.01 } as const
+
 export const SAMPLE_SECTIONS: SampleSectionDef[] = [
   {
     title: 'Algemeen',
     fields: [
-      { key: 'builtYear', label: 'Bouwjaar', kind: 'date' },
+      { key: 'builtYear', label: 'Bouwjaar', kind: 'year', min: 1000 },
       { key: 'substructure', label: 'Onderbouw', kind: 'enum', options: SUBSTRUCTURE_OPTIONS },
       { key: 'cpt', label: 'Sondering', kind: 'text' },
       { key: 'monitoringWell', label: 'Peilbuis', kind: 'text' },
@@ -318,14 +332,14 @@ export const SAMPLE_SECTIONS: SampleSectionDef[] = [
       { key: 'thresholdFrontLevel', label: 'Drempelniveau voorzijde', ...LEVEL },
       { key: 'thresholdBackLevel', label: 'Drempelniveau achterzijde', ...LEVEL },
       // Stored as the denominator: 300 means 1:300 (Don, 2026-09-11).
-      { key: 'skewedParallel', label: 'Lintvoegmeting (1:n)', ...MEASURE },
+      { key: 'skewedParallel', label: 'Lintvoegmeting (1:n)', ...RATIO },
       {
         key: 'skewedParallelFacade',
         label: 'Lintvoegmeting beoordeling',
         kind: 'enum',
         options: ROTATION_OPTIONS,
       },
-      { key: 'skewedPerpendicular', label: 'Loodmeting (1:n)', ...MEASURE },
+      { key: 'skewedPerpendicular', label: 'Loodmeting (1:n)', ...RATIO },
       {
         key: 'skewedPerpendicularFacade',
         label: 'Loodmeting beoordeling',
@@ -358,6 +372,39 @@ export const SAMPLE_FIELD_COUNT = ALL_SAMPLE_FIELDS.length + 1
 /** Label plus unit, for the read-only views that have no control to hang a suffix in. */
 export function fullLabel(field: SampleFieldDef): string {
   return field.unit ? `${field.label} (${field.unit})` : field.label
+}
+
+/**
+ * The year of a date that carries a year: `1931-05-12` gives 1931. Read from
+ * the text rather than through `Date`, so no timezone can move 1 January into
+ * the year before.
+ */
+export function yearOfDate(value: unknown): number | null {
+  if (typeof value !== 'string') return null
+  const match = /^(\d{4})(?:-|$)/.exec(value)
+  return match ? Number(match[1]) : null
+}
+
+/** A year the way a date column holds it: 1 January. */
+export function dateOfYear(year: number): string {
+  return `${String(year).padStart(4, '0')}-01-01`
+}
+
+/**
+ * What goes to the API for `builtYear`. Samples entered through the old date
+ * picker hold a full date (`1931-05-12`). As long as the year is one this
+ * sample is known to have had, that date goes back untouched: opening a sample
+ * and saving it, or retyping the same year, must not rewrite it to 1 January.
+ *
+ * `known` is what the server holds now, then what it held when the form
+ * opened. The second covers the box being emptied and filled again: the empty
+ * state may have been saved in between.
+ */
+export function builtYearToSend(next: string | null, ...known: (string | null)[]): string | null {
+  if (!next) return null
+  const year = yearOfDate(next)
+  if (year === null) return next
+  return known.find((date) => date && yearOfDate(date) === year) ?? next
 }
 
 /** A field counts as filled when it has an actual value; `false` is a value. */

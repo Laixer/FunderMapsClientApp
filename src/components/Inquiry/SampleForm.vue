@@ -14,7 +14,7 @@ import type {
   IInquirySample,
   IInquirySampleInput,
 } from '@/services/fundermaps/interfaces/IInquirySample'
-import { countFilledInSection, SAMPLE_SECTIONS } from '@/services/sampleFields'
+import { builtYearToSend, countFilledInSection, SAMPLE_SECTIONS } from '@/services/sampleFields'
 import type { SampleFinding } from '@/services/sampleValidation'
 import {
   confirm as confirmEntry,
@@ -74,6 +74,9 @@ const { t } = useI18n()
 /** Editable copy. Reset whenever the parent passes a different sample. */
 const form = ref<IInquirySample>(cloneDeep(props.sample))
 
+/** The built year this address had when the form opened; see `builtYearToSend`. */
+let openedBuiltYear = props.sample.builtYear
+
 /** How long to wait after the last keystroke before writing. */
 const AUTOSAVE_MS = 600
 
@@ -88,6 +91,9 @@ function payload(): IInquirySampleInput {
   void createDate
   void updateDate
   void deleteDate
+  // The form edits a year; the column holds a date. Decided here, where the
+  // body is made, against what the server holds at this moment.
+  input.builtYear = builtYearToSend(input.builtYear, props.sample.builtYear, openedBuiltYear)
   return input as IInquirySampleInput
 }
 
@@ -140,6 +146,7 @@ watch(
     flush()
     failed.value = false
     form.value = cloneDeep(props.sample)
+    openedBuiltYear = props.sample.builtYear
   },
 )
 
