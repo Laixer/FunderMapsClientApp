@@ -83,10 +83,13 @@ const total = ref<number | null>(null)
  * weergave" hid the failure, which only a toast that goes away mentioned.
  */
 const loadFailed = ref(false)
+// Never after a failure: the count call can still answer, and "Volgende" stayed
+// enabled under "De lijst is niet geladen.".
 const hasMore = computed(() =>
-  total.value != null
+  !loadFailed.value &&
+  (total.value != null
     ? query.value.page * PAGE_SIZE < total.value
-    : rows.value.length === PAGE_SIZE,
+    : rows.value.length === PAGE_SIZE),
 )
 
 const visibleRows = computed(() => filterByType(rows.value, query.value.type))
