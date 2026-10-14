@@ -36,7 +36,8 @@ withDefaults(
     />
     <div class="min-w-0 flex-1">
       <p v-if="title" class="text-lg font-bold" :class="TONE_CALLOUT_TITLE[tone]">{{ title }}</p>
-      <p class="text-md" :class="[TONE_CALLOUT_BODY[tone], title && 'mt-0.5']">
+      <!-- break-words: a link in a closing reason ran out of the box. -->
+      <p class="text-md break-words" :class="[TONE_CALLOUT_BODY[tone], title && 'mt-0.5']">
         <slot />
       </p>
     </div>

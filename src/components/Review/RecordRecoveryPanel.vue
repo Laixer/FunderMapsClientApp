@@ -50,11 +50,13 @@ const PILE_TYPE_CODES = ['press', 'internally_driven', 'segment']
 const options = (codes: string[], labels: Record<number, string>): SelectOption[] =>
   codes.map((code, i) => ({ value: code, label: labels[i] ?? code }))
 
-const documentType = ref('')
+// Null, not '': that is the value of a list's "Kies…" line. With '' no line
+// was the chosen one and the three lists stood empty.
+const documentType = ref<string | null>(null)
 const documentDate = ref(props.suggestedDate ?? '')
-const recoveryType = ref('')
+const recoveryType = ref<string | null>(null)
 const status = ref('executed')
-const pileType = ref('')
+const pileType = ref<string | null>(null)
 const recoveryDate = ref('')
 const permit = ref('')
 const note = ref('')
@@ -83,7 +85,8 @@ const missing = computed(() => {
 })
 
 async function record() {
-  if (missing.value || busy.value) return
+  const type = recoveryType.value
+  if (missing.value || busy.value || !documentType.value || !type) return
   busy.value = true
   try {
     const r = await api.dataops.recordRecovery(props.dossierId, {
@@ -92,7 +95,7 @@ async function record() {
       note: note.value.trim() || null,
       samples: chosenPanden.value.map((p) => ({
         building: p.buildingId,
-        type: recoveryType.value,
+        type,
         status: status.value || null,
         pileType: pileType.value || null,
         recoveryDate: recoveryDate.value || null,
@@ -166,7 +169,7 @@ async function record() {
           :options="options(PILE_TYPE_CODES, PILE_TYPE_LABELS)"
         />
         <Field id="herstel-date" v-model="recoveryDate" kind="date" label="Uitvoeringsdatum" />
-        <Field id="herstel-permit" v-model="permit" label="Vergunningnummer" placeholder="Kenmerk, als het document er een noemt" />
+        <Field id="herstel-permit" v-model="permit" label="Vergunningnummer" placeholder="Kenmerk uit het document" />
         <Field id="herstel-note" v-model="note" class="col-span-2" label="Notitie" placeholder="Bijvoorbeeld: 99 stalen buispalen ø168" />
       </div>
 
@@ -185,7 +188,7 @@ async function record() {
             @change="chosen = { ...chosen, [p.buildingId]: ($event.target as HTMLInputElement).checked }"
           />
           <span>{{ p.label }}</span>
-          <span v-if="p.own" class="text-sm text-faint">pand van de melding</span>
+          <span v-if="p.own" class="text-sm text-faint">pand van het dossier</span>
         </label>
       </fieldset>
 

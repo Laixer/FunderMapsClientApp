@@ -155,10 +155,12 @@ export function leadingDocument(profiles: DocumentProfile[], field: string): Doc
   return sorted[0]!.date!.getTime() === sorted[1]!.date!.getTime() ? null : sorted[0]!
 }
 
-/** "funderingsonderzoek, 12-03-2021" -- what the rule looked at. */
+/** "funderingsonderzoek, 12 maart 2021" -- what the rule looked at; the date as every other date on the screen. */
 export function describeDocument(p: DocumentProfile): string {
   const type = p.type ? (TYPE_LABEL[p.type] ?? p.type) : 'soort onbekend'
-  const date = p.date ? p.date.toLocaleDateString('nl-NL') : 'datum onbekend'
+  const date = p.date
+    ? p.date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'datum onbekend'
   return `${type}, ${date}`
 }
 

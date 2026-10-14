@@ -10,7 +10,9 @@
 
 import { INQUIRY_TYPE_CODE_LABELS } from '@/services/inquiryEnums'
 import type { SelectOption } from '@/services/options'
+import { inSentence } from '@/services/reviewExplorer'
 import { ALL_SAMPLE_FIELDS } from '@/services/sampleFields'
+import type { Tone } from '@/services/tone'
 
 /**
  * The names of the fields the entry form does not have: the three that describe
@@ -20,11 +22,16 @@ import { ALL_SAMPLE_FIELDS } from '@/services/sampleFields'
  * the same before and after it is taken over. Until 2026-10-13 this table named
  * all 46 of them, and 26 read differently here than in the form ("Maaiveld" /
  * "Maaiveldhoogte", "Aanlegniveau fundering" / "Onderkant fundering").
+ *
+ * The three of the document itself are named as the rapportage form names
+ * them (InquiryDetailsEdit: Soort, Documentdatum, Uitvoerder), so a card, the
+ * closing panel and the rapportage it becomes use one word. They were "Soort
+ * document", "Datum rapport" and "Opsteller (uitvoerder)" here before.
  */
 const LANE_FIELD_LABEL = new Map([
-  ['document_date', 'Datum rapport'],
-  ['inquiry_type', 'Soort document'],
-  ['contractor', 'Opsteller (uitvoerder)'],
+  ['document_date', 'Documentdatum'],
+  ['inquiry_type', 'Soort'],
+  ['contractor', 'Uitvoerder'],
   ['recovery_note', 'Hersteladvies (toelichting)'],
   ['follow_up_note', 'Vervolgadvies (onderzoek / monitoring)'],
   ['note', 'Notitie'],
@@ -300,6 +307,10 @@ export const OUTCOME_LABEL: Record<string, string> = {
   no_data: 'gesloten: geen gegevens',
 }
 
+/** The colour an outcome is said in, in the list and on the dossier alike. */
+export const outcomeTone = (outcome: string | null | undefined): Tone =>
+  outcome === 'accepted' ? 'green' : outcome === 'rejected' ? 'red' : 'neutral'
+
 /** Where a dossier came in. */
 export const CHANNEL_LABEL: Record<string, string> = {
   upload: 'het meldportaal',
@@ -310,15 +321,67 @@ export const CHANNEL_LABEL: Record<string, string> = {
   audit: 'een nalezing',
 }
 
+/** How a document was read (the artifact's lane), in the words of the viewer's footer and the Verloop. */
+export const LANE_LABEL: Record<string, string> = {
+  text: 'tekst',
+  vision: 'afbeelding',
+  document: 'document',
+  none: 'niet gelezen',
+}
+
+/**
+ * The melder's answers in the words the melden form offered them
+ * (FunderMapsIntake app/services/contract.ts, FOUNDATION_GROUPS and
+ * RECOVERY_TYPES: keep the two in step). The dossier stores the form's code,
+ * and the screen showed that: "op_staal", "houten_palen_oplanger".
+ */
+const MELDER_ANSWER_LABEL: Record<string, Record<string, string>> = {
+  foundationType: {
+    houten_palen: 'Houten paalfundering',
+    houten_palen_oplanger: 'Houten palen met betonoplanger',
+    op_staal: 'Ondiepe fundering (op staal)',
+    betonpalen: 'Betonpaalfundering',
+    overig: 'Overig',
+  },
+  recoveryType: {
+    tafelmethode: 'Tafelmethode',
+    paalkop_verlaging: 'Paalkop verlaging',
+    paal_in_wand: 'Paal in wand',
+    grondinjectie: 'Grondinjectie',
+    partieel_herstel: 'Partieel herstel',
+    paalkopverhoging: 'Paalkopverhoging',
+  },
+}
+
+/** One answer of the melding as the melder read it; an answer the form's lists do not have is shown as it was stored. */
+export const melderAnswer = (key: string, value: string) => MELDER_ANSWER_LABEL[key]?.[value] ?? value
+
 export const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/** A number as the pipeline and the API write it. */
+const NUMBER = /^-?\d+([.,]\d+)?$/
+
+/**
+ * A measurement the Dutch way: "0,57", where the pipeline wrote "0.57" and the
+ * citation under it says "0,57". Notation on screen only; what is stored and
+ * what a verdict sends keep their point.
+ */
+const decimalComma = (value: string) => (/^-?\d+\.\d+$/.test(value) ? value.replace('.', ',') : value)
 
 /** A proposed or decided value, as a person reads it. */
 export function displayValue(field: string, value: string | null | undefined): string {
   if (value == null || value === '') return '—'
   if (field === 'document_date' && /^\d{4}-\d{2}-\d{2}/.test(value)) return formatDate(value)
-  if (RATIO_FIELDS.has(field) && /^\d+([.,]\d+)?$/.test(value.trim())) return `1:${value.trim()}`
+  if (RATIO_FIELDS.has(field) && /^\d+([.,]\d+)?$/.test(value.trim())) return `1:${decimalComma(value.trim())}`
+  if (FIELD_UNIT[field]) return decimalComma(value.trim())
   return VALUE_LABEL[field]?.[value] ?? value
+}
+
+/** A value with its unit behind it, for a line of text: "0,57 m t.o.v. NAP". Only a number gets one. */
+export function displayValueWithUnit(field: string, value: string | null | undefined): string {
+  const shown = displayValue(field, value)
+  return FIELD_UNIT[field] && value != null && NUMBER.test(value.trim()) ? `${shown} ${FIELD_UNIT[field]}` : shown
 }
 
 /** `<field> = <first word of the value>`, as it is written into a Verloop line. */
@@ -333,22 +396,33 @@ const WAS_STATE = new RegExp(` \\(was (${Object.keys({ ...VERDICT_LABEL, ...OUTC
  * The line is stored with the database's own names ("Waarde overgenomen:
  * foundation_type = wood_charger", "Beoordeling heropend: … (was confirmed)"),
  * because the API writes the field key and the code it was given. Shown here
- * with the names the cards use: "Funderingstype: Hout met oplanger", "(was
- * overgenomen)". Only a pair whose field the lane knows is touched, and of the
- * value only a code, date or number it can read; a name, a sentence or a note
- * after it stays exactly as it was written.
+ * with the names the cards use: "Funderingstype = Hout met oplanger", "(was
+ * overgenomen)". The equals sign stays: a colon gave two in one line, and three
+ * with a value like "Hout: Rotterdam fundering". Only a pair whose field the
+ * lane knows is touched, and of the value only a code, date or number it can
+ * read; a name, a sentence or a note after it stays exactly as it was written.
  */
 export function readableEntry(text: string): string {
-  // Two lines carry a code in brackets instead of a pair: where a document came
-  // in ("Document ontvangen (bulk_drop)") and what a nalezing is of ("Nalezing
-  // van rapportage #1 (foundation_research, 3 adressen)").
+  // Lines without a pair that still carry a code or a slip of the writer:
+  // where a document came in ("Document ontvangen (bulk_drop)"), what a
+  // nalezing is of ("Nalezing van rapportage #1 (foundation_research, 3
+  // adressen)"), how a document was read ("Document gelezen (vision): 1
+  // voorstel(len)"), "1 komen overeen", and an attachment without a file name
+  // ("Niet opgeslagen: undefined (…)"). The last three are stored that way on
+  // every dossier read so far, so they are put right here.
   const coded = text
     .replace(/^(Document ontvangen) \(([a-z_]+)\)/, (all, head: string, code: string) =>
       CHANNEL_LABEL[code] ? `${head} (via ${CHANNEL_LABEL[code]})` : all,
     )
     .replace(/^(Nalezing van rapportage #\d+) \(([a-z_]+), /, (all, head: string, code: string) =>
-      INQUIRY_TYPE_CODE_LABELS[code] ? `${head} (${INQUIRY_TYPE_CODE_LABELS[code]}, ` : all,
+      INQUIRY_TYPE_CODE_LABELS[code] ? `${head} (${inSentence(INQUIRY_TYPE_CODE_LABELS[code])}, ` : all,
     )
+    .replace(/^(Document gelezen) \(([a-z_]+)\): (\d+) voorstel\(len\)/, (_, head: string, lane: string, n: string) => {
+      const how = lane !== 'none' && LANE_LABEL[lane] ? `als ${LANE_LABEL[lane]}` : lane
+      return `${head} (${how}): ${n} ${n === '1' ? 'voorstel' : 'voorstellen'}`
+    })
+    .replace(/^(Nalezing klaar: .*)\b1 komen overeen/, (_, head: string) => `${head}1 komt overeen`)
+    .replace(/^Niet opgeslagen: .*$/m, (line) => line.replace(/(^Niet opgeslagen: |\), )undefined \(/g, '$1naamloze bijlage ('))
   if (coded !== text) return coded
   const pair = FIELD_VALUE_PAIR.exec(text)
   if (!pair || !isKnownField(pair[1]!)) return text
@@ -356,10 +430,10 @@ export function readableEntry(text: string): string {
   // "wood_charger)" or "1929," at the end of a clause: the mark is not part of the value.
   const [, word = '', mark = ''] = /^(.*?)([),;.]*)$/.exec(pair[2] ?? '') ?? []
   const shown = word ? displayValue(field, word) : ''
-  const unit = FIELD_UNIT[field] && /^-?\d+([.,]\d+)?$/.test(word) ? ` ${FIELD_UNIT[field]}` : ''
+  const unit = FIELD_UNIT[field] && NUMBER.test(word) ? ` ${FIELD_UNIT[field]}` : ''
   // The state a reopened value had, said as the "Beoordeeld" list says it.
   const rest = text
     .slice(pair.index + pair[0].length)
     .replace(WAS_STATE, (_, state: string) => ` (was ${VERDICT_LABEL[state] ?? OUTCOME_LABEL[state]})`)
-  return `${text.slice(0, pair.index)}${fieldLabel(field)}: ${shown}${unit}${mark}${rest}`
+  return `${text.slice(0, pair.index)}${fieldLabel(field)} = ${shown}${unit}${mark}${rest}`
 }

@@ -15,6 +15,7 @@ import { describeFailure } from '@/services/fundermaps/errors'
 import { confirmAction } from '@/services/confirm'
 import { PAGE_SIZE } from '@/services/explorer'
 import { promptText } from '@/services/prompt'
+import { outcomeTone } from '@/services/reviewLabels'
 import {
   BUILTIN_VIEWS,
   channelLabel,
@@ -167,6 +168,16 @@ const DESK_COLUMNS: DataColumn[] = [
   { field: 'open', title: 'Voorstellen', width: '120px', align: 'right' },
   { field: 'receivedAt', title: 'Ontvangen', width: '190px' },
 ]
+/**
+ * A page with a dossier that lies with a colleague: the last column also holds
+ * "bij <naam>", which 190px cut off after the first letter. It gets 300px then,
+ * taken from Document, and the list still fits the smallest window (1528px)
+ * with a scrollbar beside it. Only on such a page: Document keeps its room on
+ * every other one.
+ */
+const DESK_COLUMNS_ASSIGNED: DataColumn[] = DESK_COLUMNS.map((c) =>
+  c.field === 'receivedAt' ? { ...c, width: '300px' } : c,
+)
 const CLOSED_COLUMNS: DataColumn[] = [
   { field: 'reference', title: 'Kenmerk', width: '150px' },
   { field: 'subject', title: 'Document', width: 'minmax(220px,1fr)' },
@@ -189,7 +200,11 @@ const closedHit = computed(
   () => (PINPOINT.test(search.value.trim()) || wideSearch.value) && rows.value.some((r) => r.outcome),
 )
 const columns = computed(() =>
-  closedView.value || closedHit.value ? CLOSED_COLUMNS : DESK_COLUMNS,
+  closedView.value || closedHit.value
+    ? CLOSED_COLUMNS
+    : rows.value.some((r) => r.assignedName)
+      ? DESK_COLUMNS_ASSIGNED
+      : DESK_COLUMNS,
 )
 
 const WEEK = 7 * 24 * 3600 * 1000
@@ -199,7 +214,8 @@ const shortDate = (iso: string) =>
 const items = computed(() =>
   rows.value.map((r) => ({
     id: r.id,
-    reference: r.reference ?? r.externalRef ?? '—',
+    // A nalezing has no meldcode; its own reference is "audit:inquiry:<nummer>".
+    reference: r.reference ?? (r.auditInquiryId ? `nalezing #${r.auditInquiryId}` : r.externalRef) ?? '—',
     subject: r.subject ?? 'Zonder omschrijving',
     kind: r.kind ? kindLabel(r.kind) : null,
     channel: inSentence(channelLabel(r.channel)),
@@ -211,10 +227,7 @@ const items = computed(() =>
     assignedName: r.assignedName ?? null,
     outcome: r.outcome ? outcomeLabel(r.outcome).toLowerCase() : null,
     /** `accepted` with a rapportage is a commit; without one it was closed by hand. */
-    outcomeTone: (r.outcome === 'accepted' ? 'green' : r.outcome === 'rejected' ? 'red' : 'neutral') as
-      | 'green'
-      | 'red'
-      | 'neutral',
+    outcomeTone: outcomeTone(r.outcome),
     inquiryId: r.inquiryId,
     duplicateOf: r.duplicateOf,
     outcomeNote: r.outcomeNote?.trim() || null,
@@ -248,6 +261,14 @@ const bulkBusy = ref(false)
  * gets no checkboxes.
  */
 const noneOpen = computed(() => rows.value.length > 0 && rows.value.every((r) => r.outcome))
+/**
+ * Checkboxes only where there is something to tick: an empty list kept its
+ * select-all box in the header. The column stays while the list loads, so the
+ * skeleton rows stand where the rows will.
+ */
+const selectable = computed(
+  () => !closedView.value && !noneOpen.value && (loading.value || rows.value.length > 0),
+)
 
 /** Only an open dossier can be closed: a closed one found by a search is never part of the selection. */
 function toggleRow(row: { id: number; outcome?: string | null }) {
@@ -321,58 +342,71 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       </span>
     </div>
 
-    <!-- Saved views, exactly as on Rapportages: the active one carries a
-         2px green underline rather than a filled tab. -->
-    <div class="flex shrink-0 items-center gap-1.5 overflow-x-auto border-b border-line bg-surface px-6 pt-2.5">
-      <!-- The tab and its delete cross are two buttons side by side: a cross
-           *inside* the tab button could not be reached with the keyboard. -->
-      <span
-        v-for="view in views"
-        :key="view.key"
-        class="group flex shrink-0 items-center border-b-2 pt-1.5 pb-2.5"
-        :class="viewKey === view.key ? 'border-green' : 'border-transparent'"
-      >
-        <button
-          type="button"
-          class="text-lg px-3 whitespace-nowrap"
-          :class="
-            viewKey === view.key ? 'font-bold text-ink' : 'font-medium text-subtle hover:text-strong'
-          "
-          :aria-current="viewKey === view.key ? 'page' : undefined"
-          @click="selectView(view)"
+    <!-- Saved views, as on Rapportages: the active one carries a 2px green
+         underline rather than a filled tab. The tabs stand a little closer
+         here: eleven of them and the button have to fit a 1528px window. -->
+    <div class="flex shrink-0 items-center border-b border-line bg-surface px-6 pt-2.5">
+      <!-- The tabs scroll on their own when saved views make the row too
+           long, so "+ Weergave" behind them stays in reach. -mx-1 px-1: room
+           for the focus ring of the first and the last tab. -->
+      <div class="-mx-1 flex min-w-0 items-center gap-1.5 overflow-x-auto px-1">
+        <!-- The tab and its delete cross are two buttons side by side: a cross
+             *inside* the tab button could not be reached with the keyboard. -->
+        <span
+          v-for="view in views"
+          :key="view.key"
+          class="group flex shrink-0 items-center border-b-2 pt-1.5 pb-2.5"
+          :class="viewKey === view.key ? 'border-green' : 'border-transparent'"
         >
-          {{ view.label }}
-        </button>
-        <button
-          v-if="!view.builtin"
-          type="button"
-          class="text-xs -ml-1.5 mr-1.5 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
-          :aria-label="`Weergave ${view.label} verwijderen`"
-          @click="onDeleteView(view)"
-        >
-          ×
-        </button>
-      </span>
+          <button
+            type="button"
+            class="text-lg flex flex-col px-2 whitespace-nowrap"
+            :class="
+              viewKey === view.key ? 'font-bold text-ink' : 'font-medium text-subtle hover:text-strong'
+            "
+            :aria-current="viewKey === view.key ? 'page' : undefined"
+            @click="selectView(view)"
+          >
+            {{ view.label }}
+            <!-- The label once more in bold, unseen and without height: every
+                 tab is as wide as when it is the active one, so picking a tab
+                 no longer moves the tabs to its right. -->
+            <span aria-hidden="true" class="invisible h-0 overflow-hidden font-bold">{{ view.label }}</span>
+          </button>
+          <button
+            v-if="!view.builtin"
+            type="button"
+            class="text-xs -ml-1.5 mr-1.5 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
+            :aria-label="`Weergave ${view.label} verwijderen`"
+            @click="onDeleteView(view)"
+          >
+            ×
+          </button>
+        </span>
+      </div>
 
       <button
         type="button"
-        class="text-sm ml-1.5 mb-2 shrink-0 rounded-md border border-dashed border-line-strong bg-surface px-2.5 py-1.5 whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
+        class="text-sm ml-3 mb-2 shrink-0 rounded-md border border-dashed border-line-strong bg-surface px-2.5 py-1.5 whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
         @click="onSaveView"
       >
         + Weergave
       </button>
     </div>
 
-    <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
+    <!-- The chips go to a next line when they do not fit: on one line they
+         squeezed the search box to a stub and pushed the count out of the window. -->
+    <div class="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
+      <!-- Never narrower than its hint. -->
       <div
-        class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
+        class="flex max-w-[340px] min-w-[312px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
       >
         <span aria-hidden="true" class="text-md text-faint">⌕</span>
         <input
           v-model="search"
           type="search"
           class="studio-control"
-          placeholder="Filter op kenmerk, onderwerp, bestandsnaam, BAG-ID of e-mail"
+          placeholder="Kenmerk, onderwerp, bestand, BAG-ID of e-mail"
           aria-label="Zoeken in de controlelijst"
         />
       </div>
@@ -389,7 +423,8 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
       <span class="text-sm ml-auto font-mono text-faint">
         <template v-if="total != null">{{ total.toLocaleString('nl-NL') }} {{ total === 1 ? 'dossier' : 'dossiers' }}<template v-if="wideSearch">, ook gesloten</template></template>
-        <template v-else>{{ items.length }}{{ hasMore ? '+' : '' }} rijen</template>
+        <!-- Not while the list loads: "0 rijen" stood beside the skeleton rows. -->
+        <template v-else-if="!loading">{{ items.length }}{{ hasMore ? '+' : '' }} rijen</template>
       </span>
     </div>
 
@@ -444,7 +479,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         :loading="loading"
         :selected-ids="selectedIds"
         :active-id="activeId"
-        :selectable="!closedView && !noneOpen"
+        :selectable="selectable"
         :row-selectable="(row) => !row.outcome"
         @toggle="toggleRow"
         @toggle-all="toggleAll"
@@ -515,7 +550,8 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
           <span v-else class="font-mono tabular-nums text-strong">{{ row.open }}</span>
         </template>
         <template #receivedAt="{ row }">
-          <span class="flex items-center gap-2">
+          <!-- A name too long for the column goes to a second line instead of being cut. -->
+          <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span class="text-muted">{{ row.receivedAt }}</span>
             <Pill v-if="row.overdue" label="te lang open" tone="amber" plain />
             <Pill v-if="row.assignedName" :label="`bij ${row.assignedName}`" tone="blue" plain />
@@ -524,7 +560,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
         <template #footer>
           <span class="text-base text-subtle">
-            Pagina {{ page }} · {{ items.length }} op deze pagina
+            Pagina {{ page }}<template v-if="!loading"> · {{ items.length }} op deze pagina</template>
           </span>
           <span class="ml-auto flex gap-1.5">
             <Button label="Vorige" :disabled="page <= 1" @click="push({ ...query, page: page - 1 })" />
