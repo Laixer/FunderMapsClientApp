@@ -108,7 +108,10 @@ const frameClass = computed(() => {
 </script>
 
 <template>
-  <div class="flex min-w-0 flex-col gap-1.5">
+  <!-- relative: the hidden "(verplicht)" is positioned absolutely. Without this
+       box the page placed it instead, outside any scrolling pane the field sits
+       in, and it could make the page taller than the window. -->
+  <div class="relative flex min-w-0 flex-col gap-1.5">
     <label v-if="label" :for="id" class="text-sm flex items-center gap-1 font-semibold text-subtle">
       {{ label }}
       <span v-if="required" class="text-red" aria-hidden="true">*</span>

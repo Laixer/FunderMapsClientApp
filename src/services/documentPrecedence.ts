@@ -77,6 +77,8 @@ const TYPE_LABEL: Record<string, string> = {
   archive_research: 'archiefonderzoek',
   architectural_research: 'bouwkundig onderzoek',
   note: 'notitie',
+  monitoring: 'monitoring',
+  unknown: 'onbekend',
 }
 
 /** How the reviewer has judged a value so far: what it now says, or null when it no longer counts. */

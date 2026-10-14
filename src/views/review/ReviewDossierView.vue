@@ -1929,10 +1929,7 @@ async function reopen(f: IProposedField) {
 
       <!-- --------------------------------------------------------- values -->
       <aside class="flex min-h-0 flex-col bg-surface">
-        <!-- relative: a Field's hidden "(verplicht)" is positioned absolutely, and
-             without a positioned box here it hung far below the window, made the
-             page thousands of pixels tall and let the wheel slide the Studio. -->
-        <div class="relative flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+        <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
           <EmptyState v-if="loading">Dossier ophalen…</EmptyState>
 
           <Callout v-else-if="closed" tone="neutral" title="Dossier gesloten">
