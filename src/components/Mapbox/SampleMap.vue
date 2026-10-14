@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
+import { useResizeObserver } from '@vueuse/core'
 import { LngLatBounds, Map as MaplibreMap, Marker, NavigationControl, setWorkerUrl } from 'maplibre-gl'
 // maplibre v6 loads its worker as a sibling module via a runtime-computed
 // URL the bundler can't see - without this the worker request 404s into
@@ -116,7 +117,11 @@ onMounted(() => {
     // MapLibre's own control, bottom right (the zoom buttons are top right):
     // open when the map appears, folded to the "i" once the map is dragged.
     attributionControl: { compact: true },
-    locale: { 'AttributionControl.ToggleAttribution': 'Bronvermelding van de kaart tonen of verbergen' },
+    locale: {
+      'AttributionControl.ToggleAttribution': 'Bronvermelding van de kaart tonen of verbergen',
+      'NavigationControl.ZoomIn': 'Inzoomen',
+      'NavigationControl.ZoomOut': 'Uitzoomen',
+    },
   })
 
   map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
@@ -131,6 +136,21 @@ onMounted(() => {
     rebuildMarkers()
     frame()
   })
+})
+
+// The pane changes size (Rapportages: Kaart -> Gesplitst): frame the pins
+// again, or they stay framed for the bigger pane and fall outside this one.
+let lastSize = ''
+useResizeObserver(container, ([entry]) => {
+  const { width, height } = entry!.contentRect
+  const size = `${Math.round(width)}x${Math.round(height)}`
+  if (size === lastSize) return
+  const first = lastSize === ''
+  lastSize = size
+  const map = mapInstance.value
+  if (first || !map || !width || !height) return
+  map.resize()
+  frame()
 })
 
 onBeforeUnmount(() => {
@@ -165,8 +185,9 @@ watch(() => props.selectedId, updateSelection)
   border: 2px solid white;
   box-shadow: 0 0 0 1px var(--color-muted);
   cursor: pointer;
+  /* No transform here: MapLibre places the marker with an inline transform, so
+     a transition on it made the pins trail the map while it was dragged. */
   transition:
-    transform 150ms ease,
     background-color 150ms ease,
     box-shadow 150ms ease;
 }
@@ -176,11 +197,13 @@ watch(() => props.selectedId, updateSelection)
   box-shadow: 0 0 0 1px var(--color-ink);
 }
 
+/* Green, not bigger: a scale() here lost to MapLibre's inline transform and never
+   showed. A selected pin is the only pin on its map (the sample editor, herstel
+   step 2), so its colour is enough. */
 :deep(.sample-pin[data-selected="true"]) {
   background: var(--color-green);
   box-shadow:
     0 0 0 2px var(--color-green),
     0 4px 8px rgb(0 0 0 / 0.15);
-  transform: scale(1.25);
 }
 </style>

@@ -40,6 +40,7 @@ import {
   fieldLabel,
   formatDate,
   melderAnswer,
+  nalezingNumber,
   outcomeTone,
   readableEntry,
 } from '@/services/reviewLabels'
@@ -1243,6 +1244,10 @@ const assignTo = ref<string | null>(null)
 const assignNote = ref('')
 const assignBusy = ref(false)
 const personName = (u: IUser) => [u.given_name, u.family_name].filter(Boolean).join(' ').trim() || u.email
+/** The colleague it lies with already cannot be picked again. */
+const reviewerOptions = computed<SelectOption[]>(() =>
+  reviewers.value.map((r) => ({ value: r.id, label: personName(r), disabled: r.id === data.value?.dossier.assignedTo })),
+)
 /**
  * Add files to this open melding (API #233, Don 2026-10-08, dossier 6015: a
  * WeTransfer link whose pieces are usable; also files a melder mailed as a
@@ -1341,6 +1346,10 @@ const questionBlank = computed(() => hasBlank(questionText.value))
  */
 const messageKind = ref<MelderMessageKind>('question')
 const MESSAGE_KIND_LABEL: Record<MelderMessageKind, string> = { question: 'Vraag', answer: 'Antwoord' }
+const MESSAGE_KIND_OPTIONS: { value: MelderMessageKind; label: string }[] = [
+  { value: 'question', label: 'Vraag: ik wil iets weten' },
+  { value: 'answer', label: 'Antwoord: ik beantwoord de melding' },
+]
 /** Our own answer to the melder: a 'question' entry whose mail says it was an answer. */
 const isOurAnswer = (e: { kind: string; body?: Record<string, unknown> | null }) =>
   e.kind === 'question' && (e.body?.mail as { kind?: string } | undefined)?.kind === 'answer'
@@ -1532,8 +1541,11 @@ const metaLine = computed(() => {
   })
   // A melding has a meldcode (FM2026-…) and no external reference; the list shows it, the header said "zonder kenmerk".
   // A nalezing has neither: its reference is "audit:inquiry:<nummer>", said here as the list says it.
-  const reference = d.reference ?? (d.auditInquiryId ? `nalezing #${d.auditInquiryId}` : d.externalRef) ?? 'zonder kenmerk'
-  return [reference, `via ${CHANNEL_LABEL[d.channel] ?? d.channel}`, `ontvangen ${when}`].join(' · ')
+  const auditId = nalezingNumber(d)
+  const reference = d.reference ?? (auditId ? `nalezing #${auditId}` : d.externalRef) ?? 'zonder kenmerk'
+  // "nalezing #N · via een nalezing" said it twice.
+  const via = !d.reference && auditId ? [] : [`via ${CHANNEL_LABEL[d.channel] ?? d.channel}`]
+  return [reference, ...via, `ontvangen ${when}`].join(' · ')
 })
 
 const artifacts = computed(() => data.value?.artifacts ?? [])
@@ -1799,10 +1811,12 @@ async function reopen(f: IProposedField) {
 
     <!-- Half and half, not a fixed inspector: this screen lives on a wide
          monitor, and the judging happens on the right. A 380px column left
-         the document with the room and the decisions with the scrollbar. -->
-    <div v-if="loading || data" class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+         the document with the room and the decisions with the scrollbar.
+         One row as high as the room left (minmax(0,1fr)): an auto row grew to
+         the height of a portrait photo and the whole Studio slid under the wheel. -->
+    <div v-if="loading || data" class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] grid-rows-[minmax(0,1fr)]">
       <!-- ------------------------------------------------------- document -->
-      <section class="flex min-w-0 flex-col border-r border-line bg-sunken">
+      <section class="flex min-h-0 min-w-0 flex-col border-r border-line bg-sunken">
         <!-- Tabs only when there is something to choose between; the bar
              also carries "Bestand toevoegen" on an open melding (API #233). -->
         <div
@@ -1813,12 +1827,13 @@ async function reopen(f: IProposedField) {
                files left 40px a tab, eight of them reading "2…". The strip is
                only the tabs, so "Bestand toevoegen" stays where it is.
                -m-1 p-1: room for a tab's focus ring inside the strip that clips. -->
-          <div ref="documentTabs" class="-m-1 flex min-w-0 items-center gap-1.5 overflow-x-auto p-1">
+          <!-- A thin scrollbar: a full one ran through the row under the names (Windows, Linux). -->
+          <div ref="documentTabs" class="-m-1 flex min-w-0 items-center gap-1.5 overflow-x-auto p-1 [scrollbar-width:thin]">
             <button
               v-for="(a, i) in artifacts"
               :key="a.id"
               type="button"
-              class="text-md max-w-[220px] min-w-[120px] truncate border-b-2 px-3 pt-1.5 pb-2.5"
+              class="text-md flex max-w-[220px] min-w-[120px] flex-col border-b-2 px-3 pt-1.5 pb-2.5"
               :title="a.originalFilename ?? undefined"
               :class="
                 i === shown
@@ -1827,7 +1842,11 @@ async function reopen(f: IProposedField) {
               "
               @click="shown = i"
             >
-              {{ a.originalFilename ?? `Document ${i + 1}` }}
+              <span class="truncate">{{ a.originalFilename ?? `Document ${i + 1}` }}</span>
+              <!-- The name once more in bold, unseen and without height, as on the
+                   queue's tabs: a tab is as wide as when it is the shown one, so
+                   picking it no longer moves the tabs to its right. -->
+              <span aria-hidden="true" class="invisible h-0 overflow-hidden font-bold whitespace-nowrap">{{ a.originalFilename ?? `Document ${i + 1}` }}</span>
             </button>
           </div>
           <template v-if="canAddDocument">
@@ -1849,7 +1868,7 @@ async function reopen(f: IProposedField) {
           </template>
         </div>
 
-        <div class="min-h-0 flex-1">
+        <div class="min-h-0 flex-1 overflow-hidden">
           <img
             v-if="current && isImage(current.mimeType)"
             :src="current.accessLink"
@@ -1910,7 +1929,10 @@ async function reopen(f: IProposedField) {
 
       <!-- --------------------------------------------------------- values -->
       <aside class="flex min-h-0 flex-col bg-surface">
-        <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+        <!-- relative: a Field's hidden "(verplicht)" is positioned absolutely, and
+             without a positioned box here it hung far below the window, made the
+             page thousands of pixels tall and let the wheel slide the Studio. -->
+        <div class="relative flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
           <EmptyState v-if="loading">Dossier ophalen…</EmptyState>
 
           <Callout v-else-if="closed" tone="neutral" title="Dossier gesloten">
@@ -1931,8 +1953,9 @@ async function reopen(f: IProposedField) {
             :title="`Dossier ${OUTCOME_LABEL[data.dossier.outcome] ?? data.dossier.outcome}`"
           >
             <template v-if="data.dossier.outcomeAt">Op {{ formatDate(data.dossier.outcomeAt) }}. </template>
-            <!-- A reason is usually a sentence with its own full stop: no second one after the quote. -->
-            <template v-if="data.dossier.outcomeNote">Reden: “{{ data.dossier.outcomeNote.trim() }}”<template v-if="!/[.!?…]$/.test(data.dossier.outcomeNote.trim())">.</template></template>
+            <!-- A reason is usually a sentence with its own full stop: no second one after the quote.
+                 Its paragraphs stay paragraphs (pre-line); they ran together into one. -->
+            <template v-if="data.dossier.outcomeNote">Reden: “<span class="whitespace-pre-line">{{ data.dossier.outcomeNote.trim() }}</span>”<template v-if="!/[.!?…]$/.test(data.dossier.outcomeNote.trim())">.</template></template>
             <template v-else>Zonder reden.</template>
             <template v-if="data.dossier.duplicateOf"> Duplicaat van dossier #{{ data.dossier.duplicateOf }}.</template>
           </Callout>
@@ -2028,15 +2051,14 @@ async function reopen(f: IProposedField) {
                 >
                   {{ bareName(d.originalFilename) || `document ${d.id}` }}
                 </button>
-                <select
+                <Field
                   :id="`set-${d.id}`"
-                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1.5"
+                  :model-value="String(groupChoice[d.id] ?? 'vervalt')"
+                  kind="select"
                   :aria-label="`Rapportage voor ${bareName(d.originalFilename)}`"
-                  :value="String(groupChoice[d.id] ?? 'vervalt')"
-                  @change="setGroup(d.id, ($event.target as HTMLSelectElement).value)"
-                >
-                  <option v-for="o in docGroupOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-                </select>
+                  :options="docGroupOptions"
+                  @update:model-value="setGroup(d.id, String($event))"
+                />
               </div>
             </div>
           </Panel>
@@ -2157,7 +2179,8 @@ async function reopen(f: IProposedField) {
                 :tone="group.state === 'confirmed' ? 'green' : 'amber'"
                 plain
               />
-              <span class="text-sm font-mono text-faint">{{ group.fields.length }} {{ isClosed ? 'niet beoordeeld' : 'open' }}</span>
+              <!-- Only the address wraps: beside a range's long label the count broke into "1" over "open". -->
+              <span class="text-sm shrink-0 font-mono whitespace-nowrap text-faint">{{ group.fields.length }} {{ isClosed ? 'niet beoordeeld' : 'open' }}</span>
             </button>
 
             <!-- A range (#186): what it covers, folded. One Overnemen below decides every address. -->
@@ -2322,7 +2345,7 @@ async function reopen(f: IProposedField) {
                     v-else-if="f.field === 'contractor' && contractors.length"
                     v-model="corrections[f.id]"
                     label="Andere uitvoerder"
-                    placeholder="Typ (een deel van) de naam"
+                    placeholder="Typ een naam"
                     :options="contractorOptions"
                   />
                   <!-- Every other field: the control "Waarde toevoegen" uses for it,
@@ -2598,25 +2621,25 @@ async function reopen(f: IProposedField) {
                    as wide as its longest choice or wider; where the two do not fit
                    side by side (a 1528px window) the second goes under the first. -->
               <span class="text-sm font-semibold uppercase tracking-wide text-label">Bericht aan de melder</span>
+              <!-- The Studio's own lists, as everywhere else in this pane. -->
               <div class="flex flex-wrap items-center gap-2 text-sm">
-                <select
+                <Field
                   id="melder-message-kind"
                   v-model="messageKind"
-                  class="studio-input min-w-0 flex-auto rounded-md border border-line bg-sunken px-2 py-1"
+                  class="flex-auto"
+                  kind="select"
                   aria-label="Soort bericht"
-                >
-                  <option value="question">Vraag: ik wil iets weten</option>
-                  <option value="answer">Antwoord: ik beantwoord de melding</option>
-                </select>
-                <select
+                  :options="MESSAGE_KIND_OPTIONS"
+                />
+                <Field
                   id="melder-message-template"
                   v-model="messageTemplate"
-                  class="studio-input min-w-0 flex-auto rounded-md border border-line bg-sunken px-2 py-1"
+                  class="flex-auto"
+                  kind="select"
                   aria-label="Standaardantwoord"
-                >
-                  <option :value="null">Standaardantwoord…</option>
-                  <option v-for="o in MESSAGE_TEMPLATE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-                </select>
+                  :options="MESSAGE_TEMPLATE_OPTIONS"
+                  empty-label="Standaardantwoord…"
+                />
               </div>
               <p v-if="questionBlank" class="text-sm text-amber-ink">Vul eerst de open plekken ({{ BLANK }}) in de tekst in.</p>
               <div class="flex items-end gap-2">
@@ -2657,17 +2680,14 @@ async function reopen(f: IProposedField) {
                 />
               </div>
               <div v-if="reviewers.length" class="flex items-center gap-2">
-                <select
+                <Field
                   id="dossier-assign-to"
                   v-model="assignTo"
-                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1.5"
+                  kind="select"
                   aria-label="Collega"
-                >
-                  <option :value="null">Kies een collega…</option>
-                  <option v-for="r in reviewers" :key="r.id" :value="r.id" :disabled="r.id === data.dossier.assignedTo">
-                    {{ personName(r) }}
-                  </option>
-                </select>
+                  :options="reviewerOptions"
+                  empty-label="Kies een collega…"
+                />
                 <input
                   id="dossier-assign-note"
                   v-model="assignNote"
@@ -2837,7 +2857,7 @@ async function reopen(f: IProposedField) {
                   {{ r.samples === 1 ? 'meting' : 'metingen' }} · zelfde bestand
                 </span>
                 <span class="mt-1 block">
-                  Sluit dan met het standaardantwoord "Rapportage staat al in de database". Staat het er al twee
+                  Sluit dan met het standaardantwoord “Rapportage staat al in de database”. Staat het er al twee
                   keer, houd dan het meest complete exemplaar: de meeste adressen en metingen.
                 </span>
               </Callout>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { refDebounced } from '@vueuse/core'
 
@@ -15,7 +15,7 @@ import { describeFailure } from '@/services/fundermaps/errors'
 import { confirmAction } from '@/services/confirm'
 import { PAGE_SIZE } from '@/services/explorer'
 import { promptText } from '@/services/prompt'
-import { outcomeTone } from '@/services/reviewLabels'
+import { nalezingNumber, outcomeTone } from '@/services/reviewLabels'
 import {
   BUILTIN_VIEWS,
   channelLabel,
@@ -61,6 +61,8 @@ const studio = useStudioStore()
 const rows = ref<IReviewQueueItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
+/** The list itself did not load: no counts then, they would count rows that are not there. */
+const loadFailed = ref(false)
 
 const query = ref<ReviewQuery>(emptyQuery())
 const viewKey = ref('alles')
@@ -101,9 +103,11 @@ async function load() {
   try {
     loading.value = true
     error.value = null
+    loadFailed.value = false
     rows.value = await api.dataops.queue(opts)
   } catch (e) {
     error.value = describeFailure(e, 'De controlelijst kon niet worden geladen.')
+    loadFailed.value = true
     rows.value = []
   } finally {
     loading.value = false
@@ -133,6 +137,18 @@ watch(debouncedSearch, (q) => {
 function selectView(view: SavedView) {
   push({ ...fromView(view) }, view.key)
 }
+
+/**
+ * The active tab in sight, as the document tabs do: a saved view opened by its
+ * link sat past the end of a scrolled strip, and nothing on screen was underlined.
+ */
+const tabStrip = ref<HTMLElement | null>(null)
+function showActiveTab() {
+  const i = views.value.findIndex((v) => v.key === viewKey.value)
+  tabStrip.value?.children[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
+onMounted(showActiveTab)
+watch(viewKey, showActiveTab, { flush: 'post' })
 
 async function onSaveView() {
   const label = await promptText({
@@ -215,7 +231,7 @@ const items = computed(() =>
   rows.value.map((r) => ({
     id: r.id,
     // A nalezing has no meldcode; its own reference is "audit:inquiry:<nummer>".
-    reference: r.reference ?? (r.auditInquiryId ? `nalezing #${r.auditInquiryId}` : r.externalRef) ?? '—',
+    reference: r.reference ?? (nalezingNumber(r) ? `nalezing #${nalezingNumber(r)}` : r.externalRef) ?? '—',
     subject: r.subject ?? 'Zonder omschrijving',
     kind: r.kind ? kindLabel(r.kind) : null,
     channel: inSentence(channelLabel(r.channel)),
@@ -348,8 +364,9 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
     <div class="flex shrink-0 items-center border-b border-line bg-surface px-6 pt-2.5">
       <!-- The tabs scroll on their own when saved views make the row too
            long, so "+ Weergave" behind them stays in reach. -mx-1 px-1: room
-           for the focus ring of the first and the last tab. -->
-      <div class="-mx-1 flex min-w-0 items-center gap-1.5 overflow-x-auto px-1">
+           for the focus ring of the first and the last tab. A thin scrollbar:
+           a full one ran through the row under the labels (Windows, Linux). -->
+      <div ref="tabStrip" class="-mx-1 flex min-w-0 items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:thin]">
         <!-- The tab and its delete cross are two buttons side by side: a cross
              *inside* the tab button could not be reached with the keyboard. -->
         <span
@@ -421,7 +438,8 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
       <ReviewFilterBuilder :query="query" @update="push($event)" />
 
-      <span class="text-sm ml-auto font-mono text-faint">
+      <!-- Not after a failed load: a count stood above "De lijst is niet geladen". -->
+      <span v-if="!loadFailed" class="text-sm ml-auto font-mono text-faint">
         <template v-if="total != null">{{ total.toLocaleString('nl-NL') }} {{ total === 1 ? 'dossier' : 'dossiers' }}<template v-if="wideSearch">, ook gesloten</template></template>
         <!-- Not while the list loads: "0 rijen" stood beside the skeleton rows. -->
         <template v-else-if="!loading">{{ items.length }}{{ hasMore ? '+' : '' }} rijen</template>
@@ -560,7 +578,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
         <template #footer>
           <span class="text-base text-subtle">
-            Pagina {{ page }}<template v-if="!loading"> · {{ items.length }} op deze pagina</template>
+            Pagina {{ page }}<template v-if="!loading && !loadFailed"> · {{ items.length }} op deze pagina</template>
           </span>
           <span class="ml-auto flex gap-1.5">
             <Button label="Vorige" :disabled="page <= 1" @click="push({ ...query, page: page - 1 })" />

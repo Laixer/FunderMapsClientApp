@@ -72,6 +72,8 @@ const loading = ref(true)
 // Why there is nothing to show: the number does not exist, or the request failed.
 const loadFailure = ref<'missing' | 'failed' | null>(null)
 const showRejectModal = ref(false)
+/** The rejection is on its way: the dialog's button waits, and comes back if it fails. */
+const rejecting = ref(false)
 
 const status = computed(() => inquiry.value?.state?.auditStatus ?? null)
 
@@ -379,6 +381,7 @@ function handleDelete() {
 }
 
 async function handleReject(message: string) {
+  rejecting.value = true
   try {
     await api.inquiry.reject(inquiryId.value, message)
     showRejectModal.value = false
@@ -387,6 +390,8 @@ async function handleReject(message: string) {
     studio.refreshCounts(sessionStore.currentUser?.id)
   } catch (e) {
     toastError(describeFailure(e, 'Afkeuren is niet gelukt.'))
+  } finally {
+    rejecting.value = false
   }
 }
 
@@ -523,7 +528,7 @@ useActionShortcuts(() => {
             </div>
           </Panel>
 
-          <Panel v-if="findings.length" caption="TE CONTROLEREN WAARDEN" :meta="String(findings.length)">
+          <Panel v-if="findings.length" caption="TE CONTROLEREN WAARDEN" :meta="findings.length.toLocaleString('nl-NL')">
             <ul class="flex flex-col gap-2">
               <li
                 v-for="finding in findings"
@@ -637,6 +642,6 @@ useActionShortcuts(() => {
       </aside>
     </div>
 
-    <RejectModal v-if="showRejectModal" @close="showRejectModal = false" @submit="handleReject" />
+    <RejectModal v-if="showRejectModal" :busy="rejecting" @close="showRejectModal = false" @submit="handleReject" />
   </AppShell>
 </template>

@@ -36,6 +36,11 @@ const props = withDefaults(
     hint?: string
     /** A sentence naming what is wrong. Turns the frame amber. */
     error?: string | null
+    /**
+     * The amber frame without a sentence of its own: the sentence stands under
+     * another field it also names (one finding about ten fields printed it ten times).
+     */
+    flagged?: boolean
     required?: boolean
     disabled?: boolean
     /** Force the mono face. Numbers and dates already opt in. */
@@ -53,7 +58,7 @@ const props = withDefaults(
      */
     warnFuture?: boolean
   }>(),
-  { kind: 'text', required: false, disabled: false, mono: false, rows: 4, warnFuture: false },
+  { kind: 'text', required: false, disabled: false, mono: false, rows: 4, warnFuture: false, flagged: false },
 )
 
 const model = defineModel<unknown>()
@@ -97,7 +102,7 @@ const warning = computed(() => props.error || futureWarning.value)
 
 const frameClass = computed(() => {
   if (props.disabled) return 'border-line bg-canvas'
-  if (warning.value) return 'border-amber-field bg-surface'
+  if (warning.value || props.flagged) return 'border-amber-field bg-surface'
   return 'border-line-strong bg-surface'
 })
 </script>
@@ -148,7 +153,12 @@ const frameClass = computed(() => {
         <option v-if="emptyLabel || placeholder" :value="null">
           {{ emptyLabel ?? placeholder }}
         </option>
-        <option v-for="option in options" :key="String(option.value)" :value="option.value">
+        <option
+          v-for="option in options"
+          :key="String(option.value)"
+          :value="option.value"
+          :disabled="option.disabled"
+        >
           {{ option.label }}
         </option>
       </select>

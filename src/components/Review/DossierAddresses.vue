@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
+import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import api from '@/services/fundermaps'
@@ -75,8 +76,10 @@ function origin(a: IDossierAddress): string | null {
   return SOURCE_LABEL[a.source]
 }
 function counts(a: IDossierAddress): string | null {
-  if (!a.total && !a.open) return a.state === 'rejected' ? null : 'nog geen waarden'
-  return a.open ? `${a.open} open · ${a.total} waarde${a.total === 1 ? '' : 'n'}` : `${a.total} waarde${a.total === 1 ? '' : 'n'}`
+  // A closed dossier has nothing open and nothing still to come: say it as the group headings below do.
+  if (!a.total && !a.open) return a.state === 'rejected' ? null : props.disabled ? 'geen waarden' : 'nog geen waarden'
+  const values = `${a.total} waarde${a.total === 1 ? '' : 'n'}`
+  return a.open ? `${a.open} ${props.disabled ? 'niet beoordeeld' : 'open'} · ${values}` : values
 }
 
 async function run(key: string, fieldsChanged: boolean, call: () => Promise<{ addresses: IDossierAddress[] }>) {
@@ -124,6 +127,10 @@ function setBuilding(target: IAddress) {
 const rangeStart = ref<IAddress | null>(null)
 const rangeEnd = ref('')
 const rangeStep = ref<'same' | 'all'>('same')
+const rangeStepOptions = computed(() => [
+  { value: 'same', label: parseInt(rangeStart.value?.building_number ?? '0', 10) % 2 ? 'oneven' : 'even' },
+  { value: 'all', label: 'alle' },
+])
 const rangeFound = ref<{ nummeraanduidingId: string; label: string; letter: string | null; addition: string | null }[]>([])
 const rangeChosen = ref<Record<string, boolean>>({})
 const rangeError = ref<string | null>(null)
@@ -176,7 +183,7 @@ async function addRange() {
   }
   busy.value = null
   if (last) emit('updated', last.addresses, false)
-  if (failed.length) emit('error', `${failed.length} adres(sen) konden niet worden toegevoegd: ${failed.join('; ')}`)
+  if (failed.length) emit('error', `${failed.length} ${failed.length === 1 ? 'adres kon' : 'adressen konden'} niet worden toegevoegd: ${failed.join('; ')}`)
   picking.value = null
   rangeStart.value = null
   rangeEnd.value = ''
@@ -295,18 +302,10 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
         <AddressPicker v-if="!rangeStart" @pick="pickRangeStart" />
         <template v-else>
           <p class="text-md">Vanaf <strong>{{ rangeStart.street }} {{ rangeStart.building_number }}</strong>, {{ rangeStart.city }}</p>
+          <!-- The Studio's own fields, as the lists under this panel: the browser's list stood out here. -->
           <div class="flex flex-wrap items-end gap-2">
-            <label class="flex flex-col gap-1 text-sm">
-              <span class="font-semibold uppercase tracking-wide text-label">T/m huisnummer</span>
-              <input id="range-end" v-model="rangeEnd" type="number" min="1" class="studio-input w-28 rounded-md border border-line bg-surface px-2 py-1.5" />
-            </label>
-            <label class="flex flex-col gap-1 text-sm">
-              <span class="font-semibold uppercase tracking-wide text-label">Nummers</span>
-              <select id="range-step" v-model="rangeStep" class="studio-input rounded-md border border-line bg-surface px-2 py-1.5">
-                <option value="same">{{ parseInt(rangeStart.building_number ?? '0', 10) % 2 ? 'oneven' : 'even' }}</option>
-                <option value="all">alle</option>
-              </select>
-            </label>
+            <Field id="range-end" v-model="rangeEnd" class="w-28" kind="number" label="T/m huisnummer" min="1" />
+            <Field id="range-step" v-model="rangeStep" kind="select" label="Nummers" :options="rangeStepOptions" />
             <Button label="Zoek de adressen" :disabled="rangeBusy || !rangeEnd" @click="findRange" />
             <Button label="Ander beginadres" variant="ghost" @click="rangeStart = null" />
           </div>

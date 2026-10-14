@@ -39,17 +39,23 @@ onKeyStroke('Escape', () => (open.value = false))
  * that puts it outside the window: the button moves with the chips before it,
  * and on the closed tabs it stood so far right that half the options were cut
  * off. And never taller than the room under the button; it scrolls then.
+ *
+ * Fixed to where the button was when it opened, until it closes: every choice
+ * adds a chip before the button, and a popover that went along with it ran out
+ * of the window on the right, or jumped back and out at the bottom once the
+ * button wrapped to a second line.
  */
 /** The popover's width: `w-[440px]` in the template. */
 const POPOVER_WIDTH = 440
-const alignRight = ref(false)
-const maxHeight = ref<string>()
+const position = ref<Record<string, string>>({})
 function place() {
   const box = root.value?.getBoundingClientRect()
   if (!box) return
-  alignRight.value = box.left + POPOVER_WIDTH > document.documentElement.clientWidth
-  // 8px between button and popover (mt-2), and as much under it.
-  maxHeight.value = `${Math.max(200, window.innerHeight - box.bottom - 16)}px`
+  // 8px from the button and from the window's edges.
+  const room = document.documentElement.clientWidth - 8
+  const left = box.left + POPOVER_WIDTH <= room ? box.left : Math.max(8, box.right - POPOVER_WIDTH)
+  const top = box.bottom + 8
+  position.value = { left: `${left}px`, top: `${top}px`, maxHeight: `${Math.max(0, window.innerHeight - top - 8)}px` }
 }
 function toggleOpen() {
   open.value = !open.value
@@ -126,9 +132,8 @@ const pill = (active: boolean) =>
 
     <div
       v-if="open"
-      class="studio-fade absolute top-full z-30 mt-2 flex w-[440px] flex-col gap-4 overflow-y-auto rounded-2xl border border-line bg-surface p-4 shadow-overlay"
-      :class="alignRight ? 'right-0' : 'left-0'"
-      :style="{ maxHeight }"
+      class="studio-fade fixed z-30 flex w-[440px] flex-col gap-4 overflow-y-auto rounded-2xl border border-line bg-surface p-4 shadow-overlay"
+      :style="position"
     >
       <section>
         <h3 class="studio-label mb-2">STAND</h3>
