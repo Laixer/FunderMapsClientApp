@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeMount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppShell from '@/components/Layout/AppShell.vue'
@@ -31,12 +31,16 @@ import {
   FIELD_UNIT,
   FOUNDATION_TYPE_CODE_OPTIONS,
   INQUIRY_TYPE_CODE_OPTIONS,
+  LANE_LABEL,
   OUTCOME_LABEL,
   VERDICT_LABEL,
   derivedInquiryType,
   displayValue as labelValue,
+  displayValueWithUnit,
   fieldLabel,
   formatDate,
+  melderAnswer,
+  outcomeTone,
   readableEntry,
 } from '@/services/reviewLabels'
 import {
@@ -450,7 +454,7 @@ const settledSections = computed(() => {
 function currentLabel(f: IProposedField): { text: string; tone: 'amber' | 'red' } | null {
   if (!isAudit.value || f.state === 'agreed') return null
   if (f.currentValue == null) return { text: 'niet in de database', tone: 'amber' }
-  return { text: `in de database: ${labelValue(f.field, f.currentValue)}`, tone: 'red' }
+  return { text: `in de database: ${displayValueWithUnit(f.field, f.currentValue)}`, tone: 'red' }
 }
 
 /** Whether the pipeline has read this dossier at all. */
@@ -469,6 +473,16 @@ const isSure = (f: IProposedField) =>
 
 /** The model reasoned rather than read. Said plainly, not hidden. */
 const isInferred = (f: IProposedField) => /^\s*afgeleid\s*:/i.test(f.evidence ?? '')
+
+/**
+ * How sure the model says it is, as a whole percentage ("95%"). The card
+ * showed the stored fraction, "0.950", with nothing to say what it was. Null
+ * when there is none or it is nought: "0%" under a value reads as a verdict.
+ */
+function confidencePercent(f: IProposedField): string | null {
+  const percent = Math.round(Number(f.confidence ?? 0) * 100)
+  return percent > 0 ? `${percent}%` : null
+}
 
 /**
  * Close the dossier. `rejected` is the cat picture, the empty scan, the
@@ -555,7 +569,7 @@ const showRecovery = computed(
 )
 const melderRecoveryHint = computed(() => {
   const v = data.value?.dossier.payload?.answers?.recoveryType
-  return v == null || v === '' ? null : String(v)
+  return v == null || v === '' ? null : melderAnswer('recoveryType', String(v))
 })
 function onRecoveryRecorded(id: number) {
   recordedRecoveryId.value = id
@@ -681,7 +695,8 @@ const meldingAnswers = computed(() => {
   if (!a || typeof a !== 'object') return [] as { label: string; value: string }[]
   return Object.entries(a)
     .filter(([, v]) => v !== null && v !== undefined && v !== '')
-    .map(([k, v]) => ({ label: ANSWER_LABEL[k] ?? k, value: Array.isArray(v) ? v.join(', ') : String(v) }))
+    // The dossier holds the form's code ("op_staal"); shown is what the melder picked.
+    .map(([k, v]) => ({ label: ANSWER_LABEL[k] ?? k, value: (Array.isArray(v) ? v : [v]).map((x) => melderAnswer(k, String(x))).join(', ') }))
 })
 const meldingNaw = computed(() => {
   const s = data.value?.dossier.submitter
@@ -790,7 +805,7 @@ watch(addField, () => {
 const addAddressOptions = computed(() =>
   (data.value?.addresses ?? [])
     .filter((a) => a.addressId)
-    .map((a) => ({ value: a.addressId!, label: (a.label ?? a.addressText ?? a.addressId!) + (a.own ? ' (pand van de melding)' : '') })),
+    .map((a) => ({ value: a.addressId!, label: (a.label ?? a.addressText ?? a.addressId!) + (a.own ? ' (pand van het dossier)' : '') })),
 )
 async function addManualValue() {
   if (!addField.value || !addValue.value.trim() || addBusy.value) return
@@ -824,7 +839,7 @@ const effectiveCommitType = computed(() => {
 })
 const ARCHIVE_TYPES = new Set(['archive_research', 'architectural_research'])
 /**
- * What Datum rapport becomes when the reviewer leaves it empty (#338, Don
+ * What Documentdatum becomes when the reviewer leaves it empty (#338, Don
  * 2026-09-14): never the day the melding arrived. An archive drawing takes the
  * pand's construction year as an estimate; anything else has no fallback and
  * the commit refuses until a date is typed.
@@ -1040,6 +1055,27 @@ const blockingOpen = computed(() =>
       })
     : open.value,
 )
+
+/** Every rapportage of a melding with several files is refused: the green button makes none. */
+const commitRefusesAll = computed(() => multiDoc.value && commitGroups.value.length > 0 && !acceptedGroups.value.length)
+/**
+ * What the green button says, which is what it does. The callout that points
+ * at it and the line under the buttons use the same words: they named
+ * "Rapportage aanmaken, handmatig invullen" and "Overnemen" while the button
+ * read something else.
+ */
+const commitLabel = computed(() => {
+  if (isAudit.value) return taken.value.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen'
+  if (!multiDoc.value) return taken.value.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'
+  if (commitRefusesAll.value) return 'Afwijzen en afsluiten'
+  return acceptedGroups.value.length > 1 ? `Overnemen als ${acceptedGroups.value.length} rapportages` : 'Overnemen als rapportage'
+})
+/** What the green button does, behind its name in the line under the buttons. */
+const commitHelp = computed(() => {
+  if (commitRefusesAll.value) return 'wijst elke rapportage af en sluit het dossier: er komt niets in de database.'
+  if (!multiDoc.value && !taken.value.length) return 'maakt een rapportage zonder gegevens: die vul je daarna zelf in.'
+  return `zet de overgenomen waarden als ${acceptedGroups.value.length > 1 ? 'rapportages' : 'rapportage'} in de database.`
+})
 
 /**
  * The closing panel is pinned under the pane so the commit is never a scroll
@@ -1330,7 +1366,7 @@ watch(
 /**
  * The per-dossier state declared below `load()`. Until 2026-09-22 `load()`
  * missed these, so after "Overnemen als rapportage" the next dossier opened
- * with the previous one's Datum rapport, Soort and Uitvoerder still filled
+ * with the previous one's Documentdatum, Soort and Uitvoerder still filled
  * (Don, dossier 5297) -- and a half-typed remark or question would have been
  * posted on the wrong dossier. Cleared here; the prefill watch then fills the
  * commit controls from the new dossier's own taken-over values.
@@ -1495,11 +1531,23 @@ const metaLine = computed(() => {
     year: 'numeric',
   })
   // A melding has a meldcode (FM2026-…) and no external reference; the list shows it, the header said "zonder kenmerk".
-  return [d.reference ?? d.externalRef ?? 'zonder kenmerk', `via ${CHANNEL_LABEL[d.channel] ?? d.channel}`, `ontvangen ${when}`].join(' · ')
+  // A nalezing has neither: its reference is "audit:inquiry:<nummer>", said here as the list says it.
+  const reference = d.reference ?? (d.auditInquiryId ? `nalezing #${d.auditInquiryId}` : d.externalRef) ?? 'zonder kenmerk'
+  return [reference, `via ${CHANNEL_LABEL[d.channel] ?? d.channel}`, `ontvangen ${when}`].join(' · ')
 })
 
 const artifacts = computed(() => data.value?.artifacts ?? [])
 const current = computed(() => artifacts.value[shown.value] ?? null)
+/**
+ * The document tabs scroll when there are many files. A click on a value
+ * shows its document; the tab of that document is then brought into sight,
+ * or the strip would show five other names.
+ */
+const documentTabs = ref<HTMLElement | null>(null)
+watch(shown, async (index) => {
+  await nextTick()
+  documentTabs.value?.children[index]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+})
 /**
  * Which document a value came from, on the card itself once there is more than
  * one to choose from (Don, 2026-10-01). Clicking it shows that document.
@@ -1707,15 +1755,26 @@ async function reopen(f: IProposedField) {
       <h1 class="text-lg min-w-0 truncate font-bold text-ink">
         {{ data.dossier.subject ?? 'Dossier' }}
       </h1>
-      <Pill v-if="closed" :label="OUTCOME_LABEL[closed] ?? closed" tone="neutral" plain />
+      <!-- An outcome in the colour the list gives it. -->
+      <Pill v-if="closed" :label="OUTCOME_LABEL[closed] ?? closed" :tone="outcomeTone(closed)" plain />
       <!-- Closed on an earlier visit: say so, instead of "4 te beoordelen" on a dossier that left the desk. -->
       <Pill
         v-else-if="data.dossier.outcome"
         :label="OUTCOME_LABEL[data.dossier.outcome] ?? data.dossier.outcome"
-        tone="neutral"
+        :tone="outcomeTone(data.dossier.outcome)"
         plain
       />
-      <Pill v-else-if="nothingProposed" label="geen voorstellen" tone="red" plain />
+      <!-- Nothing proposed is three states, in the words of the list and of the
+           callout below: it was a red "geen voorstellen" for all three. -->
+      <Pill v-else-if="nothingProposed && artifacts.length === 0" label="geen document" tone="neutral" plain />
+      <Pill v-else-if="nothingProposed && !wasRead" label="nog niet gelezen" tone="amber" plain />
+      <Pill v-else-if="nothingProposed" label="niets gevonden" tone="red" plain />
+      <Pill
+        v-else-if="openCards === 0"
+        :label="open.length ? 'niets meer te beoordelen' : 'alles beoordeeld'"
+        tone="green"
+        plain
+      />
       <Pill v-else :label="`${openCards} te beoordelen`" tone="blue" plain />
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint" :title="metaLine">{{ metaLine }}</p>
       <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
@@ -1750,21 +1809,27 @@ async function reopen(f: IProposedField) {
           v-if="artifacts.length > 1 || canAddDocument"
           class="flex shrink-0 items-center gap-1.5 border-b border-line bg-surface px-4 pt-2.5"
         >
-          <button
-            v-for="(a, i) in artifacts"
-            :key="a.id"
-            type="button"
-            class="text-md max-w-[220px] truncate border-b-2 px-3 pt-1.5 pb-2.5"
-            :title="a.originalFilename ?? undefined"
-            :class="
-              i === shown
-                ? 'border-green font-bold text-ink'
-                : 'border-transparent font-medium text-subtle hover:text-strong'
-            "
-            @click="shown = i"
-          >
-            {{ a.originalFilename ?? `Document ${i + 1}` }}
-          </button>
+          <!-- The tabs give way down to 120px each and scroll from there: ten
+               files left 40px a tab, eight of them reading "2…". The strip is
+               only the tabs, so "Bestand toevoegen" stays where it is.
+               -m-1 p-1: room for a tab's focus ring inside the strip that clips. -->
+          <div ref="documentTabs" class="-m-1 flex min-w-0 items-center gap-1.5 overflow-x-auto p-1">
+            <button
+              v-for="(a, i) in artifacts"
+              :key="a.id"
+              type="button"
+              class="text-md max-w-[220px] min-w-[120px] truncate border-b-2 px-3 pt-1.5 pb-2.5"
+              :title="a.originalFilename ?? undefined"
+              :class="
+                i === shown
+                  ? 'border-green font-bold text-ink'
+                  : 'border-transparent font-medium text-subtle hover:text-strong'
+              "
+              @click="shown = i"
+            >
+              {{ a.originalFilename ?? `Document ${i + 1}` }}
+            </button>
+          </div>
           <template v-if="canAddDocument">
             <input
               ref="addDocInput"
@@ -1813,21 +1878,25 @@ async function reopen(f: IProposedField) {
             <p class="text-sm font-semibold uppercase text-label">Vraag van de melder</p>
             <p v-if="data?.dossier.payload?.topicLabel" class="text-lg font-bold text-ink">{{ data.dossier.payload.topicLabel }}</p>
             <p v-for="a in meldingAnswers" :key="a.label" class="text-md"><span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ a.label }}</span><span class="text-muted">{{ a.value }}</span></p>
-            <p v-if="data?.dossier.payload?.note" class="text-md whitespace-pre-wrap rounded-lg border border-line bg-surface px-4 py-3 text-body">{{ data.dossier.payload.note }}</p>
+            <!-- Links are links here too, as in MELDING on the right: the text says "open de link". -->
+            <p v-if="data?.dossier.payload?.note" class="text-md whitespace-pre-wrap break-words rounded-lg border border-line bg-surface px-4 py-3 text-body"><template v-for="(part, i) in noteParts(data.dossier.payload.note)" :key="i"><a v-if="part.url" :href="part.url" target="_blank" rel="noopener" class="text-green-ink underline underline-offset-2">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></p>
             <p v-else class="text-md text-muted">Geen toelichting meegestuurd.</p>
             <p v-if="meldingNaw.length" class="text-sm text-faint"><template v-for="(n, i) in meldingNaw" :key="n.label"><span v-if="i">&nbsp;·&nbsp;</span>{{ n.label }}: <span class="text-muted">{{ n.value }}</span></template></p>
-            <p class="text-sm text-muted">Geen document bij dit dossier: kies rechtsonder een standaardantwoord of schrijf er een, en sluit het dossier.</p>
+            <!-- Not on a closed dossier: there is nothing left to answer or close. -->
+            <p v-if="!isClosed" class="text-sm text-muted">Geen document bij dit dossier: kies rechtsonder een standaardantwoord of schrijf er een, en sluit het dossier.</p>
           </div>
-          <EmptyState v-else>Geen document bij dit dossier.</EmptyState>
+          <!-- Not while the dossier loads: it is not known yet. -->
+          <EmptyState v-else-if="!loading">Geen document bij dit dossier.</EmptyState>
         </div>
 
         <div
           v-if="current"
           class="text-sm flex shrink-0 items-center gap-3 border-t border-line bg-surface px-4 py-2 text-faint"
         >
-          <span class="min-w-0 flex-1 truncate font-mono">{{ current.originalFilename }}</span>
-          <span>{{ current.pageCount }} pag.</span>
-          <span>{{ { text: 'tekst', vision: 'afbeelding', document: 'document' }[current.lane] ?? current.lane }}</span>
+          <span class="min-w-0 flex-1 truncate font-mono" :title="current.originalFilename ?? undefined">{{ current.originalFilename }}</span>
+          <!-- A file that was not read has no page count yet. -->
+          <span v-if="current.pageCount">{{ current.pageCount }} pag.</span>
+          <span>{{ LANE_LABEL[current.lane] ?? current.lane }}</span>
           <span v-if="data?.fields[0]" class="font-mono">{{ data.fields[0].model }}</span>
           <button
             type="button"
@@ -1862,7 +1931,8 @@ async function reopen(f: IProposedField) {
             :title="`Dossier ${OUTCOME_LABEL[data.dossier.outcome] ?? data.dossier.outcome}`"
           >
             <template v-if="data.dossier.outcomeAt">Op {{ formatDate(data.dossier.outcomeAt) }}. </template>
-            <template v-if="data.dossier.outcomeNote">Reden: “{{ data.dossier.outcomeNote }}”.</template>
+            <!-- A reason is usually a sentence with its own full stop: no second one after the quote. -->
+            <template v-if="data.dossier.outcomeNote">Reden: “{{ data.dossier.outcomeNote.trim() }}”<template v-if="!/[.!?…]$/.test(data.dossier.outcomeNote.trim())">.</template></template>
             <template v-else>Zonder reden.</template>
             <template v-if="data.dossier.duplicateOf"> Duplicaat van dossier #{{ data.dossier.duplicateOf }}.</template>
           </Callout>
@@ -1905,8 +1975,8 @@ async function reopen(f: IProposedField) {
 
           <Callout v-else-if="nothingProposed" tone="red" title="De pipeline vond niets">
             Het document is gelezen, maar er is geen enkele waarde uit gehaald. Bekijk het zelf:
-            hoort het hier niet thuis, sluit het dossier dan hieronder. Bevat het wél gegevens,
-            kies dan “Rapportage aanmaken, handmatig invullen”.
+            hoort het hier niet thuis, sluit het dossier dan hieronder.
+            <template v-if="!isAudit && !commitRefusesAll">Bevat het wél gegevens, kies dan “{{ commitLabel }}”.</template>
           </Callout>
 
           <Callout v-else-if="blockingOpen.length === 0 && open.length > 0" tone="green" title="Niets meer te beoordelen">
@@ -1998,7 +2068,7 @@ async function reopen(f: IProposedField) {
               <Field
                 :model-value="sec.set.shownType"
                 kind="select"
-                label="Soort rapport"
+                label="Soort"
                 :options="INQUIRY_TYPE_CODE_OPTIONS"
                 empty-label="Uit het document"
                 :hint="sec.set.typeHint"
@@ -2007,7 +2077,7 @@ async function reopen(f: IProposedField) {
               <Field
                 :model-value="sec.set.date"
                 kind="date"
-                label="Datum rapport"
+                label="Documentdatum"
                 warn-future
                 :hint="sec.set.dateHint"
                 :error="sec.set.verdict === 'accepted' && sec.set.dateMissing ? 'Vul de datum van dit rapport in' : null"
@@ -2096,25 +2166,43 @@ async function reopen(f: IProposedField) {
               <p class="mt-1">{{ group.spread.join(' · ') }}</p>
             </details>
 
+            <!-- A card is three rows of this grid (subgrid): the field's name, the
+                 pill with the model's certainty, and the rest from the value
+                 down. Two cards side by side share those rows, so their values
+                 start at one height whether a name takes one line or two and
+                 whether there is a pill. With name, pill and number on one
+                 wrapping line a long name gave three head shapes in one row of
+                 cards. The second row is as high as a pill, also when it holds
+                 only the percentage. -->
             <div v-if="!collapsed[`${sec.key}|${group.key}`]" class="grid grid-cols-2 gap-2">
               <div
                 v-for="f in group.fields"
                 :key="f.id"
-                class="flex flex-col gap-1.5 rounded-lg border border-line bg-surface p-2.5"
+                class="row-span-3 grid grid-cols-1 grid-rows-subgrid gap-y-0 rounded-lg border border-line bg-surface p-2.5"
                 :class="{ 'col-span-2': editing[f.id] && !isClosed }"
                 @focusin="focus(f)"
                 @click="focus(f)"
               >
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="text-sm font-semibold uppercase tracking-wide text-label">
-                    {{ fieldLabel(f.field) }}
-                  </span>
+                <span class="text-sm row-start-1 font-semibold uppercase tracking-wide text-label">
+                  {{ fieldLabel(f.field) }}
+                </span>
+                <div
+                  v-if="isRefused(f) || isInferred(f) || isSure(f) || confidencePercent(f)"
+                  class="row-start-2 flex min-h-7 items-center gap-2 pt-1"
+                >
                   <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" plain />
                   <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" plain />
                   <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" plain />
-                  <span v-if="f.confidence" class="text-sm ml-auto font-mono text-faint">{{ f.confidence }}</span>
+                  <span
+                    v-if="confidencePercent(f)"
+                    class="text-sm ml-auto font-mono text-faint"
+                    title="Zekerheid van het model"
+                  >
+                    {{ confidencePercent(f) }}
+                  </span>
                 </div>
 
+                <div class="row-start-3 flex flex-col gap-1.5 pt-1.5">
                 <div class="flex items-baseline gap-1.5">
                   <span class="text-xl font-display font-bold text-ink">{{ displayValue(f) }}</span>
                   <span v-if="FIELD_UNIT[f.field] && f.value != null" class="text-sm text-muted">
@@ -2144,7 +2232,7 @@ async function reopen(f: IProposedField) {
 
                 <!-- Several documents, one address, two answers (Don, 2026-10-01): the
                      rule advises, the reviewer confirms which document leads. -->
-                <div v-if="conflicts.get(f.id)?.others.length" class="text-sm flex flex-col gap-1 text-amber-ink">
+                <div v-if="conflicts.get(f.id)?.others.length" class="text-sm flex flex-col gap-1 break-words text-amber-ink">
                   <p class="font-semibold">Een ander document zegt iets anders:</p>
                   <p v-for="o in conflicts.get(f.id)!.others" :key="o.fieldId">
                     {{ labelValue(f.field, o.value) }} <span class="font-mono">(uit {{ o.name }})</span>
@@ -2250,19 +2338,20 @@ async function reopen(f: IProposedField) {
                   />
 
                   <!-- The value is right, the address is not: move it (#333, 4).
-                       Takes effect at once; the group changes under your hands. -->
-                  <label v-if="moveTargets.length && membersOf(f).length === 1 && !DOCUMENT_LEVEL_FIELDS.has(f.field)" class="col-span-2 flex flex-col gap-1">
-                    <span class="text-sm font-semibold uppercase tracking-wide text-label">Hoort bij adres</span>
-                    <select
-                      class="studio-input rounded-md border border-line bg-sunken px-2 py-1.5"
-                      :value="f.addressId ?? ''"
-                      :disabled="busy === f.id"
-                      @change="moveField(f, ($event.target as HTMLSelectElement).value)"
-                    >
-                      <option value="" disabled>{{ f.addressText ? `niet herkend: ${f.addressText}` : 'het rapport als geheel' }}</option>
-                      <option v-for="t in moveTargets" :key="t.value" :value="t.value">{{ t.label }}</option>
-                    </select>
-                  </label>
+                       Takes effect at once; the group changes under your hands.
+                       The first line of the list says where the value is now,
+                       and is only there while that is not one of the addresses. -->
+                  <Field
+                    v-if="moveTargets.length && membersOf(f).length === 1 && !DOCUMENT_LEVEL_FIELDS.has(f.field)"
+                    class="col-span-2"
+                    :model-value="f.addressId"
+                    kind="select"
+                    label="Hoort bij adres"
+                    :options="moveTargets"
+                    :empty-label="f.addressId ? undefined : f.addressText ? `niet herkend: ${f.addressText}` : 'het rapport als geheel'"
+                    :disabled="busy === f.id"
+                    @update:model-value="moveField(f, typeof $event === 'string' ? $event : '')"
+                  />
 
                   <div class="col-span-2 flex flex-wrap gap-1.5">
                     <Button
@@ -2279,6 +2368,7 @@ async function reopen(f: IProposedField) {
                     />
                   </div>
                 </div>
+                </div>
               </div>
             </div>
           </section>
@@ -2291,7 +2381,7 @@ async function reopen(f: IProposedField) {
             <ul class="flex flex-wrap gap-x-3 gap-y-1">
               <li v-for="f in agreed" :key="f.id" class="text-sm text-muted">
                 <span class="font-semibold text-body">{{ fieldLabel(f.field) }}</span>
-                {{ displayValue(f) }}<template v-if="addressLine(f)"> · {{ addressLine(f) }}</template>
+                {{ displayValueWithUnit(f.field, f.value) }}<template v-if="addressLine(f)"> · {{ addressLine(f) }}</template>
               </li>
             </ul>
           </Panel>
@@ -2304,10 +2394,11 @@ async function reopen(f: IProposedField) {
               <Button label="Waarde toevoegen" variant="secondary" @click="addOpen = true" />
             </div>
             <div v-else class="grid grid-cols-2 gap-x-3 gap-y-2">
-              <Field v-model="addField" kind="select" label="Gegeven" :options="ADD_FIELD_OPTIONS" empty-label="Kies een gegeven" />
+              <!-- A row of its own: the longest name did not fit half the panel in a 1528px window. -->
+              <Field v-model="addField" class="col-span-2" kind="select" label="Gegeven" :options="ADD_FIELD_OPTIONS" empty-label="Kies een gegeven" />
               <ProposalValueField v-model="addValue" :field="addField" label="Waarde" />
-              <Field v-model="addAddress" kind="select" label="Adres" :options="addAddressOptions" empty-label="Pand van de melding" />
-              <Field v-model="addNote" kind="text" label="Toelichting (optioneel)" />
+              <Field v-model="addAddress" kind="select" label="Adres" :options="addAddressOptions" empty-label="Pand van het dossier" />
+              <Field v-model="addNote" class="col-span-2" kind="text" label="Toelichting (optioneel)" />
               <div class="col-span-2 flex justify-end gap-2">
                 <Button label="Annuleren" variant="secondary" :disabled="addBusy" @click="addOpen = false" />
                 <Button label="Toevoegen" variant="primary" :disabled="addBusy || !addField || !addValue.trim()" @click="addManualValue" />
@@ -2435,7 +2526,8 @@ async function reopen(f: IProposedField) {
             <ul class="flex flex-col gap-1.5">
               <li v-for="e in entries" :key="e.id" class="text-md flex gap-2.5">
                 <span class="text-sm w-[84px] shrink-0 font-mono text-faint">{{ entryWhen(e.at) }}</span>
-                <span class="min-w-0">
+                <!-- flex-1: a mail card is as wide as the panel, not as its longest line. -->
+                <span class="min-w-0 flex-1">
                   <span class="text-sm mr-1.5 font-semibold uppercase text-label">{{ isOurAnswer(e) ? 'antwoord' : (KIND_LABEL[e.kind] ?? e.kind) }}</span>
                   <!-- #356: replies and questions as a mail card, quoted history folded. -->
                   <div v-if="mailCards[e.id]" class="mt-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
@@ -2454,8 +2546,9 @@ async function reopen(f: IProposedField) {
                       <div v-if="shownQuote[e.id]" class="mt-1.5 whitespace-pre-wrap break-words border-l-2 border-line pl-2.5 text-faint">{{ mailCards[e.id].quoted }}</div>
                     </template>
                   </div>
-                  <!-- A line the system wrote carries database names; a notitie is a person's own words. -->
-                  <span v-else class="break-words text-muted">{{ e.kind === 'remark' ? e.text : readableEntry(e.text) }}</span>
+                  <!-- A line the system wrote carries database names; a notitie is a person's own words.
+                       Some lines are two sentences on two lines, and a reason can have paragraphs. -->
+                  <span v-else class="break-words whitespace-pre-line text-muted">{{ e.kind === 'remark' ? e.text : readableEntry(e.text) }}</span>
                   <!-- Our own mail, the same words the melder got (#350). -->
                   <template v-if="mailOf(e) && !mailCards[e.id]">
                     <button type="button" class="text-sm ml-1.5 text-green-ink underline underline-offset-2" @click="shownMail = { ...shownMail, [e.id]: !shownMail[e.id] }">
@@ -2500,12 +2593,16 @@ async function reopen(f: IProposedField) {
                  opening line follow the choice ("Vraag over uw melding" vs
                  "Reactie op uw melding"). The melder can reply to both. -->
             <div v-if="melderEmail" class="mt-2 flex flex-col gap-1.5">
-              <div class="flex items-center gap-2 text-sm">
-                <span class="font-semibold uppercase tracking-wide text-label">Bericht aan de melder</span>
+              <!-- The label on its own line and the two lists under it: on one line
+                   the label broke in two and the first list was cut. Each list is
+                   as wide as its longest choice or wider; where the two do not fit
+                   side by side (a 1528px window) the second goes under the first. -->
+              <span class="text-sm font-semibold uppercase tracking-wide text-label">Bericht aan de melder</span>
+              <div class="flex flex-wrap items-center gap-2 text-sm">
                 <select
                   id="melder-message-kind"
                   v-model="messageKind"
-                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1"
+                  class="studio-input min-w-0 flex-auto rounded-md border border-line bg-sunken px-2 py-1"
                   aria-label="Soort bericht"
                 >
                   <option value="question">Vraag: ik wil iets weten</option>
@@ -2514,7 +2611,7 @@ async function reopen(f: IProposedField) {
                 <select
                   id="melder-message-template"
                   v-model="messageTemplate"
-                  class="studio-input rounded-md border border-line bg-sunken px-2 py-1"
+                  class="studio-input min-w-0 flex-auto rounded-md border border-line bg-sunken px-2 py-1"
                   aria-label="Standaardantwoord"
                 >
                   <option :value="null">Standaardantwoord…</option>
@@ -2577,7 +2674,7 @@ async function reopen(f: IProposedField) {
                   type="text"
                   maxlength="1000"
                   class="studio-input flex-1 rounded-md border border-line bg-sunken px-2 py-1.5"
-                  placeholder="Wat moet de collega beslissen? (intern)"
+                  placeholder="Vraag aan de collega (intern)"
                   aria-label="Toelichting bij het doorzetten"
                   @keydown.enter="assignTo && assignDossier(assignTo)"
                 />
@@ -2661,7 +2758,7 @@ async function reopen(f: IProposedField) {
                 <Field
                   v-model="commitDate"
                   kind="date"
-                  label="Datum rapport"
+                  label="Documentdatum"
                   warn-future
                   :hint="commitDateHint"
                 />
@@ -2670,7 +2767,7 @@ async function reopen(f: IProposedField) {
                     v-model="commitContractor"
                     label="Uitvoerder"
                     :options="contractorOptions"
-                    placeholder="Typ (een deel van) de naam"
+                    placeholder="Typ een naam"
                     empty-label="FunderMaps B.V."
                     :hint="
                       commitContractor
@@ -2748,9 +2845,9 @@ async function reopen(f: IProposedField) {
               <div class="flex flex-wrap gap-2">
                 <Button
                   variant="primary"
-                  :label="isAudit ? (taken.length ? 'Wijzigingen doorvoeren' : 'Afronden zonder wijzigingen') : multiDoc ? (commitGroups.length && !acceptedGroups.length ? 'Afwijzen en afsluiten' : acceptedGroups.length > 1 ? `Overnemen als ${acceptedGroups.length} rapportages` : 'Overnemen als rapportage') : taken.length ? 'Overnemen als rapportage' : 'Rapportage aanmaken, handmatig invullen'"
+                  :label="commitLabel"
                   :disabled="committing || closing || blockingOpen.length > 0 || !wasRead || (multiDoc ? groupsBlocked : commitDateMissing)"
-                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? (artifacts.length ? 'Wacht tot het document gelezen is' : 'Er is geen document: beantwoord de melding of sluit het dossier') : multiDoc && groupsBlockedBy ? groupsBlockedBy : !multiDoc && commitDateMissing ? 'Vul eerst Datum rapport in' : ''"
+                  :title="blockingOpen.length > 0 ? 'Beoordeel eerst alle voorstellen' : !wasRead ? (artifacts.length ? 'Wacht tot het document gelezen is' : 'Er is geen document: beantwoord de melding of sluit het dossier') : multiDoc && groupsBlockedBy ? groupsBlockedBy : !multiDoc && commitDateMissing ? 'Vul eerst Documentdatum in' : ''"
                   @click="commitDossier"
                 />
                 <Button
@@ -2787,10 +2884,8 @@ async function reopen(f: IProposedField) {
               <!-- Two ways to be done with a dossier, and they are not the same
                    thing: one makes a rapportage, the other only closes (#333, 9). -->
               <p v-if="!isAudit" class="text-sm text-label">
-                <!-- "Overnemen", not the button's full label: that reads "als rapportage"
-                     or "als 2 rapportages" depending on the dossier. -->
-                <strong class="font-semibold text-muted">Overnemen</strong> zet de
-                overgenomen waarden als rapportage in de database.
+                <!-- The green button under the name it has on this dossier, and what it does then. -->
+                <strong class="font-semibold text-muted">{{ commitLabel }}</strong> {{ commitHelp }}
                 <strong class="font-semibold text-muted">Sluiten zonder rapportage</strong> handelt het
                 dossier af zonder iets in de database te zetten, bijvoorbeeld als de rapportage er al
                 staat.

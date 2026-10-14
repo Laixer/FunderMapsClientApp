@@ -65,9 +65,10 @@ const meta = computed(() => {
   return rejected.value ? `${n}, ${rejected.value} ${rejected.value === 1 ? 'hoort' : 'horen'} er niet bij` : String(n)
 })
 
-/** How the row is described under the label. */
-function origin(a: IDossierAddress): string {
-  if (a.own) return a.addressText ? `pand van het dossier · in het document: ${a.addressText}` : 'pand van het dossier'
+/** How the row is described under the label; null when the pill beside the label has said it all. */
+function origin(a: IDossierAddress): string | null {
+  // The pill says "pand van het dossier"; the line only adds what the document wrote.
+  if (a.own) return a.addressText ? `in het document: ${a.addressText}` : null
   if (a.source === 'pipeline' && a.addressText && a.label && a.addressText !== a.label) {
     return `in het document: ${a.addressText}`
   }
@@ -215,8 +216,8 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
           <Pill v-else :label="STATE_LABEL[a.state]" :tone="STATE_TONE[a.state]" plain />
           <span v-if="counts(a)" class="text-sm ml-auto shrink-0 font-mono text-faint">{{ counts(a) }}</span>
         </div>
-        <p class="text-sm text-muted">
-          {{ origin(a) }}<template v-if="a.note"> · “{{ a.note }}”</template>
+        <p v-if="origin(a) || a.note" class="text-sm text-muted">
+          {{ origin(a) }}<template v-if="a.note"><template v-if="origin(a)"> · </template>“{{ a.note }}”</template>
         </p>
 
         <div v-if="!disabled" class="flex flex-wrap items-center gap-1.5">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { onClickOutside, onKeyStroke } from '@vueuse/core'
+import { onClickOutside, onKeyStroke, useEventListener } from '@vueuse/core'
 
 import type {
   QueueChannel,
@@ -33,6 +33,29 @@ const open = ref(false)
 const root = ref<HTMLElement | null>(null)
 onClickOutside(root, () => (open.value = false))
 onKeyStroke('Escape', () => (open.value = false))
+
+/**
+ * Where the popover hangs. Under the button and to the right of it, unless
+ * that puts it outside the window: the button moves with the chips before it,
+ * and on the closed tabs it stood so far right that half the options were cut
+ * off. And never taller than the room under the button; it scrolls then.
+ */
+/** The popover's width: `w-[440px]` in the template. */
+const POPOVER_WIDTH = 440
+const alignRight = ref(false)
+const maxHeight = ref<string>()
+function place() {
+  const box = root.value?.getBoundingClientRect()
+  if (!box) return
+  alignRight.value = box.left + POPOVER_WIDTH > document.documentElement.clientWidth
+  // 8px between button and popover (mt-2), and as much under it.
+  maxHeight.value = `${Math.max(200, window.innerHeight - box.bottom - 16)}px`
+}
+function toggleOpen() {
+  open.value = !open.value
+  if (open.value) place()
+}
+useEventListener('resize', () => open.value && place())
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
@@ -94,16 +117,18 @@ const pill = (active: boolean) =>
   <div ref="root" class="relative">
     <button
       type="button"
-      class="text-base rounded-full border border-dashed border-line-strong bg-surface px-2.5 py-[5px] text-subtle hover:border-line-hover hover:text-strong"
+      class="text-base rounded-full border border-dashed border-line-strong bg-surface px-2.5 py-[5px] whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
       :aria-expanded="open"
-      @click="open = !open"
+      @click="toggleOpen"
     >
       Filteren &amp; sorteren
     </button>
 
     <div
       v-if="open"
-      class="studio-fade absolute top-full left-0 z-30 mt-2 flex w-[440px] flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-overlay"
+      class="studio-fade absolute top-full z-30 mt-2 flex w-[440px] flex-col gap-4 overflow-y-auto rounded-2xl border border-line bg-surface p-4 shadow-overlay"
+      :class="alignRight ? 'right-0' : 'left-0'"
+      :style="{ maxHeight }"
     >
       <section>
         <h3 class="studio-label mb-2">STAND</h3>
@@ -176,9 +201,9 @@ const pill = (active: boolean) =>
       <section>
         <h3 class="studio-label mb-2">SOORT DOCUMENT</h3>
         <!-- What the pipeline read it to be; empty on dossiers read before
-             the model started saying (2026-09-07). Scrolls rather than growing
-             the popover past the bar it hangs from. -->
-        <div class="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+             the model started saying (2026-09-07). All of them in sight: in a
+             box of its own the sixth row was hidden without a sign of it. -->
+        <div class="flex flex-wrap gap-1.5">
           <button
             v-for="o in KIND_OPTIONS"
             :key="o.value"
