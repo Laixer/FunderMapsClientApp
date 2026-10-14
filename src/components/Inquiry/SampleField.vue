@@ -20,6 +20,8 @@ const props = defineProps<{
   provenance?: FieldProvenance
   /** A cross-field finding that mentions this field, in words. */
   warning?: string | null
+  /** A finding names this field too, but its words stand under another field: the amber frame only. */
+  flagged?: boolean
   /** This field shares its grid row with a labelled control (only a yes/no chip cares). */
   besideControl?: boolean
 }>()
@@ -209,6 +211,7 @@ const inheritedFromAddress = computed(() =>
       :placeholder="isYear ? 'jjjj' : undefined"
       :hint="pending || confirmed ? undefined : field.hint"
       :error="yearRemark ?? warning ?? rangeRemark"
+      :flagged="flagged"
       empty-label="—"
     />
 

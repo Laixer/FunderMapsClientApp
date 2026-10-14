@@ -77,6 +77,12 @@ const loading = ref(true)
  * back to "N op deze pagina", which is all a page of rows can truthfully say.
  */
 const total = ref<number | null>(null)
+/**
+ * The rows did not load. The table says so and no count is shown: the count
+ * call can still answer, and "31.627 rijen" over "Geen rapportages in deze
+ * weergave" hid the failure, which only a toast that goes away mentioned.
+ */
+const loadFailed = ref(false)
 const hasMore = computed(() =>
   total.value != null
     ? query.value.page * PAGE_SIZE < total.value
@@ -134,9 +140,11 @@ async function load() {
     .catch(() => {})
   try {
     loading.value = true
+    loadFailed.value = false
     rows.value = await api.inquiry.list(opts)
   } catch (e) {
     toastError(describeFailure(e, 'De rapportages konden niet worden opgehaald.'))
+    loadFailed.value = true
     rows.value = []
   } finally {
     loading.value = false
@@ -323,7 +331,9 @@ const inspectorSummary = computed(() => {
   const parts = [inquiryTypeLabel(row.type), formatDateShort(row.documentDate)]
   if (selectedAddressCount.value != null) {
     parts.push(
-      selectedAddressCount.value === 1 ? '1 adres' : `${selectedAddressCount.value} adressen`,
+      selectedAddressCount.value === 1
+        ? '1 adres'
+        : `${selectedAddressCount.value.toLocaleString('nl-NL')} adressen`,
     )
   }
   return parts.join(' · ')
@@ -372,7 +382,7 @@ const MODES: { key: Mode; label: string }[] = [
       >
         <button
           type="button"
-          class="text-lg px-3 whitespace-nowrap"
+          class="text-lg flex flex-col px-2 whitespace-nowrap"
           :class="
             viewKey === view.key ? 'font-bold text-ink' : 'font-medium text-subtle hover:text-strong'
           "
@@ -380,6 +390,9 @@ const MODES: { key: Mode; label: string }[] = [
           @click="selectView(view)"
         >
           {{ view.label }}
+          <!-- As on Controle: the label once more in bold, unseen and without
+               height, so picking a tab no longer moves the tabs to its right. -->
+          <span aria-hidden="true" class="invisible h-0 overflow-hidden font-bold">{{ view.label }}</span>
         </button>
         <button
           v-if="!view.builtin"
@@ -428,7 +441,7 @@ const MODES: { key: Mode; label: string }[] = [
       <FilterBuilder :query="query" @update="push($event)" />
 
       <div class="ml-auto flex items-center gap-2">
-        <span class="text-sm shrink-0 font-mono whitespace-nowrap text-faint">
+        <span v-if="!loadFailed" class="text-sm shrink-0 font-mono whitespace-nowrap text-faint">
           <template v-if="total != null">
             {{ total.toLocaleString('nl-NL') }} {{ total === 1 ? 'rij' : 'rijen' }}
           </template>
@@ -470,7 +483,11 @@ const MODES: { key: Mode; label: string }[] = [
             :sort-field="sortField"
             :sort-order="query.order"
             :empty-message="
-              query.q ? `Niets gevonden voor “${query.q}”.` : 'Geen rapportages in deze weergave.'
+              loadFailed
+                ? 'De lijst is niet geladen.'
+                : query.q
+                  ? `Niets gevonden voor “${query.q}”.`
+                  : 'Geen rapportages in deze weergave.'
             "
             @select="select"
             @sort="onSort"
@@ -499,14 +516,15 @@ const MODES: { key: Mode; label: string }[] = [
             <template #footer>
               <span class="text-base text-subtle">
                 Pagina {{ query.page.toLocaleString('nl-NL')
-                }}<template v-if="total != null">
-                  van {{ Math.max(1, Math.ceil(total / PAGE_SIZE)).toLocaleString('nl-NL') }}</template>
-                ·
-                {{
-                  total != null
-                    ? `${total.toLocaleString('nl-NL')} in totaal`
-                    : `${visibleRows.length} op deze pagina`
-                }}
+                }}<template v-if="!loadFailed"
+                  ><template v-if="total != null">
+                    van {{ Math.max(1, Math.ceil(total / PAGE_SIZE)).toLocaleString('nl-NL') }}</template>
+                  ·
+                  {{
+                    total != null
+                      ? `${total.toLocaleString('nl-NL')} in totaal`
+                      : `${visibleRows.length} op deze pagina`
+                  }}</template>
               </span>
               <span class="ml-auto flex gap-1.5">
                 <Button
@@ -587,8 +605,8 @@ const MODES: { key: Mode; label: string }[] = [
             </div>
 
             <p v-if="selectedFilled != null" class="text-sm text-label">
-              {{ selectedFilled }} {{ selectedFilled === 1 ? 'ingevulde waarde' : 'ingevulde waarden' }} over
-              {{ selectedAddressCount }} {{ selectedAddressCount === 1 ? 'adres' : 'adressen' }}.
+              {{ selectedFilled.toLocaleString('nl-NL') }} {{ selectedFilled === 1 ? 'ingevulde waarde' : 'ingevulde waarden' }} over
+              {{ selectedAddressCount?.toLocaleString('nl-NL') }} {{ selectedAddressCount === 1 ? 'adres' : 'adressen' }}.
             </p>
           </div>
         </template>

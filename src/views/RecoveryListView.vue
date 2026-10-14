@@ -48,6 +48,8 @@ const queryPage = (value: unknown) => {
 
 const rows: Ref<IRecovery[]> = ref([])
 const loading = ref(true)
+/** The list did not load: the table says so, and there is nothing to count. */
+const loadFailed = ref(false)
 const search = ref(queryText(route.query.q))
 const debouncedSearch = refDebounced(search, 300)
 const page = ref(queryPage(route.query.page))
@@ -66,6 +68,7 @@ const hasMore = computed(() => rows.value.length === PAGE_SIZE)
 async function load() {
   try {
     loading.value = true
+    loadFailed.value = false
     const q = search.value.trim().replace(/^#/, '')
     rows.value = await api.recovery.list({
       ...(q ? { q } : {}),
@@ -74,6 +77,7 @@ async function load() {
     })
   } catch (e) {
     toastError(describeFailure(e, 'De herstel-dossiers konden niet worden opgehaald.'))
+    loadFailed.value = true
     rows.value = []
   } finally {
     loading.value = false
@@ -168,7 +172,8 @@ function select(row: IRecovery) {
       </div>
 
       <div class="ml-auto flex items-center gap-2">
-        <span class="text-sm font-mono text-faint">
+        <!-- Not while loading or after a failed load: "0 rijen" stood there both times. -->
+        <span v-if="!loading && !loadFailed" class="text-sm font-mono text-faint">
           {{ rows.length }}{{ hasMore ? '+' : '' }} {{ rows.length === 1 && !hasMore ? 'rij' : 'rijen' }}
         </span>
         <Button
@@ -189,7 +194,11 @@ function select(row: IRecovery) {
           :loading="loading"
           :active-id="selected?.id ?? null"
           :empty-message="
-            search ? `Niets gevonden voor “${search}”.` : 'Geen herstel-dossiers gevonden.'
+            loadFailed
+              ? 'De lijst is niet geladen.'
+              : search
+                ? `Niets gevonden voor “${search}”.`
+                : 'Geen herstel-dossiers gevonden.'
           "
           @select="select"
         >
@@ -214,7 +223,7 @@ function select(row: IRecovery) {
 
           <template #footer>
             <span class="text-base text-subtle">
-              Pagina {{ page }} · {{ rows.length }} op deze pagina
+              Pagina {{ page }}<template v-if="!loading && !loadFailed"> · {{ rows.length }} op deze pagina</template>
             </span>
             <span class="ml-auto flex gap-1.5">
               <Button label="Vorige" :disabled="page <= 1" @click="page -= 1" />

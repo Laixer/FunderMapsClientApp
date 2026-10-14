@@ -66,20 +66,20 @@ export const fieldLabel = (field: string) => LANE_FIELD_LABEL.get(field) ?? form
 
 /** Unit shown next to a value, so -2.324 is read as metres NAP and not millimetres. */
 export const FIELD_UNIT: Record<string, string> = {
-  groundwater_level: 'm t.o.v. NAP',
-  wood_level: 'm t.o.v. NAP',
-  pile_head_level: 'm t.o.v. NAP',
-  pile_tip_level: 'm t.o.v. NAP',
+  groundwater_level: 'm NAP',
+  wood_level: 'm NAP',
+  pile_head_level: 'm NAP',
+  pile_tip_level: 'm NAP',
   concrete_charger_length: 'm',
   pile_diameter_top: 'mm',
   pile_diameter_bottom: 'mm',
   pile_distance_length: 'm',
   wood_penetration_depth: 'mm',
-  mason_level: 'm t.o.v. NAP',
-  foundation_depth: 'm t.o.v. NAP',
-  groundlevel: 'm t.o.v. NAP',
-  threshold_front_level: 'm t.o.v. NAP',
-  threshold_back_level: 'm t.o.v. NAP',
+  mason_level: 'm NAP',
+  foundation_depth: 'm NAP',
+  groundlevel: 'm NAP',
+  threshold_front_level: 'm NAP',
+  threshold_back_level: 'm NAP',
   settlement_speed: 'mm/jaar',
 }
 
@@ -311,6 +311,14 @@ export const OUTCOME_LABEL: Record<string, string> = {
 export const outcomeTone = (outcome: string | null | undefined): Tone =>
   outcome === 'accepted' ? 'green' : outcome === 'rejected' ? 'red' : 'neutral'
 
+/**
+ * The rapportage a nalezing reads again. Its own reference says it too
+ * ("audit:inquiry:<nummer>"), which is what is left when the id is missing on
+ * the dossier: one nalezing showed that raw reference in the list and the header.
+ */
+export const nalezingNumber = (d: { auditInquiryId: number | null; externalRef: string | null }): number | null =>
+  d.auditInquiryId ?? (Number(/^audit:inquiry:(\d+)$/.exec(d.externalRef ?? '')?.[1]) || null)
+
 /** Where a dossier came in. */
 export const CHANNEL_LABEL: Record<string, string> = {
   upload: 'het meldportaal',
@@ -378,7 +386,7 @@ export function displayValue(field: string, value: string | null | undefined): s
   return VALUE_LABEL[field]?.[value] ?? value
 }
 
-/** A value with its unit behind it, for a line of text: "0,57 m t.o.v. NAP". Only a number gets one. */
+/** A value with its unit behind it, for a line of text: "0,57 m NAP". Only a number gets one. */
 export function displayValueWithUnit(field: string, value: string | null | undefined): string {
   const shown = displayValue(field, value)
   return FIELD_UNIT[field] && value != null && NUMBER.test(value.trim()) ? `${shown} ${FIELD_UNIT[field]}` : shown

@@ -68,6 +68,8 @@ const loading = ref(true)
 // Why there is nothing to show: the number does not exist, or the request failed.
 const loadFailure = ref<'missing' | 'failed' | null>(null)
 const showRejectModal = ref(false)
+/** The rejection is on its way: the dialog's button waits, and comes back if it fails. */
+const rejecting = ref(false)
 
 const status = computed(() => recovery.value?.state?.auditStatus ?? null)
 
@@ -324,6 +326,7 @@ function handleDelete() {
 }
 
 async function handleReject(message: string) {
+  rejecting.value = true
   try {
     await api.recovery.reject(recoveryId.value, message)
     showRejectModal.value = false
@@ -332,6 +335,8 @@ async function handleReject(message: string) {
     studio.refreshCounts(sessionStore.currentUser?.id)
   } catch (e) {
     toastError(describeFailure(e, 'Afkeuren is niet gelukt.'))
+  } finally {
+    rejecting.value = false
   }
 }
 
@@ -527,6 +532,6 @@ useActionShortcuts(() => {
       </aside>
     </div>
 
-    <RejectModal v-if="showRejectModal" @close="showRejectModal = false" @submit="handleReject" />
+    <RejectModal v-if="showRejectModal" :busy="rejecting" @close="showRejectModal = false" @submit="handleReject" />
   </AppShell>
 </template>

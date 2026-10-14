@@ -13,11 +13,13 @@ defineEmits<{ remove: [] }>()
 </script>
 
 <template>
+  <!-- Never wider than the bar: a chip holding many kinds ran past it. The
+       value is cut off then, and says itself in full on hover. -->
   <span
-    class="text-base inline-flex shrink-0 items-center gap-1.5 rounded-full border border-blue-border bg-blue-tint py-[5px] pr-2 pl-2.5 text-blue-ink"
+    class="text-base inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-full border border-blue-border bg-blue-tint py-[5px] pr-2 pl-2.5 text-blue-ink"
   >
-    <span class="text-blue-soft">{{ label }}</span>
-    <strong class="font-semibold">{{ value }}</strong>
+    <span class="shrink-0 text-blue-soft">{{ label }}</span>
+    <strong class="min-w-0 truncate font-semibold" :title="value">{{ value }}</strong>
     <button
       type="button"
       class="ml-0.5 leading-none text-blue-soft hover:text-blue-ink"

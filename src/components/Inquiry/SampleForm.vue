@@ -222,9 +222,31 @@ function besideControl(section: SampleSectionDef, index: number): boolean {
  * appearing in the finding's id, which is how `sampleValidation` names them —
  * a finding about two fields lights up both, which is the point.
  */
+function findingFor(key: string): SampleFinding | null {
+  return props.findings?.find((f) => f.id.toLowerCase().includes(key.toLowerCase())) ?? null
+}
+
+/**
+ * Where each finding's sentence is printed: under the first field it names, in
+ * the order of the form. The others it names get the amber frame alone; the
+ * sentence under every one of them was ten copies in Scheuren, and it also
+ * stands in "Controleer dit". A yes/no chip shows no sentence, so it is never
+ * the one that carries it.
+ */
+const sentenceAt = computed(() => {
+  const at = new Map<string, string>()
+  for (const section of SAMPLE_SECTIONS) {
+    for (const field of section.fields) {
+      const finding = field.kind === 'bool' ? null : findingFor(field.key)
+      if (finding && !at.has(finding.id)) at.set(finding.id, field.key)
+    }
+  }
+  return at
+})
+
 function warningFor(key: string): string | null {
-  const finding = props.findings?.find((f) => f.id.toLowerCase().includes(key.toLowerCase()))
-  return finding?.message ?? null
+  const finding = findingFor(key)
+  return finding && sentenceAt.value.get(finding.id) === key ? finding.message : null
 }
 
 // `note` sits outside the registry (it renders as a textarea in its own
@@ -301,6 +323,7 @@ const saveState = computed(() => {
           :model-value="form[field.key]"
           :provenance="provenance[field.key as ProvenanceKey]"
           :warning="warningFor(field.key)"
+          :flagged="!!findingFor(field.key)"
           :beside-control="besideControl(section, index)"
           @update:model-value="(value: unknown) => setField(field.key, value)"
           @confirm="confirmField(field.key as ProvenanceKey)"

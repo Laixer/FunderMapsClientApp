@@ -68,14 +68,14 @@ const TYPE_LABEL: Record<string, string> = {
   additional_research: 'aanvullend onderzoek',
   inspectionpit: 'inspectieput',
   second_opinion: 'second opinion',
-  demolition_research: 'sloopwaarneming',
+  demolition_research: 'sloopgrensonderzoek',
   foundation_advice: 'funderingsadvies',
   soil_investigation: 'grondonderzoek',
   ground_water_level_research: 'grondwateronderzoek',
   quickscan: 'QuickScan (vervallen)',
   facade_scan: 'QuickScan (addendum)',
   archive_research: 'archiefonderzoek',
-  architectural_research: 'bouwhistorisch onderzoek',
+  architectural_research: 'bouwkundig onderzoek',
   note: 'notitie',
 }
 

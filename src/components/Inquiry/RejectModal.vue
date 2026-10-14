@@ -13,6 +13,13 @@ import Modal from '@/components/Common/Modal.vue'
  * work from — it lands in the dossier's trail and in the mail, and a rejection
  * without one costs a round trip just to ask what was wrong.
  */
+/**
+ * `busy` while the parent sends it. The parent clears it whether the send
+ * worked or not: kept here, a failed send left the button grey for good, and
+ * Annuleren (which throws the reason away) was the only way out.
+ */
+const props = defineProps<{ busy?: boolean }>()
+
 const emit = defineEmits<{
   close: []
   submit: [message: string]
@@ -20,15 +27,13 @@ const emit = defineEmits<{
 
 const message = ref('')
 const error = ref<string | null>(null)
-const submitting = ref(false)
 
 function onSubmit() {
-  if (submitting.value) return
+  if (props.busy) return
   if (!message.value.trim()) {
     error.value = 'Geef een toelichting, anders weet de opsteller niet wat er mis is.'
     return
   }
-  submitting.value = true
   error.value = null
   emit('submit', message.value.trim())
 }
@@ -50,7 +55,7 @@ function onSubmit() {
 
     <template #footer>
       <Button label="Annuleren" @click="emit('close')" />
-      <Button variant="danger" label="Afkeuren" :disabled="submitting" @click="onSubmit" />
+      <Button variant="danger" label="Afkeuren" :disabled="busy" @click="onSubmit" />
     </template>
   </Modal>
 </template>

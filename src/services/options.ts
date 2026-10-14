@@ -10,6 +10,8 @@
 export interface SelectOption {
   value: string | number | boolean | null
   label: string
+  /** Listed, but not a choice now (the colleague a dossier already lies with). */
+  disabled?: boolean
 }
 
 /**

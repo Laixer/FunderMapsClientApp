@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { onClickOutside, onKeyStroke } from '@vueuse/core'
+import { computed, ref } from 'vue'
+import { onClickOutside, onKeyStroke, useEventListener } from '@vueuse/core'
 
 import { INQUIRY_TYPE_OPTIONS, STATUS_META } from '@/services/inquiryEnums'
 import {
@@ -42,16 +42,22 @@ onKeyStroke('Escape', () => (open.value = false))
 /**
  * Which edge of the button the popover hangs from. The button stands after the
  * chips, so with three or four of them it is far to the right, and a popover
- * that always opened rightwards ran off the screen there. Chosen when it opens,
- * and again when a choice inside it adds a chip and moves the button.
+ * that always opened rightwards ran off the screen there.
+ *
+ * Fixed where the button was when it opened, until it closes: a choice inside
+ * it adds a chip and moves the button, and the popover jumped along each time.
+ * Never taller than the room under it; it scrolls then.
  */
 const POPOVER_WIDTH = 420 // the `w-[420px]` in the template
-const alignRight = ref(false)
+const position = ref<Record<string, string>>({})
 
 function place() {
   if (!root.value) return
-  const { left } = root.value.getBoundingClientRect()
-  alignRight.value = left + POPOVER_WIDTH > document.documentElement.clientWidth - 16
+  const box = root.value.getBoundingClientRect()
+  // 8px from the button; 16px from the window's right edge, 8px from the others.
+  const left = box.left + POPOVER_WIDTH <= document.documentElement.clientWidth - 16 ? box.left : Math.max(8, box.right - POPOVER_WIDTH)
+  const top = box.bottom + 8
+  position.value = { left: `${left}px`, top: `${top}px`, maxHeight: `${Math.max(0, window.innerHeight - top - 8)}px` }
 }
 
 function toggleOpen() {
@@ -59,13 +65,7 @@ function toggleOpen() {
   open.value = !open.value
 }
 
-watch(
-  () => props.query,
-  () => {
-    if (open.value) place()
-  },
-  { flush: 'post' },
-)
+useEventListener('resize', () => open.value && place())
 
 const STATUSES = Object.entries(STATUS_META).map(([value, meta]) => ({
   value: Number(value),
@@ -134,8 +134,8 @@ const direction = computed(() => {
 
     <div
       v-if="open"
-      class="studio-fade absolute top-full z-30 mt-2 flex w-[420px] flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-overlay"
-      :class="alignRight ? 'right-0' : 'left-0'"
+      class="studio-fade fixed z-30 flex w-[420px] flex-col gap-4 overflow-y-auto rounded-2xl border border-line bg-surface p-4 shadow-overlay"
+      :style="position"
     >
       <section>
         <h3 class="studio-label mb-2">STATUS</h3>
