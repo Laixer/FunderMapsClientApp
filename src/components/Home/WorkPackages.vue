@@ -6,6 +6,7 @@ import Panel from '@/components/Common/Panel.vue'
 
 import api from '@/services/fundermaps'
 import type { IReviewQueueItem } from '@/services/fundermaps/interfaces/IDataops'
+import type { QueueChannel } from '@/services/fundermaps/endpoints/dataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { toastError } from '@/services/toast'
 import { emptyQuery, toRouteQuery } from '@/services/reviewExplorer'
@@ -128,6 +129,13 @@ function saveChoice() {
 
 const total = (p: WorkPackage) => counts.value[p.id] ?? rows.value[p.id]?.length ?? 0
 
+/**
+ * The tab a package opens on. A search on "Alles" also finds closed dossiers
+ * (isWideSearch), so a package with a search term showed 117 instead of its 6
+ * open ones (Don, 2026-10-20). Its channel's own tab keeps it to open dossiers.
+ */
+const CHANNEL_VIEW: Partial<Record<QueueChannel, string>> = { upload: 'meldingen', invoer_app: 'studio', audit: 'nalezing' }
+
 /** The package opened in Beoordelen, through the queue's own URL format. */
 function queueLink(p: WorkPackage) {
   const q = emptyQuery()
@@ -135,7 +143,8 @@ function queueLink(p: WorkPackage) {
   if (p.opts.state) q.state = [...p.opts.state]
   if (p.opts.kind) q.kind = [...p.opts.kind]
   if (p.opts.q) q.q = p.opts.q
-  return { name: 'review-queue', query: toRouteQuery(q, 'alles') }
+  const view = (p.opts.channel?.length === 1 && CHANNEL_VIEW[p.opts.channel[0]]) || 'alles'
+  return { name: 'review-queue', query: toRouteQuery(q, view) }
 }
 
 /**
