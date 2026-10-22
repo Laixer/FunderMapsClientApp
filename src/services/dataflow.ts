@@ -250,7 +250,12 @@ export interface SourceRow {
   open: number
   received: number[]
   closedPerWeek: number[]
+  /** How long its open dossiers have waited; null when the API does not say. */
+  waiting: { bands: number[]; medianDays: number | null } | null
 }
+
+/** The age bands of `waiting`, newest first, in the words of the tooltip. */
+export const AGE_BANDS = ['korter dan een week', '1 tot 2 weken', '2 weken tot een maand', '1 tot 3 maanden', 'langer dan 3 maanden'] as const
 
 /** One row per channel for the table under the picture: the split, and the last 12 weeks in and out. */
 export function sourceRows(data: IDataopsFlow): SourceRow[] {
@@ -267,6 +272,7 @@ export function sourceRows(data: IDataopsFlow): SourceRow[] {
         open: 0,
         received: data.weeks.map(() => 0),
         closedPerWeek: data.weeks.map(() => 0),
+        waiting: null,
       }
       rows.set(channel, r)
     }
@@ -283,6 +289,9 @@ export function sourceRows(data: IDataopsFlow): SourceRow[] {
     const r = row(w.channel)
     r.received[i] = w.received
     r.closedPerWeek[i] = w.closed
+  }
+  for (const w of data.waiting ?? []) {
+    row(w.channel).waiting = { bands: [w.week, w.twoWeeks, w.month, w.quarter, w.older], medianDays: w.medianDays }
   }
   const order = (c: string) => {
     const i = SOURCES.findIndex((s) => s.channel === c)
