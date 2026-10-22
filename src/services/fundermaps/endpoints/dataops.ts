@@ -10,6 +10,7 @@ import type {
   IReaderQuality,
   IRapportageOrigin,
   IModels,
+  IDataopsMap,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -279,6 +280,11 @@ export async function models() {
   return (await get({ endpoint: '/dataops/models' })) as IModels
 }
 
+/** Where the dossiers come from: per municipality, with a point for the map (the Datastroom). */
+export async function originMap() {
+  return (await get({ endpoint: '/dataops/map' })) as IDataopsMap
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -391,6 +397,7 @@ export default {
   readerQuality,
   rapportageOrigin,
   models,
+  originMap,
   addressVerdict,
   addressAdd,
   addressRelink,

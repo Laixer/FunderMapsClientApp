@@ -392,3 +392,12 @@ export interface IModels {
     risks: Record<'drystand' | 'dewatering_depth' | 'bio_infection' | 'unclassified', IRiskClasses>
   }
 }
+
+/** Where the dossiers come from (API GET /dataops/map): per municipality, by CBS code. */
+export interface IDataopsMap {
+  generatedAt: string
+  municipalities: { code: string; name: string; dossiers: number; done: number; open: number; lat: number; lon: number }[]
+  /** Dossiers without a pand: they cannot be placed. */
+  unplaced: number
+  total: number
+}
