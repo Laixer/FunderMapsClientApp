@@ -13,7 +13,7 @@ import api from '@/services/fundermaps'
 import type { IDataopsFlow, IReaderQuality } from '@/services/fundermaps/interfaces/IDataops'
 import { loadReaderQuality } from '@/services/readerTrack'
 import { describeFailure } from '@/services/fundermaps/errors'
-import { buildFlow, GROUPS, SOURCES, sourceRows, type FlowGroup } from '@/services/dataflow'
+import { AGE_BANDS, buildFlow, GROUPS, SOURCES, sourceRows, type FlowGroup, type SourceRow } from '@/services/dataflow'
 
 /**
  * Datastroom: where everything that came in went (2026-10-22).
@@ -86,6 +86,19 @@ const span = computed(() => {
 
 const sourceView = (channel: string) => SOURCES.find((s) => s.channel === channel)?.view ?? 'alles'
 const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 0)
+
+/** New to old, light to dark: one amber ramp, so older reads as more urgent at a glance. */
+const AGE_BG = ['bg-amber-spark', 'bg-amber-field', 'bg-amber', 'bg-amber-ink', 'bg-[#6e4806]']
+const days = (d: number | null) =>
+  d == null ? '—' : d < 1 ? '< 1 d' : `${d.toLocaleString('nl-NL', { maximumFractionDigits: d < 10 ? 1 : 0 })} d`
+function waitingTitle(row: SourceRow) {
+  if (!row.waiting) return ''
+  const bands = row.waiting.bands
+    .map((n, i) => (n ? `${nl(n)} ${AGE_BANDS[i]}` : null))
+    .filter(Boolean)
+    .join(', ')
+  return `${nl(row.open)} open, wachten mediaan ${days(row.waiting.medianDays)}: ${bands}.`
+}
 </script>
 
 <template>
@@ -131,7 +144,7 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
         <div role="table" aria-label="Per bron" class="text-md">
           <div
             role="row"
-            class="grid grid-cols-[minmax(140px,1fr)_200px_repeat(4,90px)_180px_180px] items-center gap-4 border-b border-divider bg-raised px-4 py-2 text-xs font-bold tracking-[0.06em] text-label uppercase"
+            class="grid grid-cols-[minmax(130px,1fr)_180px_repeat(4,82px)_120px_160px_160px] items-center gap-3 border-b border-divider bg-raised px-4 py-2 text-xs font-bold tracking-[0.06em] text-label uppercase"
           >
             <span role="columnheader">Bron</span>
             <span role="columnheader">Waar het heen ging</span>
@@ -139,6 +152,7 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
             <span role="columnheader" class="text-right">Gesloten</span>
             <span role="columnheader" class="text-right">Open</span>
             <span role="columnheader" class="text-right">Totaal</span>
+            <span role="columnheader" title="Hoe lang de open dossiers al wachten: de mediaan, en de verdeling van nieuw (licht) naar oud (donker)">Wacht</span>
             <span role="columnheader">Binnen per week</span>
             <span role="columnheader">Gesloten per week</span>
           </div>
@@ -146,7 +160,7 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
             v-for="row in rows"
             :key="row.channel"
             role="row"
-            class="grid grid-cols-[minmax(140px,1fr)_200px_repeat(4,90px)_180px_180px] items-center gap-4 border-b border-divider px-4 py-1.5 last:border-b-0"
+            class="grid grid-cols-[minmax(130px,1fr)_180px_repeat(4,82px)_120px_160px_160px] items-center gap-3 border-b border-divider px-4 py-1.5 last:border-b-0"
           >
             <RouterLink
               role="cell"
@@ -171,6 +185,25 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
             <span role="cell" class="text-right font-mono tabular-nums text-muted">{{ nl(row.closed) }}</span>
             <span role="cell" class="text-right font-mono tabular-nums text-muted">{{ nl(row.open) }}</span>
             <span role="cell" class="text-right font-mono tabular-nums text-strong">{{ nl(row.total) }}</span>
+            <!-- How long its open dossiers have waited (2026-10-22): the median, and the age
+                 bands as one bar, new (light) to old (dark). Empty without the API's answer. -->
+            <span
+              role="cell"
+              class="flex flex-col gap-1"
+              :title="row.waiting ? waitingTitle(row) : undefined"
+            >
+              <template v-if="row.waiting && row.open">
+                <span class="text-sm font-mono tabular-nums text-strong">
+                  {{ days(row.waiting.medianDays) }} <span class="text-faint">mediaan</span>
+                </span>
+                <span class="flex h-1.5 w-full gap-px overflow-hidden rounded-full" aria-hidden="true">
+                  <template v-for="(n, i) in row.waiting.bands" :key="i">
+                    <span v-if="n" :class="AGE_BG[i]" :style="{ flexGrow: n, flexBasis: 0, minWidth: '3px' }" />
+                  </template>
+                </span>
+              </template>
+              <span v-else class="text-sm text-faint">—</span>
+            </span>
             <span role="cell" class="flex items-end gap-2" :title="`Per week, ${span}: ${row.received.join(' · ')}`">
               <Sparkline :values="row.received" tone="blue" />
               <span class="text-xs font-mono whitespace-nowrap text-faint">{{ nl(lastFour(row.received)) }} in 4 wk</span>

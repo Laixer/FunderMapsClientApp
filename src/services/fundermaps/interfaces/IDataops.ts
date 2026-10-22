@@ -303,6 +303,20 @@ export interface IDataopsFlow {
   weeks: string[]
   /** Every week for every channel, zero included. */
   weekly: { week: string; channel: string; received: number; closed: number }[]
+  /**
+   * How long the open dossiers have waited, per channel: five age bands (< 7
+   * days, 7–14, 14–30, 30–90, 90+) and the median in days. Absent from older API builds.
+   */
+  waiting?: {
+    channel: string
+    open: number
+    week: number
+    twoWeeks: number
+    month: number
+    quarter: number
+    older: number
+    medianDays: number | null
+  }[]
 }
 
 /** How often a reviewer took over, corrected or rejected what the document reader proposed. */
