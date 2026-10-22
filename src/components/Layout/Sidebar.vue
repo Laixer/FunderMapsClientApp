@@ -118,7 +118,7 @@ function removeView(view: SavedView) {
 
     <!-- Scrolls only when a window is too short for WERK's views. -mx-1 px-1:
          room for the focus ring. -->
-    <div class="-mx-1 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-1 [scrollbar-width:thin]">
+    <div class="-mx-1 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-1 [scrollbar-width:thin]">
       <nav
         v-for="group in NAV_GROUPS.filter((g) => !g.hidden)"
         :key="group.title"
@@ -129,10 +129,10 @@ function removeView(view: SavedView) {
         <template v-for="item in group.items" :key="item.route">
           <!-- Controle has no row of its own (2026-10-22: "remove the controle and have all those items
                listed on the same level under WERK"): its views are the rows of WERK, in the rail's own
-               shape — the dot, the green for where you are, the count on the right — a little tighter,
-               so the whole rail still fits a 900px window. The groups are a gap; a screen reader still
-               hears their names, and the page says "Te verwerken › Archiefverwerking". -->
-          <div v-if="item.route === 'review-queue'" class="flex flex-col" aria-label="Weergaven van Controle" role="group">
+               shape and size — the dot, the green for where you are, the count on the right — spaced as
+               the rows of GEGEVENS ("use the proper spacing … like in gegevens"). The groups are a gap; a
+               screen reader still hears their names, and the page says "Te verwerken › Archiefverwerking". -->
+          <div v-if="item.route === 'review-queue'" class="flex flex-col gap-0.5" aria-label="Weergaven van Controle" role="group">
             <template v-for="(viewGroup, g) in reviewGroups" :key="viewGroup.key">
               <p v-if="!viewGroup.single" class="sr-only">{{ viewGroup.label }}</p>
               <!-- The view and its delete cross are two buttons side by side: a
@@ -141,11 +141,11 @@ function removeView(view: SavedView) {
                 v-for="(view, i) in viewsOf(viewGroup)"
                 :key="view.key"
                 class="group flex items-center"
-                :class="{ 'mt-2': g > 0 && i === 0 }"
+                :class="{ 'mt-1.5': g > 0 && i === 0 }"
               >
                 <RouterLink
                   :to="viewRoute(view)"
-                  class="text-lg flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2.5 py-[2px]"
+                  class="text-xl flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2.5 py-[3px]"
                   :class="
                     activeView === view.key
                       ? 'bg-green-wash font-bold text-green-deep'
@@ -182,7 +182,7 @@ function removeView(view: SavedView) {
           <RouterLink
             v-else
             :to="{ name: item.route }"
-            class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-1"
+            class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-[3px]"
             :class="
               isActive(item.route)
                 ? 'bg-green-wash font-bold text-green-deep'
@@ -209,11 +209,14 @@ function removeView(view: SavedView) {
 
     <!-- Shortcuts nobody can discover are shortcuts nobody uses. Pinned to the
          bottom of the rail, above the user row, on every page; on a short
-         window the nav above it scrolls instead. -->
+         window the nav above it scrolls instead. No caption since the rail grew
+         (2026-10-22): the dashed card and its keys say what it is; a screen reader
+         hears its name. -->
     <div
-      class="mt-auto flex flex-col gap-1 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-2"
+      class="mt-auto flex flex-col gap-1 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-1.5"
+      role="group"
+      aria-label="Sneltoetsen"
     >
-      <p class="text-2xs font-bold tracking-[0.09em] text-label">SNELTOETSEN</p>
       <p
         v-for="hint in SIDEBAR_HINTS"
         :key="hint.keys"
