@@ -12,6 +12,7 @@ import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import DossierAddresses from '@/components/Review/DossierAddresses.vue'
 import DossierChain from '@/components/Review/DossierChain.vue'
+import ReaderTrack from '@/components/Review/ReaderTrack.vue'
 import ProposalValueField from '@/components/Review/ProposalValueField.vue'
 import RecordRecoveryPanel from '@/components/Review/RecordRecoveryPanel.vue'
 import api from '@/services/fundermaps'
@@ -22,7 +23,9 @@ import type {
   IDossierAddress,
   VerdictOutcome,
   DossierOutcome,
+  IReaderQuality,
 } from '@/services/fundermaps/interfaces/IDataops'
+import { loadReaderQuality, trackFor } from '@/services/readerTrack'
 import { describeFailure, isNotFound } from '@/services/fundermaps/errors'
 import { isPreviewableImageMime } from '@/services/documentFile'
 import { parseQuery, toQueueOpts } from '@/services/reviewExplorer'
@@ -282,6 +285,18 @@ const isAudit = computed(() => !!data.value?.dossier.auditInquiryId)
 const agreed = computed(() => (data.value?.fields ?? []).filter((f) => f.state === 'agreed'))
 /** Not compared or replaced by a later reading: not this screen's business. */
 const isSettledByPipeline = (f: IProposedField) => f.state === 'agreed' || f.state === 'superseded'
+
+/**
+ * How often a reviewer took over what the reader proposed for a field
+ * (services/readerTrack.ts), beside every proposed value: a field the reader
+ * often gets wrong asks for a second look. Asked once per ten minutes, not per
+ * dossier; without it the cards simply show no hint.
+ */
+const readerQuality = ref<IReaderQuality | null>(null)
+onBeforeMount(async () => {
+  readerQuality.value = await loadReaderQuality()
+})
+const trackOf = (f: IProposedField) => trackFor(readerQuality.value, f.field)
 
 
 onBeforeMount(load)
@@ -2211,12 +2226,14 @@ async function reopen(f: IProposedField) {
                   {{ fieldLabel(f.field) }}
                 </span>
                 <div
-                  v-if="isRefused(f) || isInferred(f) || isSure(f) || confidencePercent(f)"
+                  v-if="isRefused(f) || isInferred(f) || isSure(f) || confidencePercent(f) || trackOf(f)"
                   class="row-start-2 flex min-h-7 items-center gap-2 pt-1"
                 >
                   <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" plain />
                   <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" plain />
                   <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" plain />
+                  <!-- The reader's track record on this field (2026-10-22). -->
+                  <ReaderTrack v-if="trackOf(f)" :track="trackOf(f)!" />
                   <span
                     v-if="confidencePercent(f)"
                     class="text-sm ml-auto font-mono text-faint"

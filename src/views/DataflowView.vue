@@ -8,9 +8,11 @@ import FlowDiagram from '@/components/Flow/FlowDiagram.vue'
 import KpiTile from '@/components/Common/KpiTile.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Sparkline from '@/components/Common/Sparkline.vue'
+import ReaderQualityPanel from '@/components/Flow/ReaderQualityPanel.vue'
 
 import api from '@/services/fundermaps'
-import type { IDataopsFlow } from '@/services/fundermaps/interfaces/IDataops'
+import type { IDataopsFlow, IReaderQuality } from '@/services/fundermaps/interfaces/IDataops'
+import { loadReaderQuality } from '@/services/readerTrack'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { buildFlow, GROUPS, SOURCES, sourceRows, type FlowGroup } from '@/services/dataflow'
 import type { Tone } from '@/services/tone'
@@ -30,12 +32,15 @@ import type { Tone } from '@/services/tone'
 const router = useRouter()
 
 const data = ref<IDataopsFlow | null>(null)
+/** How well the reader reads, per field; its own request, so a failure leaves the rest of the page standing. */
+const quality = ref<IReaderQuality | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-async function load() {
+async function load(force = false) {
   loading.value = true
   error.value = null
+  void loadReaderQuality(force).then((q) => (quality.value = q))
   try {
     data.value = await api.dataops.flow()
   } catch (e) {
@@ -44,7 +49,7 @@ async function load() {
     loading.value = false
   }
 }
-onBeforeMount(load)
+onBeforeMount(() => load())
 
 const graph = computed(() => (data.value ? buildFlow(data.value) : null))
 const rows = computed(() => (data.value ? sourceRows(data.value) : []))
@@ -99,7 +104,7 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
           </p>
         </div>
         <span v-if="updated" class="text-sm pb-1 font-mono text-faint">geteld om {{ updated }}</span>
-        <Button label="Opnieuw tellen" :disabled="loading" @click="load" />
+        <Button label="Opnieuw tellen" :disabled="loading" @click="load(true)" />
       </header>
 
       <p v-if="error" class="text-md rounded-xl border border-red bg-red-tint px-4 py-3 text-red">{{ error }}</p>
@@ -126,7 +131,7 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
       </Panel>
 
       <Panel title="Per bron" flush>
-        <div role="table" class="text-md">
+        <div role="table" aria-label="Per bron" class="text-md">
           <div
             role="row"
             class="grid grid-cols-[minmax(140px,1fr)_200px_repeat(4,90px)_180px_180px] items-center gap-4 border-b border-divider bg-raised px-4 py-2 text-xs font-bold tracking-[0.06em] text-label uppercase"
@@ -181,6 +186,9 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
           <p v-if="!rows.length && !loading" class="px-4 py-6 text-muted">Nog niets binnengekomen.</p>
         </div>
       </Panel>
+
+      <!-- What the reader gets right, per field (2026-10-22). -->
+      <ReaderQualityPanel v-if="quality" :quality="quality" />
     </div>
   </AppShell>
 </template>

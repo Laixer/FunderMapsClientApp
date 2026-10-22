@@ -304,3 +304,21 @@ export interface IDataopsFlow {
   /** Every week for every channel, zero included. */
   weekly: { week: string; channel: string; received: number; closed: number }[]
 }
+
+/** How often a reviewer took over, corrected or rejected what the document reader proposed. */
+export interface IReaderTally {
+  judged: number
+  confirmed: number
+  corrected: number
+  rejected: number
+}
+
+/** The reader's track record (API GET /dataops/reader-quality): overall, per field, per reader version. */
+export interface IReaderQuality {
+  generatedAt: string
+  total: IReaderTally
+  /** Most judged first. `field` is the lane's key (`foundation_type`). */
+  fields: (IReaderTally & { field: string })[]
+  /** In the order the versions came (dataops-2026.1, dataops-2026.2, ...). */
+  versions: (IReaderTally & { model: string; promptVersion: string })[]
+}

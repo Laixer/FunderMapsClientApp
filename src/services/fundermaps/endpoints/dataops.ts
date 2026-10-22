@@ -7,6 +7,7 @@ import type {
   IDossierAddress,
   AddressVerdictOutcome,
   IDataopsFlow,
+  IReaderQuality,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -261,6 +262,11 @@ export async function flow() {
   return (await get({ endpoint: '/dataops/flow' })) as IDataopsFlow
 }
 
+/** The document reader's track record per field: taken over, corrected, rejected (the hint beside a proposed value). */
+export async function readerQuality() {
+  return (await get({ endpoint: '/dataops/reader-quality' })) as IReaderQuality
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -370,6 +376,7 @@ export default {
   assign,
   myWorkPackages,
   flow,
+  readerQuality,
   addressVerdict,
   addressAdd,
   addressRelink,
