@@ -531,3 +531,20 @@ export interface IStudioToday {
   days: string[]
   series: Record<'received' | 'read' | 'judged' | 'committed' | 'closed', number[]>
 }
+
+/** The panden with open work (API GET /dataops/buildings): the first 50, newest first, and how many there are. */
+export interface IPandenOpen {
+  generatedAt: string
+  total: number
+  open: {
+    /** The BAG pand id. */
+    id: string
+    open: number
+    dossiers: number
+    lastReceived: string
+    street: string | null
+    number: string | null
+    city: string | null
+    municipality: string | null
+  }[]
+}

@@ -55,6 +55,9 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   {
     title: 'GEGEVENS',
     items: [
+      // Every pand's own page, found by address or BAG number (2026-10-22: "The pand page is
+      // really important … both how it looks and how easy it is to navigate to").
+      { route: 'buildings', label: 'Panden', key: 'p' },
       { route: 'inquiry-list', label: 'Rapportages', key: 'r', counter: 'inquiries' },
       { route: 'recovery-list', label: 'Herstel', key: 'h', counter: 'recoveries' },
     ],
@@ -88,6 +91,8 @@ export const OWNED_BY: Record<string, string> = {
   home: 'home',
   dataflow: 'dataflow',
   models: 'models',
+  buildings: 'buildings',
+  building: 'buildings',
   'inquiry-list': 'inquiry-list',
   'inquiry-view': 'inquiry-list',
   'inquiry-edit-details': 'inquiry-list',
@@ -103,8 +108,8 @@ export const OWNED_BY: Record<string, string> = {
   'review-dossier': 'review-queue',
 }
 
-/** Pages that belong to a part of the rail without a row of their own. */
-const SECTION_OF: Record<string, string> = { building: 'GEGEVENS' }
+/** Pages that belong to a part of the rail without a row of their own. (None since Panden got its row.) */
+const SECTION_OF: Record<string, string> = {}
 
 const sentenceCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase()
 

@@ -182,7 +182,7 @@ function removeView(view: SavedView) {
           <RouterLink
             v-else
             :to="{ name: item.route }"
-            class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-1.5"
+            class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-1"
             :class="
               isActive(item.route)
                 ? 'bg-green-wash font-bold text-green-deep'

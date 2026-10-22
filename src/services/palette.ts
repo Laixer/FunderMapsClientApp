@@ -15,6 +15,7 @@
 import type { RouteLocationRaw } from 'vue-router'
 
 import api from '@/services/fundermaps'
+import router from '@/router'
 import { inquiryTypeLabel } from '@/services/inquiryEnums'
 import { NAV_ITEMS } from '@/services/navigation'
 import { recoveryDocumentTypeLabel } from '@/services/recoveryEnums'
@@ -101,7 +102,9 @@ export async function recordItems(query: string): Promise<PaletteItem[]> {
   const q = query.trim().replace(/^#/, '')
   if (q.length < 2) return []
 
-  const [inquiries, recoveries, meldingen] = await Promise.all([
+  // Something that reads like an address (a word and a number): its pand, via PDOK (2026-10-22).
+  const addressLike = /[a-z]{3,}/i.test(q) && /\d/.test(q) && !MELDCODE.test(q) && !BAG_ID.test(q)
+  const [inquiries, recoveries, meldingen, places] = await Promise.all([
     api.inquiry.list({ q, limit: PALETTE_RESULT_LIMIT }).catch(() => []),
     api.recovery.list({ q, limit: 3 }).catch(() => []),
     // A meldcode arrives from outside the system -- a melder's mail, a phone
@@ -110,11 +113,24 @@ export async function recordItems(query: string): Promise<PaletteItem[]> {
     // one is found too; the hint says which, because "afgewezen" is usually the
     // answer to the question being asked.
     MELDCODE.test(q) ? api.dataops.queue({ q, limit: 1 }).catch(() => []) : Promise.resolve([]),
+    addressLike ? api.pdok.suggest(q, 3).catch(() => []) : Promise.resolve([]),
   ])
 
   const pand = pandItem(q)
   return [
     ...(pand ? [pand] : []),
+    ...places.map((s) => ({
+      id: `pdok:${s.id}`,
+      kind: 'PAND' as const,
+      label: s.weergavenaam,
+      hint: 'pand',
+      // The address resolves to its BAG id on choosing; the Pand page moves on to the pand.
+      run: () => {
+        void api.pdok.lookupNummeraanduidingId(s.id).then((id) => {
+          if (id) void router.push({ name: 'building', params: { id } })
+        })
+      },
+    })),
     ...meldingen.map((row) => ({
       id: `melding:${row.id}`,
       kind: 'DOSSIER' as const,
