@@ -4,7 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
 import UserMenu from '@/components/UserMenu.vue'
-import { NAV_GROUPS } from '@/services/navigation'
+import { NAV_GROUPS, OWNED_BY } from '@/services/navigation'
 import {
   DEFAULT_VIEW,
   defaultView,
@@ -37,30 +37,6 @@ const studio = useStudioStore()
 const { counts, reviewGroups, reviewViews, viewCounts } = storeToRefs(studio)
 
 const activeRoute = computed(() => String(route.name ?? ''))
-
-/**
- * Which nav row owns the current route. The wizard steps and the detail views
- * are not destinations of their own — while you are inside a dossier the rail
- * should still say *Rapportages* rather than go blank.
- */
-const OWNED_BY: Record<string, string> = {
-  home: 'home',
-  dataflow: 'dataflow',
-  models: 'models',
-  'inquiry-list': 'inquiry-list',
-  'inquiry-view': 'inquiry-list',
-  'inquiry-edit-details': 'inquiry-list',
-  'inquiry-edit-samples': 'inquiry-list',
-  'inquiry-new': 'inquiry-new',
-  'recovery-list': 'recovery-list',
-  'recovery-view': 'recovery-list',
-  'recovery-edit-1': 'recovery-list',
-  'recovery-edit-2': 'recovery-list',
-  'recovery-edit-3': 'recovery-list',
-  'recovery-new': 'recovery-new',
-  'review-queue': 'review-queue',
-  'review-dossier': 'review-queue',
-}
 
 function isActive(routeName: string): boolean {
   return OWNED_BY[activeRoute.value] === routeName
@@ -109,7 +85,7 @@ function removeView(view: SavedView) {
 
 <template>
   <aside
-    class="sticky top-0 flex h-screen w-sidebar flex-col gap-5 border-r border-line bg-surface px-3.5 py-4"
+    class="sticky top-0 flex h-screen w-sidebar flex-col gap-3 border-r border-line bg-surface px-3.5 py-3.5"
   >
     <div class="flex items-center gap-2.5 px-2">
       <span
@@ -142,13 +118,18 @@ function removeView(view: SavedView) {
 
     <!-- Scrolls only when a window is too short for Controle's views. -mx-1 px-1:
          room for the focus ring. -->
-    <div class="-mx-1 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-1 [scrollbar-width:thin]">
-      <nav v-for="group in NAV_GROUPS" :key="group.title" class="flex flex-col gap-0.5">
-        <p class="text-2xs px-2.5 pb-1.5 font-bold tracking-[0.1em] text-label">{{ group.title }}</p>
+    <div class="-mx-1 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-1 [scrollbar-width:thin]">
+      <nav
+        v-for="group in NAV_GROUPS.filter((g) => !g.hidden)"
+        :key="group.title"
+        class="flex flex-col gap-0.5"
+        :aria-label="group.title ? group.title.toLowerCase() : 'vandaag'"
+      >
+        <p v-if="group.title" class="text-2xs px-2.5 pb-1 font-bold tracking-[0.1em] text-label">{{ group.title }}</p>
         <template v-for="item in group.items" :key="item.route">
           <RouterLink
             :to="{ name: item.route }"
-            class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-2"
+            class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-1.5"
             :class="
               isActive(item.route)
                 ? 'bg-green-wash font-bold text-green-deep'
@@ -190,11 +171,11 @@ function removeView(view: SavedView) {
                 v-for="(view, i) in viewsOf(viewGroup)"
                 :key="view.key"
                 class="group flex items-center"
-                :class="{ 'mt-2': g > 0 && i === 0 }"
+                :class="{ 'mt-1.5': g > 0 && i === 0 }"
               >
                 <RouterLink
                   :to="viewRoute(view)"
-                  class="text-lg relative flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-[2px]"
+                  class="text-lg relative flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-px"
                   :class="
                     activeView === view.key
                       ? 'font-bold text-green-deep before:absolute before:inset-y-1 before:-left-[5px] before:w-0.5 before:rounded-full before:bg-green'
@@ -231,7 +212,7 @@ function removeView(view: SavedView) {
          bottom of the rail, above the user row, on every page; on a short
          window the nav above it scrolls instead. -->
     <div
-      class="mt-auto flex flex-col gap-1.5 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-2.5"
+      class="mt-auto flex flex-col gap-1 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-2"
     >
       <p class="text-2xs font-bold tracking-[0.09em] text-label">SNELTOETSEN</p>
       <p

@@ -3,6 +3,7 @@ import { computed, onBeforeMount, ref } from 'vue'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import Panel from '@/components/Common/Panel.vue'
 
 import api from '@/services/fundermaps'
@@ -109,16 +110,14 @@ const classified = (r: IRiskClasses) => r.a + r.b + r.c + r.d + r.e
 <template>
   <AppShell crumb="Modellen">
     <div class="flex flex-col gap-3 px-6 py-4">
-      <header class="flex items-end gap-4">
-        <div class="flex-1">
-          <h1 class="text-3xl font-display font-bold text-ink">Modellen</h1>
-          <p class="text-md mt-0.5 text-muted">
-            Hoe het model draait en wat het nu zegt: het model dat de kaart en de productdienst tonen.
-          </p>
-        </div>
-        <span v-if="lastRun" class="text-sm pb-1 font-mono text-faint">laatste run {{ time(lastRun) }}</span>
-        <Button label="Opnieuw ophalen" :disabled="loading" @click="load" />
-      </header>
+      <PageHeader
+        kicker="Inzicht"
+        title="Modellen"
+        purpose="Hoe het model draait en wat het nu zegt: het model dat de kaart en de productdienst tonen."
+        :meta="lastRun ? `laatste run ${time(lastRun)}` : undefined"
+      >
+        <template #actions><Button label="Opnieuw ophalen" :disabled="loading" @click="load" /></template>
+      </PageHeader>
 
       <p v-if="error" class="text-md rounded-xl border border-red bg-red-tint px-4 py-3 text-red">{{ error }}</p>
 

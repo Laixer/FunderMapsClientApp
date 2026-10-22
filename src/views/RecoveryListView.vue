@@ -5,6 +5,7 @@ import { refDebounced } from '@vueuse/core'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
 import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueList.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
@@ -156,7 +157,15 @@ function select(row: IRecovery) {
 
 <template>
   <AppShell crumb="Herstel" fill>
-    <h1 class="sr-only">Herstel</h1>
+    <div class="flex shrink-0 border-b border-line bg-surface px-6 py-3">
+      <PageHeader
+        compact
+        class="w-full"
+        kicker="Gegevens"
+        title="Herstel"
+        purpose="Funderingsherstel per pand: vergunningen, herstelrapporten en bewijs van eigenaren."
+      />
+    </div>
     <div class="flex shrink-0 items-center gap-2 border-b border-line bg-surface px-6 py-2.5">
       <div
         class="flex max-w-[340px] flex-1 items-center gap-2 rounded-lg border border-line bg-sunken px-2.5 py-1.5 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"

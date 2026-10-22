@@ -13,6 +13,7 @@ import Panel from '@/components/Common/Panel.vue'
 import PhaseCards from '@/components/Common/PhaseCards.vue'
 import ProgressBar from '@/components/Common/ProgressBar.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import Timeline, { type TimelineEntry } from '@/components/Common/Timeline.vue'
 import RapportageOrigin from '@/components/Inquiry/RapportageOrigin.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
@@ -427,63 +428,57 @@ useActionShortcuts(() => {
   <AppShell :crumb="inquiry?.documentName ?? 'Rapportage'">
     <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-aside)] items-start gap-4.5 px-6 py-6">
       <div class="flex min-w-0 flex-col gap-4">
-        <header v-if="inquiry" class="flex items-start gap-3.5">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2.5">
-              <h1 class="text-4xl font-display font-bold break-words text-ink">
-                {{ inquiry.documentName }}
-              </h1>
-              <StatusBadge :status="inquiry.state.auditStatus" />
-            </div>
-            <p class="text-sm mt-1 font-mono text-faint">{{ metaLine }}</p>
-            <!-- The origin row (below) links the dossier too; this line stays for an API without it. -->
-            <p v-if="inquiry.dossier && !origin?.dossiers.length" class="text-sm mt-1 text-muted">
-              Uit dossier
-              <RouterLink
-                :to="{ name: 'review-dossier', params: { id: inquiry.dossier.id } }"
-                class="font-semibold text-green-ink underline underline-offset-2"
-              >
-                {{ dossierLabel }}
-              </RouterLink>
-              — het document, de citaten en het verloop staan daar.
-            </p>
-          </div>
-
-          <!-- Actions live next to the thing they act on, and destructive is
-               marked rather than amplified: a white button with red text, not a
-               red slab competing with "Aanbieden ter review". -->
-          <div class="ml-auto flex shrink-0 flex-wrap justify-end gap-2">
-            <Button
-              v-if="isEditable && canWrite"
-              label="Bewerken"
-              shortcut="⇧E"
-              @click="goEdit"
-            />
-            <Button
-              v-if="canSubmitForReview && canWrite"
-              variant="primary"
-              label="Aanbieden ter review"
-              shortcut="⇧S"
-              @click="handleSubmitForReview"
-            />
-            <Button
-              v-if="isPendingReview && canApprove"
-              variant="primary"
-              label="Goedkeuren"
-              shortcut="⇧A"
-              @click="handleApprove"
-            />
-            <Button
-              v-if="isPendingReview && canApprove"
-              variant="danger"
-              label="Afkeuren"
-              shortcut="⇧R"
-              @click="showRejectModal = true"
-            />
-            <Button v-if="isReopenable && isSuperUser" label="Heropenen" @click="handleReopen" />
-            <Button v-if="isSuperUser" variant="danger" label="Verwijderen" @click="handleDelete" />
-          </div>
-        </header>
+        <template v-if="inquiry">
+          <PageHeader kicker="Rapportage" :title="inquiry.documentName">
+            <template #badges><StatusBadge :status="inquiry.state.auditStatus" /></template>
+            <template #purpose><span class="text-sm font-mono text-faint">{{ metaLine }}</span></template>
+            <!-- Actions live next to the thing they act on, and destructive is
+                 marked rather than amplified: a white button with red text, not a
+                 red slab competing with "Aanbieden ter review". -->
+            <template #actions>
+              <Button
+                v-if="isEditable && canWrite"
+                label="Bewerken"
+                shortcut="⇧E"
+                @click="goEdit"
+              />
+              <Button
+                v-if="canSubmitForReview && canWrite"
+                variant="primary"
+                label="Aanbieden ter review"
+                shortcut="⇧S"
+                @click="handleSubmitForReview"
+              />
+              <Button
+                v-if="isPendingReview && canApprove"
+                variant="primary"
+                label="Goedkeuren"
+                shortcut="⇧A"
+                @click="handleApprove"
+              />
+              <Button
+                v-if="isPendingReview && canApprove"
+                variant="danger"
+                label="Afkeuren"
+                shortcut="⇧R"
+                @click="showRejectModal = true"
+              />
+              <Button v-if="isReopenable && isSuperUser" label="Heropenen" @click="handleReopen" />
+              <Button v-if="isSuperUser" variant="danger" label="Verwijderen" @click="handleDelete" />
+            </template>
+          </PageHeader>
+          <!-- The origin row (below) links the dossier too; this line stays for an API without it. -->
+          <p v-if="inquiry.dossier && !origin?.dossiers.length" class="text-sm mt-1 text-muted">
+            Uit dossier
+            <RouterLink
+              :to="{ name: 'review-dossier', params: { id: inquiry.dossier.id } }"
+              class="font-semibold text-green-ink underline underline-offset-2"
+            >
+              {{ dossierLabel }}
+            </RouterLink>
+            — het document, de citaten en het verloop staan daar.
+          </p>
+        </template>
 
         <!-- Where it came from, and what it changed after (2026-10-22). -->
         <RapportageOrigin

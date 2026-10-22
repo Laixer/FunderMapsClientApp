@@ -5,6 +5,7 @@ import { RouterLink } from 'vue-router'
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import FlowDiagram from '@/components/Flow/FlowDiagram.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Sparkline from '@/components/Common/Sparkline.vue'
 import ReaderQualityPanel from '@/components/Flow/ReaderQualityPanel.vue'
@@ -110,18 +111,15 @@ function waitingTitle(row: SourceRow) {
   <AppShell crumb="Datastroom">
     <!-- Compact (2026-10-22, "way too big"): the picture and the table per source
          in the first screen at 1528×900; the reader's record under it. -->
-    <div class="flex flex-col gap-3 px-6 py-4">
-      <header class="flex items-end gap-4">
-        <div class="flex-1">
-          <h1 class="text-3xl font-display font-bold text-ink">Datastroom</h1>
-          <p class="text-md mt-0.5 text-muted">
-            Waar alles wat binnenkwam terechtkwam: van de bron, via de controle, tot in FunderMaps.
-            Elke band is zo dik als het aantal dossiers dat hij draagt.
-          </p>
-        </div>
-        <span v-if="updated" class="text-sm pb-1 font-mono text-faint">geteld om {{ updated }}</span>
-        <Button label="Opnieuw tellen" :disabled="loading" @click="load(true)" />
-      </header>
+    <div class="flex flex-col gap-3 px-6 pt-3 pb-4">
+      <PageHeader
+        kicker="Inzicht"
+        title="Datastroom"
+        purpose="Waar alles wat binnenkwam terechtkwam: van de bron, via de controle, tot in FunderMaps. Elke band is zo dik als het aantal dossiers dat hij draagt."
+        :meta="updated ? `geteld om ${updated}` : undefined"
+      >
+        <template #actions><Button label="Opnieuw tellen" :disabled="loading" @click="load(true)" /></template>
+      </PageHeader>
 
       <p v-if="error" class="text-md rounded-xl border border-red bg-red-tint px-4 py-3 text-red">{{ error }}</p>
 

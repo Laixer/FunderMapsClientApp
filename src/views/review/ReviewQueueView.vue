@@ -5,6 +5,7 @@ import { refDebounced } from '@vueuse/core'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
 import FilterChip from '@/components/Common/FilterChip.vue'
 import Pill from '@/components/Common/Pill.vue'
@@ -391,12 +392,8 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
   <AppShell crumb="Controle" fill>
     <!-- Which view this is, and what its group holds. The views themselves are
          in the sidebar, under Controle. -->
-    <div class="flex shrink-0 items-baseline gap-3 border-b border-line bg-surface px-6 py-3">
-      <h1 class="text-lg font-bold text-ink">
-        <span v-if="!activeGroup.single" class="font-medium text-subtle">{{ activeGroup.label }} ›</span>
-        {{ viewLabel }}
-      </h1>
-      <p class="text-md flex-1 text-muted">{{ activeGroup.hint }}</p>
+    <div class="flex shrink-0 border-b border-line bg-surface px-6 py-3">
+      <PageHeader compact class="w-full" :kicker="activeGroup.single ? 'Controle' : activeGroup.label" :title="viewLabel" :purpose="activeGroup.hint" />
     </div>
 
     <!-- The chips go to a next line when they do not fit: on one line they

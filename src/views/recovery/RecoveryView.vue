@@ -14,6 +14,7 @@ import Panel from '@/components/Common/Panel.vue'
 import PhaseCards from '@/components/Common/PhaseCards.vue'
 import Pill from '@/components/Common/Pill.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import Timeline, { type TimelineEntry } from '@/components/Common/Timeline.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
 
@@ -358,44 +359,38 @@ useActionShortcuts(() => {
   <AppShell :crumb="recovery?.documentName ?? 'Herstel'">
     <div class="grid grid-cols-[minmax(0,1fr)_var(--spacing-aside)] items-start gap-4.5 px-6 py-6">
       <div class="flex min-w-0 flex-col gap-4">
-        <header v-if="recovery" class="flex items-start gap-3.5">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2.5">
-              <h1 class="text-4xl font-display font-bold break-words text-ink">
-                {{ recovery.documentName }}
-              </h1>
-              <StatusBadge :status="recovery.state.auditStatus" />
-            </div>
-            <p class="text-sm mt-1 font-mono text-faint">{{ metaLine }}</p>
-          </div>
-
-          <div class="ml-auto flex shrink-0 flex-wrap justify-end gap-2">
-            <Button v-if="isEditable && canWrite" label="Bewerken" shortcut="⇧E" @click="goEdit" />
-            <Button
-              v-if="canSubmitForReview && canWrite"
-              variant="primary"
-              label="Aanbieden ter review"
-              shortcut="⇧S"
-              @click="handleSubmitForReview"
-            />
-            <Button
-              v-if="isPendingReview && canApprove"
-              variant="primary"
-              label="Goedkeuren"
-              shortcut="⇧A"
-              @click="handleApprove"
-            />
-            <Button
-              v-if="isPendingReview && canApprove"
-              variant="danger"
-              label="Afkeuren"
-              shortcut="⇧R"
-              @click="showRejectModal = true"
-            />
-            <Button v-if="isReopenable && isSuperUser" label="Heropenen" @click="handleReopen" />
-            <Button v-if="isSuperUser" variant="danger" label="Verwijderen" @click="handleDelete" />
-          </div>
-        </header>
+        <template v-if="recovery">
+          <PageHeader kicker="Herstel" :title="recovery.documentName">
+            <template #badges><StatusBadge :status="recovery.state.auditStatus" /></template>
+            <template #purpose><span class="text-sm font-mono text-faint">{{ metaLine }}</span></template>
+            <template #actions>
+              <Button v-if="isEditable && canWrite" label="Bewerken" shortcut="⇧E" @click="goEdit" />
+              <Button
+                v-if="canSubmitForReview && canWrite"
+                variant="primary"
+                label="Aanbieden ter review"
+                shortcut="⇧S"
+                @click="handleSubmitForReview"
+              />
+              <Button
+                v-if="isPendingReview && canApprove"
+                variant="primary"
+                label="Goedkeuren"
+                shortcut="⇧A"
+                @click="handleApprove"
+              />
+              <Button
+                v-if="isPendingReview && canApprove"
+                variant="danger"
+                label="Afkeuren"
+                shortcut="⇧R"
+                @click="showRejectModal = true"
+              />
+              <Button v-if="isReopenable && isSuperUser" label="Heropenen" @click="handleReopen" />
+              <Button v-if="isSuperUser" variant="danger" label="Verwijderen" @click="handleDelete" />
+            </template>
+          </PageHeader>
+        </template>
 
         <Panel v-if="loading" caption="VOORTGANG">
           <EmptyState>Dossier ophalen…</EmptyState>

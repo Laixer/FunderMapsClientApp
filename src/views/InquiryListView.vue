@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
 import FilterBuilder from '@/components/Common/FilterBuilder.vue'
 import FilterChip from '@/components/Common/FilterChip.vue'
@@ -368,9 +369,16 @@ const MODES: { key: Mode; label: string }[] = [
 
 <template>
   <AppShell crumb="Rapportages" fill>
-    <!-- The crumb names the screen for the eye; this names it for a screen
-         reader and for anyone jumping by heading. -->
-    <h1 class="sr-only">Rapportages</h1>
+    <!-- The same header as every page, on one line; the saved views right under it read as its tabs. -->
+    <div class="flex shrink-0 bg-surface px-6 pt-3">
+      <PageHeader
+        compact
+        class="w-full"
+        kicker="Gegevens"
+        title="Rapportages"
+        purpose="Wat in FunderMaps staat: onderzoeken, rapporten en nalezingen, met hun status."
+      />
+    </div>
     <!-- Saved views. The active one carries a 2px green underline rather than a
          filled tab: these sit directly on the white filter bar, and a filled
          tab there would read as a button. -->
@@ -468,6 +476,8 @@ const MODES: { key: Mode; label: string }[] = [
             {{ option.label }}
           </button>
         </div>
+        <!-- Making one by hand: here, where rapportages live, no longer in the top bar of every page (2026-10-22). -->
+        <Button variant="primary" label="Nieuwe rapportage" @click="router.push({ name: 'inquiry-new' })" />
       </div>
     </div>
 

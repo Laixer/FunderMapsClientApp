@@ -8,6 +8,7 @@ import Callout from '@/components/Common/Callout.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
 import EmptyState from '@/components/Common/EmptyState.vue'
 import KpiTile from '@/components/Common/KpiTile.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import Panel from '@/components/Common/Panel.vue'
 import ProgressBar from '@/components/Common/ProgressBar.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
@@ -143,6 +144,9 @@ const lanesTotal = computed(() => LANES.reduce((n, lane) => n + laneTotal(lane.k
  * packages the two numbers on one screen disagreed (49 here, 16 there). The
  * lanes keep their own counts on their tiles.
  */
+/** "donderdag 22 oktober": the page is about one day; it says which. */
+const today = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
+
 const subtitle = computed(() => {
   if (loading.value || werkbank.value == null) return 'Je werk wordt opgehaald…'
   const archive =
@@ -260,10 +264,7 @@ function chipActive(types: number[] | null): boolean {
 <template>
   <AppShell crumb="Vandaag">
     <div class="flex flex-col gap-4.5 px-6 py-6">
-      <header>
-        <h1 class="text-5xl font-display font-bold text-ink">Vandaag</h1>
-        <p class="text-xl mt-1 text-muted">{{ subtitle }}</p>
-      </header>
+      <PageHeader :kicker="today" title="Vandaag" :purpose="subtitle" />
 
       <!-- The review queue, cut to what this person picked (#Vandaag, Don
            2026-09-22). First, because it is where the day's work is now;
