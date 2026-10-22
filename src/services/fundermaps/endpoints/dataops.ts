@@ -11,6 +11,7 @@ import type {
   IRapportageOrigin,
   IModels,
   IDataopsMap,
+  IBuildingStory,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -285,6 +286,11 @@ export async function originMap() {
   return (await get({ endpoint: '/dataops/map' })) as IDataopsMap
 }
 
+/** One pand's whole story, by BAG pand or nummeraanduiding id (the Pand page). */
+export async function building(id: string) {
+  return (await get({ endpoint: `/dataops/building/${encodeURIComponent(id)}` })) as IBuildingStory
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -398,6 +404,7 @@ export default {
   rapportageOrigin,
   models,
   originMap,
+  building,
   addressVerdict,
   addressAdd,
   addressRelink,

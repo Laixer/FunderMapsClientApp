@@ -91,7 +91,8 @@ const RISKS = [
   { key: 'drystand', label: 'Droogstand' },
   { key: 'dewatering_depth', label: 'Ontwateringsdiepte' },
   { key: 'bio_infection', label: 'Bacteriële aantasting' },
-  { key: 'unclassified', label: 'Overig risico' },
+  // The map and the risk mails call it this (WebFront fieldLabels, API intake-risk-followup).
+  { key: 'unclassified', label: 'Vastgesteld risico' },
 ] as const
 const CLASSES = ['a', 'b', 'c', 'd', 'e'] as const
 /** The map's own colours, so a class looks here as it does on the map. */

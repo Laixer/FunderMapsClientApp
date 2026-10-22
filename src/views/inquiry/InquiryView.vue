@@ -278,6 +278,8 @@ const trail = computed<TimelineEntry[]>(() =>
 const addressRows = computed(() =>
   samples.value.map((sample) => ({
     id: sample.id,
+    /** The BAG nummeraanduiding: the Pand page takes it and finds the pand. */
+    address: sample.address,
     label: formatAddress(addressStore.cache[sample.address]),
     filled: countFilledSampleFields(sample),
     ratio: sampleCompleteness(sample),
@@ -581,14 +583,14 @@ useActionShortcuts(() => {
                 </template>
 
                 <ul v-if="addressRows.length" class="flex flex-col gap-2">
-                  <li v-for="address in addressRows" :key="address.id">
+                  <li v-for="address in addressRows" :key="address.id" class="flex items-stretch gap-2">
                     <!-- A card that opens the editor only while the dossier can be
                          edited. Handed over or approved, it is a plain card: it used to
                          lead straight into the editor of a locked rapportage. -->
                     <component
                       :is="isEditable && canWrite ? 'button' : 'div'"
                       :type="isEditable && canWrite ? 'button' : undefined"
-                      class="flex w-full flex-col gap-2 rounded-xl border border-line px-3 py-2.5 text-left"
+                      class="flex min-w-0 flex-1 flex-col gap-2 rounded-xl border border-line px-3 py-2.5 text-left"
                       :class="isEditable && canWrite && 'hover:border-line-hover hover:bg-raised'"
                       @click="isEditable && canWrite && goInvoer()"
                     >
@@ -609,6 +611,15 @@ useActionShortcuts(() => {
                         :label="address.label"
                       />
                     </component>
+                    <!-- Beside the card, not in it: the card is a button while the rapportage can be edited. -->
+                    <RouterLink
+                      v-if="address.address"
+                      :to="{ name: 'building', params: { id: address.address } }"
+                      class="text-sm flex shrink-0 items-center rounded-xl border border-line px-3 text-muted hover:border-line-hover hover:bg-raised hover:text-ink"
+                      :title="`${address.label}: het pand bekijken`"
+                    >
+                      Pand
+                    </RouterLink>
                   </li>
                 </ul>
                 <EmptyState v-else>Nog geen adressen toegevoegd.</EmptyState>

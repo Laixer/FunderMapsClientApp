@@ -209,7 +209,16 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
         :class="{ 'opacity-60': a.state === 'rejected' }"
       >
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span class="min-w-0 truncate font-semibold text-body" :class="{ 'line-through': a.state === 'rejected' }">
+          <!-- A known address leads to its pand's page (levenslijn, model, everything else there). -->
+          <RouterLink
+            v-if="a.addressId && a.state !== 'rejected'"
+            :to="{ name: 'building', params: { id: a.addressId } }"
+            class="min-w-0 truncate font-semibold text-body hover:text-blue-ink hover:underline"
+            :title="`${a.label ?? a.addressText}: het pand bekijken`"
+          >
+            {{ a.label ?? a.addressText }}
+          </RouterLink>
+          <span v-else class="min-w-0 truncate font-semibold text-body" :class="{ 'line-through': a.state === 'rejected' }">
             <template v-if="a.label">{{ a.label }}</template>
             <template v-else>{{ a.addressText }}</template>
           </span>
