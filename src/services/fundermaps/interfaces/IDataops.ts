@@ -498,3 +498,36 @@ export interface IBuildingStory {
   /** Model recalculations that moved this pand, newest first; letters as on the map. */
   modelChanges: { at: string; dossierId: number; address: string | null; fields: { label: string; before: string | null; after: string | null }[] }[]
 }
+
+/** The Studio's day (API GET /dataops/today): what the machines and the people did today, and what waits. */
+export interface IStudioToday {
+  generatedAt: string
+  /** The Amsterdam day, YYYY-MM-DD. */
+  day: string
+  today: {
+    received: { total: number; byChannel: { channel: string; n: number }[] }
+    reader: {
+      documents: number
+      pages: number
+      errors: number
+      costUsd: number
+      proposed: number
+      models: string[]
+      lastAt: string | null
+    } | null
+    judged: {
+      total: number
+      byOutcome: Record<string, number>
+      medianSeconds: number | null
+      people: number
+      mine: number
+    }
+    committed: number
+    closed: number
+    modelRuns: { job: string; status: string; finishedAt: string }[]
+  }
+  waiting: { toRead: number; toJudge: number; openDossiers: number } | null
+  /** The last fourteen days, oldest first; `series` runs along them. */
+  days: string[]
+  series: Record<'received' | 'read' | 'judged' | 'committed' | 'closed', number[]>
+}

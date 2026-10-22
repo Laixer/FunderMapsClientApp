@@ -100,9 +100,8 @@ onBeforeMount(async () => {
   const effective = await effectivePackageIds()
   chosen.value = effective.ids
   assigned.value = effective.assigned
-  // Nothing picked yet: open the chooser straight away rather than show an
-  // empty section that says nothing.
-  if (!assigned.value && !chosen.value.length) startChoosing()
+  // Nothing picked yet: the section says so in one line with a button (2026-10-22). The open
+  // chooser used to fill half of Vandaag on a first visit, above the day itself.
   load()
 })
 
@@ -118,9 +117,8 @@ function toggle(id: string) {
 function saveChoice() {
   chosen.value = [...draft.value]
   saveChosen(chosen.value)
-  // Back to none is a choice too (it could not be saved before). The chooser
-  // then stays open, as on a first visit: closed, there would be nothing to reopen it with.
-  choosing.value = chosen.value.length === 0
+  // Back to none is a choice too; the one-line prompt then offers the chooser again.
+  choosing.value = false
   load()
   // The sidebar number is the sum of these packages; keep it in step.
   void studio.refreshCounts(null)
@@ -197,6 +195,21 @@ const panels = computed(() => [
     <p v-if="assigned" class="text-base text-muted">
       Je werkpakketten zijn klaargezet door de beheerder.
     </p>
+    <div
+      v-if="!choosing && !assigned && !chosen.length"
+      class="flex items-center gap-3 rounded-xl border border-dashed border-line-strong bg-raised px-4 py-3"
+    >
+      <p class="text-md flex-1 text-muted">
+        Nog geen werkpakketten gekozen. Kies welk werk van jou is, dan staat het hier, oudste eerst.
+      </p>
+      <button
+        type="button"
+        class="text-md h-8 rounded-lg bg-green px-3 font-semibold text-white"
+        @click="startChoosing"
+      >
+        Kies je pakketten
+      </button>
+    </div>
 
     <!-- The chooser. Ticked once, remembered in this browser. -->
     <Panel v-if="choosing">

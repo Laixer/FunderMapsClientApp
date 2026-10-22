@@ -12,11 +12,13 @@ import PageHeader from '@/components/Common/PageHeader.vue'
 import Panel from '@/components/Common/Panel.vue'
 import ProgressBar from '@/components/Common/ProgressBar.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
+import StudioDay from '@/components/Home/StudioDay.vue'
 import WorkPackages from '@/components/Home/WorkPackages.vue'
 import WorkPackageAdmin from '@/components/Home/WorkPackageAdmin.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
+import type { IStudioToday } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { inquiryTypeLabel } from '@/services/inquiryEnums'
 import { recents, type RecentEntry } from '@/services/recents'
@@ -144,6 +146,15 @@ const lanesTotal = computed(() => LANES.reduce((n, lane) => n + laneTotal(lane.k
  * packages the two numbers on one screen disagreed (49 here, 16 there). The
  * lanes keep their own counts on their tiles.
  */
+/** The studio's day; the page works without it (an API without /dataops/today, or a failure). */
+const studioDay = ref<IStudioToday | null>(null)
+onBeforeMount(() => {
+  api.dataops.today().then(
+    (d) => (studioDay.value = d),
+    () => (studioDay.value = null),
+  )
+})
+
 /** "donderdag 22 oktober": the page is about one day; it says which. */
 const today = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -265,6 +276,9 @@ function chipActive(types: number[] | null): boolean {
   <AppShell crumb="Vandaag">
     <div class="flex flex-col gap-4.5 px-6 py-6">
       <PageHeader :kicker="today" title="Vandaag" :purpose="subtitle" />
+
+      <!-- The day as the pipeline lived it, first (2026-10-22): most of the work is the machines' now. -->
+      <StudioDay v-if="studioDay" :data="studioDay" />
 
       <!-- The review queue, cut to what this person picked (#Vandaag, Don
            2026-09-22). First, because it is where the day's work is now;
