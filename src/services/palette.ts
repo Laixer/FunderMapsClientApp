@@ -20,7 +20,7 @@ import { NAV_ITEMS } from '@/services/navigation'
 import { recoveryDocumentTypeLabel } from '@/services/recoveryEnums'
 import { outcomeLabel } from '@/services/reviewExplorer'
 
-export type PaletteKind = 'GA NAAR' | 'DOSSIER' | 'RAPPORTAGE' | 'HERSTEL' | 'ACTIE'
+export type PaletteKind = 'GA NAAR' | 'PAND' | 'DOSSIER' | 'RAPPORTAGE' | 'HERSTEL' | 'ACTIE'
 
 export interface PaletteItem {
   id: string
@@ -64,6 +64,28 @@ export function actionItems(query: string, actions: PaletteAction[]): PaletteIte
 
 /** The meldcode we print in every mail to a melder, e.g. `FM2026-000111`. */
 const MELDCODE = /^FM\d{4}-\d{6}$/i
+/**
+ * A BAG number: four digits of the municipality, two of the object type
+ * (10 pand, 20 nummeraanduiding), ten more; with or without the NL.IMBAG.
+ * prefix. Either opens the Pand page, which finds the pand of an address.
+ */
+const BAG_ID = /^(?:NL\.IMBAG\.(PAND|NUMMERAANDUIDING)\.)?(\d{4}(10|20)\d{10})$/i
+
+/** The Pand page for a pasted BAG number, or nothing. */
+export function pandItem(query: string): PaletteItem | null {
+  const m = BAG_ID.exec(query.trim())
+  if (!m) return null
+  const digits = m[2]!
+  const address = (m[1]?.toUpperCase() ?? (m[3] === '20' ? 'NUMMERAANDUIDING' : 'PAND')) === 'NUMMERAANDUIDING'
+  const id = `NL.IMBAG.${address ? 'NUMMERAANDUIDING' : 'PAND'}.${digits}`
+  return {
+    id: `pand:${id}`,
+    kind: 'PAND',
+    label: address ? `Pand van adres ${digits}` : `Pand ${digits}`,
+    hint: 'levenslijn en model',
+    to: { name: 'building', params: { id } },
+  }
+}
 
 /**
  * Records matching the query: inquiries, recoveries, and — when the query is a
@@ -90,7 +112,9 @@ export async function recordItems(query: string): Promise<PaletteItem[]> {
     MELDCODE.test(q) ? api.dataops.queue({ q, limit: 1 }).catch(() => []) : Promise.resolve([]),
   ])
 
+  const pand = pandItem(q)
   return [
+    ...(pand ? [pand] : []),
     ...meldingen.map((row) => ({
       id: `melding:${row.id}`,
       kind: 'DOSSIER' as const,

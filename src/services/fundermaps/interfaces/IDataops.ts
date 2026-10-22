@@ -401,3 +401,100 @@ export interface IDataopsMap {
   unplaced: number
   total: number
 }
+
+/** One pand's whole story (API GET /dataops/building/:id): the pand, the model now, and what happened to it. */
+export interface IBuildingStory {
+  /** The BAG pand id the request resolved to (a nummeraanduiding id resolves to its pand). */
+  id: string
+  building: {
+    id: string
+    builtYear: number | null
+    buildingType: string | null
+    active: boolean
+    lat: number
+    lon: number
+    /** GeoJSON (Multi)Polygon of the pand. */
+    outline: { type: 'Polygon' | 'MultiPolygon'; coordinates: unknown } | null
+    neighborhood: string | null
+    district: string | null
+    municipality: string | null
+    municipalityCode: string | null
+  } | null
+  addresses: { id: string; street: string; number: string; postalCode: string; city: string }[]
+  /** All addresses of the pand; `addresses` holds the first 50. */
+  addressCount: number
+  /** What the model says now (data.model_risk_static); codes, labelled in the Studio. */
+  model: {
+    foundationType: string | null
+    foundationTypeReliability: string | null
+    constructionYear: number | null
+    constructionYearReliability: string | null
+    drystandRisk: string | null
+    drystandRiskReliability: string | null
+    dewateringDepthRisk: string | null
+    dewateringDepthRiskReliability: string | null
+    bioInfectionRisk: string | null
+    bioInfectionRiskReliability: string | null
+    unclassifiedRisk: string | null
+    /** The rapportage the model's label rests on, when it rests on one. */
+    inquiryId: number | null
+    inquiryType: string | null
+    recoveryType: string | null
+    overallQuality: string | null
+    damageCause: string | null
+    enforcementTerm: number | null
+    restorationCosts: number | null
+    velocity: number | null
+    groundWaterLevel: number | null
+    groundLevel: number | null
+    height: number | null
+    surfaceArea: number | null
+    soil: string | null
+  } | null
+  rapportages: {
+    id: number
+    type: string
+    documentName: string | null
+    documentDate: string | null
+    auditStatus: string
+    createdAt: string
+    contractor: string | null
+    samples: number
+    addresses: string[]
+    foundationType: string | null
+    overallQuality: string | null
+    damageCause: string | null
+    enforcementTerm: string | null
+    recoveryAdvised: boolean
+  }[]
+  recoveries: {
+    id: number
+    documentType: string
+    documentName: string | null
+    documentDate: string | null
+    auditStatus: string
+    createdAt: string
+    status: string | null
+    recoveryType: string | null
+    pileType: string | null
+    recoveryDate: string | null
+    contractor: string | null
+  }[]
+  /** Meldingen from before the dossiers (report.incident). */
+  incidents: { id: string; createdAt: string; questionType: string | null; auditStatus: string | null; damageCause: string | null }[]
+  dossiers: {
+    id: number
+    reference: string | null
+    channel: string
+    subject: string | null
+    receivedAt: string
+    outcome: string | null
+    outcomeAt: string | null
+    inquiryId: number | null
+    recoveryId: number | null
+    auditInquiryId: number | null
+    duplicateOf: number | null
+  }[]
+  /** Model recalculations that moved this pand, newest first; letters as on the map. */
+  modelChanges: { at: string; dossierId: number; address: string | null; fields: { label: string; before: string | null; after: string | null }[] }[]
+}

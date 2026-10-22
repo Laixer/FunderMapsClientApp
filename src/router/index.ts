@@ -62,6 +62,8 @@ const routes: RouteRecordRaw[] = [
   { path: '/datastroom', redirect: { name: 'dataflow' } },
   // How the model runs and what it says now (2026-10-22): the start of the 5.0 models section.
   { name: 'models', path: '/models', component: () => import('@/views/ModelsView.vue') },
+  // One pand's whole story (2026-10-22): reached from every address, and from Ctrl+K by BAG number.
+  { name: 'building', path: '/building/:id', component: () => import('@/views/BuildingView.vue') },
 
   /*
    * The explorer's whole question — filters, sort and page — lives in the query
