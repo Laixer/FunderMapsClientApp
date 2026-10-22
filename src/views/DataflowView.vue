@@ -78,7 +78,7 @@ const tiles = computed(() =>
 
 const updated = computed(() =>
   data.value
-    ? new Date(data.value.generatedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+    ? new Date(data.value.generatedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
     : null,
 )
 

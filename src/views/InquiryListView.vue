@@ -259,6 +259,12 @@ function onSort(field: string) {
 
 const selected = ref<IInquiry | null>(null)
 const selectedPins = ref<SamplePin[]>([])
+/** The BAG address under each pin, by pin id: a click on a pin opens its pand (2026-10-22). */
+const pinAddress = new Map<string | number, string>()
+function openPin(id: string | number) {
+  const address = pinAddress.get(id)
+  if (address) router.push({ name: 'building', params: { id: address } })
+}
 const selectedAddressCount = ref<number | null>(null)
 const selectedFilled = ref<number | null>(null)
 const inspectorLoading = ref(false)
@@ -288,6 +294,8 @@ async function select(row: IInquiry) {
     selectedAddressCount.value = summary.count
     selectedFilled.value = summary.filled
     selectedPins.value = summary.pins.map((p) => ({ id: p.id, lat: p.latitude, lng: p.longitude }))
+    pinAddress.clear()
+    for (const p of summary.pins) if (p.address) pinAddress.set(p.id, p.address)
   } catch {
     // The inspector's extras are enrichment. Losing them costs the map and two
     // counts; the summary and the actions still work.
@@ -586,7 +594,12 @@ const MODES: { key: Mode; label: string }[] = [
             :empty-message="
               inspectorLoading ? 'Locatie ophalen…' : 'Geen adres met een bekende locatie.'
             "
+            @select="openPin"
           />
+          <!-- Right under the map, where the eye is when it looks at a pin. -->
+          <p v-if="mode === 'tabel' && selectedPins.length" class="text-sm border-b border-line px-4 py-1.5 text-label">
+            Klik een pin om het pand te openen: zijn hele geschiedenis en wat het model zegt.
+          </p>
 
           <div class="flex flex-col gap-4 p-4">
             <div class="flex flex-col gap-1">
