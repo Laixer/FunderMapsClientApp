@@ -5,7 +5,9 @@ import { useRoute, useRouter } from 'vue-router'
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import Panel from '@/components/Common/Panel.vue'
+import PageHeader from '@/components/Common/PageHeader.vue'
 import Pill from '@/components/Common/Pill.vue'
+import Segmented from '@/components/Common/Segmented.vue'
 import Lifeline from '@/components/Building/Lifeline.vue'
 import api from '@/services/fundermaps'
 import { describeFailure } from '@/services/fundermaps/errors'
@@ -217,38 +219,26 @@ function pick(kind: EventKind) {
       <p v-if="loading && !story" class="text-md text-muted">Pand ophalen…</p>
 
       <template v-if="story">
-        <!-- The hero (2026-10-22: "The pand page is really important … feels like an afterthought"):
-             who the pand is and what we know about its foundation, in one look — the address large, one
-             sentence with the verdict, the facts as chips; on the right the type and the four risks as
-             labels in the map's own colours. -->
-        <section
-          class="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-6 rounded-2xl border border-line bg-surface px-6 py-5"
-          aria-label="Het pand"
-        >
-          <div class="flex min-w-0 flex-col gap-3">
-            <div>
-              <p class="studio-caption mb-1">Pand <span class="font-mono tracking-normal normal-case text-faint">· BAG {{ bagNumber(story.id) }}</span></p>
-              <h1 class="text-4xl flex flex-wrap items-center gap-x-3 font-display font-bold text-ink">
-                <span class="min-w-0 break-words">{{ title }}</span>
-                <Pill v-if="story.building && !story.building.active" label="niet meer in de BAG" tone="amber" />
-              </h1>
-              <p class="text-lg mt-1 text-muted">{{ placeLine }}</p>
-            </div>
+        <!-- The page header every page has (2026-10-22, the style pass: the hero had its own card and
+             title size), then what we know in a Panel: the verdict and the facts, the type and the four
+             risks as labels in the map's colours. -->
+        <PageHeader :kicker="`Pand · BAG ${bagNumber(story.id)}`" :title="title" :purpose="placeLine">
+          <template #badges>
+            <Pill v-if="story.building && !story.building.active" label="niet meer in de BAG" tone="amber" />
+          </template>
+          <template #actions>
+            <Button v-if="basis" :to="{ name: 'inquiry-view', params: { id: basis.id } }" :label="`${basis.label} #${basis.id}`" />
+            <Button :label="copied ? 'Gekopieerd' : 'BAG-id kopiëren'" variant="ghost" @click="copyBag" />
+            <Button label="Opnieuw ophalen" variant="ghost" :disabled="loading" @click="load" />
+          </template>
+        </PageHeader>
+
+        <Panel aria-label="Het pand">
+          <div class="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-6">
+          <div class="flex min-w-0 flex-col gap-2">
+            <p class="studio-label">Wat we weten</p>
             <p class="text-xl leading-snug text-body" data-verdict>{{ verdictLine }}</p>
-            <ul class="flex flex-wrap gap-2" aria-label="Kenmerken">
-              <li v-for="c in chips" :key="c" class="text-sm rounded-full border border-line bg-raised px-3 py-1 text-strong">{{ c }}</li>
-            </ul>
-            <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
-              <RouterLink
-                v-if="basis"
-                :to="{ name: 'inquiry-view', params: { id: basis.id } }"
-                class="text-md rounded-lg border border-line px-3 py-1.5 font-semibold text-blue-ink hover:border-line-hover hover:bg-raised"
-              >
-                {{ basis.label }} #{{ basis.id }} openen
-              </RouterLink>
-              <Button :label="copied ? 'Gekopieerd' : 'BAG-id kopiëren'" variant="ghost" @click="copyBag" />
-              <Button label="Opnieuw ophalen" variant="ghost" :disabled="loading" @click="load" />
-            </div>
+            <p class="text-md text-muted" data-facts>{{ chips.join(' · ') }}</p>
           </div>
 
           <div class="flex flex-col gap-3">
@@ -290,7 +280,8 @@ function pick(kind: EventKind) {
               </div>
             </div>
           </div>
-        </section>
+          </div>
+        </Panel>
 
         <!-- Where it stands, and what there is -->
         <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-stretch gap-3">
@@ -304,24 +295,13 @@ function pick(kind: EventKind) {
             />
             <p v-else class="text-sm flex h-full items-center justify-center text-subtle">Geen omtrek bekend voor dit pand.</p>
             <!-- The street map or the aerial photo (PDOK): the roof, the garden, the neighbours. -->
-            <div
+            <Segmented
               v-if="story.building?.outline"
-              class="absolute top-3 left-3 z-10 flex rounded-lg border border-line bg-surface p-0.5 shadow-sm"
-              role="group"
-              aria-label="Achtergrond van de kaart"
-            >
-              <button
-                v-for="o in [{ key: false, label: 'Kaart' }, { key: true, label: 'Luchtfoto' }]"
-                :key="o.label"
-                type="button"
-                class="text-sm rounded-md px-2.5 py-1 font-semibold"
-                :class="aerial === o.key ? 'bg-ink text-white' : 'text-muted hover:text-strong'"
-                :aria-pressed="aerial === o.key"
-                @click="aerial = o.key"
-              >
-                {{ o.label }}
-              </button>
-            </div>
+              v-model="aerial"
+              class="absolute top-3 left-3 z-10 shadow-sm"
+              label="Achtergrond van de kaart"
+              :options="[{ key: false, label: 'Kaart' }, { key: true, label: 'Luchtfoto' }]"
+            />
           </div>
 
           <Panel title="In het kort">
@@ -366,20 +346,11 @@ function pick(kind: EventKind) {
         <!-- Everything, newest first -->
         <Panel id="pand-events" title="Alles wat er met dit pand gebeurde" flush>
           <template #actions>
-            <div class="flex items-center gap-1" role="tablist" aria-label="Soort gebeurtenis">
-              <button
-                v-for="f in FILTERS"
-                :key="f.key"
-                type="button"
-                role="tab"
-                :aria-selected="filter === f.key"
-                class="text-sm rounded-md px-2.5 py-1"
-                :class="filter === f.key ? 'bg-green-wash font-semibold text-green-ink' : 'text-muted hover:bg-raised'"
-                @click="filter = f.key"
-              >
-                {{ f.label }}<span v-if="filterCount(f.kinds) !== null" class="ml-1 font-mono text-faint">{{ filterCount(f.kinds) }}</span>
-              </button>
-            </div>
+            <Segmented
+              v-model="filter"
+              label="Soort gebeurtenis"
+              :options="FILTERS.map((f) => ({ key: f.key, label: f.label, count: filterCount(f.kinds) }))"
+            />
           </template>
           <ol class="flex flex-col" aria-label="Gebeurtenissen, nieuwste eerst">
             <template v-for="row in rows" :key="row.key">
@@ -397,7 +368,7 @@ function pick(kind: EventKind) {
               :class="selected === row.e.key ? 'bg-blue-wash' : row.e.current ? 'bg-green-wash/50' : ''"
             >
               <span class="text-sm pt-0.5 font-mono text-faint">{{ eventDate(row.e) }}</span>
-              <span class="text-xs flex items-center gap-1.5 pt-1 font-semibold tracking-[0.06em] text-label uppercase">
+              <span class="studio-label flex items-center gap-1.5 pt-1">
                 <span class="h-2 w-2 shrink-0 rounded-full" :class="row.e.kind === 'built' ? 'bg-ink' : TONE_DOT[row.e.tone]" />{{ KIND_LABEL[row.e.kind] }}
               </span>
               <div class="flex min-w-0 flex-col gap-0.5">

@@ -607,14 +607,13 @@ useActionShortcuts(() => {
                       />
                     </component>
                     <!-- Beside the card, not in it: the card is a button while the rapportage can be edited. -->
-                    <RouterLink
+                    <Button
                       v-if="address.address"
+                      class="self-center"
                       :to="{ name: 'building', params: { id: address.address } }"
-                      class="text-sm flex shrink-0 items-center rounded-xl border border-line px-3 text-muted hover:border-line-hover hover:bg-raised hover:text-ink"
+                      label="Pand"
                       :title="`${address.label}: het pand bekijken`"
-                    >
-                      Pand
-                    </RouterLink>
+                    />
                   </li>
                 </ul>
                 <EmptyState v-else>Nog geen adressen toegevoegd.</EmptyState>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink, type RouteLocationRaw } from 'vue-router'
 
 import { keyLabel } from '@/services/shortcuts'
 
@@ -25,6 +26,12 @@ const props = withDefaults(
     shortcut?: string
     /** Stretch to the container — for a dropzone action or an inspector button. */
     block?: boolean
+    /**
+     * A place to go rather than a thing to do (2026-10-22): the button renders as a link,
+     * so it opens in a new tab on a middle click and reads as a link to a screen reader,
+     * but looks like every other button — instead of a bordered link of its own style.
+     */
+    to?: RouteLocationRaw
   }>(),
   { type: 'button', variant: 'secondary', disabled: false, block: false },
 )
@@ -57,9 +64,11 @@ const shortcutLabel = computed(() => (props.shortcut ? keyLabel(props.shortcut) 
 </script>
 
 <template>
-  <button
-    :type="type"
-    :disabled="disabled"
+  <component
+    :is="to ? RouterLink : 'button'"
+    :to="to"
+    :type="to ? undefined : type"
+    :disabled="to ? undefined : disabled"
     class="text-md inline-flex h-8 items-center gap-2 rounded-lg border px-3 font-semibold whitespace-nowrap disabled:cursor-default"
     :class="classes"
   >
@@ -71,5 +80,5 @@ const shortcutLabel = computed(() => (props.shortcut ? keyLabel(props.shortcut) 
       {{ shortcutLabel }}
     </span>
     <slot name="after" />
-  </button>
+  </component>
 </template>

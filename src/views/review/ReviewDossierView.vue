@@ -1886,13 +1886,7 @@ async function reopen(f: IProposedField) {
       <Pill v-else :label="`${openCards} te beoordelen`" tone="blue" plain />
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint" :title="metaLine">{{ metaLine }}</p>
       <!-- The pand this dossier is about: its whole story is one click away (2026-10-22). -->
-      <RouterLink
-        v-if="ownPand"
-        :to="{ name: 'building', params: { id: ownPand } }"
-        class="text-sm shrink-0 rounded-lg border border-line px-2.5 py-1 font-semibold text-blue-ink hover:border-line-hover hover:bg-raised"
-      >
-        Pand →
-      </RouterLink>
+      <Button v-if="ownPand" :to="{ name: 'building', params: { id: ownPand } }" label="Pand →" />
       <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
     </header>
 
@@ -2316,14 +2310,14 @@ async function reopen(f: IProposedField) {
               <template v-for="(f, i) in lookFirst(group.fields)" :key="f.id">
                 <li
                   v-if="i === 0 && needsLook(f) && lookFirst(group.fields).some((x) => !needsLook(x))"
-                  class="text-xs border-b border-divider bg-amber-wash px-3 py-1 font-semibold tracking-[0.06em] text-amber-ink uppercase"
+                  class="studio-label border-b border-divider bg-amber-wash px-3 py-1 !text-amber-ink"
                   aria-hidden="true"
                 >
                   Kijk hier eerst naar · {{ group.fields.filter(needsLook).length }}
                 </li>
                 <li
                   v-else-if="i > 0 && !needsLook(f) && needsLook(lookFirst(group.fields)[i - 1]!)"
-                  class="text-xs border-b border-divider bg-raised px-3 py-1 font-semibold tracking-[0.06em] text-label uppercase"
+                  class="studio-label border-b border-divider bg-raised px-3 py-1"
                   aria-hidden="true"
                 >
                   Zeker en geciteerd · {{ group.fields.filter((x) => !needsLook(x)).length }}
@@ -2338,7 +2332,7 @@ async function reopen(f: IProposedField) {
                 >
                   <div class="flex min-w-0 items-center gap-3">
                     <span
-                      class="text-sm w-[132px] shrink-0 truncate font-semibold tracking-wide text-label uppercase"
+                      class="studio-label w-[132px] shrink-0 truncate"
                       :title="fieldLabel(f.field)"
                     >
                       {{ fieldLabel(f.field) }}
