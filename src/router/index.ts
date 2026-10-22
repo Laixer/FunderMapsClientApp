@@ -57,7 +57,9 @@ const routes: RouteRecordRaw[] = [
 
   // Where every dossier went, as one picture (2026-10-22): the Studio's first
   // page about the data rather than about the work.
-  { name: 'dataflow', path: '/datastroom', component: () => import('@/views/DataflowView.vue') },
+  { name: 'dataflow', path: '/dataflow', component: () => import('@/views/DataflowView.vue') },
+  // Its first address, live for an hour on 2026-10-22: the name on screen is Dutch, the URL is not.
+  { path: '/datastroom', redirect: { name: 'dataflow' } },
 
   /*
    * The explorer's whole question — filters, sort and page — lives in the query
