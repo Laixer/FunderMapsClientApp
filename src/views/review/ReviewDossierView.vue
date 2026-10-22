@@ -1565,6 +1565,8 @@ const metaLine = computed(() => {
 })
 
 const artifacts = computed(() => data.value?.artifacts ?? [])
+/** The pand of the dossier (its own address), for the header's link to the Pand page. */
+const ownPand = computed(() => data.value?.addresses?.find((a) => a.own)?.buildingId ?? null)
 const current = computed(() => artifacts.value[shown.value] ?? null)
 /**
  * The document tabs scroll when there are many files. A click on a value
@@ -1883,6 +1885,14 @@ async function reopen(f: IProposedField) {
       />
       <Pill v-else :label="`${openCards} te beoordelen`" tone="blue" plain />
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint" :title="metaLine">{{ metaLine }}</p>
+      <!-- The pand this dossier is about: its whole story is one click away (2026-10-22). -->
+      <RouterLink
+        v-if="ownPand"
+        :to="{ name: 'building', params: { id: ownPand } }"
+        class="text-sm shrink-0 rounded-lg border border-line px-2.5 py-1 font-semibold text-blue-ink hover:border-line-hover hover:bg-raised"
+      >
+        Pand →
+      </RouterLink>
       <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
     </header>
 

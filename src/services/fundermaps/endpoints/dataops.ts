@@ -13,6 +13,7 @@ import type {
   IDataopsMap,
   IBuildingStory,
   IStudioToday,
+  IPandenOpen,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -295,6 +296,11 @@ export async function today() {
   return (await get({ endpoint: '/dataops/today' })) as IStudioToday
 }
 
+/** The panden with open work, for the Panden finder. */
+export async function pandenOpen() {
+  return (await get({ endpoint: '/dataops/buildings' })) as IPandenOpen
+}
+
 /** One pand's whole story, by BAG pand or nummeraanduiding id (the Pand page). */
 export async function building(id: string) {
   return (await get({ endpoint: `/dataops/building/${encodeURIComponent(id)}` })) as IBuildingStory
@@ -414,6 +420,7 @@ export default {
   models,
   originMap,
   building,
+  pandenOpen,
   today,
   addressVerdict,
   addressAdd,

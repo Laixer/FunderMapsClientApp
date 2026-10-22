@@ -64,6 +64,8 @@ const routes: RouteRecordRaw[] = [
   { name: 'models', path: '/models', component: () => import('@/views/ModelsView.vue') },
   // One pand's whole story (2026-10-22): reached from every address, and from Ctrl+K by BAG number.
   { name: 'building', path: '/building/:id', component: () => import('@/views/BuildingView.vue') },
+  // The way in: find a pand by address, postcode or BAG number (2026-10-22).
+  { name: 'buildings', path: '/buildings', component: () => import('@/views/BuildingsView.vue') },
 
   /*
    * The explorer's whole question — filters, sort and page — lives in the query

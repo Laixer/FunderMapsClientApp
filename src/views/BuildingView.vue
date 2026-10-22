@@ -25,6 +25,7 @@ import {
   type EventKind,
   type Story,
 } from '@/services/buildingStory'
+import { rememberPand } from '@/services/recentPanden'
 import { TONE_DOT } from '@/services/tone'
 
 // MapLibre is large: the map loads when this page shows it.
@@ -49,6 +50,9 @@ async function load() {
     story.value = await api.dataops.building(String(route.params.id))
     // An address id finds its pand; the address bar then names the pand, so one pand has one URL.
     if (story.value.id !== route.params.id) void router.replace({ name: 'building', params: { id: story.value.id } })
+    // The Panden finder lists the panden you looked at last.
+    const a = story.value.addresses[0]
+    rememberPand(story.value.id, pandTitle(story.value), a ? `${a.postalCode} ${a.city}`.trim() : (story.value.building?.municipality ?? ''))
   } catch (e) {
     story.value = null
     error.value = describeFailure(e, 'Dit pand kon niet worden opgehaald.')
