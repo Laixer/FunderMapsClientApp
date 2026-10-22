@@ -11,6 +11,7 @@ import Field from '@/components/Common/Field.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import DossierAddresses from '@/components/Review/DossierAddresses.vue'
+import DossierChain from '@/components/Review/DossierChain.vue'
 import ProposalValueField from '@/components/Review/ProposalValueField.vue'
 import RecordRecoveryPanel from '@/components/Review/RecordRecoveryPanel.vue'
 import api from '@/services/fundermaps'
@@ -1791,6 +1792,9 @@ async function reopen(f: IProposedField) {
       <p class="text-sm min-w-0 flex-1 truncate font-mono text-faint" :title="metaLine">{{ metaLine }}</p>
       <Button label="Terug naar de lijst" @click="router.push({ name: 'review-queue', query: route.query })" />
     </header>
+
+    <!-- The dossier's road from document to FunderMaps (2026-10-22). -->
+    <DossierChain v-if="data" :data="data" :decided="decided" :closed-now="closed" />
 
     <div
       v-if="error && !missing"
