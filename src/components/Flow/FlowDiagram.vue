@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useElementSize } from '@vueuse/core'
 
 import type { IDataopsFlow } from '@/services/fundermaps/interfaces/IDataops'
 import {
@@ -26,22 +27,34 @@ import {
 const props = defineProps<{ data: IDataopsFlow }>()
 const router = useRouter()
 
-const WIDTH = 1000
 const NODE = 10
-const COLUMNS: [number, number, number] = [190, 500, 760]
+const box = ref<HTMLElement | null>(null)
+
+/**
+ * Drawn at the width it gets, one pixel for one pixel. With a fixed 1000-wide
+ * picture stretched over the panel everything was 19% too large at 1528px,
+ * text included, and the page ran to 2.8 screens (2026-10-22: "way too big").
+ */
+const { width: boxWidth } = useElementSize(box)
+const WIDTH = computed(() => Math.max(900, Math.round(boxWidth.value || 1000)))
+const COLUMNS = computed<[number, number, number]>(() => [
+  Math.round(WIDTH.value * 0.2),
+  Math.round(WIDTH.value * 0.5),
+  Math.round(WIDTH.value * 0.74),
+])
 
 const graph = computed(() => buildFlow(props.data))
 const layout = computed(() =>
   layoutFlow(graph.value.nodes, graph.value.links, graph.value.total, {
-    columns: COLUMNS,
+    columns: COLUMNS.value,
     nodeWidth: NODE,
-    span: 400,
-    gap: 10,
-    minSlot: 20,
-    top: 30,
+    span: 240,
+    gap: 5,
+    minSlot: 17,
+    top: 22,
   }),
 )
-const height = computed(() => Math.ceil(layout.value.height + 14))
+const height = computed(() => Math.ceil(layout.value.height + 8))
 
 const FILL: Record<FlowGroup | 'source', string> = {
   done: 'fill-green-ink',
@@ -58,7 +71,6 @@ const pct = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / 
 
 const hovered = ref<string | null>(null)
 const tip = ref<{ x: number; y: number; title: string; line: string } | null>(null)
-const box = ref<HTMLElement | null>(null)
 
 const byId = computed(() => new Map(layout.value.nodes.map((n) => [n.id, n])))
 
