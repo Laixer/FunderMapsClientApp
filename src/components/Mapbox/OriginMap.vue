@@ -17,6 +17,8 @@ setWorkerUrl(maplibreWorkerUrl)
  * municipality's numbers. Loaded on demand (MapLibre is large), like SampleMap.
  */
 const props = defineProps<{ data: IDataopsMap }>()
+/** A click on a circle: its municipality (the page opens Controle on it). */
+const emit = defineEmits<{ select: [m: { code: string; name: string }] }>()
 
 const container = useTemplateRef<HTMLElement>('container')
 const map = shallowRef<MaplibreMap | null>(null)
@@ -81,7 +83,7 @@ onMounted(() => {
       const f = e.features?.[0]
       if (!f) return
       const p = f.properties as { name: string; dossiers: number; done: number; open: number }
-      m.getCanvas().style.cursor = 'default'
+      m.getCanvas().style.cursor = 'pointer'
       tip.value = {
         x: e.point.x,
         y: e.point.y,
@@ -89,8 +91,13 @@ onMounted(() => {
         line: `${nl(p.dossiers)} dossiers · ${nl(p.done)} in FunderMaps · ${nl(p.open)} open`,
       }
     })
+    m.on('click', 'origin', (e) => {
+      const p = e.features?.[0]?.properties as { code: string; name: string } | undefined
+      if (p) emit('select', { code: p.code, name: p.name })
+    })
     m.on('mouseleave', 'origin', () => {
       tip.value = null
+      m.getCanvas().style.cursor = ''
     })
     requestAnimationFrame(() => m.resize())
     frame()
@@ -124,6 +131,7 @@ onBeforeUnmount(() => {
     >
       <p class="text-md font-semibold text-ink">{{ tip.name }}</p>
       <p class="text-sm text-muted">{{ tip.line }}</p>
+      <p class="text-xs mt-0.5 text-faint">klik: de open dossiers in Controle</p>
     </div>
   </div>
 </template>

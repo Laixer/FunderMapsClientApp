@@ -33,6 +33,11 @@ export interface ReviewQuery {
   /** Received more than a week ago. */
   overdue: boolean
   building: 'resolved' | 'unresolved' | null
+  /**
+   * One municipality, by CBS code, and its name for the chip (2026-10-22): a
+   * click on the Datastroom's map. Through the dossier's pand.
+   */
+  municipality: { code: string; name: string | null } | null
   /** `report.inquiry_type` codes as the pipeline read them; combined as OR. */
   kind: string[]
   /**
@@ -70,6 +75,7 @@ export function emptyQuery(): ReviewQuery {
     state: [],
     overdue: false,
     building: null,
+    municipality: null,
     kind: [],
     outcome: [],
     mine: false,
@@ -185,6 +191,10 @@ export function parseQuery(raw: Record<string, unknown>): ReviewQuery {
     state: strings<QueueState>(raw.state, (s) => STATES.has(s as QueueState)),
     overdue: raw.age === 'overdue',
     building: raw.building === 'resolved' || raw.building === 'unresolved' ? raw.building : null,
+    municipality:
+      typeof raw.gemeente === 'string' && /^GM\d{4}$/i.test(raw.gemeente)
+        ? { code: raw.gemeente.toUpperCase(), name: typeof raw.gemeentenaam === 'string' && raw.gemeentenaam ? raw.gemeentenaam : null }
+        : null,
     kind: strings(raw.kind, (s) => KINDS.has(s)),
     outcome: strings<QueueOutcome>(raw.outcome, (s) => OUTCOMES.has(s as QueueOutcome)),
     mine: raw.assignedTo === 'me',
@@ -213,6 +223,10 @@ export function toRouteQuery(query: ReviewQuery, viewKey: string): LocationQuery
   if (query.state.length) out.state = query.state.join(',')
   if (query.overdue) out.age = 'overdue'
   if (query.building) out.building = query.building
+  if (query.municipality) {
+    out.gemeente = query.municipality.code
+    if (query.municipality.name) out.gemeentenaam = query.municipality.name
+  }
   if (query.kind.length) out.kind = query.kind.join(',')
   if (query.outcome.length) out.outcome = query.outcome.join(',')
   if (query.mine) out.assignedTo = 'me'
@@ -247,6 +261,7 @@ export function toQueueOpts(query: ReviewQuery, viewKey?: string): IQueueListOpt
   if (query.state.length) opts.state = [...query.state]
   if (query.overdue) opts.age = 'overdue'
   if (query.building) opts.building = query.building
+  if (query.municipality) opts.municipality = query.municipality.code
   if (query.kind.length) opts.kind = [...query.kind]
   if (query.outcome.length) opts.outcome = [...query.outcome]
   if (query.mine) opts.assignedTo = 'me'
@@ -315,6 +330,14 @@ export function chipsFor(query: ReviewQuery): Chip[] {
       label: 'pand',
       value: query.building === 'resolved' ? 'herkend' : 'niet herkend',
       clear: (q) => ({ ...q, building: null, page: 1 }),
+    })
+  }
+  if (query.municipality) {
+    chips.push({
+      id: 'municipality',
+      label: 'gemeente',
+      value: query.municipality.name ?? query.municipality.code,
+      clear: (q) => ({ ...q, municipality: null, page: 1 }),
     })
   }
   if (query.kind.length) {
@@ -548,6 +571,7 @@ export function saveView(label: string, query: ReviewQuery): SavedView {
       state: query.state,
       overdue: query.overdue,
       building: query.building,
+      municipality: query.municipality,
       kind: query.kind,
       outcome: query.outcome,
       // Left out before: a view saved from "Aan mij toegewezen" reopened as the whole queue.
