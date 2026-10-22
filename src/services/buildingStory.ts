@@ -133,6 +133,13 @@ export interface StoryEvent {
   current?: boolean
   /** Model recalculations: what moved, in the map's letters. */
   changes?: { label: string; before: string | null; after: string | null }[]
+  /**
+   * A dossier that came and went without adding anything (closed as "geen
+   * gegevens" or as a duplicate): true to the history, but the page folds
+   * several of them into one line (2026-10-22: on a real pand they were half
+   * the list, each named by its file).
+   */
+  quiet?: boolean
 }
 
 function rapportageEvent(r: Rapportage, currentId: number | null): StoryEvent {
@@ -199,6 +206,7 @@ export function storyEvents(story: Story): StoryEvent[] {
       tone: d.inquiryId ? 'green' : open ? 'amber' : 'neutral',
       pill,
       to: { name: 'review-dossier', params: { id: d.id } },
+      quiet: !d.inquiryId && (d.outcome === 'no_data' || d.outcome === 'duplicate'),
     })
   }
 
@@ -267,3 +275,49 @@ export function lifelineSpan(events: StoryEvent[], now = new Date()): [number, n
 
 /** "12 mrt 2019"; a bare year for the build year. */
 export const eventDate = (e: StoryEvent) => (e.kind === 'built' ? e.date.slice(0, 4) : formatDate(e.date))
+
+/* ------------------------------------------------------------ the verdict */
+
+const yearOfDate = (date: string | null | undefined) => (date ? date.slice(0, 4) : null)
+/** A label inside a sentence: "Funderingsonderzoek" → "funderingsonderzoek"; a name like "QuickScan" stays. */
+const inSentence = (label: string) => (/[A-Z]/.test(label.slice(1)) ? label : label.charAt(0).toLowerCase() + label.slice(1))
+
+/**
+ * The page's verdict in plain words (2026-10-22, the Pand page as the hub):
+ * what the foundation is and how sure that is, whether it was repaired, and
+ * whether work is open — "Houten fundering, vastgesteld met een
+ * funderingsonderzoek uit 2019 · hersteld in 2021 · 2 dossiers open".
+ */
+export function verdict(story: Story): string[] {
+  const parts: string[] = []
+  const m = story.model
+  if (m?.foundationType) {
+    const type = sentence(valueLabel('foundation_type', m.foundationType) ?? m.foundationType)
+    const basis = m.inquiryId ? story.rapportages.find((r) => r.id === m.inquiryId) : null
+    const how =
+      m.foundationTypeReliability === 'established'
+        ? basis
+          ? `vastgesteld met ${inSentence(valueLabel('inquiry_type', basis.type) ?? 'een rapportage')} uit ${yearOfDate(basis.documentDate ?? basis.createdAt)}`
+          : 'vastgesteld'
+        : m.foundationTypeReliability === 'indicative'
+          ? 'geschat door het model'
+          : m.foundationTypeReliability
+            ? 'afgeleid uit vergelijkbare panden'
+            : null
+    parts.push(how ? `${type}, ${how}` : type)
+  } else {
+    parts.push('Het model heeft voor dit pand geen funderingstype')
+  }
+  const done = story.recoveries.filter((r) => r.status === 'executed')
+  const planned = story.recoveries.filter((r) => r.status === 'planned' || r.status === 'requested')
+  if (done.length) {
+    const years = done.map((r) => yearOfDate(r.recoveryDate ?? r.documentDate)).filter(Boolean).sort()
+    const year = years[years.length - 1]
+    parts.push(year ? `hersteld in ${year}` : 'hersteld')
+  } else if (planned.length) {
+    parts.push('herstel aangevraagd')
+  }
+  const open = story.dossiers.filter((d) => !d.outcome && !d.inquiryId).length
+  parts.push(open ? `${open} ${open === 1 ? 'dossier' : 'dossiers'} open` : 'geen open werk')
+  return parts
+}

@@ -14,7 +14,19 @@ setWorkerUrl(maplibreWorkerUrl)
  * demand like the other maps; the wheel scrolls the page, the buttons zoom.
  */
 type Outline = { type: 'Polygon' | 'MultiPolygon'; coordinates: unknown }
-const props = defineProps<{ outline: Outline; lat: number; lon: number }>()
+const props = withDefaults(
+  defineProps<{
+    outline: Outline
+    lat: number
+    lon: number
+    /** The aerial photo under the outline (PDOK, Beeldmateriaal Nederland), instead of the street map. */
+    aerial?: boolean
+  }>(),
+  { aerial: false },
+)
+
+/** PDOK's current aerial photo, as web tiles; public, no key (2026-10-22). */
+const AERIAL = 'https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0/Actueel_orthoHR/EPSG:3857/{z}/{x}/{y}.jpeg'
 
 const container = useTemplateRef<HTMLElement>('container')
 const map = shallowRef<MaplibreMap | null>(null)
@@ -57,13 +69,33 @@ onMounted(() => {
   m.addControl(new NavigationControl({ showCompass: false }), 'top-right')
   m.on('load', () => {
     map.value = m
+    m.addSource('luchtfoto', {
+      type: 'raster',
+      tiles: [AERIAL],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: 'Luchtfoto: Beeldmateriaal Nederland, via PDOK',
+    })
+    m.addLayer({ id: 'luchtfoto', type: 'raster', source: 'luchtfoto', layout: { visibility: props.aerial ? 'visible' : 'none' } })
     m.addSource('pand', { type: 'geojson', data: feature() })
     m.addLayer({ id: 'pand-fill', type: 'fill', source: 'pand', paint: { 'fill-color': '#12875a', 'fill-opacity': 0.35 } })
     m.addLayer({ id: 'pand-line', type: 'line', source: 'pand', paint: { 'line-color': '#0b5e3e', 'line-width': 2 } })
+    paintFor(props.aerial)
     requestAnimationFrame(() => m.resize())
     frame()
   })
 })
+
+/** On the photo the outline needs to stand out more: a light line and a lighter fill. */
+function paintFor(aerial: boolean) {
+  const m = map.value
+  if (!m) return
+  m.setLayoutProperty('luchtfoto', 'visibility', aerial ? 'visible' : 'none')
+  m.setPaintProperty('pand-fill', 'fill-opacity', aerial ? 0.18 : 0.35)
+  m.setPaintProperty('pand-line', 'line-color', aerial ? '#ffffff' : '#0b5e3e')
+  m.setPaintProperty('pand-line', 'line-width', aerial ? 3 : 2)
+}
+watch(() => props.aerial, paintFor)
 
 watch(
   () => props.outline,
