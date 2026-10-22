@@ -18,7 +18,6 @@ import WorkPackageAdmin from '@/components/Home/WorkPackageAdmin.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
-import type { IStudioToday } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { inquiryTypeLabel } from '@/services/inquiryEnums'
 import { recents, type RecentEntry } from '@/services/recents'
@@ -55,7 +54,8 @@ import { useStudioStore } from '@/stores/studio'
  */
 const router = useRouter()
 const { currentUser, isAdministrator } = storeToRefs(useSessionStore())
-const { werkbank } = storeToRefs(useStudioStore())
+const studio = useStudioStore()
+const { werkbank } = storeToRefs(studio)
 
 const loading = ref(true)
 const rowsByLane = ref<Record<string, IInquiry[]>>({})
@@ -146,14 +146,13 @@ const lanesTotal = computed(() => LANES.reduce((n, lane) => n + laneTotal(lane.k
  * packages the two numbers on one screen disagreed (49 here, 16 there). The
  * lanes keep their own counts on their tiles.
  */
-/** The studio's day; the page works without it (an API without /dataops/today, or a failure). */
-const studioDay = ref<IStudioToday | null>(null)
-onBeforeMount(() => {
-  api.dataops.today().then(
-    (d) => (studioDay.value = d),
-    () => (studioDay.value = null),
-  )
-})
+/**
+ * The studio's day, from the store's pulse (the top bar reads the same): fresh
+ * on arrival here, one request. The page works without it (an API without
+ * /dataops/today, or a failure).
+ */
+const studioDay = computed(() => studio.pulse)
+onBeforeMount(() => void studio.refreshPulse(0))
 
 /** "donderdag 22 oktober": the page is about one day; it says which. */
 const today = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
