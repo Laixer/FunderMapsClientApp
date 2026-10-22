@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import ProgressBar from '@/components/Common/ProgressBar.vue'
+import ChainRow from '@/components/Common/ChainRow.vue'
+import type { ChainStep, StepState } from '@/services/dossierChain'
 import {
   STAGES,
   position,
@@ -10,18 +11,17 @@ import {
   type StageRole,
   type StageState,
 } from '@/services/pipeline'
-import type { Tone } from '@/services/tone'
 
 /**
- * The dossier's three phases as three equal cards.
+ * The dossier's three phases — Invoer, Controle, Afgerond — in the Studio's one
+ * progress language (2026-10-22): a ChainRow, dots joined by a line, like the
+ * origin row right above it on the rapportage page and the chain on a dossier.
+ * Three big cards there spoke a second language for the same idea.
  *
- * Replaces the wide connected stepper. A stepper draws a rail and hangs labels
- * off it, which spends most of its width on the rail; three cards spend it on
- * the thing you actually want per phase — who owns it, and how far it got.
- *
+ * Per phase: who holds it, and for the phase you are standing on how far it got.
  * `progress` is supplied by the caller because only the caller can count it
  * (filled fields per address, for the entry phase). Nothing is invented here:
- * a phase with no measurable progress renders an empty track.
+ * a phase without a number says none.
  */
 const props = defineProps<{
   status: number | null | undefined
@@ -34,33 +34,12 @@ const props = defineProps<{
 const pos = computed<Position>(() => position(props.status))
 const states = computed<StageState[]>(() => STAGES.map((_, i) => stageState(i, pos.value)))
 
-const CARD: Record<StageState, string> = {
-  done: 'bg-green-wash border-green-border',
-  current: 'bg-green-wash border-green-border',
-  blocked: 'bg-red-tint border-red-border',
-  todo: 'bg-surface border-line',
-}
-
-const CHIP: Record<StageState, string> = {
-  done: 'bg-green text-white',
-  current: 'bg-green text-white',
-  blocked: 'bg-red text-white',
-  todo: 'bg-canvas text-subtle',
-}
-
-const TITLE: Record<StageState, string> = {
-  done: 'text-green-deep',
-  current: 'text-green-deep',
-  blocked: 'text-red',
-  todo: 'text-muted',
-}
-
-const BAR: Record<StageState, Tone> = {
-  done: 'green',
-  current: 'green',
-  blocked: 'red',
-  todo: 'neutral',
-}
+/**
+ * The pipeline's stage states in the chain's words. Sent back is where it is now
+ * (with the opsteller), not a stop: on the dossier chain grey "stop" means closed.
+ * The "teruggestuurd" under it, the red callout and the status badge say why.
+ */
+const STEP: Record<StageState, StepState> = { done: 'done', current: 'now', blocked: 'now', todo: 'todo' }
 
 /**
  * A stage that is behind us is complete by definition; a stage still ahead is
@@ -79,39 +58,38 @@ function personFor(index: number): string | null {
   if (!role) return null
   return props.people?.[role] ?? null
 }
+
+const steps = computed<ChainStep[]>(() =>
+  STAGES.map((stage, i) => {
+    const state = states.value[i]!
+    const fill = fillFor(i)
+    return {
+      key: stage.key,
+      label: stage.label,
+      // "wacht op controle" only while it is with the reviewer: it also said so on a
+      // dossier that was sent back, or not started, and so waits for the opsteller.
+      value:
+        personFor(i) ??
+        (stage.role
+          ? 'niet toegewezen'
+          : state === 'done'
+            ? 'vastgesteld'
+            : pos.value.index === 1
+              ? 'wacht op controle'
+              : 'nog niet vastgesteld'),
+      sub:
+        (state === 'current' || state === 'blocked') && fill > 0 && fill < 1
+          ? `${Math.round(fill * 100)}% ingevuld`
+          : state === 'blocked'
+            ? 'teruggestuurd'
+            : null,
+      state: STEP[state],
+      title: stage.summary,
+    }
+  }),
+)
 </script>
 
 <template>
-  <ol class="grid grid-cols-3 gap-2.5">
-    <li
-      v-for="(stage, i) in STAGES"
-      :key="stage.key"
-      class="flex flex-col gap-2 rounded-xl border px-3.5 py-3"
-      :class="CARD[states[i]!]"
-      :title="stage.summary"
-    >
-      <div class="flex items-center gap-2">
-        <span
-          class="text-2xs inline-flex h-[18px] w-[18px] items-center justify-center rounded-full font-mono"
-          :class="CHIP[states[i]!]"
-          aria-hidden="true"
-        >
-          {{ i + 1 }}
-        </span>
-        <span class="text-lg font-bold" :class="TITLE[states[i]!]">{{ stage.label }}</span>
-      </div>
-
-      <span class="text-sm truncate text-subtle" :title="personFor(i) ?? undefined">
-        <template v-if="personFor(i)">{{ personFor(i) }}</template>
-        <template v-else-if="stage.role">niet toegewezen</template>
-        <!-- "wacht op controle" only while it is with the reviewer: it also said so on a
-             dossier that was sent back, or not started, and so waits for the opsteller. -->
-        <template v-else>{{
-          states[i] === 'done' ? 'vastgesteld' : pos.index === 1 ? 'wacht op controle' : 'nog niet vastgesteld'
-        }}</template>
-      </span>
-
-      <ProgressBar :value="fillFor(i)" :tone="BAR[states[i]!]" :label="stage.label" />
-    </li>
-  </ol>
+  <ChainRow :steps="steps" label="Voortgang" now-word="hier staat het nu" inset stacked />
 </template>
