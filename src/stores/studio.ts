@@ -2,6 +2,16 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import api from '@/services/fundermaps'
+import {
+  BUILTIN_VIEWS,
+  DEFAULT_VIEW,
+  customViews,
+  defaultView,
+  fromView,
+  toCountOpts,
+  viewGroups,
+  type SavedView,
+} from '@/services/reviewExplorer'
 import { effectivePackageIds, packagesFor } from '@/services/workPackages'
 import { useSessionStore } from '@/stores/session'
 
@@ -37,6 +47,55 @@ export const useStudioStore = defineStore('studio', () => {
   }))
 
   /**
+   * Controle's views, built in and saved in this browser, and the number on
+   * each. Here rather than on the page: since 2026-10-22 the sidebar lists
+   * them under Controle like an inbox's folders, so the rail and the page
+   * read one list and one set of counts.
+   */
+  const reviewViews = ref<SavedView[]>([...BUILTIN_VIEWS, ...customViews()])
+  const reviewGroups = computed(() => viewGroups(reviewViews.value.filter((v) => !v.builtin)))
+  const viewCounts = ref<Record<string, number | null>>({})
+  /** Set by the sidebar while it lists the views; only then does `refreshCounts` count them too. */
+  const reviewViewsShown = ref(false)
+
+  function reloadReviewViews() {
+    reviewViews.value = [...BUILTIN_VIEWS, ...customViews()]
+  }
+
+  let viewCountToken = 0
+  let viewCountsAt = 0
+
+  /**
+   * The number on every view: its own question, without whatever is filtered
+   * or typed on top of it, as on the Vandaag tiles. Views asking the same
+   * (Wachtrij and Meldingen differ only in their order) share one request.
+   * `maxAge` skips a refresh younger than that: the sidebar mounts again with
+   * every page, and opening a dossier and going back is no reason to ask again.
+   */
+  async function refreshViewCounts(maxAge = 0): Promise<void> {
+    if (maxAge && Date.now() - viewCountsAt < maxAge) return
+    viewCountsAt = Date.now()
+    const token = ++viewCountToken
+    const asked = new Map<string, Promise<number | null>>()
+    await Promise.all(
+      reviewViews.value.map((view) => {
+        const opts = toCountOpts(fromView(view), view.key)
+        const sig = JSON.stringify(opts)
+        if (!asked.has(sig)) {
+          asked.set(
+            sig,
+            api.dataops.queueCount(opts).then(
+              (r) => r.count,
+              () => null,
+            ),
+          )
+        }
+        return asked.get(sig)!.then((n) => void (token === viewCountToken && (viewCounts.value[view.key] = n)))
+      }),
+    )
+  }
+
+  /**
    * Refresh every counter for the given user.
    *
    * Each source is allowed to fail on its own: the sidebar losing one number is
@@ -57,11 +116,17 @@ export const useStudioStore = defineStore('studio', () => {
           .getCount()
           .then(({ count }) => void (recoveries.value = count))
           .catch(() => {}),
+        // The melders waiting for an answer, i.e. Controle's first tab; not the
+        // whole desk. Until 2026-10-22 this was every open dossier, 1,054, of
+        // which 664 were the archive drop and 205 Fundie's archive leads: the
+        // 34 with somebody waiting were in there, but nobody could tell.
         api.dataops
-          .queueCount()
+          .queueCount(toCountOpts(fromView(defaultView()), DEFAULT_VIEW))
           .then(({ count }) => void (controle.value = count))
           .catch(() => {}),
       ]
+      // A dossier closed or a bulk close: the numbers in the list under Controle move too.
+      if (reviewViewsShown.value) jobs.push(refreshViewCounts())
 
       // The number next to "Vandaag" is the work in your packages plus the
       // dossiers handed to you, i.e. what the Vandaag page puts in front of
@@ -121,6 +186,12 @@ export const useStudioStore = defineStore('studio', () => {
     controle,
     recoveries,
     refreshCounts,
+    reviewViews,
+    reviewGroups,
+    viewCounts,
+    reviewViewsShown,
+    reloadReviewViews,
+    refreshViewCounts,
     openPalette,
     closePalette,
     togglePalette,

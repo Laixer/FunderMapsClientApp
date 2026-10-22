@@ -6,10 +6,9 @@ import Panel from '@/components/Common/Panel.vue'
 
 import api from '@/services/fundermaps'
 import type { IReviewQueueItem } from '@/services/fundermaps/interfaces/IDataops'
-import type { QueueChannel } from '@/services/fundermaps/endpoints/dataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { toastError } from '@/services/toast'
-import { emptyQuery, toRouteQuery } from '@/services/reviewExplorer'
+import { BUILTIN_VIEWS, emptyQuery, toRouteQuery } from '@/services/reviewExplorer'
 import {
   PACKAGE_PREVIEW,
   WORK_PACKAGES,
@@ -130,11 +129,25 @@ function saveChoice() {
 const total = (p: WorkPackage) => counts.value[p.id] ?? rows.value[p.id]?.length ?? 0
 
 /**
- * The tab a package opens on. A search on "Alles" also finds closed dossiers
- * (isWideSearch), so a package with a search term showed 117 instead of its 6
- * open ones (Don, 2026-10-20). Its channel's own tab keeps it to open dossiers.
+ * The tab a package opens on: the first one asking for the same channel and
+ * state. A search on "Alles" also finds closed dossiers (isWideSearch), so a
+ * package with a search term showed 117 instead of its 6 open ones (Don,
+ * 2026-10-20). Its own tab keeps it to open dossiers. Since the groups
+ * (2026-10-22) every package has one; Alles is the fallback.
  */
-const CHANNEL_VIEW: Partial<Record<QueueChannel, string>> = { upload: 'meldingen', invoer_app: 'studio', audit: 'nalezing' }
+const sameSet = (a: readonly string[] = [], b: readonly string[] = []) =>
+  a.length === b.length && a.every((x) => b.includes(x))
+
+function packageView(p: WorkPackage): string {
+  const view = BUILTIN_VIEWS.find(
+    (v) =>
+      sameSet(v.query.channel, p.opts.channel) &&
+      sameSet(v.query.state, p.opts.state) &&
+      !v.query.outcome?.length &&
+      !v.query.mine,
+  )
+  return view?.key ?? 'alles'
+}
 
 /** The package opened in Beoordelen, through the queue's own URL format. */
 function queueLink(p: WorkPackage) {
@@ -143,8 +156,7 @@ function queueLink(p: WorkPackage) {
   if (p.opts.state) q.state = [...p.opts.state]
   if (p.opts.kind) q.kind = [...p.opts.kind]
   if (p.opts.q) q.q = p.opts.q
-  const view = (p.opts.channel?.length === 1 && CHANNEL_VIEW[p.opts.channel[0]]) || 'alles'
-  return { name: 'review-queue', query: toRouteQuery(q, view) }
+  return { name: 'review-queue', query: toRouteQuery(q, packageView(p)) }
 }
 
 /**

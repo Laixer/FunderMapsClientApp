@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { refDebounced } from '@vueuse/core'
 
@@ -17,11 +17,10 @@ import { PAGE_SIZE } from '@/services/explorer'
 import { promptText } from '@/services/prompt'
 import { nalezingNumber, outcomeTone } from '@/services/reviewLabels'
 import {
-  BUILTIN_VIEWS,
+  DEFAULT_VIEW,
   channelLabel,
   chipsFor,
-  customViews,
-  deleteView,
+  defaultView,
   emptyQuery,
   fromView,
   inSentence,
@@ -29,11 +28,11 @@ import {
   kindLabel,
   outcomeLabel,
   parseQuery,
+  routeViewKey,
   saveView,
   toQueueOpts,
   toRouteQuery,
   type ReviewQuery,
-  type SavedView,
 } from '@/services/reviewExplorer'
 import { useRowKeyboard } from '@/services/useRowKeyboard'
 import { useStudioStore } from '@/stores/studio'
@@ -51,8 +50,10 @@ import { useStudioStore } from '@/stores/studio'
  * Filtering, sorting, searching and paging work exactly like Rapportages: the
  * whole question lives in the URL (`services/reviewExplorer`), the server
  * answers it, the active parts show as removable chips, and a full page means
- * there is probably another one. Saved views across the top are the same
- * object under a name.
+ * there is probably another one. Saved views are the same object under a
+ * name, grouped by what we do with the dossier: answer a melder, enter a
+ * document, or nothing any more (`viewGroups`). The sidebar lists them under
+ * Controle with their counts, like a mailbox's folders.
  */
 const route = useRoute()
 const router = useRouter()
@@ -64,9 +65,16 @@ const error = ref<string | null>(null)
 /** The list itself did not load: no counts then, they would count rows that are not there. */
 const loadFailed = ref(false)
 
-const query = ref<ReviewQuery>(emptyQuery())
-const viewKey = ref('alles')
-const views = ref<SavedView[]>([...BUILTIN_VIEWS])
+const query = ref<ReviewQuery>(fromView(defaultView()))
+const viewKey = ref(DEFAULT_VIEW)
+const activeGroup = computed(
+  () =>
+    studio.reviewGroups.find((g) => g.views.includes(viewKey.value)) ??
+    studio.reviewGroups[studio.reviewGroups.length - 1],
+)
+const viewLabel = computed(
+  () => studio.reviewViews.find((v) => v.key === viewKey.value)?.label ?? 'Alles',
+)
 const search = ref('')
 const debouncedSearch = refDebounced(search, 300)
 /** How many dossiers answer the current question, independent of the page. */
@@ -76,12 +84,27 @@ const page = computed(() => query.value.page)
 const hasMore = computed(() => rows.value.length === PAGE_SIZE)
 const chips = computed(() => chipsFor(query.value))
 
-/** Read the URL into state. The address bar is the source of truth, not a mirror. */
-function adoptRoute() {
-  query.value = parseQuery(route.query as Record<string, unknown>)
+/**
+ * Read the URL into state. The address bar is the source of truth, not a mirror.
+ *
+ * The bare link (the sidebar's) is first written out as the default tab's, so
+ * the URL says which list this is: a dossier opened from here takes it along
+ * and picks its "next" from the same list. Returns false then; the watcher
+ * reads the written-out URL.
+ */
+function adoptRoute(): boolean {
+  const raw = route.query as Record<string, unknown>
+  if (!Object.keys(raw).length) {
+    router.replace({
+      name: 'review-queue',
+      query: toRouteQuery(fromView(defaultView()), DEFAULT_VIEW),
+    })
+    return false
+  }
+  query.value = parseQuery(raw)
   search.value = query.value.q
-  const key = typeof route.query.view === 'string' ? route.query.view : 'alles'
-  viewKey.value = views.value.some((v) => v.key === key) ? key : 'alles'
+  viewKey.value = routeViewKey(raw, (key) => studio.reviewViews.some((v) => v.key === key))
+  return true
 }
 
 /** Write state back to the URL, which re-triggers the load through the watcher. */
@@ -114,15 +137,17 @@ async function load() {
   }
 }
 
-views.value = [...BUILTIN_VIEWS, ...customViews()]
-adoptRoute()
-onBeforeMount(load)
+// Saved in another tab of this browser since the Studio loaded: a link to it should still open it.
+studio.reloadReviewViews()
+const adopted = adoptRoute()
+onBeforeMount(() => {
+  if (adopted) load()
+})
 
 watch(
   () => route.query,
   () => {
-    adoptRoute()
-    load()
+    if (adoptRoute()) load()
   },
 )
 
@@ -134,22 +159,7 @@ watch(debouncedSearch, (q) => {
 
 /* ------------------------------------------------------------- saved views */
 
-function selectView(view: SavedView) {
-  push({ ...fromView(view) }, view.key)
-}
-
-/**
- * The active tab in sight, as the document tabs do: a saved view opened by its
- * link sat past the end of a scrolled strip, and nothing on screen was underlined.
- */
-const tabStrip = ref<HTMLElement | null>(null)
-function showActiveTab() {
-  const i = views.value.findIndex((v) => v.key === viewKey.value)
-  tabStrip.value?.children[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-}
-onMounted(showActiveTab)
-watch(viewKey, showActiveTab, { flush: 'post' })
-
+// Opening, and deleting, a view happens in the sidebar (Sidebar.vue).
 async function onSaveView() {
   const label = await promptText({
     title: 'Weergave opslaan',
@@ -158,14 +168,9 @@ async function onSaveView() {
   })
   if (!label) return
   const view = saveView(label, query.value)
-  views.value = [...BUILTIN_VIEWS, ...customViews()]
+  studio.reloadReviewViews()
   push(query.value, view.key)
-}
-
-function onDeleteView(view: SavedView) {
-  deleteView(view.key)
-  views.value = [...BUILTIN_VIEWS, ...customViews()]
-  if (viewKey.value === view.key) push(emptyQuery(), 'alles')
+  void studio.refreshViewCounts()
 }
 
 /**
@@ -239,7 +244,11 @@ const items = computed(() =>
     open: r.open,
     read: r.read,
     receivedAt: shortDate(r.receivedAt),
-    overdue: !r.outcome && Date.now() - new Date(r.receivedAt).getTime() > WEEK,
+    // Only where a melder waits: the 24–48 hour promise is to them. On the
+    // archive drop, the nalezingen and Fundie's leads it stood on 1,019 rows
+    // (2026-10-22), and a pill on every row says nothing.
+    overdue:
+      !r.outcome && r.channel === 'upload' && Date.now() - new Date(r.receivedAt).getTime() > WEEK,
     assignedName: r.assignedName ?? null,
     outcome: r.outcome ? outcomeLabel(r.outcome).toLowerCase() : null,
     /** `accepted` with a rapportage is a commit; without one it was closed by hand. */
@@ -250,6 +259,38 @@ const items = computed(() =>
     outcomeAt: r.outcomeAt ? shortDate(r.outcomeAt) : null,
   })),
 )
+
+const emptyMessage = computed(() =>
+  error.value
+    ? 'De lijst is niet geladen.'
+    : query.value.page > 1
+      ? 'Geen dossiers op deze pagina.'
+      : search.value
+        ? `Niets gevonden voor “${search.value}” in ${viewLabel.value}.`
+        : closedView.value
+          ? 'Geen gesloten dossiers die hieraan voldoen.'
+          : chips.value.length
+            ? 'Niets voldoet aan deze filters.'
+            : 'Niets te controleren. Alles wat binnenkwam is beoordeeld.',
+)
+
+/**
+ * A search stays within its tab; only Alles reaches closed dossiers too. When
+ * it finds nothing there, one click searches everything: Alles with nothing
+ * but the search term, so also the archive drop Alles otherwise leaves out.
+ * Not for a meldcode or a dossier id, which look everywhere already (#361).
+ */
+const searchElsewhere = computed(() => {
+  const q = query.value.q.trim()
+  if (!q || PINPOINT.test(q)) return null
+  if (loading.value || error.value || rows.value.length || query.value.page > 1) return null
+  if (viewKey.value !== 'alles') return 'Zoek in alles'
+  return chips.value.some((c) => c.id !== 'sort') ? 'Zoek zonder filters' : null
+})
+
+function searchEverywhere() {
+  push({ ...emptyQuery(), q: query.value.q }, 'alles')
+}
 
 // j / k / Enter over the rows, as on Rapportages and Herstel: the highlight
 // moves, the focus follows it, Enter opens the dossier.
@@ -336,6 +377,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
     await api.dataops.closeMany(ids, { outcome, note: note || null })
     selectedIds.value = new Set()
     bulkNote.value = ''
+    // The sidebar's numbers too, the views under Controle included.
     await Promise.all([load(), studio.refreshCounts(null)])
   } catch (e) {
     error.value = describeFailure(e, 'De dossiers konden niet worden gesloten.')
@@ -347,68 +389,14 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
 <template>
   <AppShell crumb="Controle" fill>
+    <!-- Which view this is, and what its group holds. The views themselves are
+         in the sidebar, under Controle. -->
     <div class="flex shrink-0 items-baseline gap-3 border-b border-line bg-surface px-6 py-3">
-      <h1 class="text-lg font-bold text-ink">Controle</h1>
-      <p class="text-md flex-1 text-muted">
-        Alles wat binnenkwam, ook wat de pipeline niet kon lezen. Niets hiervan staat in
-        FunderMaps tot je het overneemt.
-      </p>
-      <span v-if="studio.controle != null" class="text-md font-mono tabular-nums text-faint">
-        {{ studio.controle.toLocaleString('nl-NL') }} open
-      </span>
-    </div>
-
-    <!-- Saved views, as on Rapportages: the active one carries a 2px green
-         underline rather than a filled tab. The tabs stand a little closer
-         here: eleven of them and the button have to fit a 1528px window. -->
-    <div class="flex shrink-0 items-center border-b border-line bg-surface px-6 pt-2.5">
-      <!-- The tabs scroll on their own when saved views make the row too
-           long, so "+ Weergave" behind them stays in reach. -mx-1 px-1: room
-           for the focus ring of the first and the last tab. A thin scrollbar:
-           a full one ran through the row under the labels (Windows, Linux). -->
-      <div ref="tabStrip" class="-mx-1 flex min-w-0 items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:thin]">
-        <!-- The tab and its delete cross are two buttons side by side: a cross
-             *inside* the tab button could not be reached with the keyboard. -->
-        <span
-          v-for="view in views"
-          :key="view.key"
-          class="group flex shrink-0 items-center border-b-2 pt-1.5 pb-2.5"
-          :class="viewKey === view.key ? 'border-green' : 'border-transparent'"
-        >
-          <button
-            type="button"
-            class="text-lg flex flex-col px-2 whitespace-nowrap"
-            :class="
-              viewKey === view.key ? 'font-bold text-ink' : 'font-medium text-subtle hover:text-strong'
-            "
-            :aria-current="viewKey === view.key ? 'page' : undefined"
-            @click="selectView(view)"
-          >
-            {{ view.label }}
-            <!-- The label once more in bold, unseen and without height: every
-                 tab is as wide as when it is the active one, so picking a tab
-                 no longer moves the tabs to its right. -->
-            <span aria-hidden="true" class="invisible h-0 overflow-hidden font-bold">{{ view.label }}</span>
-          </button>
-          <button
-            v-if="!view.builtin"
-            type="button"
-            class="text-xs -ml-1.5 mr-1.5 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
-            :aria-label="`Weergave ${view.label} verwijderen`"
-            @click="onDeleteView(view)"
-          >
-            ×
-          </button>
-        </span>
-      </div>
-
-      <button
-        type="button"
-        class="text-sm ml-3 mb-2 shrink-0 rounded-md border border-dashed border-line-strong bg-surface px-2.5 py-1.5 whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
-        @click="onSaveView"
-      >
-        + Weergave
-      </button>
+      <h1 class="text-lg font-bold text-ink">
+        <span v-if="!activeGroup.single" class="font-medium text-subtle">{{ activeGroup.label }} ›</span>
+        {{ viewLabel }}
+      </h1>
+      <p class="text-md flex-1 text-muted">{{ activeGroup.hint }}</p>
     </div>
 
     <!-- The chips go to a next line when they do not fit: on one line they
@@ -437,6 +425,15 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       />
 
       <ReviewFilterBuilder :query="query" @update="push($event)" />
+
+      <!-- Saving what is on screen as a view of its own, listed under Controle. -->
+      <button
+        type="button"
+        class="text-base rounded-full border border-dashed border-line-strong bg-surface px-2.5 py-[5px] whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
+        @click="onSaveView"
+      >
+        + Weergave opslaan
+      </button>
 
       <!-- Not after a failed load: a count stood above "De lijst is niet geladen". -->
       <span v-if="!loadFailed" class="text-sm ml-auto font-mono text-faint">
@@ -501,21 +498,19 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         :row-selectable="(row) => !row.outcome"
         @toggle="toggleRow"
         @toggle-all="toggleAll"
-        :empty-message="
-          error
-            ? 'De lijst is niet geladen.'
-            : query.page > 1
-              ? 'Geen dossiers op deze pagina.'
-              : search
-            ? `Niets gevonden voor “${search}”.`
-            : closedView
-              ? 'Geen gesloten dossiers die hieraan voldoen.'
-              : chips.length
-                ? 'Niets voldoet aan deze filters.'
-                : 'Niets te controleren. Alles wat binnenkwam is beoordeeld.'
-        "
         @select="open"
       >
+        <template #empty>
+          {{ emptyMessage }}
+          <button
+            v-if="searchElsewhere"
+            type="button"
+            class="ml-1 font-semibold text-blue hover:underline"
+            @click="searchEverywhere"
+          >
+            {{ searchElsewhere }} →
+          </button>
+        </template>
         <template #outcome="{ row }">
           <span class="flex items-center gap-1.5">
             <Pill :label="row.outcome ?? 'open'" :tone="row.outcomeTone" plain />

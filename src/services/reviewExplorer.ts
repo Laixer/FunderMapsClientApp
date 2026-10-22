@@ -201,10 +201,13 @@ export function parseQuery(raw: Record<string, unknown>): ReviewQuery {
   }
 }
 
-/** Only what differs from the default reaches the URL. */
+/**
+ * Only what differs from the default reaches the URL, except the tab: every
+ * link names it. A link without one dates from before the groups (2026-10-22),
+ * when no `view` meant Alles, and still opens there (`routeViewKey`).
+ */
 export function toRouteQuery(query: ReviewQuery, viewKey: string): LocationQueryRaw {
-  const out: LocationQueryRaw = {}
-  if (viewKey !== 'alles') out.view = viewKey
+  const out: LocationQueryRaw = { view: viewKey }
   if (query.q) out.q = query.q
   if (query.channel.length) out.channel = query.channel.join(',')
   if (query.state.length) out.state = query.state.join(',')
@@ -251,6 +254,16 @@ export function toQueueOpts(query: ReviewQuery, viewKey?: string): IQueueListOpt
   return opts
 }
 
+/** The same question for `queueCount`: no page, no order. */
+export function toCountOpts(query: ReviewQuery, viewKey?: string): IQueueListOpts {
+  const opts = toQueueOpts(query, viewKey)
+  delete opts.limit
+  delete opts.offset
+  delete opts.sort
+  delete opts.order
+  return opts
+}
+
 /* ------------------------------------------------------------- filter chips */
 
 export interface Chip {
@@ -275,10 +288,16 @@ export function chipsFor(query: ReviewQuery): Chip[] {
     })
   }
   if (query.channel.length) {
+    // Alles asks for five channels of six: "portaal of Studio of e-mail of API
+    // of nalezing" said less than what it leaves out.
+    const missing = CHANNEL_OPTIONS.filter((o) => !query.channel.includes(o.value))
     chips.push({
       id: 'channel',
       label: 'via',
-      value: labels(query.channel, channelLabel),
+      value:
+        missing.length === 1 && query.channel.length > 1
+          ? `alles behalve ${inSentence(missing[0].label)}`
+          : labels(query.channel, channelLabel),
       clear: (q) => ({ ...q, channel: [], page: 1 }),
     })
   }
@@ -337,32 +356,48 @@ export interface SavedView {
   builtin: boolean
 }
 
-/** The questions a reviewer arrives with. */
+/**
+ * Every channel but the archive drop. That drop is the loket's archive export,
+ * kept open on purpose: on 2026-10-22 it was 664 of the 1,054 open dossiers,
+ * and listed oldest first it buried the 34 melders waiting for an answer.
+ * It has its own tab, Archiefverwerking.
+ */
+const WITHOUT_DROP: QueueChannel[] = CHANNEL_OPTIONS.map((o) => o.value).filter(
+  (c) => c !== 'bulk_drop',
+)
+
+/** The questions a reviewer arrives with, in the order of their groups (`viewGroups`). */
 export const BUILTIN_VIEWS: readonly SavedView[] = [
-  { key: 'alles', label: 'Alles', query: {}, builtin: true },
+  // Te beantwoorden. The melders waiting on us, longest waiting first: the
+  // tab Controle opens on, and the number beside it in the sidebar.
+  { key: 'beantwoorden', label: 'Wachtrij', query: { channel: ['upload'] }, builtin: true },
   // What came in through melden.fundermaps.com, newest first (Don, 2026-09-15).
   { key: 'meldingen', label: 'Meldingen', query: { channel: ['upload'], sort: 'received_at', order: 'desc' }, builtin: true },
-  { key: 'niets', label: 'Niets gevonden', query: { state: ['empty'] }, builtin: true },
   // No document at all: the melder asked something; the answer-only screen handles these (Don, 2026-09-17).
   { key: 'vragen', label: 'Vragen', query: { channel: ['upload'], state: ['question'], sort: 'received_at', order: 'desc' }, builtin: true },
   // The melder had the last word, open or closed; spans both (API state=replied).
   { key: 'reacties', label: 'Reactie ontvangen', query: { state: ['replied'] }, builtin: true },
   // Handed to me by a colleague (API #222): the decisions waiting on me.
   { key: 'mij', label: 'Aan mij toegewezen', query: { mine: true }, builtin: true },
+  // Te verwerken: documents still to be entered.
   // "Nog niet gelezen" and "Te lang open" were views here until 2026-09-22.
   // Don: "Dit zijn geen relevante werkfilters maar statussen." Nobody arrives
   // at the queue asking for them; a row still shows "te lang open" as a pill,
   // which is where a status belongs. The API keeps state=unread and age=overdue.
   { key: 'studio', label: 'Studio-uploads', query: { channel: ['invoer_app'] }, builtin: true },
   { key: 'nalezing', label: 'Nalezingen', query: { channel: ['audit'] }, builtin: true },
-  // Closed, not the desk: newest closing first, because the question here is
-  // "what did we throw out yesterday, and was that right?".
+  // Fundie's archive leads: the "Archiefwijzer:" and "Archief zoeken:" work packages.
+  { key: 'archiefwijzer', label: 'Archiefwijzer', query: { channel: ['api'] }, builtin: true },
   {
-    key: 'afgewezen',
-    label: 'Afgewezen',
-    query: { outcome: ['rejected'], sort: 'outcome_at', order: 'desc' },
+    key: 'archiefverwerking',
+    label: 'Archiefverwerking',
+    query: { channel: ['bulk_drop'] },
     builtin: true,
   },
+  // Open dossiers the pipeline read nothing from; nearly all of them (79 of 84
+  // on 2026-10-22) from the archive drop. Still on the desk, so not under Afgerond.
+  { key: 'niets', label: 'Niets gevonden', query: { state: ['empty'] }, builtin: true },
+  // Afgerond: closed, not the desk.
   // Closed and dealt with, newest closing first: "where did that melding go
   // that I just answered?" (Don, 2026-09-18, after losing FM2026-000140).
   // Afgewezen and Duplicaten have their own tabs, so this one keeps the two
@@ -373,19 +408,114 @@ export const BUILTIN_VIEWS: readonly SavedView[] = [
     query: { outcome: ['accepted', 'no_data'], sort: 'outcome_at', order: 'desc' },
     builtin: true,
   },
+  // Newest closing first, because the question here is "what did we throw out
+  // yesterday, and was that right?".
+  {
+    key: 'afgewezen',
+    label: 'Afgewezen',
+    query: { outcome: ['rejected'], sort: 'outcome_at', order: 'desc' },
+    builtin: true,
+  },
   {
     key: 'duplicaten',
     label: 'Duplicaten',
     query: { outcome: ['duplicate'], sort: 'outcome_at', order: 'desc' },
     builtin: true,
   },
+  // The whole desk was the first tab and the default until 2026-10-22. It stays,
+  // last, and still finds closed dossiers too when searched (`isWideSearch`).
+  { key: 'alles', label: 'Alles', query: { channel: WITHOUT_DROP }, builtin: true },
 ]
+
+/** The tab Controle opens on, and whose count the sidebar shows. */
+export const DEFAULT_VIEW = 'beantwoorden'
+
+export const defaultView = (): SavedView => BUILTIN_VIEWS.find((v) => v.key === DEFAULT_VIEW)!
+
+/**
+ * The views in groups, named after what we do with a dossier: answer a
+ * melder, enter a document, or nothing any more. The sidebar lists them under
+ * Controle, each with its count, like an inbox's folders (2026-10-22):
+ * fourteen tabs with their counts did not fit one row of a 1528px window.
+ */
+export interface ViewGroup {
+  key: string
+  label: string
+  /** One line under the page title: what is in it. */
+  hint: string
+  views: readonly string[]
+  /** The group is its one view (Alles): listed without a heading. */
+  single?: boolean
+}
+
+const WORK_GROUPS: readonly ViewGroup[] = [
+  {
+    key: 'beantwoorden',
+    label: 'Te beantwoorden',
+    hint: 'Een melder wacht op ons antwoord.',
+    views: ['beantwoorden', 'meldingen', 'vragen', 'reacties', 'mij'],
+  },
+  {
+    key: 'verwerken',
+    label: 'Te verwerken',
+    hint: 'Documenten die nog ingevoerd moeten worden.',
+    views: ['studio', 'nalezing', 'archiefwijzer', 'archiefverwerking', 'niets'],
+  },
+  {
+    key: 'afgerond',
+    label: 'Afgerond',
+    hint: 'Gesloten dossiers, het laatst gesloten eerst.',
+    views: ['afgehandeld', 'afgewezen', 'duplicaten'],
+  },
+]
+
+const ALLES_GROUP: ViewGroup = {
+  key: 'alles',
+  label: 'Alles',
+  hint: 'Alles wat open staat, behalve de archiefverwerking. Zoeken vindt hier ook gesloten dossiers.',
+  views: ['alles'],
+  single: true,
+}
+
+/** The groups in tab order, with the views saved in this browser in their own group before Alles. */
+export function viewGroups(custom: readonly SavedView[]): ViewGroup[] {
+  const own: ViewGroup[] = custom.length
+    ? [
+        {
+          key: 'eigen',
+          label: 'Eigen weergaven',
+          hint: 'Bewaard in deze browser.',
+          views: custom.map((v) => v.key),
+        },
+      ]
+    : []
+  return [...WORK_GROUPS, ...own, ALLES_GROUP]
+}
+
+/**
+ * The tab a URL is on. A link without a `view`, or with a view that no longer
+ * exists (a saved one deleted since), opens Alles with its own filters, as it
+ * did before the groups. The bare link (the sidebar's) is the default tab;
+ * the queue writes that one out in full before reading it.
+ */
+export function routeViewKey(
+  raw: Record<string, unknown>,
+  known: (key: string) => boolean,
+): string {
+  return typeof raw.view === 'string' && known(raw.view) ? raw.view : 'alles'
+}
 
 export function fromView(view: SavedView): ReviewQuery {
   const merged = { ...emptyQuery(), ...view.query }
   const sort = SORT_FIELDS.find((f) => f === merged.sort) ?? DEFAULT_SORT
   return { ...merged, sort, order: merged.order === 'desc' ? 'desc' : 'asc' }
 }
+
+/** Where a view lives: its own question on page 1, as a link. */
+export const viewRoute = (view: SavedView) => ({
+  name: 'review-queue',
+  query: toRouteQuery(fromView(view), view.key),
+})
 
 const STORAGE_KEY = 'studio:review-views'
 
