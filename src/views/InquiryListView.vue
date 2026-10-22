@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
+import Segmented from '@/components/Common/Segmented.vue'
 import PageHeader from '@/components/Common/PageHeader.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
 import FilterBuilder from '@/components/Common/FilterBuilder.vue'
@@ -469,21 +470,7 @@ const MODES: { key: Mode; label: string }[] = [
             {{ visibleRows.length === 1 && !hasMore ? 'rij' : 'rijen' }}
           </template>
         </span>
-        <div class="flex rounded-lg border border-line bg-canvas p-0.5">
-          <button
-            v-for="option in MODES"
-            :key="option.key"
-            type="button"
-            class="text-sm rounded-md px-2.5 py-1 font-semibold"
-            :class="
-              mode === option.key ? 'bg-surface text-strong shadow-segment' : 'text-subtle'
-            "
-            :aria-pressed="mode === option.key"
-            @click="mode = option.key"
-          >
-            {{ option.label }}
-          </button>
-        </div>
+        <Segmented v-model="mode" label="Weergave" :options="MODES" />
         <!-- Making one by hand: here, where rapportages live, no longer in the top bar of every page (2026-10-22). -->
         <Button variant="primary" label="Nieuwe rapportage" @click="router.push({ name: 'inquiry-new' })" />
       </div>

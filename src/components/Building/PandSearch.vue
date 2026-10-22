@@ -80,14 +80,15 @@ const move = (step: number) => {
 
 <template>
   <div class="relative flex flex-col gap-2">
+    <!-- The Studio's search field (sunken, a hairline, green when typing), one size up: here it is the page's job. -->
     <div
-      class="flex items-center gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3 shadow-sm focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
+      class="flex items-center gap-2.5 rounded-lg border border-line bg-sunken px-3 py-2 focus-within:border-green focus-within:ring-2 focus-within:ring-green/30"
     >
-      <span aria-hidden="true" class="text-2xl text-faint">⌕</span>
+      <span aria-hidden="true" class="text-lg text-faint">⌕</span>
       <input
         v-model="query"
         type="text"
-        class="studio-control !text-xl"
+        class="studio-control !text-lg"
         placeholder="Adres, postcode of BAG-nummer — bijvoorbeeld Voorbeeldstraat 12 Amsterdam"
         autocomplete="off"
         aria-label="Pand zoeken"
@@ -107,14 +108,14 @@ const move = (step: number) => {
       id="pand-search-options"
       role="listbox"
       aria-label="Gevonden panden"
-      class="overflow-hidden rounded-xl border border-line bg-surface shadow-sm"
+      class="overflow-hidden rounded-lg border border-line bg-surface"
     >
       <li
         v-for="(o, i) in options"
         :key="o.key"
         role="option"
         :aria-selected="i === cursor"
-        class="text-lg flex cursor-pointer items-center gap-3 border-b border-divider px-4 py-2 last:border-b-0"
+        class="text-md flex cursor-pointer items-center gap-3 border-b border-divider px-3 py-1.5 last:border-b-0"
         :class="i === cursor ? 'bg-blue-wash' : 'hover:bg-raised'"
         @click="pick(i)"
         @mousemove="cursor = i"

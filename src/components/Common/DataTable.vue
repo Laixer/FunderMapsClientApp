@@ -48,6 +48,8 @@ const props = withDefaults(
     sortOrder?: 'asc' | 'desc'
     emptyMessage?: string
     skeletonRows?: number
+    /** The table's name for a screen reader (2026-10-22): on the role="table" element itself. */
+    label?: string
   }>(),
   {
     loading: false,
@@ -97,7 +99,7 @@ function rowClass(row: T): string {
        table by its rows and cells, and anything loose in between (the select
        box, the empty line, the footer) breaks that. -->
   <div class="min-w-0">
-    <div role="table">
+    <div role="table" :aria-label="label">
       <div
         role="row"
         class="text-xs sticky top-0 z-2 grid items-center gap-0 border-b border-line bg-raised px-5 py-2 font-bold tracking-[0.07em] text-label uppercase"

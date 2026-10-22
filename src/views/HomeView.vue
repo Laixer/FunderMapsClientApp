@@ -9,6 +9,7 @@ import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
 import EmptyState from '@/components/Common/EmptyState.vue'
 import KpiTile from '@/components/Common/KpiTile.vue'
 import PageHeader from '@/components/Common/PageHeader.vue'
+import Segmented from '@/components/Common/Segmented.vue'
 import Panel from '@/components/Common/Panel.vue'
 import ProgressBar from '@/components/Common/ProgressBar.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
@@ -330,21 +331,12 @@ function chipActive(types: number[] | null): boolean {
           </template>
 
           <template #actions>
-            <button
-              v-for="chip in TYPE_CHIPS"
-              :key="chip.label"
-              type="button"
-              class="text-sm rounded-md border px-2.5 py-1 font-semibold"
-              :class="
-                chipActive(chip.types)
-                  ? 'border-line bg-canvas text-strong'
-                  : 'border-line bg-surface text-subtle hover:border-line-hover'
-              "
-              :aria-pressed="chipActive(chip.types)"
-              @click="typeFilter = chip.types"
-            >
-              {{ chip.label }}
-            </button>
+            <Segmented
+              :model-value="TYPE_CHIPS.find((c) => chipActive(c.types))?.label ?? ''"
+              label="Soort rapportage"
+              :options="TYPE_CHIPS.map((c) => ({ key: c.label, label: c.label }))"
+              @update:model-value="typeFilter = TYPE_CHIPS.find((c) => c.label === $event)?.types ?? null"
+            />
           </template>
 
           <DataTable
