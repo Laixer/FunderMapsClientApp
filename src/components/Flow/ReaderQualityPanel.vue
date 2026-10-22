@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import Panel from '@/components/Common/Panel.vue'
 import type { IReaderQuality, IReaderTally } from '@/services/fundermaps/interfaces/IDataops'
@@ -32,6 +32,11 @@ const rows = computed(() =>
 )
 const few = computed(() => props.quality.fields.filter((f) => f.judged < MIN_JUDGED))
 
+/** The ten weakest first; the rest on request (2026-10-22: the whole list made the page "way too big"). */
+const SHOWN = 10
+const showAll = ref(false)
+const shown = computed(() => (showAll.value ? rows.value : rows.value.slice(0, SHOWN)))
+
 /** "dataops-2026.2" says the version; the model is the same for all of them so far. */
 const versions = computed(() =>
   props.quality.versions.map((v) => ({ ...v, name: v.promptVersion.replace(/^dataops-/, ''), miss: missRate(v) })),
@@ -49,7 +54,7 @@ const versions = computed(() =>
       </span>
     </template>
 
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-3">
       <p class="text-md text-body">
         Van {{ nl(quality.total.judged) }} waarden die de lezer voorstelde en een beoordelaar beoordeelde, bleef
         <strong>{{ pct(share(quality.total, 'confirmed'), 1) }}</strong> staan;
@@ -85,10 +90,10 @@ const versions = computed(() =>
           <span role="columnheader" class="text-right">Beoordeeld</span>
         </div>
         <div
-          v-for="r in rows"
+          v-for="r in shown"
           :key="r.field"
           role="row"
-          class="grid grid-cols-[220px_minmax(0,1fr)_170px_80px] items-center gap-4 border-b border-divider py-1.5 last:border-b-0"
+          class="grid grid-cols-[220px_minmax(0,1fr)_170px_80px] items-center gap-4 border-b border-divider py-1 last:border-b-0"
           :title="`${r.label}: ${nl(r.confirmed)} overgenomen, ${nl(r.corrected)} verbeterd, ${nl(r.rejected)} afgewezen`"
         >
           <span role="cell" class="text-md truncate text-body">{{ r.label }}</span>
@@ -108,7 +113,17 @@ const versions = computed(() =>
         </div>
       </div>
 
-      <p v-if="few.length" class="text-sm text-faint">
+      <button
+        v-if="rows.length > SHOWN"
+        type="button"
+        class="text-md self-start font-semibold text-blue hover:underline"
+        :aria-expanded="showAll"
+        @click="showAll = !showAll"
+      >
+        {{ showAll ? `Alleen de ${SHOWN} zwakste` : `Toon alle ${rows.length} velden` }}
+      </button>
+
+      <p v-if="few.length && showAll" class="text-sm text-faint">
         {{ few.length }} {{ few.length === 1 ? 'veld heeft' : 'velden hebben' }} nog minder dan {{ MIN_JUDGED }} oordelen en
         {{ few.length === 1 ? 'staat' : 'staan' }} hier niet:
         {{ few.map((f) => label(f.field)).join(', ') }}.

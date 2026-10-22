@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 
 import AppShell from '@/components/Layout/AppShell.vue'
 import Button from '@/components/Common/Buttons/Button.vue'
 import FlowDiagram from '@/components/Flow/FlowDiagram.vue'
-import KpiTile from '@/components/Common/KpiTile.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Sparkline from '@/components/Common/Sparkline.vue'
 import ReaderQualityPanel from '@/components/Flow/ReaderQualityPanel.vue'
@@ -15,7 +14,6 @@ import type { IDataopsFlow, IReaderQuality } from '@/services/fundermaps/interfa
 import { loadReaderQuality } from '@/services/readerTrack'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { buildFlow, GROUPS, SOURCES, sourceRows, type FlowGroup } from '@/services/dataflow'
-import type { Tone } from '@/services/tone'
 
 /**
  * Datastroom: where everything that came in went (2026-10-22).
@@ -29,8 +27,6 @@ import type { Tone } from '@/services/tone'
  * estimated. The numbers are as of the moment the page loaded, said in the
  * header, with a button to count again.
  */
-const router = useRouter()
-
 const data = ref<IDataopsFlow | null>(null)
 /** How well the reader reads, per field; its own request, so a failure leaves the rest of the page standing. */
 const quality = ref<IReaderQuality | null>(null)
@@ -57,7 +53,7 @@ const rows = computed(() => (data.value ? sourceRows(data.value) : []))
 const nl = (n: number) => n.toLocaleString('nl-NL')
 const pct = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / whole) * 100)}%` : '—')
 
-const TONE: Record<FlowGroup, Tone> = { done: 'green', closed: 'neutral', open: 'amber' }
+const DOT: Record<FlowGroup, string> = { done: 'bg-green-ink', closed: 'bg-label', open: 'bg-amber-ink' }
 const BAR: Record<FlowGroup, string> = { done: 'bg-green-ink', closed: 'bg-label', open: 'bg-amber-ink' }
 
 const tiles = computed(() =>
@@ -68,8 +64,7 @@ const tiles = computed(() =>
       group,
       label,
       value: nl(value),
-      caption: graph.value ? `${pct(value, graph.value.total)} van ${nl(graph.value.total)}` : null,
-      tone: TONE[group],
+      share: graph.value ? pct(value, graph.value.total) : '',
       link: node?.link ?? { name: 'review-queue' },
     }
   }),
@@ -95,12 +90,15 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
 
 <template>
   <AppShell crumb="Datastroom">
-    <div class="flex flex-col gap-4.5 px-6 py-6">
+    <!-- Compact (2026-10-22, "way too big"): the picture and the table per source
+         in the first screen at 1528×900; the reader's record under it. -->
+    <div class="flex flex-col gap-3 px-6 py-4">
       <header class="flex items-end gap-4">
         <div class="flex-1">
-          <h1 class="text-5xl font-display font-bold text-ink">Datastroom</h1>
-          <p class="text-xl mt-1 text-muted">
+          <h1 class="text-3xl font-display font-bold text-ink">Datastroom</h1>
+          <p class="text-md mt-0.5 text-muted">
             Waar alles wat binnenkwam terechtkwam: van de bron, via de controle, tot in FunderMaps.
+            Elke band is zo dik als het aantal dossiers dat hij draagt.
           </p>
         </div>
         <span v-if="updated" class="text-sm pb-1 font-mono text-faint">geteld om {{ updated }}</span>
@@ -109,25 +107,24 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
 
       <p v-if="error" class="text-md rounded-xl border border-red bg-red-tint px-4 py-3 text-red">{{ error }}</p>
 
-      <div class="grid grid-cols-3 gap-3">
-        <KpiTile
-          v-for="tile in tiles"
-          :key="tile.group"
-          :label="tile.label"
-          :value="tile.value"
-          :caption="tile.caption"
-          :tone="tile.tone"
-          :loading="loading && !data"
-          @click="router.push(tile.link)"
-        />
-      </div>
-
       <Panel title="Van bron tot uitkomst" :meta="graph ? `${nl(graph.total)} dossiers` : undefined">
-        <template #actions>
-          <span class="text-sm text-faint">Elke band is zo dik als het aantal dossiers dat hij draagt.</span>
+        <!-- The three outcomes, as the tiles had them, in the header: the tiles
+             said again what the middle column of the picture says. -->
+        <template v-if="graph" #actions>
+          <RouterLink
+            v-for="tile in tiles"
+            :key="tile.group"
+            :to="tile.link"
+            class="text-md flex items-baseline gap-1.5 rounded-md px-2 py-0.5 hover:bg-sunken"
+          >
+            <span aria-hidden="true" class="h-2 w-2 self-center rounded-full" :class="DOT[tile.group]" />
+            <span class="text-muted">{{ tile.label }}</span>
+            <span class="font-mono font-semibold tabular-nums text-ink">{{ tile.value }}</span>
+            <span class="text-sm font-mono text-faint">{{ tile.share }}</span>
+          </RouterLink>
         </template>
         <FlowDiagram v-if="data" :data="data" />
-        <div v-else-if="loading" class="h-[460px] animate-pulse rounded-xl bg-sunken" aria-label="Laden" />
+        <div v-else-if="loading" class="h-[300px] animate-pulse rounded-xl bg-sunken" aria-label="Laden" />
       </Panel>
 
       <Panel title="Per bron" flush>
@@ -149,7 +146,7 @@ const lastFour = (values: number[]) => values.slice(-4).reduce((a, b) => a + b, 
             v-for="row in rows"
             :key="row.channel"
             role="row"
-            class="grid grid-cols-[minmax(140px,1fr)_200px_repeat(4,90px)_180px_180px] items-center gap-4 border-b border-divider px-4 py-2.5 last:border-b-0"
+            class="grid grid-cols-[minmax(140px,1fr)_200px_repeat(4,90px)_180px_180px] items-center gap-4 border-b border-divider px-4 py-1.5 last:border-b-0"
           >
             <RouterLink
               role="cell"
