@@ -181,20 +181,24 @@ function removeView(view: SavedView) {
             </span>
           </RouterLink>
 
-          <!-- Controle's views, grouped by what we do with the dossier. Indented
-               under the row's label; Alles last, without a heading. -->
+          <!-- Controle's views, grouped by what we do with the dossier, hanging
+               from a guide line that drops from Controle's dot; the labels line
+               up with Controle's own. The open view is marked the way the rail
+               marks where you are: green, on that line. Group names in sentence
+               case, so they read as part of Controle and not as a section like
+               WERK. Alles last, without a heading. -->
           <div
             v-if="item.route === 'review-queue' && inControle"
-            class="flex flex-col pb-1 pl-[15px]"
+            class="mt-0.5 mb-1 ml-3 flex flex-col border-l border-line pl-1"
             aria-label="Weergaven van Controle"
             role="group"
           >
             <template v-for="viewGroup in reviewGroups" :key="viewGroup.key">
               <p
                 v-if="!viewGroup.single"
-                class="text-2xs px-2.5 pt-1.5 pb-0.5 font-bold tracking-[0.1em] text-label"
+                class="text-sm px-2 pt-1.5 pb-0.5 font-semibold text-subtle first:pt-0.5"
               >
-                {{ viewGroup.label.toUpperCase() }}
+                {{ viewGroup.label }}
               </p>
               <!-- The view and its delete cross are two buttons side by side: a
                    cross inside the link could not be reached with the keyboard. -->
@@ -202,15 +206,15 @@ function removeView(view: SavedView) {
                 v-for="view in viewsOf(viewGroup)"
                 :key="view.key"
                 class="group flex items-center"
-                :class="{ 'mt-2': viewGroup.single }"
+                :class="{ 'mt-1.5': viewGroup.single }"
               >
                 <RouterLink
                   :to="viewRoute(view)"
-                  class="text-lg flex min-w-0 flex-1 items-center gap-2 rounded-md px-2.5 py-[2px]"
+                  class="text-lg relative flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-[2px]"
                   :class="
                     activeView === view.key
-                      ? 'bg-sunken font-semibold text-ink'
-                      : 'font-medium text-muted hover:bg-sunken'
+                      ? 'font-bold text-green-deep before:absolute before:inset-y-1 before:-left-[5px] before:w-0.5 before:rounded-full before:bg-green'
+                      : 'font-medium text-muted hover:bg-sunken hover:text-strong'
                   "
                   :aria-current="activeView === view.key ? 'page' : undefined"
                 >
@@ -218,7 +222,7 @@ function removeView(view: SavedView) {
                   <span
                     v-if="viewCounts[view.key] != null"
                     class="text-xs ml-auto shrink-0 font-mono"
-                    :class="activeView === view.key ? 'text-green-ink' : 'text-label'"
+                    :class="activeView === view.key ? 'text-green-ink/70' : 'text-label'"
                   >
                     {{ formatCount(viewCounts[view.key]) }}
                   </span>
