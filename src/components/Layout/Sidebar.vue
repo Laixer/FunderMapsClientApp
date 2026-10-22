@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, watch } from 'vue'
+import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
@@ -71,24 +71,11 @@ const formatCount = (value: number | null | undefined): string =>
 /* ---------------------------------------------------- Controle's views */
 
 /**
- * While you are in Controle its views open under it, grouped and counted,
- * like the folders of a mailbox. Only then: on the other pages the rail stays
- * as quiet as it was.
+ * Controle's views stand under it on every page, grouped and counted, like
+ * the folders of a mailbox (2026-10-22: at first only while in Controle; the
+ * answer was "always show"). Their counts come with the shell's refresh.
  */
 const inControle = computed(() => isActive('review-queue'))
-
-watch(
-  inControle,
-  (open) => {
-    studio.reviewViewsShown = open
-    // The rail mounts again with every page; a minute-old count is fresh enough for that.
-    if (open) void studio.refreshViewCounts(60_000)
-  },
-  { immediate: true },
-)
-onBeforeUnmount(() => {
-  studio.reviewViewsShown = false
-})
 
 const known = (key: string) => reviewViews.value.some((v) => v.key === key)
 
@@ -181,32 +168,27 @@ function removeView(view: SavedView) {
             </span>
           </RouterLink>
 
-          <!-- Controle's views, grouped by what we do with the dossier, hanging
-               from a guide line that drops from Controle's dot; the labels line
-               up with Controle's own. The open view is marked the way the rail
-               marks where you are: green, on that line. Group names in sentence
-               case, so they read as part of Controle and not as a section like
-               WERK. Alles last, without a heading. -->
+          <!-- Controle's views, hanging from a guide line that drops from
+               Controle's dot; the labels line up with Controle's own. The open
+               view is marked the way the rail marks where you are: green, on
+               that line. The groups are a gap, not a heading: the views name
+               themselves, and the page title still says "Te verwerken ›
+               Archiefverwerking". A screen reader still hears the group's name. -->
           <div
-            v-if="item.route === 'review-queue' && inControle"
+            v-if="item.route === 'review-queue'"
             class="mt-0.5 mb-1 ml-3 flex flex-col border-l border-line pl-1"
             aria-label="Weergaven van Controle"
             role="group"
           >
-            <template v-for="viewGroup in reviewGroups" :key="viewGroup.key">
-              <p
-                v-if="!viewGroup.single"
-                class="text-sm px-2 pt-1.5 pb-0.5 font-semibold text-subtle first:pt-0.5"
-              >
-                {{ viewGroup.label }}
-              </p>
+            <template v-for="(viewGroup, g) in reviewGroups" :key="viewGroup.key">
+              <p v-if="!viewGroup.single" class="sr-only">{{ viewGroup.label }}</p>
               <!-- The view and its delete cross are two buttons side by side: a
                    cross inside the link could not be reached with the keyboard. -->
               <div
-                v-for="view in viewsOf(viewGroup)"
+                v-for="(view, i) in viewsOf(viewGroup)"
                 :key="view.key"
                 class="group flex items-center"
-                :class="{ 'mt-1.5': viewGroup.single }"
+                :class="{ 'mt-2': g > 0 && i === 0 }"
               >
                 <RouterLink
                   :to="viewRoute(view)"
@@ -244,11 +226,9 @@ function removeView(view: SavedView) {
     </div>
 
     <!-- Shortcuts nobody can discover are shortcuts nobody uses. Pinned to the
-         bottom of the rail, above the user row. It makes way for Controle's
-         views, which did not fit a 900px-high window beside it; "?" still
-         lists every shortcut. -->
+         bottom of the rail, above the user row, on every page; on a short
+         window the nav above it scrolls instead. -->
     <div
-      v-if="!inControle"
       class="mt-auto flex flex-col gap-1.5 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-2.5"
     >
       <p class="text-2xs font-bold tracking-[0.09em] text-label">SNELTOETSEN</p>

@@ -55,8 +55,6 @@ export const useStudioStore = defineStore('studio', () => {
   const reviewViews = ref<SavedView[]>([...BUILTIN_VIEWS, ...customViews()])
   const reviewGroups = computed(() => viewGroups(reviewViews.value.filter((v) => !v.builtin)))
   const viewCounts = ref<Record<string, number | null>>({})
-  /** Set by the sidebar while it lists the views; only then does `refreshCounts` count them too. */
-  const reviewViewsShown = ref(false)
 
   function reloadReviewViews() {
     reviewViews.value = [...BUILTIN_VIEWS, ...customViews()]
@@ -125,8 +123,11 @@ export const useStudioStore = defineStore('studio', () => {
           .then(({ count }) => void (controle.value = count))
           .catch(() => {}),
       ]
-      // A dossier closed or a bulk close: the numbers in the list under Controle move too.
-      if (reviewViewsShown.value) jobs.push(refreshViewCounts())
+      // The views under Controle, on every page (2026-10-22). A caller passing
+      // null comes from a review action (see below), and that is when these
+      // numbers move: count again. Every page's shell refreshes too, where a
+      // minute-old count is fresh enough.
+      jobs.push(refreshViewCounts(userId === null ? 0 : 60_000))
 
       // The number next to "Vandaag" is the work in your packages plus the
       // dossiers handed to you, i.e. what the Vandaag page puts in front of
@@ -189,7 +190,6 @@ export const useStudioStore = defineStore('studio', () => {
     reviewViews,
     reviewGroups,
     viewCounts,
-    reviewViewsShown,
     reloadReviewViews,
     refreshViewCounts,
     openPalette,
