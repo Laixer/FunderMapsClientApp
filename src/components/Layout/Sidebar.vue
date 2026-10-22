@@ -116,7 +116,7 @@ function removeView(view: SavedView) {
       </kbd>
     </button>
 
-    <!-- Scrolls only when a window is too short for Controle's views. -mx-1 px-1:
+    <!-- Scrolls only when a window is too short for WERK's views. -mx-1 px-1:
          room for the focus ring. -->
     <div class="-mx-1 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-1 [scrollbar-width:thin]">
       <nav
@@ -127,7 +127,60 @@ function removeView(view: SavedView) {
       >
         <p v-if="group.title" class="text-2xs px-2.5 pb-1 font-bold tracking-[0.1em] text-label">{{ group.title }}</p>
         <template v-for="item in group.items" :key="item.route">
+          <!-- Controle has no row of its own (2026-10-22: "remove the controle and have all those items
+               listed on the same level under WERK"): its views are the rows of WERK, in the rail's own
+               shape — the dot, the green for where you are, the count on the right — a little tighter,
+               so the whole rail still fits a 900px window. The groups are a gap; a screen reader still
+               hears their names, and the page says "Te verwerken › Archiefverwerking". -->
+          <div v-if="item.route === 'review-queue'" class="flex flex-col" aria-label="Weergaven van Controle" role="group">
+            <template v-for="(viewGroup, g) in reviewGroups" :key="viewGroup.key">
+              <p v-if="!viewGroup.single" class="sr-only">{{ viewGroup.label }}</p>
+              <!-- The view and its delete cross are two buttons side by side: a
+                   cross inside the link could not be reached with the keyboard. -->
+              <div
+                v-for="(view, i) in viewsOf(viewGroup)"
+                :key="view.key"
+                class="group flex items-center"
+                :class="{ 'mt-2': g > 0 && i === 0 }"
+              >
+                <RouterLink
+                  :to="viewRoute(view)"
+                  class="text-lg flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2.5 py-[2px]"
+                  :class="
+                    activeView === view.key
+                      ? 'bg-green-wash font-bold text-green-deep'
+                      : 'font-medium text-muted hover:bg-sunken hover:text-strong'
+                  "
+                  :aria-current="activeView === view.key ? 'page' : undefined"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="h-[5px] w-[5px] shrink-0 rounded-full"
+                    :class="activeView === view.key ? 'bg-green' : 'bg-line-hover'"
+                  />
+                  <span class="truncate">{{ view.label }}</span>
+                  <span
+                    v-if="viewCounts[view.key] != null"
+                    class="text-xs ml-auto shrink-0 font-mono"
+                    :class="activeView === view.key ? 'text-green-ink/70' : 'text-label'"
+                  >
+                    {{ formatCount(viewCounts[view.key]) }}
+                  </span>
+                </RouterLink>
+                <button
+                  v-if="!view.builtin"
+                  type="button"
+                  class="text-xs shrink-0 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
+                  :aria-label="`Weergave ${view.label} verwijderen`"
+                  @click="removeView(view)"
+                >
+                  ×
+                </button>
+              </div>
+            </template>
+          </div>
           <RouterLink
+            v-else
             :to="{ name: item.route }"
             class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-1.5"
             :class="
@@ -150,60 +203,6 @@ function removeView(view: SavedView) {
               {{ formatCount(counts[item.counter]) }}
             </span>
           </RouterLink>
-
-          <!-- Controle's views, hanging from a guide line that drops from
-               Controle's dot; the labels line up with Controle's own. The open
-               view is marked the way the rail marks where you are: green, on
-               that line. The groups are a gap, not a heading: the views name
-               themselves, and the page title still says "Te verwerken ›
-               Archiefverwerking". A screen reader still hears the group's name. -->
-          <div
-            v-if="item.route === 'review-queue'"
-            class="mt-0.5 mb-1 ml-3 flex flex-col border-l border-line pl-1"
-            aria-label="Weergaven van Controle"
-            role="group"
-          >
-            <template v-for="(viewGroup, g) in reviewGroups" :key="viewGroup.key">
-              <p v-if="!viewGroup.single" class="sr-only">{{ viewGroup.label }}</p>
-              <!-- The view and its delete cross are two buttons side by side: a
-                   cross inside the link could not be reached with the keyboard. -->
-              <div
-                v-for="(view, i) in viewsOf(viewGroup)"
-                :key="view.key"
-                class="group flex items-center"
-                :class="{ 'mt-1.5': g > 0 && i === 0 }"
-              >
-                <RouterLink
-                  :to="viewRoute(view)"
-                  class="text-lg relative flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-px"
-                  :class="
-                    activeView === view.key
-                      ? 'font-bold text-green-deep before:absolute before:inset-y-1 before:-left-[5px] before:w-0.5 before:rounded-full before:bg-green'
-                      : 'font-medium text-muted hover:bg-sunken hover:text-strong'
-                  "
-                  :aria-current="activeView === view.key ? 'page' : undefined"
-                >
-                  <span class="truncate">{{ view.label }}</span>
-                  <span
-                    v-if="viewCounts[view.key] != null"
-                    class="text-xs ml-auto shrink-0 font-mono"
-                    :class="activeView === view.key ? 'text-green-ink/70' : 'text-label'"
-                  >
-                    {{ formatCount(viewCounts[view.key]) }}
-                  </span>
-                </RouterLink>
-                <button
-                  v-if="!view.builtin"
-                  type="button"
-                  class="text-xs shrink-0 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
-                  :aria-label="`Weergave ${view.label} verwijderen`"
-                  @click="removeView(view)"
-                >
-                  ×
-                </button>
-              </div>
-            </template>
-          </div>
         </template>
       </nav>
     </div>
