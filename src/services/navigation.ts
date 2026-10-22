@@ -35,6 +35,8 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       { route: 'home', label: 'Vandaag', key: 'w', counter: 'werkbank' },
       // Where everything that came in went (2026-10-22): the data, next to the work.
       { route: 'dataflow', label: 'Datastroom', key: 'd' },
+      // How the model runs and what it says now (2026-10-22).
+      { route: 'models', label: 'Modellen', key: 'm' },
       // Controle directly under the Werkbank: it is the desk the day starts at
       // now that documents arrive through the portal (Yorick, 2026-08-31).
       { route: 'review-queue', label: 'Controle', key: 'c', counter: 'controle' },

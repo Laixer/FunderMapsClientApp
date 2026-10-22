@@ -9,6 +9,7 @@ import type {
   IDataopsFlow,
   IReaderQuality,
   IRapportageOrigin,
+  IModels,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -273,6 +274,11 @@ export async function rapportageOrigin(inquiryId: number) {
   return (await get({ endpoint: `/dataops/rapportage/${inquiryId}/origin` })) as IRapportageOrigin
 }
 
+/** The model's runs over the last 14 days and the spread of the served model's labels (the Modellen page). */
+export async function models() {
+  return (await get({ endpoint: '/dataops/models' })) as IModels
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -384,6 +390,7 @@ export default {
   flow,
   readerQuality,
   rapportageOrigin,
+  models,
   addressVerdict,
   addressAdd,
   addressRelink,
