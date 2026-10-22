@@ -1780,7 +1780,9 @@ async function reopen(f: IProposedField) {
       v-if="data"
       class="flex shrink-0 items-center gap-3 border-b border-line bg-surface px-6 py-2.5"
     >
-      <h1 class="text-lg min-w-0 truncate font-bold text-ink">
+      <!-- The compact page header's shape (PageHeader), kept inline for its many states. -->
+      <span class="studio-caption shrink-0">Dossier</span>
+      <h1 class="text-xl min-w-0 truncate font-display font-bold text-ink">
         {{ data.dossier.subject ?? 'Dossier' }}
       </h1>
       <!-- An outcome in the colour the list gives it. -->
