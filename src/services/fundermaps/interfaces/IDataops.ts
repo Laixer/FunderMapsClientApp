@@ -348,3 +348,33 @@ export interface IRapportageOrigin {
   /** Nalezingen that read this rapportage again, newest first. */
   audits: { id: number; receivedAt: string; outcome: string | null; outcomeAt: string | null; open: number; judged: number }[]
 }
+
+export type RunState = 'ok' | 'failed' | 'missing' | 'upcoming'
+export interface IRiskClasses {
+  a: number
+  b: number
+  c: number
+  d: number
+  e: number
+  none: number
+}
+
+/** The model's runs and the spread of its labels (API GET /dataops/models). */
+export interface IModels {
+  /** Newest day first; the two refreshes a day (12:30 and 21:00, Amsterdam). */
+  grid: {
+    day: string
+    midday: { status: RunState; finishedAt: string | null }
+    evening: { status: RunState; finishedAt: string | null }
+  }[]
+  /** The last export per tileset. `bytes` may come as a string (bigint). */
+  exports: { tileset: string; seconds: number; bytes: number | string; features: number; finishedAt: string }[]
+  /** The served (default) model, counted after its last refresh. */
+  spread: {
+    refreshedAt: string | null
+    computedAt: string
+    total: number
+    foundationType: { type: string | null; n: number }[]
+    risks: Record<'drystand' | 'dewatering_depth' | 'bio_infection' | 'unclassified', IRiskClasses>
+  }
+}
