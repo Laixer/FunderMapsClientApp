@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref } from 'vue'
+import { computed, defineAsyncComponent, onBeforeMount, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import AppShell from '@/components/Layout/AppShell.vue'
@@ -8,9 +8,11 @@ import FlowDiagram from '@/components/Flow/FlowDiagram.vue'
 import Panel from '@/components/Common/Panel.vue'
 import Sparkline from '@/components/Common/Sparkline.vue'
 import ReaderQualityPanel from '@/components/Flow/ReaderQualityPanel.vue'
+// MapLibre is large: the map loads when this page shows it, not with the Studio.
+const OriginMap = defineAsyncComponent(() => import('@/components/Mapbox/OriginMap.vue'))
 
 import api from '@/services/fundermaps'
-import type { IDataopsFlow, IReaderQuality } from '@/services/fundermaps/interfaces/IDataops'
+import type { IDataopsFlow, IDataopsMap, IReaderQuality } from '@/services/fundermaps/interfaces/IDataops'
 import { loadReaderQuality } from '@/services/readerTrack'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { AGE_BANDS, buildFlow, GROUPS, SOURCES, sourceRows, type FlowGroup, type SourceRow } from '@/services/dataflow'
@@ -30,6 +32,8 @@ import { AGE_BANDS, buildFlow, GROUPS, SOURCES, sourceRows, type FlowGroup, type
 const data = ref<IDataopsFlow | null>(null)
 /** How well the reader reads, per field; its own request, so a failure leaves the rest of the page standing. */
 const quality = ref<IReaderQuality | null>(null)
+/** Where the dossiers come from, per municipality; its own request, like the reader's record. */
+const places = ref<IDataopsMap | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
@@ -37,6 +41,7 @@ async function load(force = false) {
   loading.value = true
   error.value = null
   void loadReaderQuality(force).then((q) => (quality.value = q))
+  void api.dataops.originMap().then((m) => (places.value = m), () => (places.value = null))
   try {
     data.value = await api.dataops.flow()
   } catch (e) {
@@ -217,8 +222,27 @@ function waitingTitle(row: SourceRow) {
         </div>
       </Panel>
 
-      <!-- What the reader gets right, per field (2026-10-22). -->
-      <ReaderQualityPanel v-if="quality" :quality="quality" />
+      <!-- What the reader gets right, per field, and where the dossiers come from (2026-10-22):
+           side by side, so the page grows by one panel's height, not two. -->
+      <div v-if="quality || places" class="grid grid-cols-2 items-start gap-3">
+        <ReaderQualityPanel v-if="quality" :quality="quality" />
+        <Panel v-if="places" title="Waar het vandaan komt" :meta="`${places.municipalities.length} gemeenten`">
+          <div class="flex flex-col gap-2">
+            <div class="h-[440px] overflow-hidden rounded-xl border border-line">
+              <OriginMap :data="places" />
+            </div>
+            <p class="text-sm text-muted">
+              Meeste dossiers:
+              <template v-for="(m, i) in places.municipalities.slice(0, 5)" :key="m.code">
+                <span v-if="i" class="text-faint"> · </span>{{ m.name }} <span class="font-mono text-faint">{{ nl(m.dossiers) }}</span>
+              </template>
+            </p>
+            <p v-if="places.unplaced" class="text-sm text-faint">
+              {{ nl(places.unplaced) }} van de {{ nl(places.total) }} dossiers hebben nog geen pand en staan niet op de kaart.
+            </p>
+          </div>
+        </Panel>
+      </div>
     </div>
   </AppShell>
 </template>

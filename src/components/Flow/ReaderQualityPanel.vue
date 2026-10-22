@@ -82,18 +82,18 @@ const versions = computed(() =>
       <div role="table" aria-label="Per veld" class="flex flex-col">
         <div
           role="row"
-          class="grid grid-cols-[220px_minmax(0,1fr)_170px_80px] items-center gap-4 border-b border-divider pb-1.5 text-xs font-bold tracking-[0.06em] text-label uppercase"
+          class="grid grid-cols-[minmax(0,170px)_minmax(0,1fr)_84px_64px] items-center gap-4 border-b border-divider pb-1.5 text-xs font-bold tracking-[0.06em] text-label uppercase"
         >
           <span role="columnheader">Veld</span>
           <span role="columnheader">Wat ermee gebeurde</span>
-          <span role="columnheader" class="text-right">Niet overgenomen</span>
+          <span role="columnheader" class="text-right" title="Niet overgenomen: verbeterd of afgewezen">Niet overg.</span>
           <span role="columnheader" class="text-right">Beoordeeld</span>
         </div>
         <div
           v-for="r in shown"
           :key="r.field"
           role="row"
-          class="grid grid-cols-[220px_minmax(0,1fr)_170px_80px] items-center gap-4 border-b border-divider py-1 last:border-b-0"
+          class="grid grid-cols-[minmax(0,170px)_minmax(0,1fr)_84px_64px] items-center gap-4 border-b border-divider py-1 last:border-b-0"
           :title="`${r.label}: ${nl(r.confirmed)} overgenomen, ${nl(r.corrected)} verbeterd, ${nl(r.rejected)} afgewezen`"
         >
           <span role="cell" class="text-md truncate text-body">{{ r.label }}</span>
