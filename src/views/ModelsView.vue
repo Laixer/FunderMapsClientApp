@@ -43,7 +43,8 @@ const pct = (part: number, whole: number, digits = 0) =>
     ? `${((part / whole) * 100).toLocaleString('nl-NL', { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`
     : '—'
 const time = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : ''
+  // Amsterdam's clock, as on Vandaag and in the top bar: the runs are 12:30 and 21:00 there.
+  iso ? new Date(iso).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' }) : ''
 const dayShort = (day: string) => new Date(`${day}T12:00:00`).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
 const weekday = (day: string) => new Date(`${day}T12:00:00`).toLocaleDateString('nl-NL', { weekday: 'short' })
 

@@ -189,6 +189,8 @@ const DESK_COLUMNS: DataColumn[] = [
   { field: 'files', title: 'Bestanden', width: '90px', align: 'right' },
   { field: 'open', title: 'Voorstellen', width: '120px', align: 'right' },
   { field: 'receivedAt', title: 'Ontvangen', width: '190px' },
+  // The dossier's pand (2026-10-22): its whole story is one click from the list.
+  { field: 'pand', title: 'Pand', width: '64px' },
 ]
 /**
  * A page with a dossier that lies with a colleague: the last column also holds
@@ -208,6 +210,7 @@ const CLOSED_COLUMNS: DataColumn[] = [
   { field: 'outcome', title: 'Gesloten', width: '170px' },
   { field: 'outcomeNote', title: 'Reden', width: 'minmax(220px,1fr)' },
   { field: 'outcomeAt', title: 'Op', width: '130px' },
+  { field: 'pand', title: 'Pand', width: '64px' },
 ]
 /**
  * A meldcode or a dossier id names one dossier, and the API answers it in any
@@ -255,6 +258,7 @@ const items = computed(() =>
     /** `accepted` with a rapportage is a commit; without one it was closed by hand. */
     outcomeTone: outcomeTone(r.outcome),
     inquiryId: r.inquiryId,
+    buildingId: r.buildingId,
     duplicateOf: r.duplicateOf,
     outcomeNote: r.outcomeNote?.trim() || null,
     outcomeAt: r.outcomeAt ? shortDate(r.outcomeAt) : null,
@@ -523,6 +527,19 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
         </template>
         <template #outcomeAt="{ row }">
           <span class="text-muted">{{ row.outcomeAt ?? '—' }}</span>
+        </template>
+        <!-- A link inside a clickable row: .stop, or the row opens the dossier as well. -->
+        <template #pand="{ row }">
+          <RouterLink
+            v-if="row.buildingId"
+            :to="{ name: 'building', params: { id: row.buildingId } }"
+            class="text-sm text-blue-ink hover:underline"
+            :aria-label="`Pand van ${row.reference}`"
+            @click.stop
+          >
+            pand
+          </RouterLink>
+          <span v-else class="text-sm text-faint" title="Nog geen pand bij dit dossier">—</span>
         </template>
         <template #reference="{ row }">
           <span class="text-sm font-mono text-faint" :title="row.reference">{{ row.reference }}</span>

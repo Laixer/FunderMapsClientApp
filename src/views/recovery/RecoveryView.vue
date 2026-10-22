@@ -466,7 +466,16 @@ useActionShortcuts(() => {
                 class="flex flex-col gap-1.5 border-b border-divider px-4 py-3 last:border-b-0"
               >
                 <div class="flex items-center gap-2.5">
+                  <!-- The pand's page: its whole story, this herstel in it (2026-10-22). -->
+                  <RouterLink
+                    v-if="sample.building"
+                    :to="{ name: 'building', params: { id: sample.building } }"
+                    class="min-w-0 flex-1 truncate hover:underline"
+                  >
+                    <LazyAddress :id="sample.building" class="text-lg font-semibold text-body" />
+                  </RouterLink>
                   <LazyAddress
+                    v-else
                     :id="sample.building"
                     class="text-lg min-w-0 flex-1 truncate font-semibold text-body"
                   />
