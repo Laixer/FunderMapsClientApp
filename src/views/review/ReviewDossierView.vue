@@ -12,7 +12,6 @@ import Panel from '@/components/Common/Panel.vue'
 import Pill from '@/components/Common/Pill.vue'
 import DossierAddresses from '@/components/Review/DossierAddresses.vue'
 import DossierChain from '@/components/Review/DossierChain.vue'
-import ReaderTrack from '@/components/Review/ReaderTrack.vue'
 import ProposalValueField from '@/components/Review/ProposalValueField.vue'
 import RecordRecoveryPanel from '@/components/Review/RecordRecoveryPanel.vue'
 import api from '@/services/fundermaps'
@@ -69,6 +68,7 @@ import { splitQuoted, tidyMailText } from '@/services/mailQuote'
 import { addressSetKey, hiddenMembers, spreadSets } from '@/utils/spread'
 import { describeDocument, documentName, findConflicts, DOCUMENT_FIELDS as DOCUMENT_LEVEL_FIELDS } from '@/services/documentPrecedence'
 import type { MelderMessageKind } from '@/services/fundermaps/endpoints/dataops'
+import { useActionShortcuts } from '@/services/useActionShortcuts'
 
 /**
  * Judging one submission.
@@ -1668,6 +1668,82 @@ function toggleEdit(f: IProposedField) {
   if (editing.value[f.id]) focus(f)
 }
 
+/* ------------------------------------------------- the rows (2026-10-22) */
+
+/** Bestanden indelen, opened on request while every file is in one rapportage. */
+const filesOpen = ref(false)
+/** Verloop: the newest four lines unless asked for all. */
+const VERLOOP_SHOWN = 4
+const verloopOpen = ref(false)
+const shownEntries = computed(() =>
+  verloopOpen.value || entries.value.length <= VERLOOP_SHOWN ? entries.value : entries.value.slice(-VERLOOP_SHOWN),
+)
+const earlierEntries = computed(() => entries.value.length - shownEntries.value.length)
+
+/**
+ * The value you are on: its row shows the whole quote and the primary button,
+ * its document is on the left. Click a row, or walk them with j / k.
+ */
+const currentRow = ref<number | null>(null)
+function pick(f: IProposedField) {
+  currentRow.value = f.id
+  focus(f)
+}
+
+/**
+ * A value a person should look at twice: a source that may not decide it, a
+ * value reasoned rather than read, no quote, low certainty, another document
+ * saying otherwise, or a remark on what is in the database now. (Not the
+ * reader's record per field: at 8% it lit up nearly every field of a real
+ * report; the current row shows it as context instead.) Those rows come first and carry the colour.
+ */
+const needsLook = (f: IProposedField) =>
+  isRefused(f) ||
+  isInferred(f) ||
+  !f.evidence?.trim() ||
+  !isSure(f) ||
+  !!conflicts.value.get(f.id)?.others.length ||
+  !!currentLabel(f)
+/** The look-twice values first, each part in its own order. */
+const lookFirst = (fields: IProposedField[]) => [...fields.filter(needsLook), ...fields.filter((f) => !needsLook(f))]
+
+/** The rows as they stand on screen, so j / k go where the eye goes. */
+function moveRow(step: 1 | -1) {
+  const ids = [...document.querySelectorAll<HTMLElement>('[data-field-row]')].map((el) => Number(el.dataset.fieldRow))
+  if (!ids.length) return
+  const at = currentRow.value == null ? -1 : ids.indexOf(currentRow.value)
+  const next = ids[Math.min(Math.max(at + step, 0), ids.length - 1)]!
+  const f = data.value?.fields.find((x) => x.id === next)
+  if (!f) return
+  pick(f)
+  document.querySelector(`[data-field-row="${next}"]`)?.scrollIntoView({ block: 'nearest' })
+}
+
+/** Overnemen from the keyboard, then on to the next row: the one that slides up into its place. */
+function takeCurrent() {
+  const f = data.value?.fields.find((x) => x.id === currentRow.value)
+  if (!f || isRefused(f) || draftedChange(f) || busy.value === f.id) return
+  const ids = [...document.querySelectorAll<HTMLElement>('[data-field-row]')].map((el) => Number(el.dataset.fieldRow))
+  const after = ids[ids.indexOf(f.id) + 1] ?? null
+  void decide(f, 'confirmed').then(() => {
+    const g = after == null ? null : data.value?.fields.find((x) => x.id === after)
+    if (g) pick(g)
+  })
+}
+
+useActionShortcuts(() => {
+  if (isClosed.value || !data.value) return {}
+  const map: Record<string, () => void> = { j: () => moveRow(1), k: () => moveRow(-1) }
+  if (currentRow.value != null) {
+    map['⇧O'] = takeCurrent
+    map['⇧E'] = () => {
+      const f = data.value?.fields.find((x) => x.id === currentRow.value)
+      if (f) toggleEdit(f)
+    }
+  }
+  return map
+})
+
 /** Short form of what the commit will do with a bureau name, for the row. */
 function contractorNote(f: IProposedField): { text: string; ok: boolean } | null {
   if (f.field !== 'contractor' || !contractors.value.length) return null
@@ -2053,6 +2129,14 @@ async function reopen(f: IProposedField) {
             caption="BESTANDEN INDELEN"
             :meta="`${commitGroups.length} rapportage${commitGroups.length === 1 ? '' : 's'}`"
           >
+            <!-- The usual case in one line (2026-10-22): every file in one rapportage. The choice opens on request. -->
+            <div v-if="commitGroups.length === 1 && !filesOpen" class="flex items-center gap-3">
+              <p class="text-md flex-1 text-muted">
+                {{ commitDocs.length }} bestanden, samen één rapportage: ze worden één PDF.
+              </p>
+              <Button label="Indeling wijzigen" variant="ghost" @click="filesOpen = true" />
+            </div>
+            <template v-else>
             <p class="text-md mb-2 text-muted">
               Staat alles in Rapportage 1, dan wordt het één rapportage. Hoort een bestand bij een ander onderzoek,
               kies dan een nieuwe rapportage. Bestanden in één rapportage worden samengevoegd tot één PDF. Een bestand
@@ -2079,6 +2163,7 @@ async function reopen(f: IProposedField) {
                 />
               </div>
             </div>
+            </template>
           </Panel>
 
           <DossierAddresses
@@ -2207,213 +2292,234 @@ async function reopen(f: IProposedField) {
               <p class="mt-1">{{ group.spread.join(' · ') }}</p>
             </details>
 
-            <!-- A card is three rows of this grid (subgrid): the field's name, the
-                 pill with the model's certainty, and the rest from the value
-                 down. Two cards side by side share those rows, so their values
-                 start at one height whether a name takes one line or two and
-                 whether there is a pill. With name, pill and number on one
-                 wrapping line a long name gave three head shapes in one row of
-                 cards. The second row is as high as a pill, also when it holds
-                 only the percentage. -->
-            <div v-if="!collapsed[`${sec.key}|${group.key}`]" class="grid grid-cols-2 gap-2">
-              <div
-                v-for="f in group.fields"
-                :key="f.id"
-                class="row-span-3 grid grid-cols-1 grid-rows-subgrid gap-y-0 rounded-lg border border-line bg-surface p-2.5"
-                :class="{ 'col-span-2': editing[f.id] && !isClosed }"
-                @focusin="focus(f)"
-                @click="focus(f)"
-              >
-                <span class="text-sm row-start-1 font-semibold uppercase tracking-wide text-label">
-                  {{ fieldLabel(f.field) }}
-                </span>
-                <div
-                  v-if="isRefused(f) || isInferred(f) || isSure(f) || confidencePercent(f) || trackOf(f)"
-                  class="row-start-2 flex min-h-7 items-center gap-2 pt-1"
+            <!-- One value, one row (2026-10-22: "still feels like a giant dump of forms" — 68 values were
+                 16 screens of cards, each saying "hoge zekerheid", its track and its file). Name, value and
+                 actions on one line, the quote under it on one more; the row you are on shows all of it and
+                 its page. Colour only where a person should look twice: a refused source, a value the model
+                 reasoned instead of read, no quote, low certainty, a field the reader often gets wrong. Those
+                 come first; sure and quoted is the normal case and says nothing. -->
+            <ol
+              v-if="!collapsed[`${sec.key}|${group.key}`]"
+              class="flex flex-col overflow-hidden rounded-lg border border-line bg-surface"
+              :aria-label="`Waarden: ${group.address || 'het rapport'}`"
+            >
+              <template v-for="(f, i) in lookFirst(group.fields)" :key="f.id">
+                <li
+                  v-if="i === 0 && needsLook(f) && lookFirst(group.fields).some((x) => !needsLook(x))"
+                  class="text-xs border-b border-divider bg-amber-wash px-3 py-1 font-semibold tracking-[0.06em] text-amber-ink uppercase"
+                  aria-hidden="true"
                 >
-                  <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" plain />
-                  <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" plain />
-                  <Pill v-else-if="isSure(f)" label="hoge zekerheid" tone="green" plain />
-                  <!-- The reader's track record on this field (2026-10-22). -->
-                  <ReaderTrack v-if="trackOf(f)" :track="trackOf(f)!" />
-                  <span
-                    v-if="confidencePercent(f)"
-                    class="text-sm ml-auto font-mono text-faint"
-                    title="Zekerheid van het model"
-                  >
-                    {{ confidencePercent(f) }}
-                  </span>
-                </div>
-
-                <div class="row-start-3 flex flex-col gap-1.5 pt-1.5">
-                <div class="flex items-baseline gap-1.5">
-                  <span class="text-xl font-display font-bold text-ink">{{ displayValue(f) }}</span>
-                  <span v-if="FIELD_UNIT[f.field] && f.value != null" class="text-sm text-muted">
-                    {{ FIELD_UNIT[f.field] }}
-                  </span>
-                </div>
-
-                <!-- The citation is what is being judged, not the value. -->
-                <p
-                  class="text-sm cursor-pointer border-l-2 border-line-strong pl-2 text-muted"
-                  :class="{ 'line-clamp-2': !unclamped[f.id] }"
-                  :title="unclamped[f.id] ? '' : 'Klik voor het hele citaat'"
-                  @click.stop="unclamped = { ...unclamped, [f.id]: !unclamped[f.id] }"
+                  Kijk hier eerst naar · {{ group.fields.filter(needsLook).length }}
+                </li>
+                <li
+                  v-else-if="i > 0 && !needsLook(f) && needsLook(lookFirst(group.fields)[i - 1]!)"
+                  class="text-xs border-b border-divider bg-raised px-3 py-1 font-semibold tracking-[0.06em] text-label uppercase"
+                  aria-hidden="true"
                 >
-                  {{ f.evidence ?? 'Geen citaat meegegeven.' }}
-                </p>
-
-                <button
-                  v-if="docOf(f)"
-                  type="button"
-                  class="text-sm max-w-full self-start truncate font-mono text-faint hover:text-strong"
-                  :title="`Toon ${docOf(f)}`"
-                  @click.stop="focus(f)"
+                  Zeker en geciteerd · {{ group.fields.filter((x) => !needsLook(x)).length }}
+                </li>
+                <li
+                  :data-field-row="f.id"
+                  class="flex flex-col gap-1 border-b border-divider px-3 py-1.5 last:border-b-0"
+                  :class="[currentRow === f.id ? 'bg-blue-wash' : 'hover:bg-raised', { 'pb-3': editing[f.id] && !isClosed }]"
+                  :aria-current="currentRow === f.id ? 'true' : undefined"
+                  @focusin="pick(f)"
+                  @click="pick(f)"
                 >
-                  uit {{ docOf(f) }}
-                </button>
-
-                <!-- Several documents, one address, two answers (Don, 2026-10-01): the
-                     rule advises, the reviewer confirms which document leads. -->
-                <div v-if="conflicts.get(f.id)?.others.length" class="text-sm flex flex-col gap-1 break-words text-amber-ink">
-                  <p class="font-semibold">Een ander document zegt iets anders:</p>
-                  <p v-for="o in conflicts.get(f.id)!.others" :key="o.fieldId">
-                    {{ labelValue(f.field, o.value) }} <span class="font-mono">(uit {{ o.name }})</span>
-                  </p>
-                  <p v-if="conflicts.get(f.id)!.leading">
-                    Advies volgens de volgorde: {{ conflicts.get(f.id)!.leading!.name }} gaat voor
-                    ({{ describeDocument(conflicts.get(f.id)!.leading!) }}).
-                  </p>
-                  <p v-else>
-                    De volgorde kan hier niet kiezen: van een document ontbreekt de soort, of ze zijn even oud. Kies zelf.
-                  </p>
-                  <Button
-                    v-if="!isClosed"
-                    class="self-start"
-                    :variant="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'primary' : 'secondary'"
-                    :label="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'Deze is leidend (advies)' : 'Deze is leidend'"
-                    :disabled="busy === f.id || isRefused(f)"
-                    title="Neemt deze waarde over en keurt de waarde uit het andere document af"
-                    @click.stop="chooseLeading(f)"
-                  />
-                </div>
-
-                <p
-                  v-if="currentLabel(f)"
-                  class="text-sm font-semibold"
-                  :class="currentLabel(f)!.tone === 'red' ? 'text-red' : 'text-amber-ink'"
-                >
-                  {{ currentLabel(f)!.text }}
-                </p>
-                <p v-if="isRefused(f)" class="text-sm text-red">
-                  Dit document mag dit veld niet vaststellen: een QuickScan of risicorapport toont
-                  FunderMaps-gegevens.
-                </p>
-                <p
-                  v-else-if="contractorNote(f)"
-                  class="text-sm"
-                  :class="contractorNote(f)!.ok ? 'text-green-ink' : 'text-amber-ink'"
-                >
-                  {{ contractorNote(f)!.text }}
-                </p>
-
-                <!-- Not on a closed dossier: the card is then what was proposed, to read. -->
-                <div v-if="!isClosed" class="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
-                  <Button
-                    variant="primary"
-                    label="Overnemen"
-                    :disabled="busy === f.id || isRefused(f) || draftedChange(f)"
-                    :title="draftedChange(f) ? 'Je hebt hieronder iets ingevuld: kies Aanpassen en overnemen of Afkeuren met toelichting' : ''"
-                    @click="decide(f, 'confirmed')"
-                  />
-                  <!-- No bare Afkeuren here (Don, #348): a rejection is either a
-                       correction or a reason, both live in the Aanpassen panel. -->
-                  <Button
-                    :variant="editing[f.id] ? 'secondary' : 'ghost'"
-                    :label="editing[f.id] ? 'Sluiten' : 'Aanpassen…'"
-                    :disabled="busy === f.id"
-                    @click="toggleEdit(f)"
-                  />
-                </div>
-
-                <!-- The drawer: correction and toelichting, only when asked. -->
-                <div
-                  v-if="editing[f.id] && !isClosed"
-                  class="mt-1 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-divider pt-2.5"
-                >
-                  <Combobox
-                    v-if="f.field === 'foundation_type'"
-                    v-model="corrections[f.id]"
-                    label="Andere waarde"
-                    :options="FOUNDATION_TYPE_CODE_OPTIONS"
-                  />
-                  <Field
-                    v-else-if="f.field === 'inquiry_type'"
-                    v-model="corrections[f.id]"
-                    kind="select"
-                    label="Andere waarde"
-                    :options="INQUIRY_TYPE_CODE_OPTIONS"
-                  />
-                  <Field
-                    v-else-if="f.field === 'document_date'"
-                    v-model="corrections[f.id]"
-                    kind="date"
-                    label="Andere datum"
-                    warn-future
-                  />
-                  <Combobox
-                    v-else-if="f.field === 'contractor' && contractors.length"
-                    v-model="corrections[f.id]"
-                    label="Andere uitvoerder"
-                    placeholder="Typ een naam"
-                    :options="contractorOptions"
-                  />
-                  <!-- Every other field: the control "Waarde toevoegen" uses for it,
-                       so a correction is a code or a number the commit can read. -->
-                  <ProposalValueField v-else v-model="corrections[f.id]" :field="f.field" label="Andere waarde" />
-
-                  <Field
-                    v-model="notes[f.id]"
-                    kind="textarea"
-                    :rows="2"
-                    label="Toelichting"
-                    hint="Waarom klopt het niet? Dit stuurt de volgende versie."
-                  />
-
-                  <!-- The value is right, the address is not: move it (#333, 4).
-                       Takes effect at once; the group changes under your hands.
-                       The first line of the list says where the value is now,
-                       and is only there while that is not one of the addresses. -->
-                  <Field
-                    v-if="moveTargets.length && membersOf(f).length === 1 && !DOCUMENT_LEVEL_FIELDS.has(f.field)"
-                    class="col-span-2"
-                    :model-value="f.addressId"
-                    kind="select"
-                    label="Hoort bij adres"
-                    :options="moveTargets"
-                    :empty-label="f.addressId ? undefined : f.addressText ? `niet herkend: ${f.addressText}` : 'het rapport als geheel'"
-                    :disabled="busy === f.id"
-                    @update:model-value="moveField(f, typeof $event === 'string' ? $event : '')"
-                  />
-
-                  <div class="col-span-2 flex flex-wrap gap-1.5">
-                    <Button
-                      variant="primary"
-                      label="Aanpassen en overnemen"
-                      :disabled="busy === f.id || !corrections[f.id]"
-                      @click="decide(f, 'corrected')"
-                    />
-                    <Button
-                      variant="danger"
-                      label="Afkeuren met toelichting"
-                      :disabled="busy === f.id || !notes[f.id]?.trim()"
-                      @click="decide(f, 'rejected')"
-                    />
+                  <div class="flex min-w-0 items-center gap-3">
+                    <span
+                      class="text-sm w-[132px] shrink-0 truncate font-semibold tracking-wide text-label uppercase"
+                      :title="fieldLabel(f.field)"
+                    >
+                      {{ fieldLabel(f.field) }}
+                    </span>
+                    <span class="min-w-0 flex-1 truncate" :title="displayValue(f)">
+                      <span class="text-lg font-display font-bold text-ink">{{ displayValue(f) }}</span>
+                      <span v-if="FIELD_UNIT[f.field] && f.value != null" class="text-sm ml-1 text-muted">{{ FIELD_UNIT[f.field] }}</span>
+                    </span>
+                    <div v-if="!isClosed" class="flex shrink-0 items-center gap-1">
+                      <Button
+                        :variant="currentRow === f.id ? 'primary' : 'secondary'"
+                        label="Overnemen"
+                        :shortcut="currentRow === f.id ? '⇧O' : undefined"
+                        :disabled="busy === f.id || isRefused(f) || draftedChange(f)"
+                        :title="draftedChange(f) ? 'Je hebt hieronder iets ingevuld: kies Aanpassen en overnemen of Afkeuren met toelichting' : ''"
+                        @click.stop="decide(f, 'confirmed')"
+                      />
+                      <!-- No bare Afkeuren here (Don, #348): a rejection is either a
+                           correction or a reason, both live in the Aanpassen panel. -->
+                      <Button
+                        :variant="editing[f.id] ? 'secondary' : 'ghost'"
+                        :label="editing[f.id] ? 'Sluiten' : 'Aanpassen…'"
+                        :disabled="busy === f.id"
+                        @click.stop="toggleEdit(f)"
+                      />
+                    </div>
                   </div>
-                </div>
-                </div>
-              </div>
-            </div>
+
+                  <!-- Line two: what to look at twice (if anything), the quote — what is being judged, not the
+                       value — and the file. One line; the current row shows all of it. -->
+                  <!-- Sure and quoted, and not the row you are on: one line is enough, the quote is a j/k away. -->
+                  <div v-if="needsLook(f) || currentRow === f.id" class="flex min-w-0 items-baseline gap-2 pl-[144px]">
+                    <Pill v-if="isRefused(f)" label="bron niet toelaatbaar" tone="red" plain />
+                    <Pill v-else-if="isInferred(f)" label="afgeleid" tone="amber" plain />
+                    <Pill v-else-if="!f.evidence?.trim()" label="geen citaat" tone="amber" plain />
+                    <Pill
+                      v-else-if="!isSure(f)"
+                      :label="confidencePercent(f) ? `twijfel · ${confidencePercent(f)}` : 'twijfel'"
+                      tone="amber"
+                      plain
+                    />
+                    <p
+                      v-if="f.evidence?.trim()"
+                      class="text-sm min-w-0 flex-1 text-muted"
+                      :class="currentRow === f.id || unclamped[f.id] ? '' : 'truncate'"
+                      :title="currentRow === f.id ? '' : f.evidence"
+                    >
+                      “{{ f.evidence }}”
+                    </p>
+                    <button
+                      v-if="docOf(f)"
+                      type="button"
+                      class="text-sm max-w-[200px] shrink-0 truncate font-mono text-faint hover:text-strong"
+                      :title="`Toon ${docOf(f)}`"
+                      @click.stop="pick(f)"
+                    >
+                      uit {{ docOf(f) }}
+                    </button>
+                  </div>
+                  <p v-if="currentRow === f.id && trackOf(f)" class="text-sm pl-[144px]" :class="trackOf(f)!.watch ? 'text-amber-ink' : 'text-faint'" :title="trackOf(f)!.title">
+                    De lezer bij dit veld: {{ trackOf(f)!.text }}
+                  </p>
+
+                  <div class="flex flex-col gap-1.5 pl-[144px]">
+                    <!-- Several documents, one address, two answers (Don, 2026-10-01): the
+                         rule advises, the reviewer confirms which document leads. -->
+                    <div v-if="conflicts.get(f.id)?.others.length" class="text-sm flex flex-col gap-1 break-words text-amber-ink">
+                      <!-- One line on every row; the advice and the choice on the row you are on. -->
+                      <p>
+                        <span class="font-semibold">Een ander document zegt:</span>{{ ' ' }}
+                        <template v-for="(o, k) in conflicts.get(f.id)!.others" :key="o.fieldId">
+                          {{ labelValue(f.field, o.value) }} <span class="font-mono text-faint">(uit {{ o.name }})</span><template v-if="k < conflicts.get(f.id)!.others.length - 1"> · </template>
+                        </template>
+                      </p>
+                      <template v-if="currentRow === f.id">
+                        <p v-if="conflicts.get(f.id)!.leading">
+                          Advies volgens de volgorde: {{ conflicts.get(f.id)!.leading!.name }} gaat voor
+                          ({{ describeDocument(conflicts.get(f.id)!.leading!) }}).
+                        </p>
+                        <p v-else>
+                          De volgorde kan hier niet kiezen: van een document ontbreekt de soort, of ze zijn even oud. Kies zelf.
+                        </p>
+                        <Button
+                          v-if="!isClosed"
+                          class="self-start"
+                          :variant="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'primary' : 'secondary'"
+                          :label="conflicts.get(f.id)!.leading?.artifactId === f.artifactId ? 'Deze is leidend (advies)' : 'Deze is leidend'"
+                          :disabled="busy === f.id || isRefused(f)"
+                          title="Neemt deze waarde over en keurt de waarde uit het andere document af"
+                          @click.stop="chooseLeading(f)"
+                        />
+                      </template>
+                    </div>
+                    <p
+                      v-if="currentLabel(f)"
+                      class="text-sm font-semibold"
+                      :class="currentLabel(f)!.tone === 'red' ? 'text-red' : 'text-amber-ink'"
+                    >
+                      {{ currentLabel(f)!.text }}
+                    </p>
+                    <p v-if="isRefused(f)" class="text-sm text-red">
+                      Dit document mag dit veld niet vaststellen: een QuickScan of risicorapport toont
+                      FunderMaps-gegevens.
+                    </p>
+                    <p
+                      v-else-if="contractorNote(f)"
+                      class="text-sm"
+                      :class="contractorNote(f)!.ok ? 'text-green-ink' : 'text-amber-ink'"
+                    >
+                      {{ contractorNote(f)!.text }}
+                    </p>
+                  </div>
+
+                  <!-- The drawer: correction and toelichting, only when asked. -->
+                  <div
+                    v-if="editing[f.id] && !isClosed"
+                    class="mt-1 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-divider pt-2.5"
+                  >
+                    <Combobox
+                      v-if="f.field === 'foundation_type'"
+                      v-model="corrections[f.id]"
+                      label="Andere waarde"
+                      :options="FOUNDATION_TYPE_CODE_OPTIONS"
+                    />
+                    <Field
+                      v-else-if="f.field === 'inquiry_type'"
+                      v-model="corrections[f.id]"
+                      kind="select"
+                      label="Andere waarde"
+                      :options="INQUIRY_TYPE_CODE_OPTIONS"
+                    />
+                    <Field
+                      v-else-if="f.field === 'document_date'"
+                      v-model="corrections[f.id]"
+                      kind="date"
+                      label="Andere datum"
+                      warn-future
+                    />
+                    <Combobox
+                      v-else-if="f.field === 'contractor' && contractors.length"
+                      v-model="corrections[f.id]"
+                      label="Andere uitvoerder"
+                      placeholder="Typ een naam"
+                      :options="contractorOptions"
+                    />
+                    <!-- Every other field: the control "Waarde toevoegen" uses for it,
+                         so a correction is a code or a number the commit can read. -->
+                    <ProposalValueField v-else v-model="corrections[f.id]" :field="f.field" label="Andere waarde" />
+
+                    <Field
+                      v-model="notes[f.id]"
+                      kind="textarea"
+                      :rows="2"
+                      label="Toelichting"
+                      hint="Waarom klopt het niet? Dit stuurt de volgende versie."
+                    />
+
+                    <!-- The value is right, the address is not: move it (#333, 4).
+                         Takes effect at once; the group changes under your hands.
+                         The first line of the list says where the value is now,
+                         and is only there while that is not one of the addresses. -->
+                    <Field
+                      v-if="moveTargets.length && membersOf(f).length === 1 && !DOCUMENT_LEVEL_FIELDS.has(f.field)"
+                      class="col-span-2"
+                      :model-value="f.addressId"
+                      kind="select"
+                      label="Hoort bij adres"
+                      :options="moveTargets"
+                      :empty-label="f.addressId ? undefined : f.addressText ? `niet herkend: ${f.addressText}` : 'het rapport als geheel'"
+                      :disabled="busy === f.id"
+                      @update:model-value="moveField(f, typeof $event === 'string' ? $event : '')"
+                    />
+
+                    <div class="col-span-2 flex flex-wrap gap-1.5">
+                      <Button
+                        variant="primary"
+                        label="Aanpassen en overnemen"
+                        :disabled="busy === f.id || !corrections[f.id]"
+                        @click="decide(f, 'corrected')"
+                      />
+                      <Button
+                        variant="danger"
+                        label="Afkeuren met toelichting"
+                        :disabled="busy === f.id || !notes[f.id]?.trim()"
+                        @click="decide(f, 'rejected')"
+                      />
+                    </div>
+                  </div>
+                </li>
+              </template>
+            </ol>
           </section>
           </template>
 
@@ -2566,8 +2672,17 @@ async function reopen(f: IProposedField) {
             </div>
           </Panel>
           <Panel v-if="!loading && data" caption="VERLOOP" :meta="String(entries.length)">
+            <!-- The newest lines; the earlier ones fold (2026-10-22: nine lines were 1,167px on a real dossier). -->
+            <button
+              v-if="earlierEntries"
+              type="button"
+              class="text-sm mb-2 text-green-ink underline underline-offset-2"
+              @click="verloopOpen = true"
+            >
+              {{ earlierEntries }} eerdere {{ earlierEntries === 1 ? 'regel' : 'regels' }} tonen
+            </button>
             <ul class="flex flex-col gap-1.5">
-              <li v-for="e in entries" :key="e.id" class="text-md flex gap-2.5">
+              <li v-for="e in shownEntries" :key="e.id" class="text-md flex gap-2.5">
                 <span class="text-sm w-[84px] shrink-0 font-mono text-faint">{{ entryWhen(e.at) }}</span>
                 <!-- flex-1: a mail card is as wide as the panel, not as its longest line. -->
                 <span class="min-w-0 flex-1">
