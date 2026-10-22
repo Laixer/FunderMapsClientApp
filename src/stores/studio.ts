@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import api from '@/services/fundermaps'
+import type { IStudioToday } from '@/services/fundermaps/interfaces/IDataops'
 import {
   BUILTIN_VIEWS,
   DEFAULT_VIEW,
@@ -94,6 +95,24 @@ export const useStudioStore = defineStore('studio', () => {
   }
 
   /**
+   * The studio's pulse (2026-10-22): today's work by the machines and the people
+   * and what waits (/dataops/today). Vandaag draws it in full, the top bar of
+   * every other page in one line. At most once a minute, like the view counts;
+   * a failed or missing endpoint keeps the last answer and the bar stays quiet.
+   */
+  const pulse = ref<IStudioToday | null>(null)
+  let pulseAt = 0
+  async function refreshPulse(maxAge = 60_000): Promise<void> {
+    if (maxAge && Date.now() - pulseAt < maxAge) return
+    pulseAt = Date.now()
+    try {
+      pulse.value = await api.dataops.today()
+    } catch {
+      /* keep the last pulse */
+    }
+  }
+
+  /**
    * Refresh every counter for the given user.
    *
    * Each source is allowed to fail on its own: the sidebar losing one number is
@@ -128,6 +147,7 @@ export const useStudioStore = defineStore('studio', () => {
       // numbers move: count again. Every page's shell refreshes too, where a
       // minute-old count is fresh enough.
       jobs.push(refreshViewCounts(userId === null ? 0 : 60_000))
+      jobs.push(refreshPulse(userId === null ? 0 : 60_000))
 
       // The number next to "Vandaag" is the work in your packages plus the
       // dossiers handed to you, i.e. what the Vandaag page puts in front of
@@ -192,6 +212,8 @@ export const useStudioStore = defineStore('studio', () => {
     viewCounts,
     reloadReviewViews,
     refreshViewCounts,
+    pulse,
+    refreshPulse,
     openPalette,
     closePalette,
     togglePalette,

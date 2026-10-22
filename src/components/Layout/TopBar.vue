@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 
 import { crumbTrail } from '@/services/navigation'
+import { useStudioStore } from '@/stores/studio'
 
 /**
  * A 54px translucent strip that says where you are: the part of the studio
@@ -22,6 +24,30 @@ defineProps<{ crumb: string }>()
 
 const route = useRoute()
 const trail = computed(() => crumbTrail(String(route.name ?? '')))
+
+/*
+ * The studio's pulse, on the right of every page but Vandaag (which draws it in
+ * full): the model's last run today, the reader, and what waits for a person.
+ * Most of the work is the machines' now; this is where you see they are at it
+ * without leaving the page you are on (2026-10-22). Nothing until it is known.
+ */
+const { pulse } = storeToRefs(useStudioStore())
+const nl = (n: number) => n.toLocaleString('nl-NL')
+const clock = (iso: string) =>
+  new Date(iso).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' })
+const beat = computed(() => {
+  const p = pulse.value
+  if (!p || route.name === 'home') return null
+  const runs = p.today.modelRuns.filter((r) => r.job === 'refresh_data_model')
+  const run = runs[runs.length - 1]
+  return {
+    model: run
+      ? { text: `model ${run.status === 'ok' ? 'bijgewerkt' : 'mislukt'} ${clock(run.finishedAt)}`, dot: run.status === 'ok' ? 'bg-green' : 'bg-red' }
+      : { text: 'model vandaag nog niet gedraaid', dot: 'bg-line-hover' },
+    reader: `lezer ${nl(p.today.reader?.documents ?? 0)} gelezen${p.waiting?.toRead ? `, ${nl(p.waiting.toRead)} te lezen` : ''}`,
+    toJudge: p.waiting?.toJudge ?? null,
+  }
+})
 </script>
 
 <template>
@@ -37,8 +63,21 @@ const trail = computed(() => crumbTrail(String(route.name ?? '')))
       <span class="truncate font-semibold text-strong" aria-current="page">{{ crumb }}</span>
     </nav>
 
-    <div class="ml-auto flex items-center gap-2">
-      <slot name="end" />
-    </div>
+    <RouterLink
+      v-if="beat"
+      :to="{ name: 'home' }"
+      class="text-sm ml-auto flex shrink-0 items-center gap-2 rounded-lg px-2 py-1 text-muted hover:bg-sunken hover:text-strong"
+      aria-label="De dag van de studio (Vandaag)"
+      title="De dag van de studio: Vandaag"
+    >
+      <span class="h-2 w-2 rounded-full" :class="beat.model.dot" aria-hidden="true" />
+      <span>{{ beat.model.text }}</span>
+      <span class="text-faint" aria-hidden="true">·</span>
+      <span>{{ beat.reader }}</span>
+      <template v-if="beat.toJudge != null">
+        <span class="text-faint" aria-hidden="true">·</span>
+        <span><span class="font-mono text-strong">{{ nl(beat.toJudge) }}</span> te beoordelen</span>
+      </template>
+    </RouterLink>
   </header>
 </template>
