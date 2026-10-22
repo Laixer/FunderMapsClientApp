@@ -32,25 +32,15 @@ export interface NavGroup {
 }
 
 /**
- * The rail in four parts (2026-10-22, "a cohesive structure"): your day; how
- * the data flows (INZICHT); what is in FunderMaps (GEGEVENS); what needs doing
- * (WERK). WERK comes last because Controle carries its views, the one list in
- * the rail that can grow: on a short window only its tail scrolls, never a
- * place.
+ * The rail in four parts (2026-10-22, "a cohesive structure"): your day; what
+ * is in FunderMaps (GEGEVENS); what needs doing (WERK, Controle's views as its
+ * rows); how the data flows (INZICHT) — last, as asked ("i would put inzicht
+ * last in the sidebar"). On a window too short for all of it the rail scrolls.
  */
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     title: '',
     items: [{ route: 'home', label: 'Vandaag', key: 'w', counter: 'werkbank' }],
-  },
-  {
-    title: 'INZICHT',
-    items: [
-      // Where everything that came in went (2026-10-22).
-      { route: 'dataflow', label: 'Datastroom', key: 'd' },
-      // How the model runs and what it says now (2026-10-22).
-      { route: 'models', label: 'Modellen', key: 'm' },
-    ],
   },
   {
     title: 'GEGEVENS',
@@ -68,6 +58,15 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       // The desk the day starts at now that documents arrive through the portal
       // (Yorick, 2026-08-31); its views hang under it.
       { route: 'review-queue', label: 'Controle', key: 'c', counter: 'controle' },
+    ],
+  },
+  {
+    title: 'INZICHT',
+    items: [
+      // Where everything that came in went (2026-10-22).
+      { route: 'dataflow', label: 'Datastroom', key: 'd' },
+      // How the model runs and what it says now (2026-10-22).
+      { route: 'models', label: 'Modellen', key: 'm' },
     ],
   },
   {
