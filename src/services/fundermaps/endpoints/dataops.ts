@@ -6,6 +6,7 @@ import type {
   IDossierOutcome,
   IDossierAddress,
   AddressVerdictOutcome,
+  IDataopsFlow,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -255,6 +256,11 @@ export async function myWorkPackages() {
   return (await get({ endpoint: '/dataops/work-packages/me' })) as { packageIds: string[] }
 }
 
+/** Where every dossier went, per channel, and the last 12 weeks in and out (the Datastroom page). */
+export async function flow() {
+  return (await get({ endpoint: '/dataops/flow' })) as IDataopsFlow
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -363,6 +369,7 @@ export default {
   question,
   assign,
   myWorkPackages,
+  flow,
   addressVerdict,
   addressAdd,
   addressRelink,

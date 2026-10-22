@@ -277,3 +277,30 @@ export interface IVerdict {
   note?: string | null
   reviewSeconds?: number | null
 }
+
+/**
+ * Where a dossier stands on the Datastroom page (API GET /dataops/flow). One
+ * per dossier, so a channel's buckets add up to everything it brought in.
+ * Closed: `rapportage` (in FunderMaps) and the four outcomes; open: no file,
+ * not read yet, nothing found, values to judge, all judged.
+ */
+export type FlowBucket =
+  | 'rapportage'
+  | 'accepted'
+  | 'no_data'
+  | 'rejected'
+  | 'duplicate'
+  | 'question'
+  | 'unread'
+  | 'empty'
+  | 'proposals'
+  | 'judged'
+
+export interface IDataopsFlow {
+  generatedAt: string
+  flow: { channel: string; bucket: FlowBucket; count: number }[]
+  /** Mondays, oldest first: the last 12 weeks. */
+  weeks: string[]
+  /** Every week for every channel, zero included. */
+  weekly: { week: string; channel: string; received: number; closed: number }[]
+}
