@@ -322,3 +322,29 @@ export interface IReaderQuality {
   /** In the order the versions came (dataops-2026.1, dataops-2026.2, ...). */
   versions: (IReaderTally & { model: string; promptVersion: string })[]
 }
+
+/** Where a rapportage came from (API GET /dataops/rapportage/:id/origin). Empty lists: typed in by hand. */
+export interface IRapportageOrigin {
+  dossiers: {
+    id: number
+    reference: string | null
+    channel: string
+    subject: string | null
+    receivedAt: string
+    outcomeAt: string | null
+    documents: { id: number; name: string | null; pages: number }[]
+    found: number
+    judged: number
+    /** Names of the staff who judged its values, first seen first. */
+    judgedBy: string[]
+    /** The take-over that made this rapportage; `by` is null for a backfilled one. */
+    committed: { at: string; by: string | null } | null
+    /** The risk recalculation(s) after it: per address what moved, or nothing moved; null when not recalculated. */
+    risk: {
+      changed: { address: string | null; fields: { label: string; before: string | null; after: string | null }[] }[]
+      unchanged: boolean
+    } | null
+  }[]
+  /** Nalezingen that read this rapportage again, newest first. */
+  audits: { id: number; receivedAt: string; outcome: string | null; outcomeAt: string | null; open: number; judged: number }[]
+}

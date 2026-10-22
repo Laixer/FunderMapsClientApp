@@ -8,6 +8,7 @@ import type {
   AddressVerdictOutcome,
   IDataopsFlow,
   IReaderQuality,
+  IRapportageOrigin,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -267,6 +268,11 @@ export async function readerQuality() {
   return (await get({ endpoint: '/dataops/reader-quality' })) as IReaderQuality
 }
 
+/** Where a rapportage came from: its dossier(s), documents, judgements, take-over and what changed after (the rapportage page). */
+export async function rapportageOrigin(inquiryId: number) {
+  return (await get({ endpoint: `/dataops/rapportage/${inquiryId}/origin` })) as IRapportageOrigin
+}
+
 /** What the reviewer sends the melder (API #209): a question, or an answer to theirs. */
 export type MelderMessageKind = 'question' | 'answer'
 
@@ -377,6 +383,7 @@ export default {
   myWorkPackages,
   flow,
   readerQuality,
+  rapportageOrigin,
   addressVerdict,
   addressAdd,
   addressRelink,

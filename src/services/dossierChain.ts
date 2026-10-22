@@ -22,12 +22,14 @@ import { sourceLabel } from '@/services/dataflow'
 export type StepState = 'done' | 'now' | 'stop' | 'todo'
 
 export interface ChainStep {
-  key: 'received' | 'documents' | 'read' | 'found' | 'judged' | 'outcome'
+  key: string
   label: string
   value: string
   sub: string | null
   state: StepState
   link?: RouteLocationRaw
+  /** The whole story for the tooltip, when "value · sub" says too little. */
+  title?: string
 }
 
 const JUDGED = new Set(['confirmed', 'corrected', 'rejected'])

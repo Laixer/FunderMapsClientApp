@@ -14,11 +14,13 @@ import PhaseCards from '@/components/Common/PhaseCards.vue'
 import ProgressBar from '@/components/Common/ProgressBar.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
 import Timeline, { type TimelineEntry } from '@/components/Common/Timeline.vue'
+import RapportageOrigin from '@/components/Inquiry/RapportageOrigin.vue'
 import RejectModal from '@/components/Inquiry/RejectModal.vue'
 import SampleOverview from '@/components/Inquiry/SampleOverview.vue'
 
 import api from '@/services/fundermaps'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'
+import type { IRapportageOrigin } from '@/services/fundermaps/interfaces/IDataops'
 import type { IInquirySample } from '@/services/fundermaps/interfaces/IInquirySample'
 import type { DocumentFileInfo } from '@/services/documentFile'
 import { describeFailure, isNotFound } from '@/services/fundermaps/errors'
@@ -67,6 +69,12 @@ const inquiry: Ref<IInquiry | null> = ref(null)
 const samples: Ref<IInquirySample[]> = ref([])
 const events: Ref<DossierEvent[]> = ref([])
 const documentFile: Ref<DocumentFileInfo | null> = ref(null)
+/**
+ * Where this rapportage came from and what it changed after (2026-10-22),
+ * shown as one row of steps under the header. An enrichment like the trail:
+ * without it (an older API, a failure) the page simply has no row.
+ */
+const origin: Ref<IRapportageOrigin | null> = ref(null)
 const documentLoading = ref(true)
 const loading = ref(true)
 // Why there is nothing to show: the number does not exist, or the request failed.
@@ -125,12 +133,13 @@ async function load() {
 
   // The trail is an enrichment, not the record. Fetched separately and
   // swallowed on failure so an API that predates the /events endpoint costs the
-  // panel its timeline and nothing else.
-  try {
-    events.value = await api.inquiry.getEvents(inquiryId.value)
-  } catch {
-    events.value = []
-  }
+  // panel its timeline and nothing else. The origin row likewise.
+  const [trail, from] = await Promise.all([
+    api.inquiry.getEvents(inquiryId.value).catch(() => [] as DossierEvent[]),
+    api.dataops.rapportageOrigin(inquiryId.value).catch(() => null),
+  ])
+  events.value = trail
+  origin.value = from
 
   // Fetched on load rather than on click, because the card needs the signed
   // link to render a thumbnail. Non-fatal: a dossier is still readable without
@@ -425,7 +434,8 @@ useActionShortcuts(() => {
               <StatusBadge :status="inquiry.state.auditStatus" />
             </div>
             <p class="text-sm mt-1 font-mono text-faint">{{ metaLine }}</p>
-            <p v-if="inquiry.dossier" class="text-sm mt-1 text-muted">
+            <!-- The origin row (below) links the dossier too; this line stays for an API without it. -->
+            <p v-if="inquiry.dossier && !origin?.dossiers.length" class="text-sm mt-1 text-muted">
               Uit dossier
               <RouterLink
                 :to="{ name: 'review-dossier', params: { id: inquiry.dossier.id } }"
@@ -472,6 +482,18 @@ useActionShortcuts(() => {
             <Button v-if="isSuperUser" variant="danger" label="Verwijderen" @click="handleDelete" />
           </div>
         </header>
+
+        <!-- Where it came from, and what it changed after (2026-10-22). -->
+        <RapportageOrigin
+          v-if="inquiry && origin"
+          :origin="origin"
+          :rapportage="{
+            id: inquiry.id,
+            creatorName: inquiry.attribution.creatorName,
+            createDate: inquiry.record.createDate,
+            samples: samples.length,
+          }"
+        />
 
         <Panel v-if="loading" caption="VOORTGANG">
           <EmptyState>Dossier ophalen…</EmptyState>
