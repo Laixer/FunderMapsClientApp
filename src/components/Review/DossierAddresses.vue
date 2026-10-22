@@ -230,16 +230,15 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
             plain
           />
           <Pill v-else :label="STATE_LABEL[a.state]" :tone="STATE_TONE[a.state]" plain />
-          <span v-if="counts(a)" class="text-sm ml-auto shrink-0 font-mono text-faint">{{ counts(a) }}</span>
-        </div>
-        <p v-if="origin(a) || a.note" class="text-sm text-muted">
-          {{ origin(a) }}<template v-if="a.note"><template v-if="origin(a)"> · </template>“{{ a.note }}”</template>
-        </p>
 
-        <div v-if="!disabled" class="flex flex-wrap items-center gap-1.5">
+        <!-- The actions at the end of the address's own line (2026-10-22): six addresses were six
+             blocks of three lines with a green button each. White buttons: the green is for the one
+             thing to do on the page, not for every row. -->
+        <div v-if="!disabled" class="ml-auto flex shrink-0 flex-wrap items-center gap-1.5">
           <!-- The dossier's own pand: only changed, never rejected. -->
           <template v-if="a.own">
             <Button
+              variant="ghost"
               :label="picking === 'own' ? 'Annuleren' : 'Ander pand…'"
               :disabled="busy !== null"
               @click="picking = picking === 'own' ? null : 'own'"
@@ -250,7 +249,6 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
           <template v-else-if="!a.addressId">
             <template v-if="a.state !== 'rejected'">
               <Button
-                variant="primary"
                 :label="picking === a.key ? 'Annuleren' : 'Koppel aan adres…'"
                 :disabled="busy !== null"
                 @click="picking = picking === a.key ? null : a.key"
@@ -263,7 +261,6 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
           <template v-else>
             <Button
               v-if="a.state === 'pending'"
-              variant="primary"
               label="Bevestigen"
               :disabled="busy !== null"
               @click="verdict(a, 'confirmed')"
@@ -285,6 +282,12 @@ const title = (a: IDossierAddress) => a.label ?? a.addressText ?? '—'
             />
           </template>
         </div>
+        </div>
+        <!-- Line two: where the address comes from, and how many values hang on it. -->
+        <p v-if="origin(a) || a.note || counts(a)" class="text-sm text-muted">
+          {{ origin(a) }}<template v-if="a.note"><template v-if="origin(a)"> · </template>“{{ a.note }}”</template>
+          <span v-if="counts(a)" class="font-mono text-faint"><template v-if="origin(a) || a.note"> · </template>{{ counts(a) }}</span>
+        </p>
 
         <!-- The picker for this row: a new pand, or the address its values move to. -->
         <div v-if="picking === (a.own ? 'own' : a.key)" class="rounded-lg border border-line bg-sunken p-2.5">
