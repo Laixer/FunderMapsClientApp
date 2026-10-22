@@ -433,21 +433,18 @@ export const DEFAULT_VIEW = 'beantwoorden'
 export const defaultView = (): SavedView => BUILTIN_VIEWS.find((v) => v.key === DEFAULT_VIEW)!
 
 /**
- * The tabs in groups, named after what we do with a dossier: answer a
- * melder, enter a document, or nothing any more. The groups are the top row
- * and the active group's tabs the row under it. Fourteen tabs with their
- * counts in one row needed some 1,900px, and the smallest window (1528px)
- * leaves about 1,130 for them beside the sidebar.
+ * The views in groups, named after what we do with a dossier: answer a
+ * melder, enter a document, or nothing any more. The sidebar lists them under
+ * Controle, each with its count, like an inbox's folders (2026-10-22):
+ * fourteen tabs with their counts did not fit one row of a 1528px window.
  */
 export interface ViewGroup {
   key: string
   label: string
-  /** One line beside the group's tabs: what is in it. */
+  /** One line under the page title: what is in it. */
   hint: string
   views: readonly string[]
-  /** The number on the group's own tab. None for closed dossiers: they are not work. */
-  count?: Partial<ReviewQuery>
-  /** The group is its one tab (Alles): no row of tabs under it, only the line. */
+  /** The group is its one view (Alles): listed without a heading. */
   single?: boolean
 }
 
@@ -457,16 +454,12 @@ const WORK_GROUPS: readonly ViewGroup[] = [
     label: 'Te beantwoorden',
     hint: 'Een melder wacht op ons antwoord.',
     views: ['beantwoorden', 'meldingen', 'vragen', 'reacties', 'mij'],
-    // The Wachtrij's own number.
-    count: { channel: ['upload'] },
   },
   {
     key: 'verwerken',
     label: 'Te verwerken',
     hint: 'Documenten die nog ingevoerd moeten worden.',
     views: ['studio', 'nalezing', 'archiefwijzer', 'archiefverwerking', 'niets'],
-    // The four channels of its first four tabs, which do not overlap.
-    count: { channel: ['invoer_app', 'audit', 'api', 'bulk_drop'] },
   },
   {
     key: 'afgerond',
@@ -481,7 +474,6 @@ const ALLES_GROUP: ViewGroup = {
   label: 'Alles',
   hint: 'Alles wat open staat, behalve de archiefverwerking. Zoeken vindt hier ook gesloten dossiers.',
   views: ['alles'],
-  count: { channel: WITHOUT_DROP },
   single: true,
 }
 
@@ -518,6 +510,12 @@ export function fromView(view: SavedView): ReviewQuery {
   const sort = SORT_FIELDS.find((f) => f === merged.sort) ?? DEFAULT_SORT
   return { ...merged, sort, order: merged.order === 'desc' ? 'desc' : 'asc' }
 }
+
+/** Where a view lives: its own question on page 1, as a link. */
+export const viewRoute = (view: SavedView) => ({
+  name: 'review-queue',
+  query: toRouteQuery(fromView(view), view.key),
+})
 
 const STORAGE_KEY = 'studio:review-views'
 

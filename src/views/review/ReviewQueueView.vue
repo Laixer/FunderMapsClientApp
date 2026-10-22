@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { refDebounced } from '@vueuse/core'
 
@@ -17,13 +17,10 @@ import { PAGE_SIZE } from '@/services/explorer'
 import { promptText } from '@/services/prompt'
 import { nalezingNumber, outcomeTone } from '@/services/reviewLabels'
 import {
-  BUILTIN_VIEWS,
   DEFAULT_VIEW,
   channelLabel,
   chipsFor,
-  customViews,
   defaultView,
-  deleteView,
   emptyQuery,
   fromView,
   inSentence,
@@ -33,13 +30,9 @@ import {
   parseQuery,
   routeViewKey,
   saveView,
-  toCountOpts,
   toQueueOpts,
   toRouteQuery,
-  viewGroups,
   type ReviewQuery,
-  type SavedView,
-  type ViewGroup,
 } from '@/services/reviewExplorer'
 import { useRowKeyboard } from '@/services/useRowKeyboard'
 import { useStudioStore } from '@/stores/studio'
@@ -57,9 +50,10 @@ import { useStudioStore } from '@/stores/studio'
  * Filtering, sorting, searching and paging work exactly like Rapportages: the
  * whole question lives in the URL (`services/reviewExplorer`), the server
  * answers it, the active parts show as removable chips, and a full page means
- * there is probably another one. Saved views across the top are the same
- * object under a name, grouped by what we do with the dossier: answer a
- * melder, enter a document, or nothing any more (`viewGroups`).
+ * there is probably another one. Saved views are the same object under a
+ * name, grouped by what we do with the dossier: answer a melder, enter a
+ * document, or nothing any more (`viewGroups`). The sidebar lists them under
+ * Controle with their counts, like a mailbox's folders.
  */
 const route = useRoute()
 const router = useRouter()
@@ -73,17 +67,14 @@ const loadFailed = ref(false)
 
 const query = ref<ReviewQuery>(fromView(defaultView()))
 const viewKey = ref(DEFAULT_VIEW)
-const views = ref<SavedView[]>([...BUILTIN_VIEWS])
-const groups = computed(() => viewGroups(views.value.filter((v) => !v.builtin)))
 const activeGroup = computed(
-  () => groups.value.find((g) => g.views.includes(viewKey.value)) ?? groups.value[0],
+  () =>
+    studio.reviewGroups.find((g) => g.views.includes(viewKey.value)) ??
+    studio.reviewGroups[studio.reviewGroups.length - 1],
 )
-const groupViews = computed(() =>
-  activeGroup.value.views
-    .map((key) => views.value.find((v) => v.key === key))
-    .filter((v): v is SavedView => !!v),
+const viewLabel = computed(
+  () => studio.reviewViews.find((v) => v.key === viewKey.value)?.label ?? 'Alles',
 )
-const viewLabel = computed(() => views.value.find((v) => v.key === viewKey.value)?.label ?? 'Alles')
 const search = ref('')
 const debouncedSearch = refDebounced(search, 300)
 /** How many dossiers answer the current question, independent of the page. */
@@ -112,7 +103,7 @@ function adoptRoute(): boolean {
   }
   query.value = parseQuery(raw)
   search.value = query.value.q
-  viewKey.value = routeViewKey(raw, (key) => views.value.some((v) => v.key === key))
+  viewKey.value = routeViewKey(raw, (key) => studio.reviewViews.some((v) => v.key === key))
   return true
 }
 
@@ -146,47 +137,11 @@ async function load() {
   }
 }
 
-/* -------------------------------------------------------------- tab counts */
-
-/**
- * The number on every tab, as on the Vandaag tiles: the tab's own question,
- * without whatever is filtered or typed on top of it. Tabs asking the same
- * (Wachtrij and Meldingen differ only in their order) share one request.
- * Not counted (yet) or failed: no number, rather than a wrong one.
- */
-const tabCounts = ref<Record<string, number | null>>({})
-let countToken = 0
-
-function loadCounts() {
-  const token = ++countToken
-  const asked = new Map<string, Promise<number | null>>()
-  const count = (id: string, q: ReviewQuery, key?: string) => {
-    const opts = toCountOpts(q, key)
-    const sig = JSON.stringify(opts)
-    if (!asked.has(sig)) {
-      asked.set(
-        sig,
-        api.dataops.queueCount(opts).then(
-          (r) => r.count,
-          () => null,
-        ),
-      )
-    }
-    asked.get(sig)!.then((n) => void (token === countToken && (tabCounts.value[id] = n)))
-  }
-  for (const view of views.value) count(view.key, fromView(view), view.key)
-  for (const group of groups.value) {
-    if (group.count) count(`group:${group.key}`, { ...emptyQuery(), ...group.count })
-  }
-}
-
-const countText = (id: string) => tabCounts.value[id]?.toLocaleString('nl-NL') ?? null
-
-views.value = [...BUILTIN_VIEWS, ...customViews()]
+// Saved in another tab of this browser since the Studio loaded: a link to it should still open it.
+studio.reloadReviewViews()
 const adopted = adoptRoute()
 onBeforeMount(() => {
   if (adopted) load()
-  loadCounts()
 })
 
 watch(
@@ -204,28 +159,7 @@ watch(debouncedSearch, (q) => {
 
 /* ------------------------------------------------------------- saved views */
 
-function selectView(view: SavedView) {
-  push({ ...fromView(view) }, view.key)
-}
-
-/** A group opens on its first tab. */
-function selectGroup(group: ViewGroup) {
-  const first = views.value.find((v) => v.key === group.views[0])
-  if (first) selectView(first)
-}
-
-/**
- * The active tab in sight, as the document tabs do: a saved view opened by its
- * link sat past the end of a scrolled strip, and nothing on screen was underlined.
- */
-const tabStrip = ref<HTMLElement | null>(null)
-function showActiveTab() {
-  const i = groupViews.value.findIndex((v) => v.key === viewKey.value)
-  tabStrip.value?.children[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-}
-onMounted(showActiveTab)
-watch(viewKey, showActiveTab, { flush: 'post' })
-
+// Opening, and deleting, a view happens in the sidebar (Sidebar.vue).
 async function onSaveView() {
   const label = await promptText({
     title: 'Weergave opslaan',
@@ -234,15 +168,9 @@ async function onSaveView() {
   })
   if (!label) return
   const view = saveView(label, query.value)
-  views.value = [...BUILTIN_VIEWS, ...customViews()]
+  studio.reloadReviewViews()
   push(query.value, view.key)
-  loadCounts()
-}
-
-function onDeleteView(view: SavedView) {
-  deleteView(view.key)
-  views.value = [...BUILTIN_VIEWS, ...customViews()]
-  if (viewKey.value === view.key) selectView(defaultView())
+  void studio.refreshViewCounts()
 }
 
 /**
@@ -449,7 +377,7 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
     await api.dataops.closeMany(ids, { outcome, note: note || null })
     selectedIds.value = new Set()
     bulkNote.value = ''
-    loadCounts()
+    // The sidebar's numbers too, the views under Controle included.
     await Promise.all([load(), studio.refreshCounts(null)])
   } catch (e) {
     error.value = describeFailure(e, 'De dossiers konden niet worden gesloten.')
@@ -461,120 +389,14 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
 
 <template>
   <AppShell crumb="Controle" fill>
+    <!-- Which view this is, and what its group holds. The views themselves are
+         in the sidebar, under Controle. -->
     <div class="flex shrink-0 items-baseline gap-3 border-b border-line bg-surface px-6 py-3">
-      <h1 class="text-lg font-bold text-ink">Controle</h1>
-      <p class="text-md flex-1 text-muted">
-        Alles wat binnenkwam, ook wat de pipeline niet kon lezen. Niets hiervan staat in
-        FunderMaps tot je het overneemt.
-      </p>
-      <!-- The sidebar's number: the melders waiting for an answer, not every open dossier. -->
-      <span v-if="studio.controle != null" class="text-md font-mono tabular-nums text-faint">
-        {{ studio.controle.toLocaleString('nl-NL') }} te beantwoorden
-      </span>
-    </div>
-
-    <!-- The groups, named after what we do with a dossier, as on Rapportages:
-         the active one carries a 2px green underline rather than a filled tab.
-         The open group's own tabs stand in the row under it. -->
-    <div class="flex shrink-0 items-center border-b border-line bg-surface px-6 pt-2.5">
-      <div class="-mx-1 flex min-w-0 items-center gap-1.5 px-1">
-        <span
-          v-for="group in groups"
-          :key="group.key"
-          class="flex shrink-0 items-center border-b-2 pt-1.5 pb-2.5"
-          :class="activeGroup.key === group.key ? 'border-green' : 'border-transparent'"
-        >
-          <button
-            type="button"
-            class="text-lg flex items-center gap-1.5 px-2 whitespace-nowrap"
-            :class="
-              activeGroup.key === group.key ? 'font-bold text-ink' : 'font-medium text-subtle hover:text-strong'
-            "
-            :aria-current="
-              activeGroup.key === group.key ? (group.single ? 'page' : 'true') : undefined
-            "
-            @click="selectGroup(group)"
-          >
-            <span class="flex flex-col">
-              {{ group.label }}
-              <!-- The label once more in bold, unseen and without height: every
-                   tab is as wide as when it is the active one, so picking a tab
-                   no longer moves the tabs to its right. -->
-              <span aria-hidden="true" class="invisible h-0 overflow-hidden font-bold">{{ group.label }}</span>
-            </span>
-            <span
-              v-if="countText(`group:${group.key}`)"
-              class="text-sm rounded-sm px-1.5 py-px font-mono font-normal"
-              :class="activeGroup.key === group.key ? 'bg-green-tint text-green-ink' : 'bg-sunken text-faint'"
-            >
-              {{ countText(`group:${group.key}`) }}
-            </span>
-          </button>
-        </span>
-      </div>
-
-      <button
-        type="button"
-        class="text-sm ml-3 mb-2 shrink-0 rounded-md border border-dashed border-line-strong bg-surface px-2.5 py-1.5 whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
-        @click="onSaveView"
-      >
-        + Weergave
-      </button>
-    </div>
-
-    <!-- The open group's tabs, each with its count, and one line on what the
-         group holds. Alles is its one tab and has only the line; the row keeps
-         its height then, or everything under it jumped up on Alles. -->
-    <div class="flex min-h-[50px] shrink-0 items-center gap-4 border-b border-line bg-surface px-6 py-2">
-      <!-- The tabs scroll on their own when saved views make the row too
-           long. -mx-1 px-1: room for the focus ring of the first and the last
-           tab. A thin scrollbar: a full one ran through the row under the
-           labels (Windows, Linux). -->
-      <div
-        v-if="!activeGroup.single"
-        ref="tabStrip"
-        class="-mx-1 flex min-w-0 items-center gap-1 overflow-x-auto px-1 py-0.5 [scrollbar-width:thin]"
-      >
-        <!-- The tab and its delete cross are two buttons side by side: a cross
-             *inside* the tab button could not be reached with the keyboard. -->
-        <span v-for="view in groupViews" :key="view.key" class="group flex shrink-0 items-center">
-          <button
-            type="button"
-            class="text-md flex items-center gap-1.5 rounded-md border px-2.5 py-1 whitespace-nowrap"
-            :class="
-              viewKey === view.key
-                ? 'border-line bg-canvas font-semibold text-ink'
-                : 'border-transparent font-medium text-subtle hover:bg-sunken hover:text-strong'
-            "
-            :aria-current="viewKey === view.key ? 'page' : undefined"
-            @click="selectView(view)"
-          >
-            <span class="flex flex-col">
-              {{ view.label }}
-              <span aria-hidden="true" class="invisible h-0 overflow-hidden font-semibold">{{ view.label }}</span>
-            </span>
-            <span
-              v-if="countText(view.key)"
-              class="text-sm rounded-sm px-1.5 py-px font-mono font-normal"
-              :class="viewKey === view.key ? 'bg-green-tint text-green-ink' : 'bg-sunken text-faint'"
-            >
-              {{ countText(view.key) }}
-            </span>
-          </button>
-          <button
-            v-if="!view.builtin"
-            type="button"
-            class="text-xs mr-1 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
-            :aria-label="`Weergave ${view.label} verwijderen`"
-            @click="onDeleteView(view)"
-          >
-            ×
-          </button>
-        </span>
-      </div>
-      <p class="text-md min-w-0 truncate text-faint" :class="{ 'ml-auto': !activeGroup.single }">
-        {{ activeGroup.hint }}
-      </p>
+      <h1 class="text-lg font-bold text-ink">
+        <span v-if="!activeGroup.single" class="font-medium text-subtle">{{ activeGroup.label }} ›</span>
+        {{ viewLabel }}
+      </h1>
+      <p class="text-md flex-1 text-muted">{{ activeGroup.hint }}</p>
     </div>
 
     <!-- The chips go to a next line when they do not fit: on one line they
@@ -603,6 +425,15 @@ async function closeSelected(outcome: 'no_data' | 'rejected' | 'duplicate') {
       />
 
       <ReviewFilterBuilder :query="query" @update="push($event)" />
+
+      <!-- Saving what is on screen as a view of its own, listed under Controle. -->
+      <button
+        type="button"
+        class="text-base rounded-full border border-dashed border-line-strong bg-surface px-2.5 py-[5px] whitespace-nowrap text-subtle hover:border-line-hover hover:text-strong"
+        @click="onSaveView"
+      >
+        + Weergave opslaan
+      </button>
 
       <!-- Not after a failed load: a count stood above "De lijst is niet geladen". -->
       <span v-if="!loadFailed" class="text-sm ml-auto font-mono text-faint">

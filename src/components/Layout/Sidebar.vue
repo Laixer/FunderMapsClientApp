@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { computed, onBeforeUnmount, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
 import UserMenu from '@/components/UserMenu.vue'
 import { NAV_GROUPS } from '@/services/navigation'
+import {
+  DEFAULT_VIEW,
+  defaultView,
+  deleteView,
+  routeViewKey,
+  viewRoute,
+  type SavedView,
+  type ViewGroup,
+} from '@/services/reviewExplorer'
 import { keyLabel, SIDEBAR_HINTS } from '@/services/shortcuts'
 import { useStudioStore } from '@/stores/studio'
 
@@ -23,8 +32,9 @@ import { useStudioStore } from '@/stores/studio'
  * already has.
  */
 const route = useRoute()
+const router = useRouter()
 const studio = useStudioStore()
-const { counts } = storeToRefs(studio)
+const { counts, reviewGroups, reviewViews, viewCounts } = storeToRefs(studio)
 
 const activeRoute = computed(() => String(route.name ?? ''))
 
@@ -57,6 +67,55 @@ function isActive(routeName: string): boolean {
 /** Thousands separated the Dutch way, so 26641 reads as a size and not an id. */
 const formatCount = (value: number | null | undefined): string =>
   value == null ? '' : value.toLocaleString('nl-NL')
+
+/* ---------------------------------------------------- Controle's views */
+
+/**
+ * While you are in Controle its views open under it, grouped and counted,
+ * like the folders of a mailbox. Only then: on the other pages the rail stays
+ * as quiet as it was.
+ */
+const inControle = computed(() => isActive('review-queue'))
+
+watch(
+  inControle,
+  (open) => {
+    studio.reviewViewsShown = open
+    // The rail mounts again with every page; a minute-old count is fresh enough for that.
+    if (open) void studio.refreshViewCounts(60_000)
+  },
+  { immediate: true },
+)
+onBeforeUnmount(() => {
+  studio.reviewViewsShown = false
+})
+
+const known = (key: string) => reviewViews.value.some((v) => v.key === key)
+
+/**
+ * The view on screen. In a dossier: the list it was opened from, which rides
+ * along in its URL, and none when it was opened from elsewhere. The bare
+ * Controle link is the Wachtrij (the page writes that out at once).
+ */
+const activeView = computed(() => {
+  if (!inControle.value) return null
+  const raw = route.query as Record<string, unknown>
+  if (activeRoute.value === 'review-dossier') {
+    return typeof raw.view === 'string' && known(raw.view) ? raw.view : null
+  }
+  return Object.keys(raw).length ? routeViewKey(raw, known) : DEFAULT_VIEW
+})
+
+const viewsOf = (group: ViewGroup) =>
+  group.views.map((key) => reviewViews.value.find((v) => v.key === key)).filter((v): v is SavedView => !!v)
+
+function removeView(view: SavedView) {
+  // Asked first: once the view is gone, its link reads as Alles.
+  const onScreen = activeView.value === view.key
+  deleteView(view.key)
+  studio.reloadReviewViews()
+  if (onScreen) router.push(viewRoute(defaultView()))
+}
 </script>
 
 <template>
@@ -92,38 +151,100 @@ const formatCount = (value: number | null | undefined): string =>
       </kbd>
     </button>
 
-    <nav v-for="group in NAV_GROUPS" :key="group.title" class="flex flex-col gap-0.5">
-      <p class="text-2xs px-2.5 pb-1.5 font-bold tracking-[0.1em] text-label">{{ group.title }}</p>
-      <RouterLink
-        v-for="item in group.items"
-        :key="item.route"
-        :to="{ name: item.route }"
-        class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-2"
-        :class="
-          isActive(item.route)
-            ? 'bg-green-wash font-bold text-green-deep'
-            : 'font-medium text-muted hover:bg-sunken'
-        "
-      >
-        <span
-          aria-hidden="true"
-          class="h-[5px] w-[5px] shrink-0 rounded-full"
-          :class="isActive(item.route) ? 'bg-green' : 'bg-line-hover'"
-        />
-        <span class="truncate">{{ item.label }}</span>
-        <span
-          v-if="item.counter && counts[item.counter] != null"
-          class="text-xs ml-auto shrink-0 font-mono"
-          :class="isActive(item.route) ? 'text-green-ink/70' : 'text-label'"
-        >
-          {{ formatCount(counts[item.counter]) }}
-        </span>
-      </RouterLink>
-    </nav>
+    <!-- Scrolls only when a window is too short for Controle's views. -mx-1 px-1:
+         room for the focus ring. -->
+    <div class="-mx-1 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-1 [scrollbar-width:thin]">
+      <nav v-for="group in NAV_GROUPS" :key="group.title" class="flex flex-col gap-0.5">
+        <p class="text-2xs px-2.5 pb-1.5 font-bold tracking-[0.1em] text-label">{{ group.title }}</p>
+        <template v-for="item in group.items" :key="item.route">
+          <RouterLink
+            :to="{ name: item.route }"
+            class="text-xl flex items-center gap-2.5 rounded-lg px-2.5 py-2"
+            :class="
+              isActive(item.route)
+                ? 'bg-green-wash font-bold text-green-deep'
+                : 'font-medium text-muted hover:bg-sunken'
+            "
+          >
+            <span
+              aria-hidden="true"
+              class="h-[5px] w-[5px] shrink-0 rounded-full"
+              :class="isActive(item.route) ? 'bg-green' : 'bg-line-hover'"
+            />
+            <span class="truncate">{{ item.label }}</span>
+            <span
+              v-if="item.counter && counts[item.counter] != null"
+              class="text-xs ml-auto shrink-0 font-mono"
+              :class="isActive(item.route) ? 'text-green-ink/70' : 'text-label'"
+            >
+              {{ formatCount(counts[item.counter]) }}
+            </span>
+          </RouterLink>
+
+          <!-- Controle's views, grouped by what we do with the dossier. Indented
+               under the row's label; Alles last, without a heading. -->
+          <div
+            v-if="item.route === 'review-queue' && inControle"
+            class="flex flex-col pb-1 pl-[15px]"
+            aria-label="Weergaven van Controle"
+            role="group"
+          >
+            <template v-for="viewGroup in reviewGroups" :key="viewGroup.key">
+              <p
+                v-if="!viewGroup.single"
+                class="text-2xs px-2.5 pt-1.5 pb-0.5 font-bold tracking-[0.1em] text-label"
+              >
+                {{ viewGroup.label.toUpperCase() }}
+              </p>
+              <!-- The view and its delete cross are two buttons side by side: a
+                   cross inside the link could not be reached with the keyboard. -->
+              <div
+                v-for="view in viewsOf(viewGroup)"
+                :key="view.key"
+                class="group flex items-center"
+                :class="{ 'mt-2': viewGroup.single }"
+              >
+                <RouterLink
+                  :to="viewRoute(view)"
+                  class="text-lg flex min-w-0 flex-1 items-center gap-2 rounded-md px-2.5 py-[2px]"
+                  :class="
+                    activeView === view.key
+                      ? 'bg-sunken font-semibold text-ink'
+                      : 'font-medium text-muted hover:bg-sunken'
+                  "
+                  :aria-current="activeView === view.key ? 'page' : undefined"
+                >
+                  <span class="truncate">{{ view.label }}</span>
+                  <span
+                    v-if="viewCounts[view.key] != null"
+                    class="text-xs ml-auto shrink-0 font-mono"
+                    :class="activeView === view.key ? 'text-green-ink' : 'text-label'"
+                  >
+                    {{ formatCount(viewCounts[view.key]) }}
+                  </span>
+                </RouterLink>
+                <button
+                  v-if="!view.builtin"
+                  type="button"
+                  class="text-xs shrink-0 px-1 text-label opacity-0 group-hover:opacity-100 hover:text-red focus-visible:opacity-100"
+                  :aria-label="`Weergave ${view.label} verwijderen`"
+                  @click="removeView(view)"
+                >
+                  ×
+                </button>
+              </div>
+            </template>
+          </div>
+        </template>
+      </nav>
+    </div>
 
     <!-- Shortcuts nobody can discover are shortcuts nobody uses. Pinned to the
-         bottom of the rail, above the user row. -->
+         bottom of the rail, above the user row. It makes way for Controle's
+         views, which did not fit a 900px-high window beside it; "?" still
+         lists every shortcut. -->
     <div
+      v-if="!inControle"
       class="mt-auto flex flex-col gap-1.5 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-2.5"
     >
       <p class="text-2xs font-bold tracking-[0.09em] text-label">SNELTOETSEN</p>
