@@ -211,7 +211,7 @@ function rowClass(row: T): string {
 
     <p v-if="loading" class="sr-only" role="status">Laden…</p>
     <p v-else-if="!rows.length" class="text-md border-b border-divider px-5 py-6 text-muted">
-      {{ emptyMessage }}
+      <slot name="empty">{{ emptyMessage }}</slot>
     </p>
 
     <div v-if="$slots.footer" class="flex items-center gap-3 px-5 py-3">

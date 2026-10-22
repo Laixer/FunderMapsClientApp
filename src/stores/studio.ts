@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import api from '@/services/fundermaps'
+import { DEFAULT_VIEW, defaultView, fromView, toCountOpts } from '@/services/reviewExplorer'
 import { effectivePackageIds, packagesFor } from '@/services/workPackages'
 import { useSessionStore } from '@/stores/session'
 
@@ -57,8 +58,12 @@ export const useStudioStore = defineStore('studio', () => {
           .getCount()
           .then(({ count }) => void (recoveries.value = count))
           .catch(() => {}),
+        // The melders waiting for an answer, i.e. Controle's first tab; not the
+        // whole desk. Until 2026-10-22 this was every open dossier, 1,054, of
+        // which 664 were the archive drop and 205 Fundie's archive leads: the
+        // 34 with somebody waiting were in there, but nobody could tell.
         api.dataops
-          .queueCount()
+          .queueCount(toCountOpts(fromView(defaultView()), DEFAULT_VIEW))
           .then(({ count }) => void (controle.value = count))
           .catch(() => {}),
       ]
