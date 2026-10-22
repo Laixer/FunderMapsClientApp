@@ -55,6 +55,10 @@ const routes: RouteRecordRaw[] = [
   // The landing page is your bench, not the archive — see views/HomeView.vue.
   { name: 'home', path: '/', component: Home },
 
+  // Where every dossier went, as one picture (2026-10-22): the Studio's first
+  // page about the data rather than about the work.
+  { name: 'dataflow', path: '/datastroom', component: () => import('@/views/DataflowView.vue') },
+
   /*
    * The explorer's whole question — filters, sort and page — lives in the query
    * string (see services/explorer.ts), which is what makes a view shareable.

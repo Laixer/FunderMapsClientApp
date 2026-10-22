@@ -45,6 +45,7 @@ const activeRoute = computed(() => String(route.name ?? ''))
  */
 const OWNED_BY: Record<string, string> = {
   home: 'home',
+  dataflow: 'dataflow',
   'inquiry-list': 'inquiry-list',
   'inquiry-view': 'inquiry-list',
   'inquiry-edit-details': 'inquiry-list',
