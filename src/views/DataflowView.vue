@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onBeforeMount, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { RouterLink } from 'vue-router'
 
 import AppShell from '@/components/Layout/AppShell.vue'
@@ -35,6 +36,13 @@ const data = ref<IDataopsFlow | null>(null)
 const quality = ref<IReaderQuality | null>(null)
 /** Where the dossiers come from, per municipality; its own request, like the reader's record. */
 const places = ref<IDataopsMap | null>(null)
+const router = useRouter()
+/** Controle, Alles, for one municipality (API #287): where a click on the map goes. */
+const municipalityRoute = (m: { code: string; name: string }) => ({
+  name: 'review-queue',
+  query: { view: 'alles', gemeente: m.code, gemeentenaam: m.name },
+})
+const openMunicipality = (m: { code: string; name: string }) => void router.push(municipalityRoute(m))
 const loading = ref(true)
 const error = ref<string | null>(null)
 
@@ -227,12 +235,12 @@ function waitingTitle(row: SourceRow) {
         <Panel v-if="places" title="Waar het vandaan komt" :meta="`${places.municipalities.length} gemeenten`">
           <div class="flex flex-col gap-2">
             <div class="h-[440px] overflow-hidden rounded-xl border border-line">
-              <OriginMap :data="places" />
+              <OriginMap :data="places" @select="openMunicipality" />
             </div>
             <p class="text-sm text-muted">
               Meeste dossiers:
               <template v-for="(m, i) in places.municipalities.slice(0, 5)" :key="m.code">
-                <span v-if="i" class="text-faint"> · </span>{{ m.name }} <span class="font-mono text-faint">{{ nl(m.dossiers) }}</span>
+                <span v-if="i" class="text-faint"> · </span><RouterLink :to="municipalityRoute(m)" class="hover:text-strong hover:underline">{{ m.name }}</RouterLink> <span class="font-mono text-faint">{{ nl(m.dossiers) }}</span>
               </template>
             </p>
             <p v-if="places.unplaced" class="text-sm text-faint">

@@ -39,6 +39,8 @@ export interface IQueueListOpts {
   assignedTo?: 'me' | 'none' | string
   /** Every dossier, open or closed, instead of the desk (API #191). An API without it ignores it. */
   scope?: 'all'
+  /** The dossiers of one municipality, by CBS code (GM0363), through their pand (API #287). */
+  municipality?: string
   sort?: QueueSort
   order?: 'asc' | 'desc'
 }
@@ -56,6 +58,7 @@ function queueQueryString(opts: IQueueListOpts): Record<string, string> {
   if (opts.outcome?.length) queryString.outcome = opts.outcome.join(',')
   if (opts.assignedTo) queryString.assignedTo = opts.assignedTo
   if (opts.scope) queryString.scope = opts.scope
+  if (opts.municipality) queryString.municipality = opts.municipality
   if (opts.sort) queryString.sort = opts.sort
   if (opts.order) queryString.order = opts.order
   return queryString
