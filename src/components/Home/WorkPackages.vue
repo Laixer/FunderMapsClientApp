@@ -8,7 +8,9 @@ import api from '@/services/fundermaps'
 import type { IReviewQueueItem } from '@/services/fundermaps/interfaces/IDataops'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { toastError } from '@/services/toast'
-import { BUILTIN_VIEWS, emptyQuery, toRouteQuery } from '@/services/reviewExplorer'
+import { emptyQuery, toRouteQuery } from '@/services/reviewExplorer'
+import Sparkline from '@/components/Common/Sparkline.vue'
+import type { IQueueTrend } from '@/services/fundermaps/interfaces/IDataops'
 import {
   PACKAGE_PREVIEW,
   WORK_PACKAGES,
@@ -16,6 +18,8 @@ import {
   packagesFor,
   saveChosen,
   type WorkPackage,
+  loadTrend,
+  packageLink,
 } from '@/services/workPackages'
 import { useStudioStore } from '@/stores/studio'
 import { formatRelative } from '@/utils/date'
@@ -42,6 +46,8 @@ const loading = ref(false)
 const rows = ref<Record<string, IReviewQueueItem[]>>({})
 /** `null` = the count did not come back; show what was fetched instead of inventing a number. */
 const counts = ref<Record<string, number | null>>({})
+/** Each package's last 30 days (2026-10-23); null = no history for it, or none came back. */
+const trends = ref<Record<string, IQueueTrend | null>>({})
 
 const mine = computed(() => packagesFor(chosen.value))
 
@@ -74,18 +80,20 @@ async function load() {
     // Each package is independent: one failing must not blank the others.
     const results = await Promise.all(
       mine.value.map(async (p) => {
-        const [list, count] = await Promise.all([
+        const [list, count, trend] = await Promise.all([
           api.dataops.queue({ ...p.opts, limit: PACKAGE_PREVIEW }).catch(() => [] as IReviewQueueItem[]),
           api.dataops
             .queueCount(p.opts)
             .then((r) => r.count as number | null)
             .catch(() => null),
+          loadTrend(p),
         ])
-        return [p.id, list, count] as const
+        return [p.id, list, count, trend] as const
       }),
     )
     rows.value = Object.fromEntries(results.map(([id, list]) => [id, list]))
     counts.value = Object.fromEntries(results.map(([id, , count]) => [id, count]))
+    trends.value = Object.fromEntries(results.map(([id, , , trend]) => [id, trend]))
   } catch (e) {
     toastError(describeFailure(e, 'Je werkpakketten konden niet worden geladen.'))
   } finally {
@@ -127,43 +135,12 @@ function saveChoice() {
 const total = (p: WorkPackage) => counts.value[p.id] ?? rows.value[p.id]?.length ?? 0
 
 /**
- * The tab a package opens on: the first one asking for the same channel and
- * state. A search on "Alles" also finds closed dossiers (isWideSearch), so a
- * package with a search term showed 117 instead of its 6 open ones (Don,
- * 2026-10-20). Its own tab keeps it to open dossiers. Since the groups
- * (2026-10-22) every package has one; Alles is the fallback.
- */
-const sameSet = (a: readonly string[] = [], b: readonly string[] = []) =>
-  a.length === b.length && a.every((x) => b.includes(x))
-
-function packageView(p: WorkPackage): string {
-  const view = BUILTIN_VIEWS.find(
-    (v) =>
-      sameSet(v.query.channel, p.opts.channel) &&
-      sameSet(v.query.state, p.opts.state) &&
-      !v.query.outcome?.length &&
-      !v.query.mine,
-  )
-  return view?.key ?? 'alles'
-}
-
-/** The package opened in Beoordelen, through the queue's own URL format. */
-function queueLink(p: WorkPackage) {
-  const q = emptyQuery()
-  if (p.opts.channel) q.channel = [...p.opts.channel]
-  if (p.opts.state) q.state = [...p.opts.state]
-  if (p.opts.kind) q.kind = [...p.opts.kind]
-  if (p.opts.q) q.q = p.opts.q
-  return { name: 'review-queue', query: toRouteQuery(q, packageView(p)) }
-}
-
-/**
  * What the page shows, one panel each: your packages, then what was handed to
  * you. While the chooser is open the packages are being picked, so only the
  * handed-over dossiers stay: they are yours whatever you tick.
  */
 const panels = computed(() => [
-  ...(choosing.value ? [] : mine.value).map((p) => ({ id: p.id, title: p.title, rows: rows.value[p.id] ?? [], total: total(p), link: queueLink(p), busy: loading.value })),
+  ...(choosing.value ? [] : mine.value).map((p) => ({ id: p.id, title: p.title, rows: rows.value[p.id] ?? [], total: total(p), link: packageLink(p), busy: loading.value, trend: trends.value[p.id] ?? null })),
   ...(handedTotal.value > 0
     ? [
         {
@@ -172,6 +149,7 @@ const panels = computed(() => [
           rows: handedRows.value,
           total: handedTotal.value,
           link: { name: 'review-queue', query: toRouteQuery({ ...emptyQuery(), mine: true }, 'mij') },
+          trend: null,
           busy: false,
         },
       ]
@@ -267,6 +245,15 @@ const panels = computed(() => [
           <span class="text-lg font-bold text-strong">{{ p.title }}</span>
           <span class="text-sm rounded-sm bg-green-tint px-1.5 py-px font-mono text-green-ink">
             {{ p.busy ? '…' : p.total.toLocaleString('nl-NL') }}
+          </span>
+        </template>
+        <!-- Its last 30 days (2026-10-23): open at each day's end, and how old the oldest is. -->
+        <template v-if="p.trend" #actions>
+          <span class="flex items-center gap-2" :title="`Open aan het eind van de dag, laatste 30 dagen: ${p.trend.open.join(' · ')}`">
+            <Sparkline :values="p.trend.open" tone="green" />
+            <span v-if="p.trend.now.oldestDays != null" class="text-xs font-mono whitespace-nowrap text-faint">
+              oudste {{ p.trend.now.oldestDays }} d
+            </span>
           </span>
         </template>
 
