@@ -17,6 +17,7 @@ import type {
   IDataQuality,
   IFeedback,
   IQueueTrend,
+  ITeam,
   IReaderOps,
 } from '../interfaces/IDataops'
 
@@ -309,6 +310,11 @@ export async function today() {
   return (await get({ endpoint: '/dataops/today' })) as IStudioToday
 }
 
+/** Who did what in the last 30 days, for administrators (the API answers anyone else with a 403). */
+export async function team() {
+  return (await get({ endpoint: '/dataops/team' })) as ITeam
+}
+
 /** What is in FunderMaps and how complete, for Datakwaliteit (was the Grafana board "Data quality"). */
 export async function dataQuality() {
   return (await get({ endpoint: '/dataops/data-quality' })) as IDataQuality
@@ -453,6 +459,7 @@ export default {
   readerOps,
   feedback,
   dataQuality,
+  team,
   today,
   addressVerdict,
   addressAdd,
