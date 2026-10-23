@@ -57,7 +57,7 @@ const EFFORT_COLUMNS: DataColumn[] = [
   { field: 'medianSeconds', title: 'Per waarde', width: '100px', align: 'right' },
   { field: 'hours', title: 'Uren', width: '70px', align: 'right' },
 ]
-const effortRows = computed(() => props.ops.effort.map((e, i) => ({ id: i, ...e })))
+const effortRows = computed(() => (props.ops.effort ?? []).map((e, i) => ({ id: i, ...e })))
 const FAILURE_COLUMNS: DataColumn[] = [
   { field: 'at', title: 'Wanneer', width: '140px' },
   { field: 'name', title: 'Document', width: 'minmax(0,1fr)' },
@@ -100,7 +100,8 @@ const failureRows = computed(() => props.ops.failures.map((f) => ({ id: f.artifa
 
     <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-3">
       <div class="flex flex-col gap-3">
-        <Panel title="Beoordelen per persoon" meta="laatste 30 dagen" flush>
+        <!-- Who did how much: only administrators get it from the API (2026-10-23). -->
+        <Panel v-if="ops.effort" title="Beoordelen per persoon" meta="laatste 30 dagen" flush>
           <DataTable :rows="effortRows" :columns="EFFORT_COLUMNS" label="Beoordelen per persoon" empty-message="Niemand beoordeelde in deze dagen.">
             <template #person="{ row }"><span class="text-md truncate text-ink">{{ row.person }}</span></template>
             <template #verdicts="{ row }"><span class="font-mono tabular-nums text-strong">{{ nl(row.verdicts) }}</span></template>
