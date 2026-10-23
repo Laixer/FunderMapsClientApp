@@ -562,9 +562,33 @@ export interface IReaderOps {
     /** Seconds; null on a day without a finished read. */
     p50: (number | null)[]
     p95: (number | null)[]
-    mailsByKind: Record<'received' | 'closed' | 'question', number[]>
+    /** Every kind found; received, question, closed and risk_changed always (zero when quiet). */
+    mailsByKind: Record<string, number[]>
   }
   totals: { reads: number; failed: number; costUsd: number; judged: number; confirmed: number; medianDecisionHours: number | null }
   effort: { person: string; verdicts: number; medianSeconds: number; hours: number }[]
   failures: { at: string; artifactId: number; dossierId: number | null; name: string | null; lane: string; error: string | null }[]
+}
+
+/** Terugmeldingen (API GET /dataops/feedback): the Grafana board "Terugmeldingen" in the Studio. */
+export interface IFeedback {
+  generatedAt: string
+  totals: {
+    /** Portal + archive + melden. */
+    all: number
+    portal: number
+    archive: number
+    melden: number
+    /** Of archive + melden: with an outcome, and without one. */
+    handled: number
+    open: number
+    handledShare: number | null
+    meldenMedianHours: number | null
+    riskMailed: number
+    riskMailedSince: string | null
+  }
+  /** 2014 to this year; portal and melden only (the archive's date is its delivery, not its reports). */
+  perYear: { year: string; portal: number; melden: number }[]
+  /** Melden per subject, largest first; per-dossier follow-ups folded into one. */
+  subjects: { subject: string; received: number; handled: number; ledToReport: number }[]
 }
