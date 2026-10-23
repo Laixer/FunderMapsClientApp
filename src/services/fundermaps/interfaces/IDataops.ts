@@ -566,7 +566,8 @@ export interface IReaderOps {
     mailsByKind: Record<string, number[]>
   }
   totals: { reads: number; failed: number; costUsd: number; judged: number; confirmed: number; medianDecisionHours: number | null }
-  effort: { person: string; verdicts: number; medianSeconds: number; hours: number }[]
+  /** Who reviewed how much: administrators only; null for everyone else (API, 2026-10-23). */
+  effort: { person: string; verdicts: number; medianSeconds: number; hours: number }[] | null
   failures: { at: string; artifactId: number; dossierId: number | null; name: string | null; lane: string; error: string | null }[]
 }
 
