@@ -16,6 +16,7 @@ import StatusBadge from '@/components/Common/StatusBadge.vue'
 import StudioDay from '@/components/Home/StudioDay.vue'
 import WorkPackages from '@/components/Home/WorkPackages.vue'
 import PackageOverview from '@/components/Home/PackageOverview.vue'
+import TeamPanel from '@/components/Home/TeamPanel.vue'
 import WorkPackageAdmin from '@/components/Home/WorkPackageAdmin.vue'
 
 import api from '@/services/fundermaps'
@@ -288,6 +289,9 @@ function chipActive(types: number[] | null): boolean {
 
       <!-- The admin hands the packages out per colleague (2026-10-09). -->
       <WorkPackageAdmin v-if="isAdministrator" />
+
+      <!-- Who did what, last 30 days (2026-10-23): administrators only, as decided; was Grafana's "Operations". -->
+      <TeamPanel v-if="isAdministrator" />
 
       <!-- Every package over its last 30 days (2026-10-23): where work piles up and
            where it moves. Was the Grafana board "Operations". -->

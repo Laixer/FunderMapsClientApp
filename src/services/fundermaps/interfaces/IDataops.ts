@@ -628,3 +628,22 @@ export interface IDataQuality {
   foundationFill: { total: number; fields: { field: string; filled: number }[] }
   bureaus: { name: string | null; samples: number }[]
 }
+
+/** Who did what in the last 30 days (API GET /dataops/team, #295): administrators only, a 403 for anyone else. */
+export interface ITeam {
+  generatedAt: string
+  days: string[]
+  team: {
+    person: string
+    /** Created under their name, including what they took over in Controle. */
+    rapportages: number
+    samples: number
+    verdicts: number
+    closed: number
+    activeDays: number
+    /** All of it per day, along `days`. */
+    perDay: number[]
+  }[]
+  /** Dossiers the system closed itself (duplicates, nothing found). */
+  systemClosed: number
+}
