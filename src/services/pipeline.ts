@@ -26,7 +26,7 @@
  * is, `create_date`, `document_date`, and attribution.
  */
 
-import { AUDIT_STATUS, statusMeta } from '@/services/inquiryEnums'
+import { AUDIT_STATUS, statusMeta, type StatusMeta } from '@/services/inquiryEnums'
 import type { Tone } from '@/services/tone'
 
 /** Which attribution role carries a stage. */
@@ -286,6 +286,12 @@ const PG_STATUS_TO_INT: Record<string, number> = {
   discarded: AUDIT_STATUS.DISCARDED,
   pending_review: AUDIT_STATUS.PENDING_REVIEW,
   rejected: AUDIT_STATUS.REJECTED,
+}
+
+/** The status pill's label and tone for a raw PG enum label; Datakwaliteit counts per label (2026-10-23). */
+export function statusMetaForPg(pgLabel: string): StatusMeta {
+  const value = PG_STATUS_TO_INT[pgLabel]
+  return value === undefined ? { label: pgLabel, tone: 'neutral' } : statusMeta(value)
 }
 
 export function statusLabelFor(pgLabel: string): string {

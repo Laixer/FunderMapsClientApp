@@ -14,6 +14,7 @@ import type {
   IBuildingStory,
   IStudioToday,
   IPandenOpen,
+  IDataQuality,
   IFeedback,
   IQueueTrend,
   IReaderOps,
@@ -308,6 +309,11 @@ export async function today() {
   return (await get({ endpoint: '/dataops/today' })) as IStudioToday
 }
 
+/** What is in FunderMaps and how complete, for Datakwaliteit (was the Grafana board "Data quality"). */
+export async function dataQuality() {
+  return (await get({ endpoint: '/dataops/data-quality' })) as IDataQuality
+}
+
 /** Terugmeldingen, for the Datastroom (was the Grafana board "Terugmeldingen"). */
 export async function feedback() {
   return (await get({ endpoint: '/dataops/feedback' })) as IFeedback
@@ -446,6 +452,7 @@ export default {
   pandenOpen,
   readerOps,
   feedback,
+  dataQuality,
   today,
   addressVerdict,
   addressAdd,

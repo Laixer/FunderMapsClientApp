@@ -93,6 +93,17 @@ const PART = {
   facadeScan: { label: 'risicoklasse QuickScan / Fase 0', keys: ['facadeScanRisk'] },
 } as const satisfies Record<string, SamplePart>
 
+/**
+ * The fields Don's rules 1 and 2 ask of a funderingsonderzoek (see
+ * `typeFindings`), as field keys: Datakwaliteit marks them in its fill rates
+ * (2026-10-23), so "required" there means what it means on the form.
+ */
+export const FOUNDATION_RESEARCH_REQUIRED_KEYS: ReadonlySet<keyof IInquirySample> = new Set(
+  [PART.enforcementTerm, PART.overallQuality, PART.woodLevel, PART.skewedParallel, PART.skewedPerpendicular, PART.cracks].flatMap(
+    (p) => p.keys,
+  ),
+)
+
 function isPartFilled(sample: IInquirySample, part: SamplePart): boolean {
   return part.keys.some((key) => isSampleFieldFilled(sample[key]))
 }

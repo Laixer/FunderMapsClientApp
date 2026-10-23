@@ -67,6 +67,8 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       { route: 'dataflow', label: 'Datastroom', key: 'd' },
       // How the model runs and what it says now (2026-10-22).
       { route: 'models', label: 'Modellen', key: 'm' },
+      // What is in FunderMaps and how complete (2026-10-23).
+      { route: 'data-quality', label: 'Datakwaliteit', key: 'k' },
     ],
   },
   {
@@ -90,6 +92,7 @@ export const OWNED_BY: Record<string, string> = {
   home: 'home',
   dataflow: 'dataflow',
   models: 'models',
+  'data-quality': 'data-quality',
   buildings: 'buildings',
   building: 'buildings',
   'inquiry-list': 'inquiry-list',

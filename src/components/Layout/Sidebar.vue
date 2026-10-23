@@ -211,19 +211,15 @@ function removeView(view: SavedView) {
          bottom of the rail, above the user row, on every page; on a short
          window the nav above it scrolls instead. No caption since the rail grew
          (2026-10-22): the dashed card and its keys say what it is; a screen reader
-         hears its name. -->
+         hears its name. One line since Datakwaliteit (2026-10-23): ⌘K is in the
+         search field at the top, and the rest reads fine side by side. -->
     <div
-      class="mt-auto flex flex-col gap-1 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-1.5"
+      class="mt-auto flex items-center justify-between gap-2 rounded-xl border border-dashed border-line-strong bg-raised px-2.5 py-1.5"
       role="group"
       aria-label="Sneltoetsen"
     >
-      <p
-        v-for="hint in SIDEBAR_HINTS"
-        :key="hint.keys"
-        class="text-sm flex justify-between gap-2 text-muted"
-      >
-        <span>{{ hint.label }}</span>
-        <kbd class="font-mono">{{ hint.keys }}</kbd>
+      <p v-for="hint in SIDEBAR_HINTS" :key="hint.keys" class="text-sm whitespace-nowrap text-muted">
+        <kbd class="font-mono text-body">{{ hint.keys }}</kbd>{{ ' ' }}{{ hint.label }}
       </p>
     </div>
 
