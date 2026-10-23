@@ -23,15 +23,19 @@ withDefaults(
     /** Real history, when we have it. Absent renders no chart rather than a flat line. */
     history?: number[] | null
     loading?: boolean
+    /** A figure to read, not a way in (2026-10-23): a plain tile instead of a button. */
+    still?: boolean
   }>(),
-  { tone: 'neutral', loading: false },
+  { tone: 'neutral', loading: false, still: false },
 )
 </script>
 
 <template>
-  <button
-    type="button"
-    class="flex flex-col gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3.5 text-left hover:border-line-hover"
+  <component
+    :is="still ? 'div' : 'button'"
+    :type="still ? undefined : 'button'"
+    class="flex flex-col gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3.5 text-left"
+    :class="{ 'hover:border-line-hover': !still }"
   >
     <span class="flex items-center gap-2">
       <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full" :class="TONE_DOT[tone]" />
@@ -49,5 +53,5 @@ withDefaults(
     </span>
 
     <Sparkline v-if="history?.length" :values="history" :tone="tone" />
-  </button>
+  </component>
 </template>

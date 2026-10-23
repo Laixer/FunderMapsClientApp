@@ -14,6 +14,7 @@ import type {
   IBuildingStory,
   IStudioToday,
   IPandenOpen,
+  IReaderOps,
 } from '../interfaces/IDataops'
 
 export type QueueChannel = 'upload' | 'email' | 'bulk_drop' | 'api' | 'invoer_app' | 'audit'
@@ -296,6 +297,11 @@ export async function today() {
   return (await get({ endpoint: '/dataops/today' })) as IStudioToday
 }
 
+/** The reader at work over 30 days, for the Datastroom (was the Grafana board "Intake pipeline"). */
+export async function readerOps() {
+  return (await get({ endpoint: '/dataops/reader-ops' })) as IReaderOps
+}
+
 /** The panden with open work, for the Panden finder. */
 export async function pandenOpen() {
   return (await get({ endpoint: '/dataops/buildings' })) as IPandenOpen
@@ -421,6 +427,7 @@ export default {
   originMap,
   building,
   pandenOpen,
+  readerOps,
   today,
   addressVerdict,
   addressAdd,
