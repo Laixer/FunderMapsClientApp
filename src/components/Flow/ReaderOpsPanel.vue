@@ -37,11 +37,18 @@ const decision = computed(() => {
   return h == null ? null : h < 48 ? `${nl(h)} uur` : `${nl(h / 24)} dagen`
 })
 
-const MAILS: { key: keyof IReaderOps['series']['mailsByKind']; label: string }[] = [
-  { key: 'received', label: 'ontvangstbevestiging' },
-  { key: 'question', label: 'vraag aan de melder' },
-  { key: 'closed', label: 'afronding' },
-]
+/** The kinds in the order a dossier meets them; a kind the API adds later shows under its own name. */
+const MAIL_LABEL: Record<string, string> = {
+  received: 'ontvangstbevestiging',
+  question: 'vraag aan de melder',
+  closed: 'afronding',
+  risk_changed: 'risico herberekend',
+}
+const MAILS = computed(() => {
+  const known = Object.keys(MAIL_LABEL)
+  const keys = [...known.filter((k) => k in props.ops.series.mailsByKind), ...Object.keys(props.ops.series.mailsByKind).filter((k) => !known.includes(k))]
+  return keys.map((key) => ({ key, label: MAIL_LABEL[key] ?? key, values: props.ops.series.mailsByKind[key] ?? [] }))
+})
 const sum = (a: number[]) => a.reduce((n, x) => n + x, 0)
 
 const EFFORT_COLUMNS: DataColumn[] = [
@@ -105,8 +112,8 @@ const failureRows = computed(() => props.ops.failures.map((f) => ({ id: f.artifa
           <ul class="flex flex-col gap-1.5" aria-label="Mails per dag">
             <li v-for="m in MAILS" :key="m.key" class="flex items-center gap-3">
               <span class="text-md w-[200px] shrink-0 text-body">{{ m.label }}</span>
-              <Sparkline :values="ops.series.mailsByKind[m.key]" tone="blue" />
-              <span class="text-sm ml-auto font-mono tabular-nums text-faint">{{ nl(sum(ops.series.mailsByKind[m.key])) }}</span>
+              <Sparkline :values="m.values" tone="blue" />
+              <span class="text-sm ml-auto font-mono tabular-nums text-faint">{{ nl(sum(m.values)) }}</span>
             </li>
           </ul>
         </Panel>

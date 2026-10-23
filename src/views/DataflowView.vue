@@ -11,11 +11,12 @@ import Panel from '@/components/Common/Panel.vue'
 import Sparkline from '@/components/Common/Sparkline.vue'
 import ReaderQualityPanel from '@/components/Flow/ReaderQualityPanel.vue'
 import ReaderOpsPanel from '@/components/Flow/ReaderOpsPanel.vue'
+import FeedbackPanel from '@/components/Flow/FeedbackPanel.vue'
 // MapLibre is large: the map loads when this page shows it, not with the Studio.
 const OriginMap = defineAsyncComponent(() => import('@/components/Mapbox/OriginMap.vue'))
 
 import api from '@/services/fundermaps'
-import type { IDataopsFlow, IDataopsMap, IReaderOps, IReaderQuality } from '@/services/fundermaps/interfaces/IDataops'
+import type { IDataopsFlow, IDataopsMap, IFeedback, IReaderOps, IReaderQuality } from '@/services/fundermaps/interfaces/IDataops'
 import { loadReaderQuality } from '@/services/readerTrack'
 import { describeFailure } from '@/services/fundermaps/errors'
 import { AGE_BANDS, buildFlow, GROUPS, SOURCES, sourceRows, type FlowGroup, type SourceRow } from '@/services/dataflow'
@@ -37,6 +38,8 @@ const data = ref<IDataopsFlow | null>(null)
 const quality = ref<IReaderQuality | null>(null)
 /** The reader at work over 30 days; its own request, the page stands without it. */
 const ops = ref<IReaderOps | null>(null)
+/** Terugmeldingen since 2014; its own request too. */
+const feedback = ref<IFeedback | null>(null)
 /** Where the dossiers come from, per municipality; its own request, like the reader's record. */
 const places = ref<IDataopsMap | null>(null)
 const router = useRouter()
@@ -54,6 +57,7 @@ async function load(force = false) {
   error.value = null
   void loadReaderQuality(force).then((q) => (quality.value = q))
   void api.dataops.readerOps().then((o) => (ops.value = o), () => (ops.value = null))
+  void api.dataops.feedback().then((f) => (feedback.value = f), () => (feedback.value = null))
   void api.dataops.originMap().then((m) => (places.value = m), () => (places.value = null))
   try {
     data.value = await api.dataops.flow()
@@ -253,6 +257,10 @@ function waitingTitle(row: SourceRow) {
           </div>
         </Panel>
       </div>
+
+      <!-- What people report back, since 2014 (2026-10-23): the Grafana board "Terugmeldingen", moved here.
+           Next to where things come from, before how the reader handles them. -->
+      <FeedbackPanel v-if="feedback" :feedback="feedback" />
 
       <!-- The reader at work, last 30 days (2026-10-23): the Grafana board "Intake pipeline", moved here. -->
       <ReaderOpsPanel v-if="ops" :ops="ops" />

@@ -14,6 +14,7 @@ import type {
   IBuildingStory,
   IStudioToday,
   IPandenOpen,
+  IFeedback,
   IReaderOps,
 } from '../interfaces/IDataops'
 
@@ -297,6 +298,11 @@ export async function today() {
   return (await get({ endpoint: '/dataops/today' })) as IStudioToday
 }
 
+/** Terugmeldingen, for the Datastroom (was the Grafana board "Terugmeldingen"). */
+export async function feedback() {
+  return (await get({ endpoint: '/dataops/feedback' })) as IFeedback
+}
+
 /** The reader at work over 30 days, for the Datastroom (was the Grafana board "Intake pipeline"). */
 export async function readerOps() {
   return (await get({ endpoint: '/dataops/reader-ops' })) as IReaderOps
@@ -428,6 +434,7 @@ export default {
   building,
   pandenOpen,
   readerOps,
+  feedback,
   today,
   addressVerdict,
   addressAdd,
