@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import ColumnChart, { type ChartColumn } from '@/components/Common/ColumnChart.vue'
 import DataTable, { type DataColumn } from '@/components/Common/DataTable.vue'
 import KpiTile from '@/components/Common/KpiTile.vue'
 import Panel from '@/components/Common/Panel.vue'
 import type { IFeedback } from '@/services/fundermaps/interfaces/IDataops'
-import { TONE_DOT, TONE_FILL } from '@/services/tone'
 import { formatDate } from '@/utils/date'
 
 /**
@@ -20,7 +20,7 @@ import { formatDate } from '@/utils/date'
  *
  * Colours (validated, dataviz validate_palette.js against white): the portal
  * blue, melden green — ours. Green is under 3:1 on white, so the chart carries
- * a legend, direct labels and a per-year list for screen readers.
+ * a legend, direct labels and a per-year list for screen readers (ColumnChart).
  */
 const props = defineProps<{ feedback: IFeedback }>()
 
@@ -33,24 +33,22 @@ const leadTime = computed(() => {
   return h == null ? '—' : h < 48 ? `${Math.round(h)}\u00a0uur` : `${Math.round(h / 24)}\u00a0dagen`
 })
 
-const COLUMN_PX = 112
-const years = computed(() => {
+const SERIES = [
+  { label: 'incidentportaal', tone: 'blue' as const },
+  { label: 'melden.fundermaps.com', tone: 'green' as const },
+]
+const yearColumns = computed<ChartColumn[]>(() => {
   const ys = props.feedback.perYear
-  const max = Math.max(1, ...ys.map((y) => y.portal + y.melden))
   const peak = ys.reduce((best, y) => (y.portal > best.portal ? y : best), ys[0]!)
   const last = ys[ys.length - 1]!
-  return ys.map((y) => {
-    const total = y.portal + y.melden
-    return {
-      ...y,
-      total,
-      portalPx: y.portal ? Math.max(2, Math.round((y.portal / max) * COLUMN_PX)) : 0,
-      meldenPx: y.melden ? Math.max(2, Math.round((y.melden / max) * COLUMN_PX)) : 0,
-      // Selective labels: the portal's busiest year and this year, not a number on every bar.
-      labelled: y === peak || y === last,
-      describe: `${y.year}: ${nl(y.portal)} via het incidentportaal${y.melden ? `, ${nl(y.melden)} via melden.fundermaps.com` : ''}`,
-    }
-  })
+  return ys.map((y) => ({
+    key: y.year,
+    tick: y.year.slice(2),
+    values: [y.portal, y.melden],
+    describe: `${y.year}: ${nl(y.portal)} via het incidentportaal${y.melden ? `, ${nl(y.melden)} via melden.fundermaps.com` : ''}`,
+    // Selective labels: the portal's busiest year and this year, not a number on every bar.
+    labelled: y === peak || y === last,
+  }))
 })
 
 const SUBJECT_COLUMNS: DataColumn[] = [
@@ -84,31 +82,7 @@ const subjectRows = computed(() => props.feedback.subjects.map((s) => ({ id: s.s
     <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-3">
       <Panel title="Per jaar" :meta="`${feedback.perYear[0]?.year}–${feedback.perYear[feedback.perYear.length - 1]?.year}`">
         <div class="flex flex-col gap-3">
-          <div class="text-sm flex items-center gap-4 text-muted" aria-hidden="true">
-            <span class="flex items-center gap-1.5"><span class="size-2 rounded-full" :class="TONE_DOT.blue" />incidentportaal</span>
-            <span class="flex items-center gap-1.5"><span class="size-2 rounded-full" :class="TONE_DOT.green" />melden.fundermaps.com</span>
-          </div>
-          <ol class="flex items-end gap-1.5" role="list" aria-label="Terugmeldingen per jaar">
-            <li
-              v-for="y in years"
-              :key="y.year"
-              class="flex min-w-0 flex-1 flex-col items-center gap-1"
-              :aria-label="y.describe"
-              :title="y.describe"
-            >
-              <span class="text-xs h-4 font-mono tabular-nums text-muted" aria-hidden="true">{{ y.labelled ? nl(y.total) : '' }}</span>
-              <span class="flex w-full max-w-[28px] flex-col justify-end gap-[2px]" :style="{ height: `${COLUMN_PX}px` }" aria-hidden="true">
-                <span v-if="y.meldenPx" class="w-full rounded-t-[4px]" :class="TONE_FILL.green" :style="{ height: `${y.meldenPx}px` }" />
-                <span
-                  v-if="y.portalPx"
-                  class="w-full"
-                  :class="[TONE_FILL.blue, y.meldenPx ? '' : 'rounded-t-[4px]']"
-                  :style="{ height: `${y.portalPx}px` }"
-                />
-              </span>
-              <span class="text-xs font-mono tabular-nums text-faint" aria-hidden="true">{{ y.year.slice(2) }}</span>
-            </li>
-          </ol>
+          <ColumnChart :columns="yearColumns" :series="SERIES" label="Terugmeldingen per jaar" />
           <p class="text-sm text-muted">
             Het archief van FunderConsult ({{ nl(t.archive) }}) staat hier niet in: het kwam in 2026 in één keer binnen,
             de meldingen zelf zijn ouder.

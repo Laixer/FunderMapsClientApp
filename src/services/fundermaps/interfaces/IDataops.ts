@@ -604,3 +604,27 @@ export interface IQueueTrend {
   handled: number[]
   now: { open: number; oldestDays: number | null; overWeek: number }
 }
+
+/** What is in FunderMaps and how complete (API GET /dataops/data-quality, #293): the Grafana board "Data quality". */
+export interface IDataQuality {
+  generatedAt: string
+  totals: { inquiries: number; samples: number; recoveries: number; recoverySamples: number; oldestYear: number | null }
+  /** Samples by the month they came into the database — imports included, named in `imports`. */
+  added: { months: string[]; samples: number[]; imports: { day: string; samples: number }[]; importThreshold: number }
+  /** Rapportages by the year of the report; the first key is 'before1900'. */
+  documentYears: { years: string[]; inquiries: number[] }
+  byType: { type: string; inquiries: number; samples: number; addedLastYear: number }[]
+  /** Raw PG labels (pending_review, …). */
+  auditStatus: { status: string; inquiries: number }[]
+  quickscan: {
+    /** Field keys that make a QuickScan complete (the board's definition). */
+    required: string[]
+    months: string[]
+    samples: number[]
+    complete: number[]
+    incomplete: { inquiryId: number; sampleId: number; at: string; documentName: string | null; missing: string[] }[]
+    fieldFill: { total: number; fields: { field: string; filled: number }[] }
+  }
+  foundationFill: { total: number; fields: { field: string; filled: number }[] }
+  bureaus: { name: string | null; samples: number }[]
+}

@@ -61,10 +61,13 @@ export function keyLabel(spec: string): string {
  * the rows of a list, not to a next dossier), "Goedkeuren ⇧A" (also to an
  * opsteller, who cannot approve) and "Opslaan" (only on the entry screens).
  */
+/**
+ * The rail's hint line. No ⌘K here (2026-10-23): the search field at the top of
+ * the rail already shows it, and the line had to give up a row for Datakwaliteit.
+ */
 export const SIDEBAR_HINTS: readonly Shortcut[] = [
-  { keys: keyLabel('⌘K'), label: 'Zoeken of springen' },
-  { keys: 'j / k', label: 'Volgende / vorige rij' },
-  { keys: '?', label: 'Alle sneltoetsen' },
+  { keys: 'j / k', label: 'rijen' },
+  { keys: '?', label: 'sneltoetsen' },
 ]
 
 export const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
