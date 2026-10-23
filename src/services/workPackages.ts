@@ -28,6 +28,8 @@
 
 import api from '@/services/fundermaps'
 import type { IQueueListOpts } from '@/services/fundermaps/endpoints/dataops'
+import type { IQueueTrend } from '@/services/fundermaps/interfaces/IDataops'
+import { BUILTIN_VIEWS, emptyQuery, toRouteQuery } from '@/services/reviewExplorer'
 
 export interface WorkPackage {
   id: string
@@ -131,6 +133,61 @@ export const WORK_PACKAGES: readonly WorkPackage[] = [
     opts: { state: ['replied'] },
   },
 ] as const
+
+/**
+ * The tab a package opens on: the first one asking for the same channel and
+ * state. A search on "Alles" also finds closed dossiers (isWideSearch), so a
+ * package with a search term showed 117 instead of its 6 open ones (Don,
+ * 2026-10-20). Its own tab keeps it to open dossiers. Since the groups
+ * (2026-10-22) every package has one; Alles is the fallback.
+ */
+const sameSet = (a: readonly string[] = [], b: readonly string[] = []) =>
+  a.length === b.length && a.every((x) => b.includes(x))
+
+function packageView(p: WorkPackage): string {
+  const view = BUILTIN_VIEWS.find(
+    (v) =>
+      sameSet(v.query.channel, p.opts.channel) &&
+      sameSet(v.query.state, p.opts.state) &&
+      !v.query.outcome?.length &&
+      !v.query.mine,
+  )
+  return view?.key ?? 'alles'
+}
+
+/** The package opened in Beoordelen, through the queue's own URL format. */
+export function packageLink(p: WorkPackage) {
+  const q = emptyQuery()
+  if (p.opts.channel) q.channel = [...p.opts.channel]
+  if (p.opts.state) q.state = [...p.opts.state]
+  if (p.opts.kind) q.kind = [...p.opts.kind]
+  if (p.opts.q) q.q = p.opts.q
+  return { name: 'review-queue', query: toRouteQuery(q, packageView(p)) }
+}
+
+/**
+ * A package that filters on how a dossier stands now (a question without a
+ * document, the melder's reply) has no history to draw: the API refuses it
+ * rather than paint today's answer over last month (2026-10-23).
+ */
+export const hasTrend = (p: WorkPackage) => !p.opts.state?.length
+
+const trends = new Map<string, { at: number; trend: Promise<IQueueTrend | null> }>()
+
+/**
+ * The package over the last 30 days, or null (no history, or the API did not
+ * answer). Vandaag asks for the same package twice — its own panel and the
+ * overview — so one answer is kept for a minute.
+ */
+export function loadTrend(p: WorkPackage): Promise<IQueueTrend | null> {
+  if (!hasTrend(p)) return Promise.resolve(null)
+  const hit = trends.get(p.id)
+  if (hit && Date.now() - hit.at < 60_000) return hit.trend
+  const { q, channel, kind } = p.opts
+  const trend = api.dataops.queueTrend({ q, channel, kind }).catch(() => null)
+  trends.set(p.id, { at: Date.now(), trend })
+  return trend
+}
 
 /** Rows shown per package before "alles bekijken". */
 export const PACKAGE_PREVIEW = 5

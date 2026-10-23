@@ -15,6 +15,7 @@ import type {
   IStudioToday,
   IPandenOpen,
   IFeedback,
+  IQueueTrend,
   IReaderOps,
 } from '../interfaces/IDataops'
 
@@ -74,6 +75,15 @@ function queueQueryString(opts: IQueueListOpts): Record<string, string> {
  */
 export async function queue(opts: IQueueListOpts = {}) {
   return (await get({ endpoint: '/dataops/queue', queryString: queueQueryString(opts) })) as IReviewQueueItem[]
+}
+
+/**
+ * The same slice over the last 30 days (API #292): open at each day's end,
+ * handled per day, the oldest now. Only filters on a dossier's own facts — one
+ * on how it stands now (state, age, …) has no history, and the API refuses it.
+ */
+export async function queueTrend(opts: Pick<IQueueListOpts, 'q' | 'channel' | 'kind' | 'building' | 'municipality'>) {
+  return (await get({ endpoint: '/dataops/queue/trend', queryString: queueQueryString(opts) })) as IQueueTrend
 }
 
 /** How long the line is, independent of any page. With filters: how long the filtered line is. */
@@ -413,6 +423,7 @@ export async function recordRecovery(
 export default {
   queue,
   queueCount,
+  queueTrend,
   dossier,
   verdict,
   reopenField,

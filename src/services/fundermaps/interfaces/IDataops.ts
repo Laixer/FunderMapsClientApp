@@ -593,3 +593,14 @@ export interface IFeedback {
   /** Melden per subject, largest first; per-dossier follow-ups folded into one. */
   subjects: { subject: string; received: number; handled: number; ledToReport: number }[]
 }
+
+/** A queue slice over the last 30 Amsterdam days (API GET /dataops/queue/trend, #292). */
+export interface IQueueTrend {
+  /** Oldest first; `open` and `handled` run along them. */
+  days: string[]
+  /** Open at the end of each day; the last one is today's count. */
+  open: number[]
+  /** Given an outcome that day. */
+  handled: number[]
+  now: { open: number; oldestDays: number | null; overWeek: number }
+}
