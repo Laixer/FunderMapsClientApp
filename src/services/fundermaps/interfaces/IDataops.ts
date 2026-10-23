@@ -548,3 +548,23 @@ export interface IPandenOpen {
     municipality: string | null
   }[]
 }
+
+/** The reader at work over 30 days (API GET /dataops/reader-ops): the Grafana board "Intake pipeline" in the Studio. */
+export interface IReaderOps {
+  generatedAt: string
+  /** Amsterdam days, oldest first; every series runs along them. */
+  days: string[]
+  series: {
+    readsByLane: Record<'document' | 'text' | 'vision', number[]>
+    failed: number[]
+    usd: number[]
+    ktokens: number[]
+    /** Seconds; null on a day without a finished read. */
+    p50: (number | null)[]
+    p95: (number | null)[]
+    mailsByKind: Record<'received' | 'closed' | 'question', number[]>
+  }
+  totals: { reads: number; failed: number; costUsd: number; judged: number; confirmed: number; medianDecisionHours: number | null }
+  effort: { person: string; verdicts: number; medianSeconds: number; hours: number }[]
+  failures: { at: string; artifactId: number; dossierId: number | null; name: string | null; lane: string; error: string | null }[]
+}
