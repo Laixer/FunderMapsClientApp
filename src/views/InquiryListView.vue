@@ -15,7 +15,7 @@ import KeyValueList, { type KeyValueItem } from '@/components/Common/KeyValueLis
 import MapPanel from '@/components/Common/MapPanel.vue'
 import StatusBadge from '@/components/Common/StatusBadge.vue'
 
-import type { SamplePin } from '@/components/Mapbox/SampleMap.vue'
+import type { SamplePin } from '@/components/Map/SampleMap.vue'
 import api from '@/services/fundermaps'
 import { canEdit } from '@/services/pipeline'
 import type { IInquiry } from '@/services/fundermaps/interfaces/IInquiry'

@@ -11,7 +11,7 @@ import AddressPicker from '@/components/Inquiry/AddressPicker.vue'
 import BuildingContext from '@/components/Inquiry/BuildingContext.vue'
 import SampleForm from '@/components/Recovery/SampleForm.vue'
 
-import type { SamplePin } from '@/components/Mapbox/SampleMap.vue'
+import type { SamplePin } from '@/components/Map/SampleMap.vue'
 import api from '@/services/fundermaps'
 import type { IRecovery } from '@/services/fundermaps/interfaces/IRecovery'
 import type {

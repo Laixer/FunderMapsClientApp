@@ -13,7 +13,7 @@ import ReaderQualityPanel from '@/components/Flow/ReaderQualityPanel.vue'
 import ReaderOpsPanel from '@/components/Flow/ReaderOpsPanel.vue'
 import FeedbackPanel from '@/components/Flow/FeedbackPanel.vue'
 // MapLibre is large: the map loads when this page shows it, not with the Studio.
-const OriginMap = defineAsyncComponent(() => import('@/components/Mapbox/OriginMap.vue'))
+const OriginMap = defineAsyncComponent(() => import('@/components/Map/OriginMap.vue'))
 
 import api from '@/services/fundermaps'
 import type { IDataopsFlow, IDataopsMap, IFeedback, IReaderOps, IReaderQuality } from '@/services/fundermaps/interfaces/IDataops'
