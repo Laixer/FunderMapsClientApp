@@ -27,7 +27,7 @@ import type {
 import { loadReaderQuality, trackFor } from '@/services/readerTrack'
 import { describeFailure, isNotFound } from '@/services/fundermaps/errors'
 import { isPreviewableImageMime } from '@/services/documentFile'
-import { parseQuery, toQueueOpts } from '@/services/reviewExplorer'
+import { openNextDossier, queueReturnQuery } from '@/services/queueReturn'
 import { bareName, defaultGroups, groupOptions, groupsOf, isMergeable, type GroupChoice } from '@/services/rapportageGroups'
 import {
   CHANNEL_LABEL,
@@ -1198,7 +1198,12 @@ async function commitDossier() {
     }
     if (r.samples === 0) {
       toastSuccess(`Rapportage #${r.inquiryId} aangemaakt zonder adressen; vul die nu in.`)
-      await router.push({ name: 'inquiry-edit-samples', params: { id: r.inquiryId } })
+      // The list rides along: offering the rapportage for review opens the next dossier (#484).
+      await router.push({
+        name: 'inquiry-edit-samples',
+        params: { id: r.inquiryId },
+        query: queueReturnQuery(data.value.dossier.id, route.query),
+      })
       return
     }
     // An address added by hand has a sample with nothing in it yet: go and
@@ -1213,7 +1218,11 @@ async function commitDossier() {
     const toFill = r.emptySamples || (r.auditStatus === 'pending' ? r.samples : 0)
     if (toFill) {
       toastSuccess(`Rapportage #${r.inquiryId} aangemaakt met ${r.samples} adres${r.samples === 1 ? '' : 'sen'}, ${toFill} nog zonder gegevens; vul die nu in.`)
-      await router.push({ name: 'inquiry-edit-samples', params: { id: r.inquiryId } })
+      await router.push({
+        name: 'inquiry-edit-samples',
+        params: { id: r.inquiryId },
+        query: queueReturnQuery(data.value.dossier.id, route.query),
+      })
       return
     }
     toastSuccess(`Rapportage #${r.inquiryId} aangemaakt met ${r.samples} adres${r.samples === 1 ? '' : 'sen'}.`)
@@ -1505,29 +1514,10 @@ function entryWhen(at: string): string {
     ' ' + new Date(at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
 }
 
-/**
- * Straight on to the next one. Closing a dossier is the end of a decision,
- * not of a session: the reviewer's next move is always "the next oldest", and
- * a trip through the list between every two dossiers is what breaks the pace
- * (Yorick, 2026-08-29). The list is still one click away if they want it.
- */
+/** Straight on to the next one of the same list (services/queueReturn.ts). */
 async function openNext(closedId: number, outcome: DossierOutcome) {
   toastSuccess(`Dossier #${closedId} ${OUTCOME_LABEL[outcome]}.`)
-  try {
-    // Within the list the reviewer came from (Don, 2026-09-14): the filter
-    // and sort ride along in the URL, so "next" means the next one of the
-    // same kind, contractor or view -- not the oldest open dossier overall.
-    // Page and offset are dropped: the closed one has just left the list.
-    const opts = { ...toQueueOpts(parseQuery(route.query)), limit: 5, offset: 0 }
-    const next = (await api.dataops.queue(opts)).find((r) => r.id !== closedId)
-    if (next) {
-      await router.push({ name: 'review-dossier', params: { id: next.id }, query: route.query })
-      return
-    }
-  } catch {
-    // Falling back to the list is fine; the close itself already succeeded.
-  }
-  await router.push({ name: 'review-queue', query: route.query })
+  await openNextDossier(router, { dossierId: closedId, queue: route.query })
 }
 /** The source was not allowed to establish this field — a QuickScan quoting us back. */
 const isRefused = (f: IProposedField) => f.state === 'rejected'
