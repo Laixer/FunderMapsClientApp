@@ -8,7 +8,6 @@ import contractor from './endpoints/contractor'
 import reviewer from './endpoints/reviewer'
 import dataops from './endpoints/dataops'
 import geocoder from './endpoints/geocoder'
-import organization from './endpoints/organization'
 import pdok from './endpoints/pdok'
 import management from './endpoints/management'
 
@@ -23,7 +22,6 @@ export default {
   reviewer,
   dataops,
   geocoder,
-  organization,
   pdok,
   management,
 }
