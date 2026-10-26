@@ -32,7 +32,7 @@ import { rememberPand } from '@/services/recentPanden'
 import { TONE_DOT } from '@/services/tone'
 
 // MapLibre is large: the map loads when this page shows it.
-const BuildingMap = defineAsyncComponent(() => import('@/components/Mapbox/BuildingMap.vue'))
+const BuildingMap = defineAsyncComponent(() => import('@/components/Map/BuildingMap.vue'))
 
 /**
  * The Pand page (2026-10-22): one pand's whole story. Where it is, what the

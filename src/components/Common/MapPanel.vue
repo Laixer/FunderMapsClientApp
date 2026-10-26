@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
 
-import type { SamplePin } from '@/components/Mapbox/SampleMap.vue'
+import type { SamplePin } from '@/components/Map/SampleMap.vue'
 
 /**
  * A map at the top of a side pane.
@@ -32,7 +32,7 @@ withDefaults(
 
 defineEmits<{ select: [id: string | number] }>()
 
-const SampleMap = defineAsyncComponent(() => import('@/components/Mapbox/SampleMap.vue'))
+const SampleMap = defineAsyncComponent(() => import('@/components/Map/SampleMap.vue'))
 </script>
 
 <template>

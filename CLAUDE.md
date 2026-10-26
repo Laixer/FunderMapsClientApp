@@ -68,7 +68,7 @@ One required `VITE_` var (see `.env.example`):
   ProgressBar, KeyValueList, FilterChip, FilterBuilder, Dropzone, PresetList, ToggleChip,
   MapPanel, EmptyState, Modal, ConfirmDialog, ToastHost, DocumentCard),
   `Inquiry/` & `Recovery/` (SampleForm, SampleField, SampleOverview, SampleReadonly,
-  AddressPicker, BuildingContext, RejectModal), `Mapbox/` (SampleMap), `UserMenu`.
+  AddressPicker, BuildingContext, RejectModal), `Map/` (SampleMap, BuildingMap, OriginMap), `UserMenu`.
 - **`locales/`** — `nl.json` (Dutch is the only locale).
 - **`utils/`** — small helpers (date, address, string).
 - **`scripts/fetch-fonts.mjs`** — regenerates the self-hosted webfonts + `base/fonts.css`.
