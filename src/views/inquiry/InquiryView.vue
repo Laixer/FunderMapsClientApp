@@ -33,6 +33,7 @@ import {
   statusLabelFor,
   type DossierEvent,
 } from '@/services/pipeline'
+import { keepQueueReturn, openNextDossier, readQueueReturn } from '@/services/queueReturn'
 import { remember } from '@/services/recents'
 import { countFilledSampleFields, sampleCompleteness } from '@/services/sampleFields'
 import { findingsFor } from '@/services/sampleValidation'
@@ -310,33 +311,46 @@ const findings = computed(() =>
 
 /* ----------------------------------------------------------------- actions */
 
+/** Opened from a dossier in Controle (#484): offering for review then opens that list's next dossier. */
+const queueReturn = computed(() => readQueueReturn(route.query))
+
 function goEdit() {
-  router.push({ name: 'inquiry-edit-details', params: { id: inquiryId.value } })
+  router.push({ name: 'inquiry-edit-details', params: { id: inquiryId.value }, query: keepQueueReturn(route.query) })
 }
 
 function goInvoer() {
-  router.push({ name: 'inquiry-edit-samples', params: { id: inquiryId.value } })
+  router.push({ name: 'inquiry-edit-samples', params: { id: inquiryId.value }, query: keepQueueReturn(route.query) })
 }
 
-/** Every write follows the same shape: confirm, call, reload, refresh counts. */
+function goNextDossier() {
+  if (queueReturn.value) return openNextDossier(router, queueReturn.value)
+}
+
+/**
+ * Every write follows the same shape: confirm, call, reload, refresh counts.
+ * `then` replaces the reload when the write ends the stay on this page.
+ */
 async function run(
   question: { title: string; body: string; confirmLabel: string; danger?: boolean },
   action: () => Promise<void>,
   success: string,
+  then?: () => Promise<void>,
 ) {
   const ok = await confirmAction(question)
   if (!ok) return
   try {
     await action()
     toastSuccess(success)
-    await load()
     studio.refreshCounts(sessionStore.currentUser?.id)
+    if (then) await then()
+    else await load()
   } catch (e) {
     toastError(describeFailure(e, 'De actie is niet gelukt.'))
   }
 }
 
 function handleSubmitForReview() {
+  const back = queueReturn.value
   return run(
     {
       title: 'Aanbieden ter review?',
@@ -349,6 +363,7 @@ function handleSubmitForReview() {
     },
     () => api.inquiry.submitForReview(inquiryId.value),
     'Aangeboden ter review.',
+    back ? () => openNextDossier(router, back) : undefined,
   )
 }
 
@@ -478,6 +493,17 @@ useActionShortcuts(() => {
             </RouterLink>
             — het document, de citaten en het verloop staan daar.
           </p>
+          <!-- Opened from Controle (#484): say where "Aanbieden ter review" leads, or offer the way on. -->
+          <Callout v-if="queueReturn" tone="blue">
+            <template v-if="canSubmitForReview && canWrite">
+              Je komt uit Controle (dossier #{{ queueReturn.dossierId }}). Na ‘Aanbieden ter review’ ga je door naar
+              het volgende dossier in je lijst.
+            </template>
+            <template v-else>Je komt uit Controle (dossier #{{ queueReturn.dossierId }}).</template>
+            <template v-if="!(canSubmitForReview && canWrite)" #action>
+              <Button label="Volgende dossier" @click="goNextDossier" />
+            </template>
+          </Callout>
         </template>
 
         <!-- Where it came from, and what it changed after (2026-10-22). -->

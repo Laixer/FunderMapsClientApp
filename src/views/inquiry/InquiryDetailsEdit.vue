@@ -21,6 +21,7 @@ import { INQUIRY_TYPE_OPTIONS } from '@/services/inquiryEnums'
 import type { SelectOption } from '@/services/options'
 import { reviewerHintFor, reviewerOptionsFor } from '@/services/reviewerOptions'
 import { withStoredReviewer, type StoredReviewer } from '@/services/storedReviewer'
+import { keepQueueReturn } from '@/services/queueReturn'
 import { toastError, toastSuccess } from '@/services/toast'
 import { formatTime } from '@/utils/date'
 import { useActionShortcuts } from '@/services/useActionShortcuts'
@@ -214,12 +215,14 @@ async function save() {
 /** Save and go back to the dossier. */
 async function done() {
   const id = await persist()
-  if (id !== null) router.push({ name: 'inquiry-view', params: { id } })
+  if (id !== null) router.push({ name: 'inquiry-view', params: { id }, query: keepQueueReturn(route.query) })
 }
 
 /** "Annuleren" is the choice to leave, so it is not asked again. */
 function cancel() {
-  return unsaved.leave(() => router.push({ name: 'inquiry-view', params: { id: inquiryId.value } }))
+  return unsaved.leave(() =>
+    router.push({ name: 'inquiry-view', params: { id: inquiryId.value }, query: keepQueueReturn(route.query) }),
+  )
 }
 
 const draftStatus = computed(() => {

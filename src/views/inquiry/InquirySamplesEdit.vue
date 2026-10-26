@@ -31,6 +31,7 @@ import {
   sampleCompleteness,
 } from '@/services/sampleFields'
 import { findingsFor } from '@/services/sampleValidation'
+import { keepQueueReturn } from '@/services/queueReturn'
 import { toastError } from '@/services/toast'
 import { formatAddress } from '@/utils/address'
 import { formatTime } from '@/utils/date'
@@ -368,12 +369,12 @@ onBeforeRouteLeave(() => {
 })
 
 function details() {
-  router.push({ name: 'inquiry-edit-details', params: { id: inquiryId.value } })
+  router.push({ name: 'inquiry-edit-details', params: { id: inquiryId.value }, query: keepQueueReturn(route.query) })
 }
 
 /** Back to the dossier, where the findings and "aanbieden ter review" live. */
 function done() {
-  router.push({ name: 'inquiry-view', params: { id: inquiryId.value } })
+  router.push({ name: 'inquiry-view', params: { id: inquiryId.value }, query: keepQueueReturn(route.query) })
 }
 
 useActionShortcuts(() => ({
