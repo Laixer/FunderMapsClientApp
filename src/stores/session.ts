@@ -26,7 +26,8 @@ const isSuperUser = computed<boolean>(() => orgRole.value === 'superuser')
 const isVerifier = computed<boolean>(() => orgRole.value === 'verifier')
 const isWriter = computed<boolean>(() => orgRole.value === 'writer')
 const isReader = computed<boolean>(() => orgRole.value === 'reader')
-const canWrite = computed<boolean>(() => isSuperUser.value || isWriter.value)
+// A verifier is a writer who may also approve (FunderMapsApi permissions.ts).
+const canWrite = computed<boolean>(() => isSuperUser.value || isVerifier.value || isWriter.value)
 const canApprove = computed<boolean>(() => isSuperUser.value || isVerifier.value)
 
 /**
