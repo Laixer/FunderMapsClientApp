@@ -1,5 +1,10 @@
 # FunderMapsClientApp
 
+> **Retired on 2026-10-29.** The Studio moved into **FunderMapsStudio** (studio.funderdata.nl), copied as-is into its
+> `app/studio/` on 2026-10-27, and went live there on 2026-10-28. studio.fundermaps.com and app.fundermaps.com redirect to it,
+> and the app `fundermaps-studio-prod` from this repo is deleted. The open issues moved to FunderMapsStudio (#9–#15).
+> This repo is archived and kept for reference.
+
 Internal "invoer app" (data-entry app) used by FunderMaps staff to enter and
 review foundation **inquiries** and **recoveries** (and their samples). Not
 customer-facing — that's WebFront. Authentication is the session cookie the
